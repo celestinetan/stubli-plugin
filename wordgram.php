@@ -2,10 +2,9 @@
 /**
  * Plugin Name:       Stubli
  * Description:       Turns a WordPress site into a cosy, familiar photo-sharing home: a public profile with collections, a journal and a guest book, a private reader for the Stubli sites you follow, and comments between sites via Webmention.
- * Version:           0.18.0
+ * Version:           0.19.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
- * Requires Plugins:  webmention
  * Author:            Celestine Tan
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,7 +20,7 @@ namespace Stubli;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION        = '0.18.0';
+const VERSION        = '0.19.0';
 const SCHEMA_VERSION = 4;
 const REST_NS        = 'stubli/v1';
 /** Every route also answers here, and calls to other sites use it, so sites on older versions keep understanding each other. */
@@ -54,6 +53,7 @@ require_once STUBLI_PLUGIN_DIR . 'includes/class-discover.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-setup.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-mine.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-digest.php';
+require_once STUBLI_PLUGIN_DIR . 'includes/class-helper.php';
 
 register_activation_hook( __FILE__, array( Install::class, 'activate' ) );
 register_deactivation_hook( __FILE__, array( Install::class, 'deactivate' ) );
@@ -78,6 +78,7 @@ add_action(
 		HostCheck::init();
 		Discover::init();
 		Setup::init();
+		Helper::init();
 		Mine::init();
 		Digest::init();
 	}

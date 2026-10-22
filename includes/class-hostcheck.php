@@ -154,7 +154,7 @@ class HostCheck {
 
 		$add( 'php', version_compare( PHP_VERSION, '7.4', '>=' ), 'PHP ' . PHP_VERSION, __( 'Stubli needs PHP 7.4 or newer; 8.1 or newer is best.', 'stubli' ) );
 		$add( 'wp', version_compare( $wp_version, '6.5', '>=' ), 'WordPress ' . $wp_version, __( 'Stubli needs WordPress 6.5 or newer.', 'stubli' ) );
-		$add( 'webmention', function_exists( 'send_webmention' ), __( 'Webmention plugin', 'stubli' ), __( 'Comments and guest book entries travel between sites with the Webmention plugin. Install and activate it under Plugins.', 'stubli' ) );
+		$add( 'webmention', function_exists( 'send_webmention' ), __( 'Webmention plugin', 'stubli' ), __( 'Comments and guest book entries travel between sites with the free Webmention plugin. Use "Add Webmention" at the top of this page.', 'stubli' ) );
 		$add( 'https', 'https' === wp_parse_url( home_url(), PHP_URL_SCHEME ), __( 'Secure address (https)', 'stubli' ), __( 'Your address should start with https://. Most hosts offer a free certificate; look for "SSL" or "Let\'s Encrypt" in your host\'s settings.', 'stubli' ) );
 
 		$jpeg = wp_image_editor_supports( array( 'mime_type' => 'image/jpeg' ) );

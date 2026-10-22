@@ -955,9 +955,10 @@
 				'<p class="a-label">Your site</p>' +
 				'<label class="a-check"><span><strong>Keep my site out of search engines</strong><span class="muted small">Google and others won\'t list it. Friends still find you through Stubli.</span></span><input type="checkbox" data-su-hidden' + ( d.hidden ? ' checked' : '' ) + '></label>' +
 				'<label class="a-check"><span><strong>Ask AI crawlers to stay away</strong><span class="muted small">A request that respectable bots honour.</span></span><input type="checkbox" data-su-ai' + ( d.block_ai ? ' checked' : '' ) + '></label>' +
-				'<p class="a-help">Stubli also turns on comments, so replies from friends\' sites can arrive. You can change all of this later in Settings → Stubli.</p>' +
+				'<p class="a-help">' + ( d.helper === 'active' ? 'Stubli also turns on comments, so replies from friends\' sites can arrive.' : 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.' ) + ' You can change all of this later in Settings → Stubli.</p>' +
+				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + '">Add Webmention in Plugins</a></p></div>' : '' ) +
 				'<p class="a-su-note">Your first photo can wait. When you\'re ready, tap ' + icon( 'plus', 18 ) + ' at the bottom.</p>' +
-				setupFoot( 'Open my feed' );
+				setupFoot( su.helperFail ? 'Open my feed anyway' : ( su.busy && su.helperBusy ? 'Adding Webmention…' : 'Open my feed' ) );
 		}
 		root.innerHTML = setupHead() + '<main class="a-compose a-su" id="main">' + body + '</main>';
 		bindSetup();
@@ -1078,7 +1079,17 @@
 				} );
 			}
 			next.addEventListener( 'click', function () {
-				setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+				var finish = function () {
+					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+				};
+				if ( d.helper === 'active' || su.helperFail ) { return finish(); }
+				// Add the Webmention plugin (from WordPress.org) so comments can travel between sites.
+				su.busy = true; su.helperBusy = true; renderSetup();
+				send( 'POST', 'setup/webmention', {} ).then( function ( r ) {
+					su.busy = false; su.helperBusy = false; d.helper = ( r && r.helper ) || 'active'; finish();
+				}, function ( e ) {
+					su.busy = false; su.helperBusy = false; su.helperFail = ( e && e.message ) || 'Webmention couldn\'t be added just now.'; renderSetup();
+				} );
 			} );
 		}
 	}
