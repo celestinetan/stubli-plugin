@@ -1,10 +1,11 @@
 === Stubli ===
 Contributors: celestinetan
+Donate link: https://buymeacoffee.com/celestinetan
 Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.19.0
+Stable tag: 0.20.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +32,7 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 * What's new: comments and guest book entries waiting for your OK.
 * A daily summary at a time you choose, only when something is new, as a phone notification or by email. Never one per post.
 * Edit or delete your posts, bring your photos and videos from Instagram, and invite friends with links that make you follow each other.
+* Yours to keep: download everything as one zip that opens offline, or move your whole Stubli to another WordPress site. The people who follow you come along.
 
 **Kind by design**
 
@@ -54,9 +56,11 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 
 No. Your posts, comments and the list of people you follow stay on your own site. Following someone means your site reads their site's feed.
 
-= Can I leave? =
+= Can I leave, or take everything with me? =
 
-Yes. Your photos and journal are ordinary WordPress posts. Uninstalling Stubli removes its own tables and settings but keeps your posts, photos, journal and guest book.
+Yes. In the app, You → Yours to keep makes one zip with your original photos and videos, captions, journal, comments, guest book and the people you follow, as pages that open offline in any browser plus a data file. You → Move to another site copies your whole Stubli to a new WordPress site (for example your own server); your old site then points to the new one, and your followers' sites switch over by themselves.
+
+Your photos and journal are ordinary WordPress posts. Uninstalling Stubli removes its own tables and settings but keeps your posts, photos, journal and guest book.
 
 = Does Stubli work with my theme? =
 
@@ -75,6 +79,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report. Privacy: https://stubli.app/privacy/
 * **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
 * **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
+* **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
@@ -85,6 +90,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.20.0 =
+* Yours to keep: download everything as one zip that opens offline in any browser.
+* Move to another site: copy your whole Stubli to a new WordPress site with a move link. Followers switch to the new address by themselves.
 
 = 0.19.0 =
 * Stubli switches on straight away and opens its setup. The Webmention plugin it needs for comments is added with one tap at the end of the setup, or from Settings → Stubli.

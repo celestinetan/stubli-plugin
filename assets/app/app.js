@@ -337,12 +337,107 @@
 			'<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
 			'<section class="a-card"><h2>Follow someone</h2><p class="muted">Know someone with a Stubli? Type their address.</p>' + followForm( 'you' ) + '</section>' +
 			'<section class="a-card"><h2>Bring your photos from Instagram</h2><p class="muted">Your posts arrive with their original dates and captions.</p><a class="a-btn quiet" href="#import">Start</a></section>' +
+			keepCard() +
 			'<section class="a-card"><h2>Tell us what you think</h2><p class="muted">Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.</p><a class="a-btn quiet" href="#feedback">Send feedback</a></section>' +
 			( isStandalone() ? '' : '<section class="a-card"><h2>Put Stubli on your home screen</h2><p class="muted">' + ( ios ? 'In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.' : 'Open your browser\'s menu, then choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.' ) + ' It opens like an app, without the browser around it.</p></section>' ) +
+			'<p class="a-help a-thanks">Stubli is free and always will be. If you enjoy it, you can <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">buy Celestine a coffee</a>. It unlocks nothing; it just keeps Stubli going.</p>' +
 			'</main>' + bar( 'you' );
-		bindInvite(); bindFollow(); bindMine(); bindSummary( redrawSummary );
+		bindInvite(); bindFollow(); bindMine(); bindSummary( redrawSummary ); bindKeep();
+		bindMove();
+		if ( ! mv.loaded ) { mv.loaded = true; Promise.all( [ send( 'GET', 'move/link', null ), send( 'GET', 'move/in', null ) ] ).then( function ( r ) { mv.out = r[ 0 ]; mv.inState = r[ 1 ]; if ( r[ 1 ].state === 'moving' ) { runMove( function () { if ( location.hash === '#you' ) { redrawMove(); } } ); } if ( location.hash === '#you' ) { redrawMove(); } }, function () {} ); }
+		if ( ! kp.loaded && ! kp.loading ) { kp.loading = true; send( 'GET', 'archive', null ).then( function ( r ) { kp.ar = r; kp.loaded = true; kp.loading = false; if ( r.state === 'packing' ) { packArchive(); } else if ( location.hash === '#you' ) { redrawKeep(); } }, function () { kp.loaded = true; kp.loading = false; } ); }
 		if ( ! ds.loaded && ! ds.loading ) { ds.loading = true; loadSummary().then( function () { ds.loading = false; if ( location.hash === '#you' ) { redrawSummary(); } } ); }
 		if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; loadMine( true ).then( function () { mine.loading = false; if ( location.hash === '#you' ) { swap( '[data-mine]', mineSection(), bindMine ); } } ); }
+	}
+
+	/* ── Yours to keep: download everything, move to another site ── */
+	var kp = { loaded: false, loading: false, ar: null, busy: false, msg: '' };
+	function keepCard() {
+		var a = kp.ar || { state: 'none' }, body;
+		if ( a.state === 'packing' ) {
+			body = '<p class="a-ds-status" role="status">Packing your archive… ' + ( a.total ? ( a.done + ' of ' + a.total + ' photos and videos' ) : '' ) + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( a.total ? Math.round( 100 * a.done / a.total ) : 5 ) + '%"></span></div><p class="a-help">You can leave this screen open; it carries on by itself.</p>';
+		} else if ( a.state === 'ready' ) {
+			body = '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + 'Your archive is ready (' + esc( a.size ) + ')</p><div class="a-actions"><a class="a-btn" href="' + esc( a.download ) + '">Download</a><button type="button" class="a-btn quiet" data-keep-new>Make a new one</button></div><p class="a-help">Kept on your site until ' + esc( a.expires ) + ', then removed.</p>';
+		} else {
+			body = '<button type="button" class="a-btn quiet" data-keep-start' + ( kp.busy || a.supported === false ? ' disabled' : '' ) + '>' + ( kp.busy ? 'Starting…' : 'Download everything' ) + '</button>' + ( a.supported === false ? '<p class="a-help">This host can\'t make zip files. Ask your host to turn on PHP\'s Zip extension.</p>' : '' );
+		}
+		return '<section class="a-card" data-keep><h2>Yours to keep</h2><p class="muted">One zip with your original photos and videos, captions, journal, comments, guest book and the people you follow. It opens offline in any browser.</p>' + body +
+			( kp.msg ? '<div class="a-notice" role="alert"><p>' + esc( kp.msg ) + '</p></div>' : '' ) + '</section>' + moveCard();
+	}
+	/* Move: out (this site is the old one) and in (this site is the new one). */
+	var mv = { out: null, link: '', expires: '', inState: null, busy: false, msg: '', copied: false };
+	function moveProgress( st ) {
+		if ( ! st || st.state === 'none' ) { return ''; }
+		if ( st.state === 'moving' ) {
+			return '<p class="a-ds-status" role="status">Copying from ' + esc( hostOf( st.from ) ) + '… ' + st.done + ' of ' + st.total + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( st.total ? Math.round( 100 * st.done / st.total ) : 5 ) + '%"></span></div><p class="a-help">Photos and videos arrive at full size, so this can take a while. Keep this screen open.</p>';
+		}
+		return '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + 'Everything from ' + esc( hostOf( st.from ) ) + ' is here' + ( st.skipped ? ' (' + st.skipped + ' item' + ( st.skipped > 1 ? 's' : '' ) + ' couldn\'t be copied)' : '' ) + '.</p><p class="a-help">' + ( st.told ? 'Your old site now points here, and the people who follow you switch to this address within a few hours.' : 'Your old site couldn\'t be told about the move. Your followers can follow you here by your new address.' ) + '</p>';
+	}
+	function moveCard() {
+		var o = mv.out || {}, out;
+		if ( o.moved_to ) {
+			out = '<p class="a-ds-status">' + icon( 'check', 16 ) + 'This Stubli has moved to ' + esc( hostOf( o.moved_to ) ) + '.</p><p class="a-help">Your followers switch to the new address by themselves. You can keep this site as it is, or close it once they have.</p>';
+		} else if ( mv.link ) {
+			out = '<label class="a-label" for="a-mv-link">Your move link</label><div class="a-inline" style="margin-top:0"><input id="a-mv-link" class="a-field" type="text" readonly value="' + esc( mv.link ) + '"><button type="button" class="a-btn quiet" data-mv-copy>' + ( mv.copied ? 'Copied' : 'Copy' ) + '</button></div>' +
+				'<p class="a-help">Paste it into your new Stubli, in its setup or under You. It works until ' + esc( mv.expires ) + '. Keep it private: it lets the new site copy everything, including entries only you can see.</p><button type="button" class="a-btn quiet" data-mv-stop>Stop this link</button>';
+		} else {
+			out = '<p class="muted">Moving to a new WordPress, for example your own server? Make a move link here and paste it into your new Stubli. It copies everything, and your followers come along.</p><button type="button" class="a-btn quiet" data-mv-make' + ( mv.busy ? ' disabled' : '' ) + '>Make a move link</button>' + ( o.has_link ? '<p class="a-help">A move link is already active. Making a new one stops the old one.</p>' : '' );
+		}
+		var st = mv.inState, inn = moveProgress( st );
+		if ( ! inn ) {
+			inn = '<form class="a-inline" data-mv-in style="margin-top:0"><label class="sr" for="a-mv-in">Move link from your old Stubli</label><input id="a-mv-in" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="oldsite.com/?stubli_move=…"><button type="submit" class="a-btn quiet"' + ( mv.busy ? ' disabled' : '' ) + '>Start</button></form>';
+		}
+		return '<section class="a-card" data-move><h2>Move to another site</h2>' + out +
+			'<p class="a-label" style="margin-top:18px">Moving here from another Stubli?</p>' + inn +
+			( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) + '</section>';
+	}
+	function redrawMove() { swap( '[data-move]', moveCard(), bindMove ); }
+	function runMove( onUpdate ) {
+		if ( mv.running ) { return; }
+		mv.running = true;
+		var go = function () {
+			send( 'POST', 'move/in/step', {} ).then( function ( r ) {
+				mv.inState = r; onUpdate();
+				if ( r.state === 'moving' ) { return go(); }
+				mv.running = false; feed.loaded = false; mine.loaded = false;
+			}, function ( e ) { mv.running = false; mv.msg = e.message + ' Tap Start again to carry on where it stopped.'; mv.inState = null; onUpdate(); } );
+		};
+		go();
+	}
+	function startMove( link, onUpdate ) {
+		mv.busy = true; mv.msg = ''; onUpdate();
+		return send( 'POST', 'move/in', { link: link } ).then( function ( r ) { mv.busy = false; mv.inState = r; onUpdate(); runMove( onUpdate ); return r; }, function ( e ) { mv.busy = false; mv.msg = e.message; onUpdate(); throw e; } );
+	}
+	function bindMove() {
+		var mk = $( '[data-mv-make]' );
+		if ( mk ) { mk.addEventListener( 'click', function () { mv.busy = true; redrawMove(); send( 'POST', 'move/link', {} ).then( function ( r ) { mv.busy = false; mv.link = r.link; mv.expires = r.expires; mv.out = r; redrawMove(); var f = $( '#a-mv-link' ); if ( f ) { f.focus(); f.select(); } }, function ( e ) { mv.busy = false; mv.msg = e.message; redrawMove(); } ); } ); }
+		var cp = $( '[data-mv-copy]' );
+		if ( cp ) { cp.addEventListener( 'click', function () { var f = $( '#a-mv-link' ); f.select(); ( navigator.clipboard ? navigator.clipboard.writeText( mv.link ) : Promise.reject() ).catch( function () { try { document.execCommand( 'copy' ); } catch ( x ) {} } ); mv.copied = true; redrawMove(); } ); }
+		var sp = $( '[data-mv-stop]' );
+		if ( sp ) { sp.addEventListener( 'click', function () { send( 'DELETE', 'move/link', null ).then( function ( r ) { mv.link = ''; mv.copied = false; mv.out = r; redrawMove(); } ); } ); }
+		var fi = $( '[data-mv-in]' );
+		if ( fi ) { fi.addEventListener( 'submit', function ( e ) { e.preventDefault(); var v = $( '#a-mv-in' ).value.trim(); if ( ! v ) { return; } startMove( v, redrawMove ).catch( function () {} ); } ); }
+	}
+	function redrawKeep() { swap( '[data-keep]', keepCard(), bindKeep ); }
+	function packArchive() {
+		if ( kp.packing ) { return; }
+		kp.packing = true;
+		var go = function () {
+			send( 'POST', 'archive/step', {} ).then( function ( r ) {
+				kp.ar = r; if ( location.hash === '#you' ) { redrawKeep(); }
+				if ( r.state === 'packing' ) { return go(); }
+				kp.packing = false;
+			}, function ( e ) { kp.packing = false; kp.msg = e.message; kp.ar = { state: 'none' }; if ( location.hash === '#you' ) { redrawKeep(); } } );
+		};
+		go();
+	}
+	function bindKeep() {
+		var start = function () {
+			kp.busy = true; kp.msg = ''; redrawKeep();
+			send( 'POST', 'archive', {} ).then( function ( r ) { kp.busy = false; kp.ar = r; redrawKeep(); packArchive(); }, function ( e ) { kp.busy = false; kp.msg = e.message; redrawKeep(); } );
+		};
+		var s = $( '[data-keep-start]' ); if ( s ) { s.addEventListener( 'click', start ); }
+		var n = $( '[data-keep-new]' ); if ( n ) { n.addEventListener( 'click', start ); }
 	}
 
 	/* ── Your posts: grid on You, edit and delete ── */
@@ -884,6 +979,21 @@
 		return ( su.error ? '<div class="a-notice" role="alert"><p>' + esc( su.error ) + '</p></div>' : '' ) +
 			'<div class="a-su-foot"><button type="button" class="a-btn wide" data-su-next' + ( su.busy ? ' disabled' : '' ) + '>' + esc( su.busy ? 'Saving…' : label ) + '</button></div>';
 	}
+	function suMove() {
+		var st = mv.inState;
+		if ( st && st.state === 'done' ) {
+			return '<section class="a-su-move">' + moveProgress( st ) + '<button type="button" class="a-btn wide" data-su-move-go>Continue</button></section>';
+		}
+		if ( st && st.state === 'moving' ) { return '<section class="a-su-move">' + moveProgress( st ) + '</section>'; }
+		return '<section class="a-su-move"><button type="button" class="a-link" data-su-move-open aria-expanded="' + !! su.moveOpen + '">Moving here from another Stubli?</button>' +
+			( su.moveOpen ? '<p class="muted">On your old Stubli, open You → Move to another site → Make a move link. Paste it here and everything comes along: photos, journal, guest book, people and settings.</p><form class="a-inline" data-su-move style="margin-top:0"><label class="sr" for="a-su-mv">Move link</label><input id="a-su-mv" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="oldsite.com/?stubli_move=…"><button type="submit" class="a-btn quiet"' + ( mv.busy ? ' disabled' : '' ) + '>Start</button></form>' + ( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) : '' ) + '</section>';
+	}
+	function bindSuMove() {
+		var redraw = function () { if ( location.hash === '#setup' ) { renderSetup(); } };
+		var op = $( '[data-su-move-open]' ); if ( op ) { op.addEventListener( 'click', function () { su.moveOpen = ! su.moveOpen; renderSetup(); var f = $( '#a-su-mv' ); if ( f ) { f.focus(); } } ); }
+		var fm = $( '[data-su-move]' ); if ( fm ) { fm.addEventListener( 'submit', function ( e ) { e.preventDefault(); var v = $( '#a-su-mv' ).value.trim(); if ( v ) { startMove( v, redraw ).catch( function () {} ); } } ); }
+		var go = $( '[data-su-move-go]' ); if ( go ) { go.addEventListener( 'click', function () { send( 'GET', 'setup', null ).then( function ( d ) { su.d = d; su.picked = d.interests.map( function ( i ) { return i.name; } ); B.name = /^(your|my)\b/i.test( d.name ) ? '' : d.name.split( /\s+/ )[ 0 ]; applyLook(); setupGo( 4 ); } ); } ); }
+	}
 	function renderSetup() {
 		var d = su.d, n = su.step, body = '';
 		if ( n === 0 ) {
@@ -893,7 +1003,7 @@
 				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="Ana Keller" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
 				'<label class="a-label" for="a-su-bio">One line about you</label><input id="a-su-bio" class="a-field" type="text" maxlength="160" value="' + esc( d.bio ) + '" placeholder="Photos from walks around Zurich"><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
 				'<label class="a-label" for="a-su-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' + esc( d.pronouns ) + '" placeholder="she/her, they/them…">' +
-				setupFoot( 'Next' );
+				setupFoot( 'Next' ) + suMove();
 		} else if ( n === 1 ) {
 			var used = {}, all = [];
 			d.interests.forEach( function ( i ) { used[ ikey( i.name ) ] = i.count; all.push( i.name ); } );
@@ -982,6 +1092,7 @@
 			location.hash = '#home';
 		} );
 		if ( su.step === 0 ) {
+			bindSuMove();
 			var bio = $( '#a-su-bio' ), cnt = $( '[data-su-bio-count]' ), file = $( '#a-su-file' );
 			[ 'a-su-name', 'a-su-bio', 'a-su-pro' ].forEach( function ( id ) {
 				$( '#' + id ).addEventListener( 'input', function ( e ) { d[ { 'a-su-name': 'name', 'a-su-bio': 'bio', 'a-su-pro': 'pronouns' }[ id ] ] = e.target.value; if ( su.error && id === 'a-su-name' && e.target.value.trim() ) { su.error = ''; var nt = $( '.a-su .a-notice' ); if ( nt ) { nt.remove(); } } } );

@@ -292,6 +292,8 @@ function stubli_footer() {
 		<span aria-hidden="true">·</span>
 		<a href="https://www.gnu.org/licenses/gpl-2.0.html"><?php esc_html_e( 'Stubli is free software', 'stubli' ); ?></a>
 		<span aria-hidden="true">·</span>
+		<a href="https://buymeacoffee.com/celestinetan"><?php esc_html_e( 'Support Stubli', 'stubli' ); ?></a>
+		<span aria-hidden="true">·</span>
 		<a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>"><?php esc_html_e( 'Privacy', 'stubli' ); ?></a>
 	</footer>
 		<?php
@@ -336,6 +338,11 @@ function stubli_view_profile() {
 	$term = $active ? get_term( $active, 'category' ) : null;
 	stubli_topbar();
 	echo '<main class="st-main" id="main">';
+	$moved = (string) get_option( 'stubli_moved_to', '' );
+	if ( $moved ) {
+		/* translators: %s: new address */
+		echo '<p class="st-card-tone st-moved" role="status">' . sprintf( esc_html__( 'This Stubli has moved to %s.', 'stubli' ), '<a href="' . esc_url( $moved ) . '">' . esc_html( untrailingslashit( preg_replace( '#^https?://#', '', $moved ) ) ) . '</a>' ) . '</p>';
+	}
 	stubli_profile_cards();
 	stubli_tabs( $active );
 	echo '<section class="st-panel' . ( $collections && (int) $collections[0]->term_id === $active ? ' is-first' : '' ) . '">';

@@ -183,6 +183,9 @@ class Follows {
 		$endpoint = '';
 		$profile  = Rest::remote( $follow['site_url'], '/profile', array( 'timeout' => 10 ) );
 		$data     = is_wp_error( $profile ) ? null : json_decode( wp_remote_retrieve_body( $profile ), true );
+		if ( is_array( $data ) && ! empty( $data['moved_to'] ) && Move::follow_moved( $follow, $data ) ) {
+			return;
+		}
 		if ( is_array( $data ) && ! empty( $data['following'] ) && self::origin( $data['following'] ) === $origin ) {
 			$endpoint = esc_url_raw( $data['following'] );
 		}

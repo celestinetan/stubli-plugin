@@ -360,3 +360,11 @@ label.a-tool { position: relative; }
 /* Daily summary */
 .a-ds-status { display: flex; align-items: center; gap: 6px; margin: 0 0 10px !important; font-weight: 600; }
 .a-card .a-su-select.a-field { background: var(--bg); }
+
+/* Setup: "Moving here from another Stubli?" */
+.a-su-move { margin: 22px 0 0; padding: 16px 0 0; border-top: 1px solid var(--field); }
+.a-link { background: none; border: 0; padding: 10px 0; min-height: 44px; font: inherit; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.a-su-move .a-btn.wide { margin-top: 12px; }
+
+.a-thanks { text-align: center; margin: 28px 8px 8px; }
+.a-thanks a { color: var(--ink); }
