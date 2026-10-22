@@ -88,8 +88,12 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	$pages = (array) apply_filters( 'stubli_top_pages', $pages );
 	$hub   = class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub();
 	if ( $hub ) {
-		// stubli.app's top bar has one job: the way in. The explainers live on the page itself.
-		$pages = array_values( array_filter( $pages, static fn( $p ) => 'get-started' === $p->post_name ) );
+		// stubli.app's top bar: how it works, and the way in.
+		$pages = array_values( array_filter( $pages, static fn( $p ) => in_array( $p->post_name, array( 'how-it-works', 'get-started' ), true ) ) );
+		$help  = get_page_by_path( 'help' );
+		if ( $help && 'publish' === $help->post_status ) {
+			array_splice( $pages, max( 0, count( $pages ) - 1 ), 0, array( $help ) ); // Before the button.
+		}
 	}
 	$welcome = $hub ? get_page_by_path( 'welcome' ) : null;
 	$join    = $welcome && 'publish' === $welcome->post_status ? ( function_exists( 'stubli_is_pitch' ) && stubli_is_pitch() ? '#start' : get_permalink( $welcome ) ) : '';
@@ -107,7 +111,7 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 		<?php if ( $pages ) : ?>
 			<nav class="st-top-pages" aria-label="<?php esc_attr_e( 'Pages', 'stubli' ); ?>">
 				<?php foreach ( $pages as $page ) : ?>
-					<a href="<?php echo esc_url( $hub && $join && 'get-started' === $page->post_name ? $join : get_permalink( $page ) ); ?>"<?php echo $hub && 'get-started' === $page->post_name ? ' class="st-top-join"' : ''; ?><?php echo is_page( $page->ID ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $hub && 'get-started' === $page->post_name ? __( 'Make your Stubli', 'stubli' ) : get_the_title( $page ) ); ?></a>
+					<a href="<?php echo esc_url( $hub && $join && 'get-started' === $page->post_name ? $join : get_permalink( $page ) ); ?>"<?php echo $hub && 'get-started' === $page->post_name ? ' class="st-top-join"' : ( $hub && 'help' === $page->post_name ? ' class="st-top-help"' : '' ); ?><?php echo is_page( $page->ID ) || ( 'help' === $page->post_name && function_exists( 'stubli_is_help' ) && stubli_is_help() ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $hub && 'get-started' === $page->post_name ? __( 'Make your Stubli', 'stubli' ) : ( $hub && 'how-it-works' === $page->post_name ? __( 'How it works', 'stubli' ) : get_the_title( $page ) ) ); ?></a>
 				<?php endforeach; ?>
 				<?php if ( $hub && function_exists( 'stubli_story_on' ) && stubli_story_on() ) : ?>
 					<a class="st-top-join" href="<?php echo esc_url( stubli_story_url( 'join' ) ); ?>"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a>

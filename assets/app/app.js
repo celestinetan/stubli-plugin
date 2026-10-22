@@ -28,6 +28,8 @@
 			im.replaceWith( sp );
 		}
 	}, true );
+	// A small ? that opens the matching answer on stubli.app/help.
+	function helpLink( path, what ) { return '<a class="a-helplink" href="https://stubli.app/help/' + path + '/" target="_blank" rel="noopener" aria-label="' + esc( 'Help: ' + what ) + '" title="How this works">?</a>'; }
 	function esc( s ) {
 		return String( s == null ? '' : s ).replace( /[&<>"']/g, function ( c ) {
 			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ];
@@ -408,10 +410,10 @@
 			summaryCard() +
 			'<section class="a-card"><h2>Share something</h2><p class="muted">Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.</p>' +
 			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + 'New photo post</a><a class="a-btn quiet" href="#journal">Journal entry</a></div></section>' +
-			'<section class="a-card" data-invite-card><h2>Invite a friend</h2><p class="muted">Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p>' +
+			'<section class="a-card" data-invite-card><h2>Invite a friend' + helpLink( 'reading-and-following/follow', 'following and invites' ) + '</h2><p class="muted">Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p>' +
 			'<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
 			peopleCard() +
-			'<section class="a-card"><h2>Bring your photos from Instagram</h2><p class="muted">Your posts arrive with their original dates and captions.</p><a class="a-btn quiet" href="#import">Start</a></section>' +
+			'<section class="a-card"><h2>Bring your photos from Instagram' + helpLink( 'posting/instagram', 'bringing photos from Instagram' ) + '</h2><p class="muted">Your posts arrive with their original dates and captions.</p><a class="a-btn quiet" href="#import">Start</a></section>' +
 			keepCard() +
 			'<section class="a-card"><h2>Tell us what you think</h2><p class="muted">Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.</p><a class="a-btn quiet" href="#feedback">Send feedback</a></section>' +
 			( isStandalone() ? '' : '<section class="a-card"><h2>Put Stubli on your home screen</h2><p class="muted">' + ( ios ? 'In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.' : 'Open your browser\'s menu, then choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.' ) + ' It opens like an app, without the browser around it.</p></section>' ) +
@@ -677,7 +679,7 @@
 	var pp = { loaded: false, loading: false, list: [], open: false, msg: '' };
 	function peopleCard() {
 		var list = pp.list || [], shown = pp.open ? list : list.slice( 0, 6 );
-		return '<section class="a-card" data-people><h2>Your people</h2>' +
+		return '<section class="a-card" data-people><h2>Your people' + helpLink( 'friends-and-privacy/friends-only', 'friends only posts' ) + '</h2>' +
 			( list.length ? '<p class="muted">Tick your friends. They see your posts marked "Friends", in their own Stubli; nobody else does.</p><ul class="a-people">' + shown.map( function ( f ) {
 				var host = hostOf( f.site_url ), name = f.name || host;
 				return '<li><span class="a-people-who"><strong>' + esc( name ) + '</strong><small class="muted">' + esc( host ) + ( f.list_name ? ' · ' + esc( f.list_name ) : '' ) + '</small></span>' +
@@ -715,7 +717,7 @@
 		} else {
 			body = '<button type="button" class="a-btn quiet" data-keep-start' + ( kp.busy || a.supported === false ? ' disabled' : '' ) + '>' + ( kp.busy ? 'Starting…' : 'Download everything' ) + '</button>' + ( a.supported === false ? '<p class="a-help">This host can\'t make zip files. Ask your host to turn on PHP\'s Zip extension.</p>' : '' );
 		}
-		return '<section class="a-card" data-keep><h2>Yours to keep</h2><p class="muted">One zip with your original photos and videos, captions, journal, comments, guest book and the people you follow. It opens offline in any browser.</p>' + body +
+		return '<section class="a-card" data-keep><h2>Yours to keep' + helpLink( 'moving-and-leaving/download', 'downloading everything' ) + '</h2><p class="muted">One zip with your original photos and videos, captions, journal, comments, guest book and the people you follow. It opens offline in any browser.</p>' + body +
 			( kp.msg ? '<div class="a-notice" role="alert"><p>' + esc( kp.msg ) + '</p></div>' : '' ) + '</section>' + moveCard();
 	}
 	/* Move: out (this site is the old one) and in (this site is the new one). */
@@ -741,7 +743,7 @@
 		if ( ! inn ) {
 			inn = '<form class="a-inline" data-mv-in style="margin-top:0"><label class="sr" for="a-mv-in">Move link from your old Stubli</label><input id="a-mv-in" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="oldsite.com/?stubli_move=…"><button type="submit" class="a-btn quiet"' + ( mv.busy ? ' disabled' : '' ) + '>Start</button></form>';
 		}
-		return '<section class="a-card" data-move><h2>Move to another site</h2>' + out +
+		return '<section class="a-card" data-move><h2>Move to another site' + helpLink( 'moving-and-leaving/move', 'moving to another site' ) + '</h2>' + out +
 			'<p class="a-label" style="margin-top:18px">Moving here from another Stubli?</p>' + inn +
 			( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) + '</section>';
 	}
@@ -844,7 +846,7 @@
 	/* Who can see a post: Everyone or Friends (design Q44). */
 	function audienceChips( on, attr ) {
 		var friends = on === 'friends';
-		return '<h2 class="a-label" id="a-aud-' + attr + '">Who can see it</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-aud-' + attr + '">' +
+		return '<h2 class="a-label" id="a-aud-' + attr + '">Who can see it' + helpLink( 'friends-and-privacy/friends-only', 'who can see a post' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-aud-' + attr + '">' +
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + ! friends + '" data-' + attr + '="everyone">' + ( ! friends ? icon( 'check', 16 ) : '' ) + 'Everyone</button>' +
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + friends + '" data-' + attr + '="friends">' + ( friends ? icon( 'check', 16 ) : '' ) + 'Friends</button></div>' +
 			'<p class="a-help">' + ( friends ? ( B.friends ? 'Only the ' + ( B.friends === 1 ? 'friend' : B.friends + ' friends' ) + ' you chose see it, in their own Stubli. It isn\'t on your public page.' : 'You haven\'t chosen any friends yet. Tick them under You → Your people; until then, nobody else sees this post.' ) : 'On your page and in your followers\' feeds.' ) + '</p>';
@@ -965,7 +967,7 @@
 				( ds.on ? '<button type="button" class="a-btn quiet" data-ds-test' + ( ds.busy ? ' disabled' : '' ) + '>Send a test</button><button type="button" class="a-text-btn" data-ds-off' + ( ds.busy ? ' disabled' : '' ) + '>Turn off</button>' :
 					'<button type="button" class="a-btn" data-ds-on' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? 'Asking your phone…' : 'Send it to this phone' ) + '</button>' ) + '</div>';
 		}
-		return '<section class="a-card" data-summary><h2>Daily summary</h2><p class="muted">At most one a day, and only when something is new: comments waiting for your OK, new posts from your people. Never one per post.</p>' +
+		return '<section class="a-card" data-summary><h2>Daily summary' + helpLink( 'reading-and-following/daily-summary', 'the daily summary' ) + '</h2><p class="muted">At most one a day, and only when something is new: comments waiting for your OK, new posts from your people. Never one per post.</p>' +
 			'<label class="a-label" for="a-ds-time" style="margin-top:4px">Time</label><select id="a-ds-time" class="a-field a-su-select" data-ds-time>' + timeOptions( i.time ) + '</select>' +
 			'<p class="a-label">On your phone</p>' + phone +
 			'<label class="a-check"><span><strong>Also by email</strong><span class="muted small">To ' + esc( i.address ) + '. Handy if notifications don\'t reach you.</span></span><input type="checkbox" data-ds-email' + ( i.email ? ' checked' : '' ) + '></label>' +

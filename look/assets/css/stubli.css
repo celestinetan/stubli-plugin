@@ -613,3 +613,8 @@ html { scroll-behavior: smooth; }
 	.st-top-brand .st-top-pages + .st-mode { margin-left: 4px; }
 	.st-top-brand .st-mode-label { display: none; }
 }
+@media (max-width: 400px) { .st-top-brand .st-top-pages a:not(.st-top-join) { padding: 0 6px; font-size: 14px; } }
+@media (max-width: 420px) { .st-top-brand .st-mode { display: none; } .st-top-brand .st-top-logo { margin-right: 36px; } }
+/* Help sits in the top bar on wider screens; on phones it's in the footer. */
+@media (max-width: 560px) { .st-top-brand .st-top-pages a.st-top-help { display: none; } }
+@media (max-width: 380px) { .st-top-brand .st-top-pages a:not(.st-top-join) { display: none; } }

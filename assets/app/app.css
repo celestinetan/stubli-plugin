@@ -489,3 +489,9 @@ label.a-tool { position: relative; }
 .a-ctab-icon { padding: 0 12px; justify-content: center; }
 .a-ctab-green { background: #dfe7d9; color: #4f6a4a; }
 [data-mode="dark"] .a-ctab-green { background: #1f2820; color: #a8bf98; }
+
+/* The small ? beside a heading: opens the matching help answer. */
+.a-helplink { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border-radius: 50%; background: var(--surface); color: var(--muted); font: 600 13px/1 var(--sans, inherit); text-decoration: none; vertical-align: 2px; position: relative; }
+.a-helplink::after { content: ""; position: absolute; inset: -10px; }
+.a-helplink:hover { color: var(--ink); background: var(--field); }
+.a-card .a-helplink { background: var(--bg); }
