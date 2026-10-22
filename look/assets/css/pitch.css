@@ -91,7 +91,7 @@
 .sp-post-head b { display: block; font-size: 15px; }
 .sp-ava { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; background: var(--sp-field); }
 .sp-ava-l { width: 56px; height: 56px; }
-.sp-ini { display: inline-flex; align-items: center; justify-content: center; background: var(--sp-green); color: var(--sp-accent); font-weight: 700; font-size: 22px; }
+.sp-ini { display: inline-flex; align-items: center; justify-content: center; background: var(--sp-green); color: var(--sp-accent); font-weight: 600; font-size: 22px; }
 .sp-ini-s { width: 32px; height: 32px; font-size: 14px; }
 .sp-photo { border-radius: 10px; overflow: hidden; aspect-ratio: 4 / 5; background: var(--sp-field); }
 .sp-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transform-origin: 50% 40%; }
@@ -133,7 +133,7 @@
 .sp-sign { display: flex; gap: 10px; padding: 12px; border-radius: 14px; background: var(--sp-green); margin-bottom: 12px; }
 .sp-sign p span { display: block; font-family: var(--st-serif); font-size: 15px; }
 .st-pitch-free { margin-top: 28px !important; font-size: 17px; }
-.st-pitch-free strong { color: var(--moss); font-weight: 650; }
+.st-pitch-free strong { color: var(--moss); font-weight: 600; }
 .sp-ava-stack { position: relative; flex: none; background: var(--sp-green); }
 .sp-ava-swap { position: absolute; inset: 0; opacity: 0; transform: scale(.85) translateY(4px); transition: opacity .35s ease, transform .4s var(--ease); display: flex; align-items: center; justify-content: center; }
 .sp-ava-swap.is-on { opacity: 1; transform: none; }
@@ -246,18 +246,29 @@
 /* ---------- Four steps: the setup plays out as you scroll ---------- */
 .st-pitch-how { margin-top: 160px; padding: 0 var(--m); position: relative; }
 .sp-how-pin { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 88svh; }
-.st-pitch-howwords { background: var(--moss); color: var(--on-moss); border-radius: var(--r); padding: clamp(32px, 5vw, 72px) clamp(24px, 4vw, 72px) clamp(32px, 4vw, 56px); display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
+.st-pitch-howwords { background: var(--moss); color: var(--on-moss); border-radius: var(--r); padding: clamp(32px, 4.4vw, 64px) clamp(24px, 4vw, 64px); display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+.st-pitch-howlead { opacity: .9; max-width: 44ch; }
 .st-pitch-howwords > h2 { color: var(--on-moss); }
-.st-pitch-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; color: var(--on-moss); }
-.st-pitch-steps li { padding: 10px 0; }
+.st-pitch-steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; color: var(--on-moss); counter-reset: step; }
+.st-pitch-steps li { counter-increment: step; }
+.st-pitch-steps li::before { content: "Step " counter(step); display: block; font: 600 14px/1.3 var(--st-sans); margin-bottom: 2px; }
+.st-pitch-steps li.is-done::before { content: "Step " counter(step) " · done"; }
+.st-pitch-steps li { padding: 12px 0; }
 .st-pitch-steps li strong { display: block; font-family: var(--st-serif); font-weight: 500; font-size: var(--t-h3); letter-spacing: -.01em; }
 .sp-steps-stage { background: var(--st-surface); border-radius: var(--r); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 48px 24px; position: relative; overflow: hidden; }
-.sp-steps-alps { position: absolute; left: -10%; bottom: 6%; width: 120%; height: auto; color: var(--mist); transform: translate3d(calc(var(--p, 0) * -8%), 0, 0); }
-[data-mode="dark"] .sp-steps-alps { color: #2e3a30; }
-.sp-steps-app { width: min(400px, 100%); padding: 24px; border-radius: 24px; position: relative; z-index: 1; display: grid; gap: 28px; transform: translate3d(0, calc((var(--sub, .5) - .5) * -14px), 0); }
-.sp-progress { display: none; gap: 8px; position: relative; z-index: 1; }
-.sp-progress i { width: 8px; height: 8px; border-radius: 999px; background: var(--st-field); transition: width .3s var(--ease), background .3s ease; }
-.sp-progress i.is-on { width: 28px; background: var(--moss); }
+.sp-steps-scene { position: absolute; inset: 0; opacity: 0; transition: opacity .3s ease; }
+.sp-steps-scene.is-on { opacity: 1; }
+.sp-steps-scene svg { width: 100%; height: 100%; display: block; transform: scale(1.06) translate3d(calc(var(--p, 0) * -2%), 0, 0); }
+.st-pitch-how:not(.is-scrolly) .sp-steps-scene:not(:first-child) { display: none; }
+.sp-steps-app { width: min(400px, 100%); padding: 24px; border-radius: 24px; position: relative; z-index: 1; box-shadow: 0 0 0 1px rgba(34, 32, 29, .08), 0 18px 40px -24px rgba(34, 32, 29, .5); display: grid; gap: 28px; transform: translate3d(0, calc((var(--sub, .5) - .5) * -14px), 0); }
+.sp-progress { display: none; gap: 8px; position: relative; z-index: 1; padding: 8px 12px; border-radius: 999px; background: rgba(251, 250, 248, .9); }
+.sp-progress i { width: 10px; height: 10px; border-radius: 999px; background: #d8d1c4; transition: width .3s var(--ease), background .3s ease; }
+.sp-progress i.is-on { width: 32px; background: #4f6a4a; }
+.sp-progress i.is-done { background: #4f6a4a; opacity: .45; }
+.sp-stepno { display: block; font-size: 13px; font-weight: 600; color: var(--sp-accent); margin-bottom: 4px; }
+.sp-wizard { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.sp-wizard i { font-style: normal; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--sp-surface); color: var(--sp-muted); transition: background .2s ease, color .2s ease; }
+.sp-wizard i.is-on { background: var(--sp-accent); color: var(--sp-on); }
 .sp-step-card > b { display: block; font-size: 22px; margin: 2px 0 10px; }
 .sp-step-card > p { color: var(--sp-muted); margin: 0 0 14px !important; }
 .sp-url { display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px; border-radius: 999px; background: var(--sp-surface); color: var(--sp-muted); font-size: 13px; margin-bottom: 14px; }
@@ -284,7 +295,7 @@
 .sp-dots i.is-on { box-shadow: 0 0 0 3px var(--sp-bg), 0 0 0 5px var(--sp-ink); }
 .sp-bio-type span { color: var(--sp-ink); }
 .sp-friends { display: flex; gap: 8px; margin: 4px 0 14px; }
-.sp-pop { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; display: block; transition: transform .35s var(--ease), opacity .35s ease; }
+.sp-pop { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; display: block; transition: transform .3s var(--ease), opacity .3s ease; }
 .sp-pop svg { width: 100%; height: 100%; display: block; }
 .is-scrolly .sp-pop { opacity: 0; transform: scale(.6); }
 .is-scrolly .sp-pop.is-in { opacity: 1; transform: none; }
@@ -293,21 +304,41 @@
 .st-pitch-how.is-scrolly { height: 400svh; }
 .is-scrolly .sp-how-pin { position: sticky; top: 12px; height: calc(100svh - 24px); min-height: 0; }
 .is-scrolly .sp-steps-app { display: block; min-height: 380px; }
-.is-scrolly .sp-stepscreen { position: absolute; inset: 24px; opacity: 0; visibility: hidden; transition: opacity .35s ease, transform .35s var(--ease), visibility 0s .35s; transform: translateY(10px); }
-.is-scrolly .sp-stepscreen.is-on { position: relative; inset: auto; opacity: 1; visibility: visible; transform: none; transition: opacity .35s ease, transform .35s var(--ease), visibility 0s; }
+.is-scrolly .sp-stepscreen { position: absolute; inset: 24px; opacity: 0; visibility: hidden; transition: opacity .3s ease, transform .3s var(--ease), visibility 0s .3s; transform: translateY(10px); }
+.is-scrolly .sp-stepscreen:not(.is-on) { transition: none; }
+.is-scrolly .sp-stepscreen.is-on { position: relative; inset: auto; opacity: 1; visibility: visible; transform: none; transition: opacity .3s ease, transform .3s var(--ease), visibility 0s; }
 .is-scrolly .sp-progress { display: flex; }
-.is-scrolly .st-pitch-steps li { cursor: pointer; opacity: .55; transition: opacity .25s ease; }
+.is-scrolly .st-pitch-steps li { cursor: pointer; opacity: .62; transition: opacity .2s ease; }
 .is-scrolly .st-pitch-steps li.is-on { opacity: 1; }
-.is-scrolly .st-pitch-steps li:not(.is-on) { font-size: 0; }
-.is-scrolly .st-pitch-steps li:not(.is-on) strong { font-size: var(--t-h3); }
-.is-scrolly .st-pitch-steps li.is-on strong { font-size: var(--t-h2); line-height: 1.04; margin-bottom: 8px; }
+.is-scrolly .st-pitch-steps li:not(.is-on) { font-size: 0; padding: 8px 0; }
+.is-scrolly .st-pitch-steps li:not(.is-on) strong { font-size: 20px; }
+.is-scrolly .st-pitch-steps li:not(.is-on)::before { font-size: 13px; }
+.is-scrolly .st-pitch-steps li.is-on strong { font-size: clamp(26px, 2.6vw, 36px); line-height: 1.1; margin: 2px 0 6px; }
+.is-scrolly .st-pitch-steps li.is-on { font-size: 16px; }
 
-/* ---------- The small print ---------- */
-.st-pitch-print { margin: 160px var(--m) 120px; padding: clamp(32px, 4vw, 64px) clamp(24px, 4vw, 72px); background: var(--st-surface); border-radius: var(--r); }
-.st-pitch-print h2 { margin-bottom: 40px; }
-.st-pitch-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 40px; }
-.st-pitch-fact h3 { font-family: var(--st-sans); font-weight: 600; font-size: 17px; letter-spacing: 0; margin-bottom: 6px; }
-.st-pitch-fact p { color: var(--st-ink); }
+/* ---------- Good questions: a picture on one side, questions that open on the other ---------- */
+.st-pitch-print { margin: 160px var(--m) 120px; padding: clamp(28px, 4vw, 64px); background: var(--st-surface); border-radius: var(--r); display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(28px, 5vw, 80px); align-items: start; }
+.st-pitch-qside { display: grid; gap: 24px; position: sticky; top: 24px; }
+.st-pitch-qside h2 { margin: 0; }
+.sp-q-art { width: min(280px, 100%); aspect-ratio: 4 / 5; border-radius: 12px; overflow: hidden; background: #f1e7d2; }
+.sp-q-art svg { width: 100%; height: 100%; display: block; }
+.sp-q-more { color: var(--st-muted); }
+.sp-q-more a { color: var(--st-ink); font-weight: 600; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.st-pitch-qlist { min-width: 0; }
+.st-pitch-facts { display: grid; gap: 8px; }
+.st-pitch-fact { background: var(--st-bg); border-radius: 14px; }
+.st-pitch-fact summary { list-style: none; display: flex; align-items: center; gap: 16px; padding: 18px 20px; cursor: pointer; border-radius: 14px; }
+.st-pitch-fact summary::-webkit-details-marker { display: none; }
+.st-pitch-fact summary:focus-visible { outline: 2px solid var(--st-ink); outline-offset: 2px; }
+.st-pitch-fact summary h3 { font-family: var(--st-sans); font-weight: 600; font-size: 17px; letter-spacing: 0; margin: 0; flex: 1; }
+.sp-plus { position: relative; width: 28px; height: 28px; border-radius: 50%; background: var(--mist); flex: none; transition: transform .2s var(--ease); }
+.sp-plus::before, .sp-plus::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; margin: -1px 0 0 -6px; background: var(--moss); border-radius: 2px; transition: transform .2s var(--ease); }
+.sp-plus::after { transform: rotate(90deg); }
+.st-pitch-fact[open] .sp-plus::after { transform: rotate(0deg); }
+.st-pitch-fact summary:hover .sp-plus { transform: scale(1.08); }
+.st-pitch-answer { padding: 0 20px 20px; max-width: 60ch; }
+.st-pitch-answer p { margin: 0; color: var(--st-ink); }
+.st-pitch-fact[open] .st-pitch-answer { animation: sp-in .3s var(--ease); }
 
 /* ---------- Come in: the first step, already open ---------- */
 .st-pitch-close { margin: 12px var(--m) 0; min-height: 72svh; background: var(--moss); color: var(--on-moss); border-radius: var(--r); display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; padding: clamp(32px, 4vw, 64px); align-items: center; }
@@ -369,12 +400,15 @@
 	.is-scrolly .sp-how-pin { grid-template-rows: auto 1fr; gap: 8px; }
 	.is-scrolly .st-pitch-howwords { padding: 20px 20px 16px; gap: 6px; }
 	.is-scrolly .st-pitch-howwords > h2 { font-size: 22px; }
-	.is-scrolly .st-pitch-steps li:not(.is-on) { display: none; }
+	.is-scrolly .st-pitch-steps li:not(.is-on) { visibility: hidden; height: 0; padding: 0; overflow: hidden; }
 	.is-scrolly .st-pitch-steps li.is-on { font-size: 15px; padding: 0; }
 	.is-scrolly .st-pitch-steps li.is-on strong { font-size: 26px; margin-bottom: 2px; }
 	.sp-steps-stage { padding: 20px 12px; gap: 12px; }
+	.sp-steps-app { width: calc(100% - 16px); }
 	.is-scrolly .sp-steps-app { min-height: 0; padding: 18px; }
-	.st-pitch-facts { grid-template-columns: 1fr 1fr; }
+	.st-pitch-print { grid-template-columns: 1fr; }
+	.st-pitch-qside { position: static; grid-template-columns: 1fr auto; align-items: end; }
+	.sp-q-art { width: 120px; grid-row: span 2; }
 	.st-pitch-close { grid-template-columns: 1fr; min-height: 0; align-content: start; }
 	.st-pitch-closewords { align-self: start; }
 	.st-pitch-close h2 { font-size: 19vw; }
@@ -383,7 +417,6 @@
 @media (max-width: 480px) {
 	.sp-phone { width: calc(100vw - 48px); }
 	.sp-bar { font-size: 13px; padding: 0 16px; }
-	.st-pitch-facts { grid-template-columns: 1fr; }
 	.st-pitch-sheet .st-pitch-lead { font-size: 17px; }
 	.st-pitch-hero h1 { font-size: 9.4vw; }
 	.st-pitch-sheet { padding: 40px 12px 48px; }

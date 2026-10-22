@@ -103,7 +103,7 @@
 	var next = $( '[data-sp-next]' );
 	$$( '[data-sp-have]' ).forEach( function ( r ) {
 		r.addEventListener( 'change', function () {
-			if ( next ) { next.textContent = 'yes' === r.value ? 'Next: add Stubli to your site in two taps. Stubli itself is completely free.' : 'Next: get your own site on WordPress.com, then add Stubli. About five minutes, and Stubli itself is completely free.'; }
+			if ( next ) { next.textContent = 'yes' === r.value ? 'Next: add Stubli to your site in two taps. Stubli itself is completely free.' : 'Next: get your own site on WordPress.com, then add Stubli. About ten minutes, and Stubli itself is completely free.'; }
 		} );
 	} );
 
@@ -205,7 +205,7 @@
 	var how = $( '.st-pitch-how' );
 	var items = $$( '.st-pitch-steps li' );
 	var stepScreens = $$( '[data-sp-step]' );
-	var dots = $$( '.sp-progress i' );
+	var dots = $$( '.sp-steps-stage .sp-progress i' );
 	var stageEl = $( '.sp-steps-stage' );
 	var appEl = $( '.sp-steps-app' );
 	if ( how && items.length && ! still ) {
@@ -214,6 +214,7 @@
 		var bioText = bio ? bio.textContent : '';
 		var colourDots = $$( '.sp-dots i' );
 		var pops = $$( '.sp-pop' );
+		var wz = $$( '[data-sp-wz]' );
 		var meter = $( '.sp-meter' );
 		var cur = -1;
 		var paint = function () {
@@ -225,9 +226,10 @@
 			var sub = Math.min( 1, x - i );
 			if ( i !== cur ) {
 				cur = i;
-				items.forEach( function ( li, k ) { li.classList.toggle( 'is-on', k === i ); li.setAttribute( 'aria-current', k === i ? 'step' : 'false' ); } );
+				items.forEach( function ( li, k ) { li.classList.toggle( 'is-on', k === i ); li.classList.toggle( 'is-done', k < i ); li.setAttribute( 'aria-current', k === i ? 'step' : 'false' ); } );
 				stepScreens.forEach( function ( s, k ) { s.classList.toggle( 'is-on', k === i ); } );
-				dots.forEach( function ( d, k ) { d.classList.toggle( 'is-on', k === i ); } );
+				dots.forEach( function ( d, k ) { d.classList.toggle( 'is-on', k === i ); d.classList.toggle( 'is-done', k < i ); } );
+				$$( '[data-sp-scene]' ).forEach( function ( sc, k ) { sc.classList.toggle( 'is-on', k === i ); } );
 			}
 			if ( stageEl ) { stageEl.style.setProperty( '--p', p.toFixed( 3 ) ); }
 			if ( appEl ) { appEl.style.setProperty( '--sub', sub.toFixed( 3 ) ); }
@@ -238,6 +240,7 @@
 				colourDots.forEach( function ( d, k ) { d.classList.toggle( 'is-on', k === c ); } );
 			}
 			if ( bio ) { bio.textContent = 2 === i ? bioText.slice( 0, Math.ceil( Math.min( 1, sub * 1.4 ) * bioText.length ) ) : bioText; }
+			wz.forEach( function ( el, k ) { el.classList.toggle( 'is-on', i > 2 || ( 2 === i && k <= Math.floor( sub * 1.3 * wz.length ) ) ); } );
 			pops.forEach( function ( el, k ) { el.classList.toggle( 'is-in', 3 === i && sub > .12 + k * .14 ); } );
 		};
 		var queued = false;
