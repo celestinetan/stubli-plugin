@@ -573,3 +573,29 @@ html { scroll-behavior: smooth; }
 .st-note-form .st-button { justify-self: start; margin-top: 10px; }
 .st-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .st-note-done { display: block; }
+/* stubli.app: the animated logo, top left (its address is already in the browser). */
+.st-top-logo .st-wordmark { font-size: 24px; }
+/* Beta label, top right of the logo, until Stubli leaves beta. */
+.st-top-logo { display: inline-flex; align-items: flex-start; gap: 3px; text-decoration: none; }
+.st-beta { font: 600 10px/1 var(--st-sans, Figtree, system-ui, sans-serif); letter-spacing: .03em; padding: 3px 6px 3px; border-radius: 999px; background: var(--st-brand-pale, #e9efe4); color: #4f6a4a; transform: translateY(-2px); white-space: nowrap; }
+.st-top-brand .st-beta { background: rgba(251, 250, 248, .18); color: var(--on-brand); box-shadow: inset 0 0 0 1px rgba(251, 250, 248, .4); }
+.st-top-logo .st-wordmark-u { transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
+.st-top-logo:hover .st-wordmark-u, .st-top-logo:focus-visible .st-wordmark-u { transform: translateY(-.04em) rotate(-8deg); }
+@media (prefers-reduced-motion: no-preference) {
+	.st-top-logo .st-wink { animation: st-wink 6s ease-in-out 1.2s infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.st-top-logo .st-wink, .st-wink { animation: none; }
+	.st-top-logo .st-wordmark-u { transition: none; }
+}
+/* stubli.app: the top bar in the brand colour, Moss, edge to edge (brand book: Colour). */
+.st-top-brand { --brand: #4f6a4a; --on-brand: #fbfaf8; background: var(--brand); box-shadow: 0 0 0 100vmax var(--brand); clip-path: inset(0 -100vmax); margin-bottom: 16px; color: var(--on-brand); }
+.st-top-brand .st-top-logo .st-wordmark { color: var(--on-brand); }
+.st-top-brand .st-top-pages a { color: var(--on-brand); opacity: .92; }
+.st-top-brand .st-top-pages a:hover, .st-top-brand .st-top-pages a[aria-current] { opacity: 1; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1.5px; }
+.st-top-brand .st-top-pages a.st-top-join { color: var(--brand); text-decoration: none; }
+.st-top-brand .st-top-pages a.st-top-join::before { background: var(--on-brand); }
+.st-top-brand .st-mode, .st-top-brand .st-mode-aa { color: var(--on-brand); }
+.st-top-brand .st-mode:hover { background: rgba(255, 255, 255, .14); }
+.st-top-brand :focus-visible { outline-color: var(--on-brand); }
+@media (max-width: 760px) { .st-top-brand .st-top-pages { -webkit-mask-image: none; mask-image: none; } }

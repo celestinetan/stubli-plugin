@@ -76,6 +76,9 @@ img { display: block; max-width: 100%; }
 .a-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .a-wordmark { color: #4f6a4a; display: inline-flex; align-items: baseline; font: 600 20px/1 var(--sans); letter-spacing: -.02em; }
 [data-mode="dark"] .a-wordmark { color: #a8bf98; }
+.a-brand { display: inline-flex; align-items: flex-start; gap: 3px; }
+.a-beta { font: 600 10px/1 var(--sans); letter-spacing: .03em; padding: 3px 6px; border-radius: 999px; background: #e9efe4; color: #4f6a4a; transform: translateY(-3px); }
+[data-mode="dark"] .a-beta { background: #1f2820; color: #a8bf98; }
 .a-wordmark svg { width: .56em; height: .75em; margin: 0 .01em; transform: translateY(.04em); }
 .a-top { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + env(safe-area-inset-top)) 0 0; }
 

@@ -88,11 +88,15 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	$pages = (array) apply_filters( 'stubli_top_pages', $pages );
 	$hub   = class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub();
 	?>
-	<header class="st-top">
+	<header class="st-top<?php echo $hub ? ' st-top-brand' : ''; ?>">
 		<?php if ( $back_url ) : ?>
 			<a class="st-top-back" href="<?php echo esc_url( $back_url ); ?>"><?php echo stubli_icon( 'back', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $back_text ); ?></span></a>
 		<?php else : ?>
-			<a class="st-top-host" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></a>
+			<?php if ( $hub ) : ?>
+				<a class="st-top-host st-top-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Stubli (beta), home', 'stubli' ); ?>"><?php echo stubli_wordmark( true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span class="st-beta" aria-hidden="true"><?php esc_html_e( 'Beta', 'stubli' ); ?></span></a>
+			<?php else : ?>
+				<a class="st-top-host" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></a>
+			<?php endif; ?>
 		<?php endif; ?>
 		<?php if ( $pages ) : ?>
 			<nav class="st-top-pages" aria-label="<?php esc_attr_e( 'Pages', 'stubli' ); ?>">
@@ -324,8 +328,6 @@ function stubli_footer() {
 		?>
 	<footer class="st-footer">
 		<span>&copy; <?php echo (int) $now; ?> Celestine Tan</span>
-		<span aria-hidden="true">·</span>
-		<a href="https://www.gnu.org/licenses/gpl-2.0.html"><?php esc_html_e( 'Stubli is free software', 'stubli' ); ?></a>
 		<span aria-hidden="true">·</span>
 		<a href="https://buymeacoffee.com/celestinetan"><?php esc_html_e( 'Support Stubli', 'stubli' ); ?></a>
 		<span aria-hidden="true">·</span>
