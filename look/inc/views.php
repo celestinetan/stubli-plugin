@@ -822,8 +822,9 @@ function stubli_view_page() {
 	$page = get_queried_object();
 	stubli_topbar();
 	// stubli.app's elevator pitch: a wide, designed page whose words stay editable as ordinary blocks.
-	if ( $page instanceof WP_Post && in_array( $page->post_name, array( 'welcome', 'pitch' ), true ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
-		echo '<main class="st-main st-pitch" id="main">';
+	$wide = array( 'welcome' => 'st-pitch', 'pitch' => 'st-pitch', 'how-it-works' => 'st-pitch st-guide' );
+	if ( $page instanceof WP_Post && isset( $wide[ $page->post_name ] ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+		echo '<main class="st-main ' . esc_attr( $wide[ $page->post_name ] ) . '" id="main">';
 		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</main>';
 		return;

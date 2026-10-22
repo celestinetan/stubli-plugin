@@ -447,3 +447,6 @@
 	.is-scrolly .st-pitch-room h3 { font-size: 20px; }
 	.is-scrolly .st-pitch-room p { font-size: 15px; }
 }
+
+.sp-how-more { margin-top: 18px !important; font-size: 15px; color: var(--st-muted); }
+.sp-how-more a { color: var(--st-ink); font-weight: 600; text-underline-offset: 3px; }
