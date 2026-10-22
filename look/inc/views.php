@@ -291,6 +291,8 @@ function stubli_footer() {
 		<span>&copy; <?php echo (int) $now; ?> Celestine Tan</span>
 		<span aria-hidden="true">·</span>
 		<a href="https://www.gnu.org/licenses/gpl-2.0.html"><?php esc_html_e( 'Stubli is free software', 'stubli' ); ?></a>
+		<span aria-hidden="true">·</span>
+		<a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>"><?php esc_html_e( 'Privacy', 'stubli' ); ?></a>
 	</footer>
 		<?php
 		return;

@@ -69,8 +69,8 @@ Settings → Stubli has a check that tests everything Stubli needs in a few seco
 Stubli connects to other websites only for the features below. Nothing is sent anywhere just because someone visits your site.
 
 * **Sites you follow, comment on or invite.** Your site fetches their public feed and profile (address, name, photos) and sends comments by Webmention. These are other people's Stubli sites, chosen by you.
-* **stubli.app feedback (only when you press Send).** The app's feedback form sends your note, and, if you ticked them, your site address, device type and screenshot to stubli.app, the project's own site, so the people who make Stubli can read it. Terms and privacy: https://stubli.app/
-* **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report.
+* **stubli.app feedback (only when you press Send).** The app's feedback form sends your note, and, if you ticked them, your site address, device type and screenshot to stubli.app, the project's own site, so the people who make Stubli can read it. Privacy: https://stubli.app/privacy/
+* **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report. Privacy: https://stubli.app/privacy/
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
