@@ -30,7 +30,7 @@ class Settings {
 			'digest_email'  => (bool) get_option( 'stubli_digest_email', 0 ),
 			'who_can_comment' => (string) get_option( 'stubli_who_can_comment', 'friends_of_friends' ),
 			'look'          => (bool) get_option( 'stubli_look', 0 ),
-			'credit'        => (bool) get_option( 'stubli_credit', 1 ),
+			'credit'        => (bool) get_option( 'stubli_credit', 0 ),
 		);
 	}
 

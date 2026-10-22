@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.23.1
+Stable tag: 0.23.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,8 +94,11 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 == Changelog ==
 
+= 0.23.2 =
+* "Made with Stubli" is opt-in again, as WordPress.org asks: setup asks once, and nothing shows unless you say yes.
+
 = 0.23.1 =
-* "Made with Stubli · Make your own" is now on for new Stublis: one quiet line below your photos and in your footer. Untick it in setup or Settings any time.
+* Setup now asks "Help friends find Stubli?": say yes and a small "Made with Stubli · Make your own" line appears below your photos and in your footer. It stays off unless you say yes, and you can change it in Settings.
 * Visitors who want to follow you or comment but have no Stubli yet now get a clear way to make one.
 * stubli.app: the top bar has a single "Make your Stubli" button.
 

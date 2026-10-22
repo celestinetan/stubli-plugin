@@ -91,6 +91,8 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 		// stubli.app's top bar has one job: the way in. The explainers live on the page itself.
 		$pages = array_values( array_filter( $pages, static fn( $p ) => 'get-started' === $p->post_name ) );
 	}
+	$welcome = $hub ? get_page_by_path( 'welcome' ) : null;
+	$join    = $welcome && 'publish' === $welcome->post_status ? ( function_exists( 'stubli_is_pitch' ) && stubli_is_pitch() ? '#start' : get_permalink( $welcome ) ) : '';
 	?>
 	<header class="st-top<?php echo $hub ? ' st-top-brand' : ''; ?>">
 		<?php if ( $back_url ) : ?>
@@ -105,7 +107,7 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 		<?php if ( $pages ) : ?>
 			<nav class="st-top-pages" aria-label="<?php esc_attr_e( 'Pages', 'stubli' ); ?>">
 				<?php foreach ( $pages as $page ) : ?>
-					<a href="<?php echo esc_url( get_permalink( $page ) ); ?>"<?php echo $hub && 'get-started' === $page->post_name ? ' class="st-top-join"' : ''; ?><?php echo is_page( $page->ID ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $hub && 'get-started' === $page->post_name ? __( 'Make your Stubli', 'stubli' ) : get_the_title( $page ) ); ?></a>
+					<a href="<?php echo esc_url( $hub && $join && 'get-started' === $page->post_name ? $join : get_permalink( $page ) ); ?>"<?php echo $hub && 'get-started' === $page->post_name ? ' class="st-top-join"' : ''; ?><?php echo is_page( $page->ID ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $hub && 'get-started' === $page->post_name ? __( 'Make your Stubli', 'stubli' ) : get_the_title( $page ) ); ?></a>
 				<?php endforeach; ?>
 				<?php if ( $hub && function_exists( 'stubli_story_on' ) && stubli_story_on() ) : ?>
 					<a class="st-top-join" href="<?php echo esc_url( stubli_story_url( 'join' ) ); ?>"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a>
@@ -355,7 +357,7 @@ function stubli_footer() {
 	?>
 	<footer class="st-footer">
 		<span>&copy; <?php echo esc_html( $years . ' ' . get_bloginfo( 'name' ) ); ?></span>
-		<?php if ( stubli_credit_on() && empty( $GLOBALS['stubli_own_shown'] ) ) : // Once per page; on unless the owner unticks it in the setup or in Settings → Stubli. ?>
+		<?php if ( stubli_credit_on() && empty( $GLOBALS['stubli_own_shown'] ) ) : // Once per page; only if the owner said yes in setup or in Settings → Stubli. ?>
 			<span aria-hidden="true">·</span>
 			<a href="https://stubli.app/"><?php esc_html_e( 'Made with', 'stubli' ); ?> <?php echo stubli_wordmark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
 		<?php endif; ?>
@@ -684,7 +686,7 @@ function stubli_view_remote() {
 				}
 				?>
 			</p>
-			<a class="st-button" href="https://stubli.app/get-started/?from=<?php echo esc_attr( $do ); ?>"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a>
+			<a class="st-button" href="https://stubli.app/welcome/?from=<?php echo esc_attr( $do ); ?>"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a>
 		</section>
 	</main>
 	<?php
@@ -733,7 +735,7 @@ function stubli_view_note( $name ) {
 				<p><strong><?php esc_html_e( 'Sent. Thank you!', 'stubli' ); ?></strong></p>
 				<p class="st-muted"><?php /* translators: %s: first name */ printf( esc_html__( '%s will see it soon and can write back to you directly.', 'stubli' ), esc_html( $first ) ); ?></p>
 				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php /* translators: %s: first name */ printf( esc_html__( 'Back to %s\'s page', 'stubli' ), esc_html( $first ) ); ?></a>
-				<p class="st-note-own st-muted st-small"><?php esc_html_e( 'Want a page like this of your own?', 'stubli' ); ?> <a href="https://stubli.app/get-started/?from=note"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a></p>
+				<p class="st-note-own st-muted st-small"><?php esc_html_e( 'Want a page like this of your own?', 'stubli' ); ?> <a href="https://stubli.app/welcome/?from=note"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a></p>
 			</div>
 		</section>
 		<section id="st-pane-own" role="tabpanel" aria-labelledby="st-tab-own" hidden>
@@ -820,7 +822,7 @@ function stubli_view_page() {
 	$page = get_queried_object();
 	stubli_topbar();
 	// stubli.app's elevator pitch: a wide, designed page whose words stay editable as ordinary blocks.
-	if ( $page instanceof WP_Post && 'pitch' === $page->post_name && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+	if ( $page instanceof WP_Post && in_array( $page->post_name, array( 'welcome', 'pitch' ), true ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
 		echo '<main class="st-main st-pitch" id="main">';
 		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</main>';

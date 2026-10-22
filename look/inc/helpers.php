@@ -423,13 +423,13 @@ function stubli_empty( $where ) {
 }
 
 /**
- * Whether this Stubli shows "Made with Stubli". On for new Stublis; the
- * owner can untick it in setup or in Settings → Stubli.
+ * Whether this Stubli shows "Made with Stubli". Off unless the owner said
+ * yes in setup or in Settings → Stubli (WordPress.org guideline 10).
  *
  * @return bool
  */
 function stubli_credit_on() {
-	return (bool) get_option( 'stubli_credit', 1 );
+	return (bool) get_option( 'stubli_credit', 0 );
 }
 
 /**
@@ -442,5 +442,5 @@ function stubli_make_your_own() {
 		return;
 	}
 	$GLOBALS['stubli_own_shown'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- own prefix.
-	echo '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/get-started/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wordmark is static SVG.
+	echo '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/welcome/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wordmark is static SVG.
 }

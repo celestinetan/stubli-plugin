@@ -43,7 +43,8 @@
 	var people = [];
 	try { people = JSON.parse( pageEl ? pageEl.getAttribute( 'data-sp-people' ) : '[]' ) || []; } catch ( e ) { people = []; }
 	var closeH = $( '.st-pitch-close h2' );
-	var closeWord = closeH ? closeH.textContent.replace( /[.!]\s*$/, '' ) : '';
+	var closeWord = closeH ? closeH.textContent.replace( /[.!?]\s*$/, '' ) : '';
+	var closeMark = closeH ? ( ( closeH.textContent.match( /([.!?])\s*$/ ) || [ '', '.' ] )[ 1 ] ) : '.';
 	var slug = function ( s ) {
 		return ( s.normalize ? s.normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ) : s ).toLowerCase().replace( /[^a-z0-9]+/g, '' ).slice( 0, 20 ) || 'yourname';
 	};
@@ -67,7 +68,7 @@
 			var k = a.getAttribute( 'data-sp-ava' );
 			a.classList.toggle( 'is-on', who ? String( people.indexOf( who ) ) === k : 'you' === k );
 		} );
-		if ( closeH && first && closeWord ) { closeH.textContent = closeWord + ', ' + first + '.'; }
+		if ( closeH && first && closeWord ) { closeH.textContent = closeWord + ', ' + first + closeMark; }
 		if ( startName && document.activeElement !== startName ) { startName.value = name; }
 	};
 	var auto = !! ( nameIn && people.length && ! still );
@@ -103,7 +104,7 @@
 	var next = $( '[data-sp-next]' );
 	$$( '[data-sp-have]' ).forEach( function ( r ) {
 		r.addEventListener( 'change', function () {
-			if ( next ) { next.textContent = 'yes' === r.value ? 'Next: add Stubli to your site in two taps. Stubli itself is completely free.' : 'Next: get your own site on WordPress.com, then add Stubli. About ten minutes, and Stubli itself is completely free.'; }
+			if ( next ) { next.textContent = 'yes' === r.value ? 'Next: add Stubli to your site in two taps. Stubli itself is completely free.' : 'Next: get your own site on WordPress.com, then add Stubli. About 15 minutes, and Stubli itself is completely free.'; }
 		} );
 	} );
 
