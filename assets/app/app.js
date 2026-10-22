@@ -53,7 +53,10 @@
 		landscape: '<rect x="3" y="7.5" width="18" height="9" rx="2"/>',
 		play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
 		chev: '<path d="M9 6l6 6-6 6"/>',
-		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>'
+		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
+		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
+		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>'
 	};
 	function icon( n, w ) {
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
@@ -499,7 +502,11 @@
 			'<div class="a-you-btns"><a class="a-btn quiet" href="#about">Edit page</a><button type="button" class="a-btn quiet" data-share>Share</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' + me.inviteOpen + '">Invite</button></div>' +
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + '><p class="muted" style="margin-top:0">Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
 			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">Latest · ' + esc( gentle( latest.date ) ) + '</span><span class="a-latest-t">' + esc( latest.title || 'Photo post' ) + ( latest.coll ? ' <span class="muted">in ' + esc( latest.coll ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
-			( colls.length ? '<div class="a-ctabs" role="group" aria-label="Collections">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || 'All' ) + '</button>'; } ).join( '' ) + '<a class="a-ctab" href="' + esc( B.journal ) + '">Journal</a></div>' : '' ) +
+			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="Collections">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || 'All' ) + '</button>'; } ).join( '' ) + '</div>' +
+				'<a class="a-ctab a-ctab-icon" href="' + esc( B.journal ) + '" aria-label="Journal" title="Journal">' + icon( 'book', 18 ) + '</a>' +
+				'<span class="a-ctabs-gap"></span>' +
+				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( p.guestbook ) + '" aria-label="Guest book" title="Guest book">' + icon( 'pen', 18 ) + '</a>' : '' ) +
+				'<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( B.home + 'links/' ) + '" aria-label="Links" title="Links">' + icon( 'mark', 18 ) + '</a></div>' +
 			'<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>' +
 			'</main>' + bar( 'you' );
 		var redrawStack = function () { var w = $( '[data-you-stack]' ); if ( w ) { w.innerHTML = stackHtml( deckOf( me.p ), me.i, bio, null ); bindStack( function () { return me.i; }, function ( v ) { me.i = v; }, redrawStack ); } };

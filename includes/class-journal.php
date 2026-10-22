@@ -28,6 +28,7 @@ class Journal {
 	public static function init() {
 		add_action( 'init', array( self::class, 'rewrite' ) );
 		add_filter( 'query_vars', array( self::class, 'query_vars' ) );
+		add_filter( 'request', array( self::class, 'route' ), 5 );
 		add_action( 'pre_get_posts', array( self::class, 'keep_out_of_feeds' ) );
 	}
 
@@ -37,6 +38,32 @@ class Journal {
 	public static function rewrite() {
 		add_rewrite_rule( '^journal/?$', 'index.php?' . self::QUERY_VAR . '=1', 'top' );
 		add_rewrite_rule( '^journal/page/([0-9]+)/?$', 'index.php?' . self::QUERY_VAR . '=1&paged=$matches[1]', 'top' );
+	}
+
+	/**
+	 * /journal/ works even when the host hasn't refreshed its address rules
+	 * (WordPress.com doesn't after a plugin update), like /links/ in the theme.
+	 *
+	 * @param array $vars Query vars.
+	 * @return array
+	 */
+	public static function route( $vars ) {
+		if ( is_admin() || ! isset( $_SERVER['REQUEST_URI'] ) ) {
+			return $vars;
+		}
+		$uri  = (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH );
+		$base = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		if ( '' !== $base && 0 === strpos( $uri, $base ) ) {
+			$uri = substr( $uri, strlen( $base ) );
+		}
+		if ( preg_match( '#^journal(?:/page/(\d+))?/?$#', trim( $uri, '/' ), $m ) ) {
+			$out = array( self::QUERY_VAR => '1' );
+			if ( ! empty( $m[1] ) ) {
+				$out['paged'] = (int) $m[1];
+			}
+			return $out;
+		}
+		return $vars;
 	}
 
 	/**
