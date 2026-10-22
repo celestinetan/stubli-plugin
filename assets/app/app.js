@@ -51,7 +51,9 @@
 		portrait: '<rect x="7" y="4" width="10" height="16" rx="2"/>',
 		square: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
 		landscape: '<rect x="3" y="7.5" width="18" height="9" rx="2"/>',
-		play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>'
+		play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
+		chev: '<path d="M9 6l6 6-6 6"/>',
+		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>'
 	};
 	function icon( n, w ) {
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
@@ -358,6 +360,9 @@
 		if ( h === 'new/details' ) { if ( ! post || ! post.photos.length ) { location.replace( '#new' ); return; } return viewDetails(); }
 		if ( h === 'journal' ) { return viewJournal(); }
 		if ( h === 'you' ) { return viewYou(); }
+		if ( h === 'more' ) { return viewMore(); }
+		if ( h === 'about' ) { return viewAbout(); }
+		if ( /^note\/\d+$/.test( h ) ) { return viewNote( +h.split( '/' )[ 1 ] ); }
 		if ( h === 'feedback' ) { return viewFeedback(); }
 		if ( h === 'import' ) { if ( imp && ( imp.state === 'done' || imp.state === 'empty' ) ) { imp = null; } return viewImport(); }
 		if ( h === 'discover' ) { return viewDiscover(); }
@@ -372,7 +377,7 @@
 	window.addEventListener( 'hashchange', function ( e ) {
 		var was = ( e.oldURL || '' ).split( '#' )[ 1 ];
 		was = was === undefined ? 'home' : was;
-		if ( [ 'home', 'discover', 'whatsnew', 'you' ].indexOf( was ) > -1 ) { cameFrom = '#' + was; }
+		if ( [ 'home', 'discover', 'whatsnew', 'you', 'more' ].indexOf( was ) > -1 ) { cameFrom = '#' + was; }
 	} );
 	window.addEventListener( 'hashchange', route );
 
@@ -385,19 +390,17 @@
 			[ 'you', '#you', 'You', 'you' ]
 		];
 		return '<div class="a-bar"><nav aria-label="Stubli">' + items.map( function ( i ) {
-			var dot = i[ 0 ] === 'whatsnew' && B.waiting > 0;
-			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + B.waiting + ' waiting for your OK' : '' ) ) + '">' + icon( i[ 3 ], 25 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
+			var waiting = ( B.waiting || 0 ) + ( B.requests || 0 ), dot = i[ 0 ] === 'whatsnew' && waiting > 0;
+			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + waiting + ' waiting for your OK' : '' ) ) + '">' + icon( i[ 3 ], 25 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
 		} ).join( '' ) + '</nav></div>';
 	}
 
 	/* ── Home ── */
 	function isStandalone() { return ( window.matchMedia && matchMedia( '(display-mode: standalone)' ).matches ) || navigator.standalone; }
-	function viewYou() {
+	function viewMore() {
 		var ios = /iphone|ipad|ipod/i.test( navigator.userAgent );
 		var host = String( B.home || '' ).replace( /^https?:\/\//, '' ).replace( /\/$/, '' );
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
-			'<h1 class="a-greet">You</h1>' +
-			mineSection() +
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Settings and more</h1><span></span></header><main class="a-main" id="main">' +
 			'<section class="a-card"><h2>Your page</h2><p class="muted">' + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + '">See your page</a><a class="a-btn quiet" href="' + esc( B.settings ) + '">Profile and settings</a></div></section>' +
 			summaryCard() +
 			'<section class="a-card"><h2>Share something</h2><p class="muted">Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.</p>' +
@@ -411,13 +414,238 @@
 			( isStandalone() ? '' : '<section class="a-card"><h2>Put Stubli on your home screen</h2><p class="muted">' + ( ios ? 'In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.' : 'Open your browser\'s menu, then choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.' ) + ' It opens like an app, without the browser around it.</p></section>' ) +
 			'<p class="a-help a-thanks">Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">leave him a tip</a>. It unlocks nothing; it just keeps Stubli going.</p>' +
 			'</main>' + bar( 'you' );
-		bindInvite(); bindFollow(); bindMine(); bindSummary( redrawSummary ); bindKeep(); bindPeople();
-		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( location.hash === '#you' ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
+		bindInvite(); bindFollow(); bindSummary( redrawSummary ); bindKeep(); bindPeople();
+		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( location.hash === '#more' ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
 		bindMove();
-		if ( ! mv.loaded ) { mv.loaded = true; Promise.all( [ send( 'GET', 'move/link', null ), send( 'GET', 'move/in', null ) ] ).then( function ( r ) { mv.out = r[ 0 ]; mv.inState = r[ 1 ]; if ( r[ 1 ].state === 'moving' ) { runMove( function () { if ( location.hash === '#you' ) { redrawMove(); } } ); } if ( location.hash === '#you' ) { redrawMove(); } }, function () {} ); }
-		if ( ! kp.loaded && ! kp.loading ) { kp.loading = true; send( 'GET', 'archive', null ).then( function ( r ) { kp.ar = r; kp.loaded = true; kp.loading = false; if ( r.state === 'packing' ) { packArchive(); } else if ( location.hash === '#you' ) { redrawKeep(); } }, function () { kp.loaded = true; kp.loading = false; } ); }
-		if ( ! ds.loaded && ! ds.loading ) { ds.loading = true; loadSummary().then( function () { ds.loading = false; if ( location.hash === '#you' ) { redrawSummary(); } } ); }
-		if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; loadMine( true ).then( function () { mine.loading = false; if ( location.hash === '#you' ) { swap( '[data-mine]', mineSection(), bindMine ); } } ); }
+		if ( ! mv.loaded ) { mv.loaded = true; Promise.all( [ send( 'GET', 'move/link', null ), send( 'GET', 'move/in', null ) ] ).then( function ( r ) { mv.out = r[ 0 ]; mv.inState = r[ 1 ]; if ( r[ 1 ].state === 'moving' ) { runMove( function () { if ( location.hash === '#more' ) { redrawMove(); } } ); } if ( location.hash === '#more' ) { redrawMove(); } }, function () {} ); }
+		if ( ! kp.loaded && ! kp.loading ) { kp.loading = true; send( 'GET', 'archive', null ).then( function ( r ) { kp.ar = r; kp.loaded = true; kp.loading = false; if ( r.state === 'packing' ) { packArchive(); } else if ( location.hash === '#more' ) { redrawKeep(); } }, function () { kp.loaded = true; kp.loading = false; } ); }
+		if ( ! ds.loaded && ! ds.loading ) { ds.loading = true; loadSummary().then( function () { ds.loading = false; if ( location.hash === '#more' ) { redrawSummary(); } } ); }
+	}
+
+
+	/* ── You: your own profile, like your page (agreed 22 Oct) ── */
+	var me = { p: null, loading: false, i: 0, coll: '', inviteOpen: false };
+	function loadMe() {
+		if ( me.loading ) { return Promise.resolve(); }
+		me.loading = true;
+		return send( 'GET', 'profile', null ).then( function ( p ) { me.p = p || {}; me.loading = false; }, function () { me.loading = false; me.p = me.p || {}; } );
+	}
+	function deckOf( p ) {
+		return [ { bio: true } ].concat( ( p && p.prompts || [] ).map( function ( c ) { return { q: c.q, a: c.a }; } ) );
+	}
+	function stackHtml( deck, i, bioHtml, opts ) {
+		var n = deck.length;
+		i = ( ( i % n ) + n ) % n;
+		var cards = deck.map( function ( c, k ) {
+			var pos = ( k - i + n ) % n, front = pos === 0;
+			var inner = c.bio ? bioHtml : '<p class="a-pcard-q">' + esc( c.q ) + '</p><p class="a-pcard-a">' + esc( c.a ) + '</p>' + ( opts && opts.reply ? opts.reply( k - 1 ) : '' );
+			return '<div class="a-pcard' + ( c.bio ? ' a-pcard-bio' : '' ) + '" data-pos="' + ( pos > 2 ? 'hide' : pos ) + '"' + ( front ? '' : ' aria-hidden="true" inert' ) + '>' + inner + '</div>';
+		} ).join( '' );
+		var nav = n > 1 ? '<div class="a-stack-nav"><button type="button" class="a-stack-btn" data-stack-prev aria-label="Previous card">' + icon( 'back', 18 ) + '</button><span class="a-stack-dots" aria-hidden="true">' + deck.map( function ( _, k ) { return '<span' + ( k === i ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</span><button type="button" class="a-stack-btn" data-stack-next aria-label="Next card">' + icon( 'chev', 18 ) + '</button><span class="sr" aria-live="polite" data-stack-status></span></div>' : '';
+		return '<div class="a-stack' + ( n > 1 ? ' is-deck' : '' ) + '" data-stack>' + cards + '</div>' + nav;
+	}
+	function bindStack( get, set, redraw ) {
+		var st = $( '[data-stack]' ); if ( ! st ) { return; }
+		var go = function ( d ) { set( get() + d ); redraw(); var s2 = $( '[data-stack-status]' ), f = $( '.a-pcard[data-pos="0"]' ); if ( s2 && f ) { s2.textContent = f.textContent.slice( 0, 120 ); } };
+		var pv = $( '[data-stack-prev]' ), nx = $( '[data-stack-next]' );
+		if ( pv ) { pv.addEventListener( 'click', function () { go( -1 ); var b = $( '[data-stack-prev]' ); if ( b ) { b.focus(); } } ); }
+		if ( nx ) { nx.addEventListener( 'click', function () { go( 1 ); var b = $( '[data-stack-next]' ); if ( b ) { b.focus(); } } ); }
+		var x0 = null, y0 = null;
+		st.addEventListener( 'touchstart', function ( e ) { x0 = e.touches[ 0 ].clientX; y0 = e.touches[ 0 ].clientY; }, { passive: true } );
+		st.addEventListener( 'touchend', function ( e ) {
+			if ( x0 === null ) { return; }
+			var dx = e.changedTouches[ 0 ].clientX - x0, dy = e.changedTouches[ 0 ].clientY - y0; x0 = null;
+			if ( Math.abs( dx ) > 40 && Math.abs( dx ) > Math.abs( dy ) ) { go( dx < 0 ? 1 : -1 ); }
+		} );
+	}
+	function youGrid() {
+		if ( ! mine.loaded ) { return '<div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div>'; }
+		var list = mine.items.filter( function ( i ) { return ! me.coll || i.coll === me.coll; } );
+		if ( ! list.length ) { return '<div class="a-empty-you">' + smile() + '<p>' + ( me.coll ? 'Nothing in ' + esc( me.coll ) + ' yet.' : 'Your page is waiting for its first photo.' ) + '</p><a class="a-btn quiet" href="#new">Post a photo</a></div>'; }
+		var firstMissing = mine.items.filter( function ( i ) { return i.missing; } )[ 0 ];
+		return ( mine.missing && firstMissing && ! me.coll ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? 'One photo has' : mine.missing + ' photos have' ) + ' no description yet. A few words help people who use screen readers.</p><a class="a-btn quiet" href="#edit/' + firstMissing.id + '">Add descriptions</a></div>' : '' ) +
+			'<div class="a-mine-grid">' + list.map( function ( i ) {
+				var label = ( i.title || ( i.video ? 'Video post' : 'Photo post' ) ) + ( i.count > 1 ? ', ' + i.count + ' photos' : '' ) + ( i.missing ? ', needs a description' : '' ) + ( i.friends ? ', friends only' : '' );
+				return '<a href="#edit/' + i.id + '" aria-label="Edit: ' + esc( label ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '' ) +
+					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) +
+					( i.friends ? '<span class="a-mine-friends" aria-hidden="true">Friends</span>' : '' ) + '</a>';
+			} ).join( '' ) + '</div>' +
+			( mine.more && ! me.coll ? '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">Show more</button>' : '' );
+	}
+	function smile() {
+		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
+	}
+	function viewYou() {
+		if ( ! me.p || ! mine.loaded ) {
+			root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="Settings and more">' + icon( 'menu', 22 ) + '</a></div><h1 class="sr">You</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">Loading…</p></main>' + bar( 'you' );
+			var todo = [];
+			if ( ! me.p && ! me.loading ) { todo.push( loadMe() ); }
+			if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; todo.push( loadMine( true ).then( function () { mine.loading = false; }, function () { mine.loading = false; mine.loaded = true; } ) ); }
+			if ( todo.length ) { Promise.all( todo ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); }
+			return;
+		}
+		var p = me.p, host = hostOf( B.home );
+		var name = p ? ( p.name || host ) : '';
+		var bio = p ? ( '<div class="a-you-head">' + ( p.avatar ? '<img src="' + esc( p.avatar ) + '" alt="" width="52" height="52">' : '<span class="a-av a-ini" style="width:52px;height:52px">' + esc( initials( name ) ) + '</span>' ) +
+			'<span><strong>' + esc( unent( name ) ) + '</strong>' + ( p.pronouns ? ' <span class="muted">' + esc( p.pronouns ) + '</span>' : '' ) + '<small class="muted">' + esc( host ) + '</small></span></div>' +
+			( p.bio ? '<p class="a-you-bio">' + esc( unent( p.bio ) ) + '</p>' : '<p class="a-you-bio muted"><a href="#about">Add a line about you</a></p>' ) +
+			( p.prompts && p.prompts.length ? '' : '<a class="a-text-btn a-you-add" href="#about">Add cards about you</a>' ) ) : '';
+		var latest = mine.loaded && mine.items[ 0 ];
+		var colls = [];
+		mine.items.forEach( function ( i ) { if ( i.coll && colls.indexOf( i.coll ) < 0 ) { colls.push( i.coll ); } } );
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="Settings and more">' + icon( 'menu', 22 ) + '</a></div>' +
+			'<h1 class="sr">You</h1>' +
+			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
+			'<div class="a-you-btns"><a class="a-btn quiet" href="#about">Edit page</a><button type="button" class="a-btn quiet" data-share>Share</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' + me.inviteOpen + '">Invite</button></div>' +
+			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + '><p class="muted" style="margin-top:0">Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
+			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">Latest · ' + esc( gentle( latest.date ) ) + '</span><span class="a-latest-t">' + esc( latest.title || 'Photo post' ) + ( latest.coll ? ' <span class="muted">in ' + esc( latest.coll ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
+			( colls.length ? '<div class="a-ctabs" role="group" aria-label="Collections">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || 'All' ) + '</button>'; } ).join( '' ) + '<a class="a-ctab" href="' + esc( B.journal ) + '">Journal</a></div>' : '' ) +
+			'<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>' +
+			'</main>' + bar( 'you' );
+		var redrawStack = function () { var w = $( '[data-you-stack]' ); if ( w ) { w.innerHTML = stackHtml( deckOf( me.p ), me.i, bio, null ); bindStack( function () { return me.i; }, function ( v ) { me.i = v; }, redrawStack ); } };
+		bindStack( function () { return me.i; }, function ( v ) { me.i = v; }, redrawStack );
+		bindInvite();
+		var it = $( '[data-invite-toggle]' ); if ( it ) { it.addEventListener( 'click', function () { me.inviteOpen = ! me.inviteOpen; var c = $( '[data-invite-card]' ); c.hidden = ! me.inviteOpen; it.setAttribute( 'aria-expanded', me.inviteOpen ); if ( me.inviteOpen ) { var bb = $( '[data-invite]' ); if ( bb ) { bb.focus(); } } } ); }
+		var sh = $( '[data-share]' ); if ( sh ) { sh.addEventListener( 'click', function () {
+			if ( navigator.share ) { navigator.share( { title: name, url: B.home } ).catch( function () {} ); return; }
+			var ok = function () { toast( 'Link to your page copied.' ); };
+			if ( navigator.clipboard ) { navigator.clipboard.writeText( B.home ).then( ok, function () { toast( B.home ); } ); } else { toast( B.home ); }
+		} ); }
+		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); } ); } );
+		bindYouGrid();
+	}
+	function bindYouGrid() {
+		var m = $( '[data-mine-more]' );
+		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = 'Loading…'; mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
+	}
+
+	/* ── Edit page: your line and your prompt cards ── */
+	var ab = null;
+	function viewAbout() {
+		if ( ! ab ) {
+			ab = { loaded: false, cards: [], choices: [], max: 3, maxA: 150, bio: '', picking: null, own: '', busy: false, error: '' };
+			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div></main>';
+			Promise.all( [ send( 'GET', 'prompts', null ), me.p ? Promise.resolve( me.p ) : send( 'GET', 'profile', null ) ] ).then( function ( r ) {
+				ab.cards = ( r[ 0 ].prompts || [] ).slice(); ab.choices = r[ 0 ].choices || []; ab.max = r[ 0 ].max || 3; ab.maxA = r[ 0 ].max_answer || 150;
+				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.loaded = true;
+				if ( location.hash === '#about' ) { renderAbout(); }
+			}, function ( e ) { ab = null; root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#you">Back</a></div></main>'; } );
+			return;
+		}
+		if ( ab.loaded ) { renderAbout(); }
+	}
+	function renderAbout() {
+		var used = ab.cards.map( function ( c ) { return c.q; } );
+		var picker = function ( slot ) {
+			return '<div class="a-picker" role="group" aria-label="Choose a prompt">' + ab.choices.filter( function ( q ) { return used.indexOf( q ) < 0; } ).map( function ( q ) { return '<button type="button" class="a-chip" data-pick-q="' + esc( q ) + '" data-slot="' + slot + '">' + esc( q ) + '</button>'; } ).join( '' ) +
+				'</div><div class="a-inline"><label class="sr" for="a-own-q">Your own prompt</label><input id="a-own-q" class="a-field" maxlength="80" placeholder="Or write your own…" value="' + esc( ab.own ) + '"><button type="button" class="a-btn quiet" data-own-q data-slot="' + slot + '">Use</button></div>' +
+				'<button type="button" class="a-text-btn" data-pick-cancel>Cancel</button>';
+		};
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><button type="button" class="a-btn" data-ab-save' + ( ab.busy ? ' disabled' : '' ) + '>' + ( ab.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
+			'<main class="a-compose" id="main">' + ( ab.error ? '<div class="a-notice" role="alert"><p>' + esc( ab.error ) + '</p></div>' : '' ) +
+			'<label class="a-label" for="a-ab-bio" style="margin-top:4px">One line about you</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
+			'<h2 class="a-label">Cards about you</h2><p class="muted" style="margin:-4px 0 12px">Up to ' + ab.max + ' cards sit behind your bio on your page. Short answers work best, and people can reply to each one.</p>' +
+			ab.cards.map( function ( c, k ) {
+				return '<div class="a-card a-pedit">' + ( ab.picking === k ? picker( k ) :
+					'<div class="a-row"><label class="a-label" style="margin:0" for="a-pa-' + k + '">' + esc( c.q ) + '</label><span><button type="button" class="a-text-btn" data-change="' + k + '">Change</button><button type="button" class="a-text-btn" data-remove="' + k + '" aria-label="Remove ' + esc( c.q ) + '">Remove</button></span></div>' +
+					'<textarea id="a-pa-' + k + '" class="a-field a-grow a-pedit-a" rows="2" maxlength="' + ab.maxA + '" data-answer="' + k + '">' + esc( c.a ) + '</textarea><p class="a-count" data-answer-n="' + k + '">' + c.a.length + ' / ' + ab.maxA + '</p>' ) + '</div>';
+			} ).join( '' ) +
+			( ab.cards.length < ab.max ? ( ab.picking === 'new' ? '<div class="a-card a-pedit">' + picker( 'new' ) + '</div>' : '<button type="button" class="a-btn quiet wide" data-add-card>' + icon( 'plus', 18 ) + 'Add a card</button>' ) : '' ) +
+			'</main>';
+		var grow = function ( t ) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+		var bio = $( '#a-ab-bio' ); grow( bio );
+		bio.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { e.preventDefault(); } } );
+		bio.addEventListener( 'input', function () { ab.bio = bio.value.replace( /\s*\n+\s*/g, ' ' ); $( '[data-ab-bio-n]' ).textContent = ab.bio.length + ' / 160'; grow( bio ); } );
+		$$( '[data-answer]' ).forEach( function ( t ) { grow( t ); t.addEventListener( 'input', function () { var k = +t.dataset.answer; ab.cards[ k ].a = t.value.replace( /\s*\n+\s*/g, ' ' ); $( '[data-answer-n="' + k + '"]' ).textContent = ab.cards[ k ].a.length + ' / ' + ab.maxA; grow( t ); } ); } );
+		var setQ = function ( slot, q ) {
+			q = String( q || '' ).trim(); if ( ! q ) { return; }
+			if ( slot === 'new' ) { ab.cards.push( { q: q, a: '' } ); slot = ab.cards.length - 1; } else { ab.cards[ +slot ].q = q; }
+			ab.picking = null; ab.own = ''; renderAbout(); var t = $( '#a-pa-' + slot ); if ( t ) { t.focus(); }
+		};
+		$$( '[data-pick-q]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { setQ( b.dataset.slot, b.dataset.pickQ ); } ); } );
+		var own = $( '[data-own-q]' ); if ( own ) { var oi = $( '#a-own-q' ); oi.addEventListener( 'input', function () { ab.own = oi.value; } ); own.addEventListener( 'click', function () { var v = oi.value.trim(); if ( ! v ) { oi.focus(); return; } setQ( own.dataset.slot, /[…?:]$/.test( v ) ? v : v + '…' ); } ); }
+		var pc = $( '[data-pick-cancel]' ); if ( pc ) { pc.addEventListener( 'click', function () { ab.picking = null; renderAbout(); } ); }
+		var add = $( '[data-add-card]' ); if ( add ) { add.addEventListener( 'click', function () { ab.picking = 'new'; renderAbout(); var f = $( '[data-pick-q]' ); if ( f ) { f.focus(); } } ); }
+		$$( '[data-change]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { ab.picking = +b.dataset.change; renderAbout(); } ); } );
+		$$( '[data-remove]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { ab.cards.splice( +b.dataset.remove, 1 ); renderAbout(); } ); } );
+		$( '[data-ab-save]' ).addEventListener( 'click', function () {
+			var empty = ab.cards.filter( function ( c ) { return ! c.a.trim(); } )[ 0 ];
+			if ( empty ) { ab.error = 'Write an answer for "' + empty.q + '", or remove that card.'; renderAbout(); return; }
+			ab.busy = true; ab.error = ''; renderAbout();
+			Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio } ) ] ).then( function ( r ) {
+				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( 'Your page is updated.' );
+			}, function ( e ) { ab.busy = false; ab.error = e.message; renderAbout(); } );
+		} );
+	}
+
+	/* ── Notes: private replies (Q48) ── */
+	var nt = { loaded: false, inbox: [], requests: [], done: {} };
+	function loadNotes() {
+		return send( 'GET', 'notes', null ).then( function ( r ) { nt.inbox = r.inbox || []; nt.requests = r.requests || []; nt.loaded = true; B.requests = nt.requests.length; }, function () { nt.loaded = true; } );
+	}
+	function contactLink( c ) {
+		c = String( c || '' ).trim();
+		if ( /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test( c ) ) { return { href: 'mailto:' + c, label: 'Write back by email' }; }
+		if ( /^\+?[\d\s()\-]{7,}$/.test( c ) ) { return { href: 'tel:' + c.replace( /[^\d+]/g, '' ), label: 'Call or text' }; }
+		return null;
+	}
+	function noteCard( n, isRequest ) {
+		var d = nt.done[ n.id ];
+		if ( d ) { return '<div class="a-card a-note is-done" data-note-card="' + n.id + '"><p role="status" style="margin:0">' + esc( d ) + '</p></div>'; }
+		var who = n.kind === 'guest' ? 'no Stubli' : hostOf( n.site ), c = n.kind === 'guest' ? contactLink( n.contact ) : null;
+		return '<div class="a-card a-note" data-note-card="' + n.id + '"><div class="a-wait-head">' + face( n.avatar, n.name, 36 ) +
+			'<span><strong>' + esc( unent( n.name ) ) + '</strong> <span class="muted">' + esc( who ) + ( isRequest ? ' · Request' : '' ) + ' · ' + esc( gentle( n.date ) ) + '</span></span></div>' +
+			( n.prompt ? '<p class="muted small a-note-re">Replying to “' + esc( n.prompt.q ) + '”</p>' : '' ) +
+			'<p class="a-note-text">' + esc( n.text ) + '</p>' +
+			( n.kind === 'guest' ? '<p class="a-note-contact">Reach ' + esc( unent( n.name ) ) + ' at <strong>' + esc( n.contact ) + '</strong></p>' : '' ) +
+			'<div class="a-wait-acts">' +
+			( isRequest ? '<button type="button" class="a-btn" data-note="accept" data-id="' + n.id + '">' + ( n.kind === 'guest' ? 'Keep' : 'Accept' ) + '</button>' : '' ) +
+			( ! isRequest && n.kind !== 'guest' ? '<a class="a-btn" href="#note/' + n.id + '">' + ( n.replied ? 'Reply again' : 'Reply' ) + '</a>' : '' ) +
+			( ! isRequest && c ? '<a class="a-btn" href="' + esc( c.href ) + '">' + esc( c.label ) + '</a>' : '' ) +
+			'<button type="button" class="a-btn quiet" data-note="delete" data-id="' + n.id + '">Delete</button>' +
+			'<button type="button" class="a-text-btn a-block" data-note="block" data-id="' + n.id + '">Block</button></div></div>';
+	}
+	function notesSection() {
+		if ( ! nt.loaded || ( ! nt.inbox.length && ! nt.requests.length ) ) { return ''; }
+		var open = nt.requests.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length + nt.inbox.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length;
+		return '<h2 class="a-label">Notes' + ( open ? ' · ' + open : '' ) + '</h2>' + nt.requests.map( function ( n ) { return noteCard( n, true ); } ).join( '' ) + nt.inbox.slice( 0, 20 ).map( function ( n ) { return noteCard( n, false ); } ).join( '' );
+	}
+	function bindNotes( redraw ) {
+		$$( '[data-note]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var id = +b.dataset.id, act = b.dataset.note;
+				$$( '[data-note][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = true; } );
+				send( 'POST', 'notes/' + id, { action: act } ).then( function () {
+					var n = nt.requests.concat( nt.inbox ).filter( function ( x ) { return x.id === id; } )[ 0 ];
+					if ( act === 'accept' && n ) { nt.requests = nt.requests.filter( function ( x ) { return x.id !== id; } ); nt.inbox.unshift( n ); }
+					else { nt.done[ id ] = act === 'block' ? 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.' : 'Deleted.'; }
+					B.requests = nt.requests.filter( function ( x ) { return ! nt.done[ x.id ]; } ).length;
+					redraw();
+				}, function ( e ) { $$( '[data-note][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); toast( e.message ); } );
+			} );
+		} );
+	}
+	var nc = null;
+	function viewNote( id ) {
+		var n = nt.inbox.filter( function ( x ) { return x.id === id; } )[ 0 ];
+		if ( ! n ) {
+			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#whatsnew">Close</a><h1>Reply</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span></div></main>';
+			loadNotes().then( function () { if ( nt.inbox.some( function ( x ) { return x.id === id; } ) ) { viewNote( id ); } else { location.replace( '#whatsnew' ); } } );
+			return;
+		}
+		if ( ! nc || nc.id !== id ) { nc = { id: id, text: '', busy: false, error: '' }; }
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#whatsnew">Close</a><h1>Reply to ' + esc( unent( n.name ) ) + '</h1><button type="button" class="a-btn" data-nc-send' + ( nc.busy || ! nc.text.trim() ? ' disabled' : '' ) + '>' + ( nc.busy ? 'Sending…' : 'Send' ) + '</button></header>' +
+			'<main class="a-compose" id="main"><div class="a-card a-note"><p class="muted small" style="margin:0 0 4px">' + esc( unent( n.name ) ) + ' wrote</p><p class="a-note-text" style="margin:0">' + esc( n.text ) + '</p></div>' +
+			( nc.error ? '<div class="a-notice" role="alert"><p>' + esc( nc.error ) + '</p></div>' : '' ) +
+			'<label class="a-label" for="a-nc">Your note</label><textarea id="a-nc" class="a-textarea" maxlength="1000">' + esc( nc.text ) + '</textarea>' +
+			'<p class="a-help">Private: only ' + esc( unent( n.name ) ) + ' sees it, in their own Stubli.</p></main>';
+		var t = $( '#a-nc' ), b = $( '[data-nc-send]' );
+		t.addEventListener( 'input', function () { nc.text = t.value; b.disabled = ! nc.text.trim() || nc.busy; } );
+		b.addEventListener( 'click', function () {
+			nc.busy = true; nc.error = ''; b.disabled = true; b.textContent = 'Sending…';
+			send( 'POST', 'notes/send', { to: n.site, text: nc.text, reply: n.id } ).then( function () { n.replied = true; nc = null; location.hash = '#whatsnew'; toast( 'Sent. Only ' + unent( n.name ) + ' sees it.' ); }, function ( e ) { nc.busy = false; nc.error = e.message; viewNote( id ); } );
+		} );
+		t.focus();
 	}
 
 	/* ── Your people: who you follow, and who is a friend (Q44) ── */
@@ -525,10 +753,10 @@
 		kp.packing = true;
 		var go = function () {
 			send( 'POST', 'archive/step', {} ).then( function ( r ) {
-				kp.ar = r; if ( location.hash === '#you' ) { redrawKeep(); }
+				kp.ar = r; if ( location.hash === '#more' ) { redrawKeep(); }
 				if ( r.state === 'packing' ) { return go(); }
 				kp.packing = false;
-			}, function ( e ) { kp.packing = false; kp.msg = e.message; kp.ar = { state: 'none' }; if ( location.hash === '#you' ) { redrawKeep(); } } );
+			}, function ( e ) { kp.packing = false; kp.msg = e.message; kp.ar = { state: 'none' }; if ( location.hash === '#more' ) { redrawKeep(); } } );
 		};
 		go();
 	}
@@ -934,7 +1162,7 @@
 
 
 	/* ── Discover: friends of friends ── */
-	var disc = { loaded: false, list: [], followed: {} };
+	var disc = { loaded: false, list: [], followed: {}, i: 0 };
 	function viewDiscover() {
 		renderDiscover();
 		disc.error = '';
@@ -950,21 +1178,27 @@
 		} else if ( ! disc.list.length ) {
 			body = '<p class="muted">No suggestions yet. They come from the public lists of the people you follow, so they appear once you follow a few people who share theirs.</p>';
 		} else {
-			body = disc.list.map( function ( s ) {
-				var host = hostOf( s.url ), done = disc.followed[ s.url ];
+			var at = Math.min( disc.i, disc.list.length );
+			body = at >= disc.list.length ? '<div class="a-end">' + sky( 28 ) + '<strong>That\'s everyone for now</strong><span class="muted">New suggestions come as the people you follow follow others.</span><button type="button" class="a-text-btn" data-disc-again>See them again</button></div>' : [ disc.list[ at ] ].map( function ( s ) {
+				var host = hostOf( s.url ), done = disc.followed[ s.url ], pr = s.prompts && s.prompts[ 0 ];
 				return '<article class="a-card a-disc">' +
 					'<div class="a-wait-head">' + ( s.avatar ? '<img src="' + esc( s.avatar ) + '" alt="" width="40" height="40">' : '<span class="a-av"></span>' ) +
 					'<span><a href="' + esc( s.url ) + '"><strong>' + esc( s.name || host ) + '</strong></a> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">Followed by ' + esc( viaText( s.via ) ) + '</span></span>' +
 					'<button type="button" class="a-btn' + ( done ? ' quiet' : '' ) + ' a-disc-follow" data-disc="' + esc( s.url ) + '"' + ( done ? ' disabled' : '' ) + '>' + ( done ? 'Following' : 'Follow' ) + '</button></div>' +
 					( s.bio ? '<p class="a-disc-bio">' + esc( s.bio ) + '</p>' : '' ) +
+					( pr ? '<div class="a-pcard a-disc-card"><p class="a-pcard-q">' + esc( pr.q ) + '</p><p class="a-pcard-a">' + esc( pr.a ) + '</p><a class="a-text-btn a-pcard-reply" href="' + esc( B.home + 'app/?act=1&do=note&p=0&url=' + encodeURIComponent( s.url ) ) + '">Reply to this</a></div>' : '' ) +
 					( s.recent && s.recent.length ? '<div class="a-wn-thumbs">' + s.recent.map( function ( r ) { return '<a href="' + esc( r.link ) + '"><img src="' + esc( r.url ) + '" alt="' + esc( r.note ? 'Photo with a content note: ' + r.note : r.alt ) + '" loading="lazy"' + ( r.note ? ' class="is-noted"' : '' ) + '></a>'; } ).join( '' ) + '</div>' : '' ) +
-					'<p class="a-help" data-disc-msg="' + esc( s.url ) + '" aria-live="polite"></p></article>';
+					'<p class="a-help" data-disc-msg="' + esc( s.url ) + '" aria-live="polite"></p>' +
+					'<div class="a-actions"><button type="button" class="a-btn quiet" data-disc-next>' + ( done ? 'Next' : 'Not now' ) + '</button></div></article>' +
+					'<p class="muted small" style="text-align:center">' + ( at + 1 ) + ' of ' + disc.list.length + '</p>';
 			} ).join( '' );
 		}
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">Discover</h1>' +
 			'<p class="muted" style="margin:-2px 0 14px">Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.</p>' +
 			followForm( 'discover' ) + '<div style="height:12px"></div>' + body + '</main>' + bar( 'discover' );
 		var dr = $( '[data-disc-retry]' ); if ( dr ) { dr.addEventListener( 'click', function () { disc.loaded = false; viewDiscover(); } ); }
+		var dn = $( '[data-disc-next]' ); if ( dn ) { dn.addEventListener( 'click', function () { disc.i++; renderDiscover(); var h = $( '.a-disc strong, .a-end strong' ); if ( h ) { h.setAttribute( 'tabindex', '-1' ); h.focus(); } } ); }
+		var da = $( '[data-disc-again]' ); if ( da ) { da.addEventListener( 'click', function () { disc.i = 0; renderDiscover(); } ); }
 		bindFollow();
 		$$( '[data-disc]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
@@ -985,7 +1219,8 @@
 		Promise.all( [
 			send( 'GET', 'queue', null ).then( function ( q ) { wn.queue = Array.isArray( q ) ? q : []; }, function () { wn.queue = []; } ),
 			send( 'GET', 'activity', null ).then( function ( a ) { wn.activity = Array.isArray( a ) ? a : []; }, function () { wn.activity = []; } ),
-			send( 'GET', 'feed?page=1', null ).then( function ( f ) { wn.items = Array.isArray( f ) ? f : []; }, function () { wn.items = []; } )
+			send( 'GET', 'feed?page=1', null ).then( function ( f ) { wn.items = Array.isArray( f ) ? f : []; }, function () { wn.items = []; } ),
+			loadNotes()
 		] ).then( function () {
 			wn.loaded = true; wn.since = wn.seen || ( Date.now() - 86400000 );
 			B.waiting = wn.queue.filter( function ( c ) { return ! c.later; } ).length;
@@ -999,6 +1234,7 @@
 		if ( ! wn.loaded ) {
 			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">Loading…</p>';
 		} else {
+			body += notesSection();
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
 			var open = waiting.filter( function ( c ) { return ! wn.done[ c.id ]; } ).length;
@@ -1036,6 +1272,7 @@
 		}
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">What\'s new</h1><p class="muted" style="margin:-2px 0 6px">Since your last look</p>' + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
+		bindNotes( renderWhatsNew );
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
 		$$( '[data-open-list]' ).forEach( function ( a ) { a.addEventListener( 'click', function () { feed.list = a.dataset.openList; feed.loaded = false; } ); } );

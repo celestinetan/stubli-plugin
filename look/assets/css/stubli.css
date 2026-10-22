@@ -184,7 +184,7 @@ p { margin: 0 0 .75em; }
 .st-tab {
 	position: relative; display: inline-flex; align-items: flex-end; flex: none;
 	height: 44px; text-decoration: none; scroll-snap-align: start;
-	font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+	font-size: 14px; font-weight: 600;
 	white-space: nowrap; color: var(--tab-fg);
 	--tab-bg: var(--st-tab-off); --tab-fg: var(--st-muted);
 }
@@ -226,7 +226,9 @@ p { margin: 0 0 .75em; }
 	border-left: 2px solid var(--st-field); padding-left: 12px; margin: 0 0 16px 2px;
 }
 [data-mode="light"] .st-wall-label, [data-mode="paper"] .st-wall-label { border-left-color: #cfc8bc; }
-.st-empty { color: var(--st-muted); text-align: center; padding: 40px 12px; margin: 0; }
+.st-empty { color: var(--st-muted); text-align: center; padding: 40px 12px; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.st-empty p { margin: 0; max-width: 34ch; }
+.st-empty-mark { color: var(--st-accent); }
 
 /* ── Grid ── */
 .st-grid {
@@ -309,7 +311,7 @@ p { margin: 0 0 .75em; }
 .st-journal { padding: 22px 16px; }
 .st-entry { max-width: 640px; margin: 0 auto 28px; }
 .st-entry + .st-entry { padding-top: 22px; box-shadow: 0 -1px 0 0 transparent; }
-.st-entry-date { font: 600 12px/1.4 var(--st-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--st-muted); margin: 0 0 8px; }
+.st-entry-date { font: 600 14px/1.4 var(--st-sans); color: var(--st-muted); margin: 0 0 8px; }
 .st-entry-text { font: 400 17px/1.65 var(--st-serif); }
 .st-entry.is-long .st-entry-text { max-height: 18em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .st-entry.is-full { margin-top: 12px; }
@@ -528,3 +530,39 @@ p { margin: 0 0 .75em; }
 .st-story-end { margin: 28px 0 0; font-size: 14px; }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+/* Prompt cards behind the profile card (design Q48). */
+.st-stack-wrap { min-width: 0; display: flex; flex-direction: column; }
+.st-stack { display: grid; flex: 1; }
+.st-stack > .st-card { background: var(--st-bg); }
+.st-stack.is-live { padding-bottom: 18px; }
+.st-stack.is-live > .st-card { grid-area: 1 / 1; transition: transform .28s cubic-bezier(.2,.7,.2,1), opacity .2s; }
+.st-stack.is-live > .st-card[data-pos="0"] { position: relative; z-index: 3; box-shadow: 0 10px 22px -18px rgba(0,0,0,.35); }
+.st-stack.is-live > .st-card[data-pos="1"] { z-index: 2; transform: translateY(9px) scale(.965); background: var(--st-surface); }
+.st-stack.is-live > .st-card[data-pos="2"] { z-index: 1; transform: translateY(17px) scale(.93); background: var(--st-field); }
+.st-stack.is-live > .st-card[data-pos="1"] > *, .st-stack.is-live > .st-card[data-pos="2"] > *, .st-stack.is-live > .st-card[data-pos="hide"] { visibility: hidden; }
+.st-stack:not(.is-live) > .st-prompt { margin-top: 10px; }
+.st-prompt { display: flex; flex-direction: column; gap: 6px; }
+.st-prompt-q { margin: 0; font-size: 13px; font-weight: 600; color: var(--st-muted); }
+.st-prompt-a { margin: 0 0 4px; font-family: var(--st-serif, Literata, Georgia, serif); font-size: 19px; line-height: 1.3; }
+.st-prompt-reply { align-self: flex-start; margin-top: auto; }
+.st-stack-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 2px; }
+.st-stack-btn { width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: var(--st-ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.st-stack-btn:hover { background: var(--st-surface); }
+.st-stack-dots { display: flex; gap: 6px; }
+.st-stack-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--st-field); transition: width .2s; }
+.st-stack-dots span.is-on { width: 18px; background: var(--st-accent); }
+@media (prefers-reduced-motion: reduce) { .st-stack.is-live > .st-card { transition: none; } }
+/* Reply to a prompt card. */
+.st-note-quote { margin: 8px 0 18px; }
+.st-note-tabs { display: flex; padding: 3px; border-radius: 999px; background: var(--st-surface); margin: 0 0 18px; }
+.st-note-tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--st-muted); font: inherit; font-weight: 500; cursor: pointer; }
+.st-note-tabs button[aria-selected="true"] { background: var(--st-bg); color: var(--st-ink); font-weight: 650; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.st-note-form { display: grid; gap: 6px; margin: 0 0 24px; }
+.st-note-form label { font-weight: 600; font-size: 14px; margin-top: 8px; }
+.st-note-form input, .st-note-form textarea { font: inherit; color: inherit; border: 0; border-radius: 12px; background: var(--st-field); padding: 12px 14px; min-height: 48px; box-sizing: border-box; width: 100%; }
+.st-note-form textarea { resize: vertical; }
+.st-note-form input::placeholder, .st-note-form textarea::placeholder { color: var(--st-muted); opacity: 1; }
+.st-note-form input:focus, .st-note-form textarea:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; }
+.st-note-form .st-button { justify-self: start; margin-top: 10px; }
+.st-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.st-note-done { display: block; }

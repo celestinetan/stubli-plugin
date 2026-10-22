@@ -35,6 +35,7 @@ class Bundle {
 			'mode'      => Setup::mode(),
 			'links'     => (string) get_option( 'stubli_links', '' ),
 			'interests' => array_column( Setup::interests(), 'name' ),
+			'prompts'   => Prompts::get(),
 		);
 	}
 

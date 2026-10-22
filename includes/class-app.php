@@ -181,6 +181,7 @@ class App {
 			'maxCaption'  => Posts::MAX_CAPTION_LENGTH,
 			'maxNote'     => Posts::MAX_NOTE_LENGTH,
 			'friends'     => count( (array) get_option( 'stubli_friends', array() ) ),
+			'requests'    => Notes::waiting(),
 			'maxJournal'  => 5000,
 			'today'       => wp_date( 'l, j F' ),
 			'waiting'     => self::waiting(),

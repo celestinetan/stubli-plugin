@@ -75,6 +75,7 @@ class Discover {
 				'avatar' => $p['avatar'],
 				'bio'    => $p['bio'],
 				'recent' => $p['recent'],
+				'prompts' => $p['prompts'] ?? array(),
 				'latest' => $p['recent'] ? $p['recent'][0]['date'] : '',
 				'via'    => array_values( array_unique( $via[ $o ] ) ),
 			);
@@ -167,7 +168,32 @@ class Discover {
 			'name'   => sanitize_text_field( (string) ( $p['name'] ?? '' ) ),
 			'avatar' => esc_url_raw( (string) ( $p['avatar'] ?? '' ) ),
 			'bio'    => mb_substr( sanitize_text_field( (string) ( $p['bio'] ?? ( $p['description'] ?? '' ) ) ), 0, 200 ),
-			'recent' => $recent,
+			'recent'  => $recent,
+			'prompts' => self::clean_prompts( $p['prompts'] ?? null ),
 		);
+	}
+
+	/**
+	 * Someone's prompt cards, as plain short text.
+	 *
+	 * @param mixed $list Raw list.
+	 * @return array
+	 */
+	public static function clean_prompts( $list ) {
+		$out = array();
+		foreach ( array_slice( is_array( $list ) ? $list : array(), 0, Prompts::MAX ) as $p ) {
+			if ( ! is_array( $p ) ) {
+				continue;
+			}
+			$q = mb_substr( sanitize_text_field( (string) ( $p['q'] ?? '' ) ), 0, Prompts::MAX_Q );
+			$a = mb_substr( sanitize_text_field( (string) ( $p['a'] ?? '' ) ), 0, Prompts::MAX_ANSWER );
+			if ( '' !== $q && '' !== $a ) {
+				$out[] = array(
+					'q' => $q,
+					'a' => $a,
+				);
+			}
+		}
+		return $out;
 	}
 }

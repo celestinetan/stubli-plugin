@@ -302,6 +302,9 @@ class Move {
 		}
 		update_option( 'stubli_bio', mb_substr( sanitize_text_field( (string) ( $p['bio'] ?? '' ) ), 0, 300 ) );
 		Settings::update( array( 'pronouns' => (string) ( $p['pronouns'] ?? '' ) ) );
+		if ( isset( $p['prompts'] ) && is_array( $p['prompts'] ) ) {
+			Prompts::save( $p['prompts'] );
+		}
 		update_option( 'stubli_links', sanitize_textarea_field( (string) ( $p['links'] ?? '' ) ) );
 		Setup::save(
 			array(

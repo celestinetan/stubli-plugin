@@ -160,6 +160,7 @@
 			store.set( 'stubli-home', url.host + url.pathname.replace( /\/+$/, '' ) );
 			var dest = home + '/app/?act=1&do=' + encodeURIComponent( form.getAttribute( 'data-do' ) ) + '&url=' + encodeURIComponent( form.getAttribute( 'data-target' ) );
 			if ( form.getAttribute( 'data-invite' ) ) { dest += '&invite=' + encodeURIComponent( form.getAttribute( 'data-invite' ) ); }
+			if ( form.getAttribute( 'data-p' ) && form.getAttribute( 'data-p' ) !== '-1' ) { dest += '&p=' + encodeURIComponent( form.getAttribute( 'data-p' ) ); }
 			window.location.href = dest;
 		} );
 	} );
@@ -191,6 +192,87 @@
 				err.textContent = ( x && x.message ) || 'The note didn\'t go through. Try again in a moment.'; err.hidden = false;
 				btn.disabled = false; btn.textContent = 'Send feedback';
 			} );
+		} );
+	} );
+}() );
+
+/* Prompt cards behind the profile card: arrows, dots and swipe. */
+( function () {
+	document.querySelectorAll( '[data-st-stack]' ).forEach( function ( stack ) {
+		var cards = Array.prototype.slice.call( stack.querySelectorAll( '[data-st-card]' ) );
+		var nav = stack.parentNode.querySelector( '[data-st-stack-nav]' );
+		if ( cards.length < 2 || ! nav ) { return; }
+		var dots = nav.querySelectorAll( '.st-stack-dots span' ), status = nav.querySelector( '[data-st-stack-status]' ), i = 0;
+		stack.classList.add( 'is-live' ); nav.hidden = false;
+		function show( n, announce ) {
+			i = ( n + cards.length ) % cards.length;
+			cards.forEach( function ( c, k ) {
+				var pos = ( k - i + cards.length ) % cards.length;
+				c.setAttribute( 'data-pos', pos > 2 ? 'hide' : String( pos ) );
+				if ( pos === 0 ) { c.removeAttribute( 'aria-hidden' ); c.inert = false; } else { c.setAttribute( 'aria-hidden', 'true' ); c.inert = true; }
+			} );
+			Array.prototype.forEach.call( dots, function ( d, k ) { d.classList.toggle( 'is-on', k === i ); } );
+			if ( announce && status ) { status.textContent = ( i + 1 ) + ' / ' + cards.length + ': ' + ( cards[ i ].getAttribute( 'aria-label' ) || '' ); }
+		}
+		nav.querySelector( '[data-st-prev]' ).addEventListener( 'click', function () { show( i - 1, true ); } );
+		nav.querySelector( '[data-st-next]' ).addEventListener( 'click', function () { show( i + 1, true ); } );
+		var x0 = null, y0 = null;
+		stack.addEventListener( 'touchstart', function ( e ) { x0 = e.touches[ 0 ].clientX; y0 = e.touches[ 0 ].clientY; }, { passive: true } );
+		stack.addEventListener( 'touchend', function ( e ) {
+			if ( x0 === null ) { return; }
+			var dx = e.changedTouches[ 0 ].clientX - x0, dy = e.changedTouches[ 0 ].clientY - y0; x0 = null;
+			if ( Math.abs( dx ) > 40 && Math.abs( dx ) > Math.abs( dy ) ) { show( dx < 0 ? i + 1 : i - 1, true ); }
+		} );
+		show( 0, false );
+	} );
+}() );
+
+
+/* Reply to a prompt card: tabs, and the guest note form. */
+( function () {
+	var tabs = document.querySelector( '[data-st-note-tabs]' );
+	if ( tabs ) {
+		var btns = Array.prototype.slice.call( tabs.querySelectorAll( '[role=tab]' ) );
+		var pick = function ( b, focus ) {
+			btns.forEach( function ( x ) {
+				var on = x === b;
+				x.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+				x.tabIndex = on ? 0 : -1;
+				document.getElementById( x.getAttribute( 'aria-controls' ) ).hidden = ! on;
+			} );
+			if ( focus ) { b.focus(); }
+		};
+		btns.forEach( function ( b, k ) {
+			b.addEventListener( 'click', function () { pick( b ); } );
+			b.addEventListener( 'keydown', function ( e ) {
+				if ( e.key === 'ArrowRight' || e.key === 'ArrowLeft' ) { e.preventDefault(); pick( btns[ ( k + ( e.key === 'ArrowRight' ? 1 : -1 ) + btns.length ) % btns.length ], true ); }
+			} );
+		} );
+		pick( btns[ 0 ] );
+	}
+	var form = document.querySelector( '[data-st-note]' );
+	if ( ! form ) { return; }
+	var err = form.querySelector( '.st-error' ), btn = form.querySelector( 'button[type=submit]' );
+	form.addEventListener( 'submit', function ( e ) {
+		e.preventDefault();
+		var get = function ( n ) { return ( form.elements[ n ] && form.elements[ n ].value || '' ).trim(); };
+		var missing = ! get( 'text' ) ? 'text' : ! get( 'name' ) ? 'name' : ! get( 'contact' ) ? 'contact' : '';
+		if ( missing ) {
+			err.textContent = { text: 'Write a few words first.', name: 'Add your name, so they know who it\'s from.', contact: 'Add an email, phone number or other way to reach you, so they can write back.' }[ missing ];
+			err.hidden = false; form.elements[ missing ].focus(); return;
+		}
+		err.hidden = true; btn.disabled = true; btn.textContent = 'Sending…';
+		fetch( form.getAttribute( 'data-url' ), {
+			method: 'POST', headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify( { text: get( 'text' ), name: get( 'name' ), contact: get( 'contact' ), website: get( 'website' ), prompt: form.getAttribute( 'data-prompt' ) } )
+		} ).then( function ( r ) { return r.json().then( function ( d ) { return { ok: r.ok, d: d }; } ); } ).then( function ( res ) {
+			if ( ! res.ok ) { throw new Error( ( res.d && res.d.message ) || '' ); }
+			form.hidden = true;
+			var done = document.querySelector( '[data-st-note-done]' ); done.hidden = false; done.focus();
+			if ( tabs ) { tabs.hidden = true; }
+		} ).catch( function ( x ) {
+			btn.disabled = false; btn.textContent = 'Send note';
+			err.textContent = x.message || 'The note didn\'t go through. Check your connection and try again.'; err.hidden = false;
 		} );
 	} );
 }() );

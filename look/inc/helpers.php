@@ -376,3 +376,48 @@ function stubli_img_src( $src ) {
 	return $src;
 }
 
+
+/**
+ * A friendly empty state in Stubli's voice: the smiling ü (with a wink), one
+ * line that changes each day, and for the owner a way to fill it.
+ *
+ * @param string $where journal | photos.
+ * @return string
+ */
+function stubli_empty( $where ) {
+	$name  = (string) strtok( (string) get_bloginfo( 'name' ), ' ' );
+	$name  = '' !== $name ? $name : __( 'They', 'stubli' );
+	$owner = function_exists( 'stubli_is_owner' ) && stubli_is_owner();
+	if ( 'journal' === $where ) {
+		$lines = $owner ? array(
+			__( 'Your journal is a blank page. One line about today is a fine start.', 'stubli' ),
+			__( 'Nothing written yet. The best entries begin with an ordinary day.', 'stubli' ),
+			__( 'Your first entry can be short. Future you will be glad you wrote it.', 'stubli' ),
+		) : array(
+			/* translators: %s: first name */
+			sprintf( __( '%s\'s journal is still a blank page. Good stories take their time.', 'stubli' ), $name ),
+			/* translators: %s: first name */
+			sprintf( __( 'Nothing written yet. %s is probably out living the first entry.', 'stubli' ), $name ),
+			/* translators: %s: first name */
+			sprintf( __( 'The ink on %s\'s first entry is still drying. Come back soon.', 'stubli' ), $name ),
+		);
+		$cta = $owner ? array( home_url( '/app/#journal' ), __( 'Write your first entry', 'stubli' ) ) : null;
+	} else {
+		$lines = $owner ? array(
+			__( 'Nothing in here yet. A photo from today would look lovely.', 'stubli' ),
+			__( 'An empty shelf, waiting for its first photo.', 'stubli' ),
+		) : array(
+			/* translators: %s: first name */
+			sprintf( __( 'No photos here yet. %s is still choosing the good ones.', 'stubli' ), $name ),
+			/* translators: %s: first name */
+			sprintf( __( 'This spot is saved for %s\'s next favourite photo.', 'stubli' ), $name ),
+		);
+		$cta = $owner ? array( home_url( '/app/#new' ), __( 'Post a photo', 'stubli' ) ) : null;
+	}
+	$line = $lines[ (int) wp_date( 'z' ) % count( $lines ) ];
+	$out  = '<div class="st-empty"><svg class="st-empty-mark" viewBox="0 0 60 80" width="30" height="40" aria-hidden="true" focusable="false">' . stubli_glyph( true ) . '</svg><p>' . esc_html( $line ) . '</p>';
+	if ( $cta ) {
+		$out .= stubli_pill( $cta[0], $cta[1], 'quiet' );
+	}
+	return $out . '</div>';
+}

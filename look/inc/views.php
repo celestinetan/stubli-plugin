@@ -128,8 +128,11 @@ function stubli_profile_cards() {
 	$p      = stubli_profile();
 	$latest = stubli_latest_photo();
 	?>
+	<?php $prompts = ! empty( $p['prompts'] ) && is_array( $p['prompts'] ) ? $p['prompts'] : array(); ?>
 	<div class="st-cards">
-		<section class="st-card st-profile" aria-label="<?php esc_attr_e( 'About', 'stubli' ); ?>">
+		<div class="st-stack-wrap">
+		<div class="st-stack<?php echo $prompts ? ' has-cards' : ''; ?>" data-st-stack aria-roledescription="<?php esc_attr_e( 'cards', 'stubli' ); ?>">
+		<section class="st-card st-profile is-front" data-st-card aria-label="<?php esc_attr_e( 'About', 'stubli' ); ?>">
 			<div class="st-profile-head">
 				<?php if ( ! empty( $p['avatar'] ) ) : ?>
 					<img class="st-avatar" src="<?php echo esc_url( stubli_img_src( $p['avatar'] ), array( 'http', 'https', 'data' ) ); ?>" alt="" width="44" height="44">
@@ -153,6 +156,25 @@ function stubli_profile_cards() {
 				<p class="st-break"><?php /* translators: %s: name */ printf( esc_html__( '%s is taking a break from comments.', 'stubli' ), esc_html( $p['name'] ) ); ?></p>
 			<?php endif; ?>
 		</section>
+		<?php foreach ( $prompts as $i => $card ) : ?>
+			<section class="st-card st-prompt" data-st-card aria-label="<?php echo esc_attr( $card['q'] ); ?>">
+				<p class="st-prompt-q"><?php echo esc_html( $card['q'] ); ?></p>
+				<p class="st-prompt-a"><?php echo esc_html( $card['a'] ); ?></p>
+				<?php if ( ! stubli_is_owner() && empty( $p['on_break'] ) ) : ?>
+					<a class="st-pill st-pill-quiet st-prompt-reply" href="<?php echo esc_url( add_query_arg( 'p', (int) $i, stubli_remote_url( 'note', home_url( '/' ) ) ) ); ?>"><span><?php esc_html_e( 'Reply to this', 'stubli' ); ?></span></a>
+				<?php endif; ?>
+			</section>
+		<?php endforeach; ?>
+		</div>
+		<?php if ( $prompts ) : ?>
+			<div class="st-stack-nav" data-st-stack-nav hidden>
+				<button type="button" class="st-stack-btn" data-st-prev aria-label="<?php esc_attr_e( 'Previous card', 'stubli' ); ?>"><?php echo stubli_icon( 'back', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
+				<span class="st-stack-dots" aria-hidden="true"><?php echo str_repeat( '<span></span>', count( $prompts ) + 1 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+				<button type="button" class="st-stack-btn" data-st-next aria-label="<?php /* translators: %s: name */ echo esc_attr( sprintf( __( 'Next card: more about %s', 'stubli' ), $p['name'] ) ); ?>"><?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
+				<span class="st-sr" aria-live="polite" data-st-stack-status></span>
+			</div>
+		<?php endif; ?>
+		</div>
 		<?php if ( $latest ) : ?>
 			<?php
 			$ids  = stubli_photo_ids( $latest->ID );
@@ -227,7 +249,7 @@ function stubli_tabs( $active ) {
  */
 function stubli_grid( WP_Query $q ) {
 	if ( ! $q->have_posts() ) {
-		echo '<p class="st-empty">' . esc_html__( 'Nothing here yet.', 'stubli' ) . '</p>';
+		echo stubli_empty( 'photos' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		return;
 	}
 	echo '<ul class="st-grid" role="list">';
@@ -507,7 +529,7 @@ function stubli_view_journal() {
 		)
 	);
 	if ( ! $entries->have_posts() ) {
-		echo '<p class="st-empty">' . esc_html__( 'No journal entries yet.', 'stubli' ) . '</p>';
+		echo stubli_empty( 'journal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 	}
 	foreach ( $entries->posts as $entry ) {
 		$long = mb_strlen( wp_strip_all_tags( $entry->post_content ) ) > 600;
@@ -613,8 +635,14 @@ function stubli_view_remote() {
 		'comment' => __( 'Comment from your own Stubli', 'stubli' ),
 		/* translators: %s: name */
 		'sign'    => sprintf( __( 'Sign %s\'s guest book', 'stubli' ), $name ),
+		/* translators: %s: name */
+		'note'    => sprintf( __( 'Reply to %s', 'stubli' ), $name ),
 	);
 	$do = isset( $titles[ $do ] ) ? $do : 'comment';
+	if ( 'note' === $do ) {
+		stubli_view_note( $name );
+		return;
+	}
 	stubli_topbar( $target, $name );
 	?>
 	<main class="st-main st-narrow" id="main">
@@ -641,6 +669,66 @@ function stubli_view_remote() {
 			<p><?php esc_html_e( 'It\'s your own little website with photos, a journal and the people you follow. Ask someone who has one for an invite. Setting up takes about 15 minutes.', 'stubli' ); ?></p>
 			<a href="https://stubli.app/"><?php esc_html_e( 'How Stubli works', 'stubli' ); ?></a>
 		</section>
+	</main>
+	<?php
+}
+
+/**
+ * Reply to a prompt card: from your own Stubli, or as a guest with a note
+ * only the owner sees (design Q48).
+ *
+ * @param string $name Owner's name.
+ */
+function stubli_view_note( $name ) {
+	$i      = isset( $_GET['p'] ) ? (int) $_GET['p'] : -1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$p      = stubli_profile();
+	$card   = ( $i >= 0 && isset( $p['prompts'][ $i ] ) ) ? $p['prompts'][ $i ] : null;
+	$first  = (string) strtok( $name, ' ' );
+	$paused = ! empty( $p['on_break'] );
+	stubli_topbar( home_url( '/' ), $name );
+	?>
+	<main class="st-main st-narrow" id="main">
+		<h1 class="st-h1"><?php /* translators: %s: name */ printf( esc_html__( 'Reply to %s', 'stubli' ), esc_html( $first ) ); ?></h1>
+		<?php if ( $card ) : ?>
+			<div class="st-card st-prompt st-note-quote"><p class="st-prompt-q"><?php echo esc_html( $card['q'] ); ?></p><p class="st-prompt-a"><?php echo esc_html( $card['a'] ); ?></p></div>
+		<?php endif; ?>
+		<?php if ( $paused ) : ?>
+			<p class="st-break"><?php /* translators: %s: name */ printf( esc_html__( '%s is taking a break, so notes are paused for now.', 'stubli' ), esc_html( $first ) ); ?></p>
+		<?php else : ?>
+		<div class="st-note-tabs" role="tablist" aria-label="<?php esc_attr_e( 'How to reply', 'stubli' ); ?>" data-st-note-tabs>
+			<button type="button" role="tab" id="st-tab-guest" aria-controls="st-pane-guest" aria-selected="true"><?php esc_html_e( 'Leave a note', 'stubli' ); ?></button>
+			<button type="button" role="tab" id="st-tab-own" aria-controls="st-pane-own" aria-selected="false"><?php esc_html_e( 'I have a Stubli', 'stubli' ); ?></button>
+		</div>
+		<section id="st-pane-guest" role="tabpanel" aria-labelledby="st-tab-guest">
+			<form class="st-note-form" data-st-note data-url="<?php echo esc_url( rest_url( 'stubli/v1/notes/guest' ) ); ?>" data-prompt="<?php echo (int) $i; ?>" novalidate>
+				<label for="st-note-text"><?php esc_html_e( 'Your note', 'stubli' ); ?></label>
+				<textarea id="st-note-text" name="text" rows="4" maxlength="1000" required></textarea>
+				<label for="st-note-name"><?php esc_html_e( 'Your name', 'stubli' ); ?></label>
+				<input id="st-note-name" name="name" type="text" maxlength="60" autocomplete="name" required>
+				<label for="st-note-contact"><?php /* translators: %s: first name */ printf( esc_html__( 'How %s can reach you', 'stubli' ), esc_html( $first ) ); ?></label>
+				<input id="st-note-contact" name="contact" type="text" maxlength="120" autocomplete="email" placeholder="<?php esc_attr_e( 'Email, phone or Instagram name', 'stubli' ); ?>" required>
+				<div class="st-trap" aria-hidden="true"><label for="st-note-website">Website</label><input id="st-note-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+				<p class="st-muted st-small"><?php /* translators: %s: first name */ printf( esc_html__( 'Only %s sees this note and your contact details. Nothing appears on this page, and it\'s deleted after 90 days.', 'stubli' ), esc_html( $first ) ); ?></p>
+				<p class="st-error" role="alert" hidden></p>
+				<button type="submit" class="st-button"><?php esc_html_e( 'Send note', 'stubli' ); ?></button>
+			</form>
+			<div class="st-card-tone st-note-done" data-st-note-done hidden tabindex="-1">
+				<p><strong><?php esc_html_e( 'Sent. Thank you!', 'stubli' ); ?></strong></p>
+				<p class="st-muted"><?php /* translators: %s: first name */ printf( esc_html__( '%s will see it soon and can write back to you directly.', 'stubli' ), esc_html( $first ) ); ?></p>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php /* translators: %s: first name */ printf( esc_html__( 'Back to %s\'s page', 'stubli' ), esc_html( $first ) ); ?></a>
+			</div>
+		</section>
+		<section id="st-pane-own" role="tabpanel" aria-labelledby="st-tab-own" hidden>
+			<p><?php /* translators: %s: first name */ printf( esc_html__( 'Write it in your own Stubli app. %s gets it as a private note: straight away if they follow you, otherwise after their OK.', 'stubli' ), esc_html( $first ) ); ?></p>
+			<form class="st-remote" data-st-remote data-do="note" data-target="<?php echo esc_url( home_url( '/' ) ); ?>" data-p="<?php echo (int) $i; ?>">
+				<label for="st-addr"><?php esc_html_e( 'Your Stubli address', 'stubli' ); ?></label>
+				<input id="st-addr" name="addr" type="url" inputmode="url" autocomplete="url" placeholder="yourname.com" required>
+				<span class="st-muted st-small"><?php esc_html_e( 'This device will remember it for next time.', 'stubli' ); ?></span>
+				<p class="st-error" role="alert" hidden></p>
+				<button type="submit" class="st-button"><?php esc_html_e( 'Continue in my app', 'stubli' ); ?></button>
+			</form>
+		</section>
+		<?php endif; ?>
 	</main>
 	<?php
 }

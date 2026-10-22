@@ -87,15 +87,7 @@ class Mine {
 	 * @return array
 	 */
 	public static function shape( $post ) {
-		$cats = get_the_category( $post->ID );
-		$def  = (int) get_option( 'default_category' );
-		$coll = '';
-		foreach ( $cats as $c ) {
-			if ( (int) $c->term_id !== $def ) {
-				$coll = $c->name;
-				break;
-			}
-		}
+		$coll = self::collection_of( $post->ID );
 		return array(
 			'id'         => (int) $post->ID,
 			'url'        => (string) get_permalink( $post ),
@@ -143,6 +135,9 @@ class Mine {
 				'video'   => $photos && $photos[0]['video'],
 				'friends' => Friends::is_friends_post( $p ),
 				'title'   => html_entity_decode( wp_strip_all_tags( get_the_title( $p ) ), ENT_QUOTES, 'UTF-8' ),
+				'url'     => (string) get_permalink( $p ),
+				'date'    => get_post_time( 'c', true, $p ),
+				'coll'    => self::collection_of( $p->ID ),
 			);
 		}
 		return array(
@@ -151,6 +146,22 @@ class Mine {
 			'total'   => (int) $q->found_posts,
 			'missing' => self::missing_count(),
 		);
+	}
+
+	/**
+	 * The collection a post is in ('' for none).
+	 *
+	 * @param int $id Post ID.
+	 * @return string
+	 */
+	public static function collection_of( $id ) {
+		$def = (int) get_option( 'default_category' );
+		foreach ( get_the_category( $id ) as $c ) {
+			if ( (int) $c->term_id !== $def ) {
+				return html_entity_decode( $c->name, ENT_QUOTES, 'UTF-8' );
+			}
+		}
+		return '';
 	}
 
 	/**

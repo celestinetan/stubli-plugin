@@ -88,6 +88,7 @@ class Posts {
 			'avatar'      => (string) $avatar,
 			'bio'         => '' !== (string) get_option( 'stubli_bio', '' ) ? (string) get_option( 'stubli_bio', '' ) : get_bloginfo( 'description' ),
 			'recent'      => self::recent_photos( 3 ),
+			'prompts'     => Prompts::get(),
 			'generator'   => 'stubli/' . VERSION,
 			'moved_to'    => (string) get_option( 'stubli_moved_to', '' ),
 			'moved_from'  => (string) get_option( 'stubli_moved_from', '' ),

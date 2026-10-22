@@ -70,8 +70,10 @@ class Act {
 		$done   = isset( $_GET['done'] ) ? sanitize_key( wp_unslash( $_GET['done'] ) ) : '';
 		$error  = isset( $_GET['error'] ) ? sanitize_text_field( wp_unslash( $_GET['error'] ) ) : '';
 		$invite = isset( $_GET['invite'] ) ? preg_replace( '/[^A-Za-z0-9]/', '', sanitize_text_field( wp_unslash( $_GET['invite'] ) ) ) : '';
+		$pidx   = isset( $_GET['p'] ) && '' !== $_GET['p'] ? (int) $_GET['p'] : -1;
 		// phpcs:enable
-		$do   = in_array( $do, array( 'follow', 'comment', 'sign', 'accept' ), true ) ? $do : 'comment';
+		$do    = in_array( $do, array( 'follow', 'comment', 'sign', 'accept', 'note' ), true ) ? $do : 'comment';
+		$quote = ( 'note' === $do && $target && $pidx >= 0 && ! isset( $_GET['done'] ) ) ? Notes::their_prompt( $target, $pidx ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( 'accept' === $do && '' === $invite ) {
 			$do = 'follow';
 		}
@@ -82,7 +84,7 @@ class Act {
 				<h1><?php esc_html_e( 'Nothing to do here', 'stubli' ); ?></h1>
 				<p><?php esc_html_e( 'This link is missing the page it\'s about. Go back and try the button again.', 'stubli' ); ?></p>
 			<?php elseif ( $done ) : ?>
-				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html__( 'You\'re following them', 'stubli' ) ) : ( 'follow' === $do ? esc_html__( 'You\'re following them', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ); ?></h1>
+				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html__( 'You\'re following them', 'stubli' ) ) : ( 'follow' === $do ? esc_html__( 'You\'re following them', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Note sent', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ) ); ?></h1>
 				<p>
 					<?php
 					if ( 'accept' === $do && 'both' === $done ) {
@@ -114,6 +116,9 @@ class Act {
 					} elseif ( 'sign' === $do ) {
 						/* translators: %s: site */
 						printf( esc_html__( 'Sign %s\'s guest book', 'stubli' ), esc_html( $host ) );
+					} elseif ( 'note' === $do ) {
+						/* translators: %s: site */
+						printf( esc_html__( 'Write to %s', 'stubli' ), esc_html( $host ) );
 					} else {
 						/* translators: %s: site */
 						printf( esc_html__( 'Comment on %s', 'stubli' ), esc_html( $host ) );
@@ -121,6 +126,12 @@ class Act {
 					?>
 				</h1>
 				<p><a href="<?php echo esc_url( $target ); ?>"><?php echo esc_html( $target ); ?></a></p>
+				<?php if ( $quote ) : ?>
+					<blockquote class="<?php echo $app ? 'a-quote' : ''; ?>"><strong><?php echo esc_html( $quote['q'] ); ?></strong><br><?php echo esc_html( $quote['a'] ); ?></blockquote>
+				<?php endif; ?>
+				<?php if ( 'note' === $do ) : ?>
+					<p><?php esc_html_e( 'A private note: only they see it. If they follow you, it arrives straight away; otherwise it waits for their OK.', 'stubli' ); ?></p>
+				<?php endif; ?>
 				<?php if ( 'accept' === $do ) : ?>
 					<p><?php /* translators: %s: site */ printf( esc_html__( 'You\'ll follow %s, and their site will follow you back. Either of you can stop following any time.', 'stubli' ), esc_html( $host ) ); ?></p>
 				<?php endif; ?>
@@ -132,18 +143,21 @@ class Act {
 					<input type="hidden" name="do" value="<?php echo esc_attr( $do ); ?>">
 					<input type="hidden" name="url" value="<?php echo esc_url( $target ); ?>">
 					<input type="hidden" name="invite" value="<?php echo esc_attr( $invite ); ?>">
+					<input type="hidden" name="p" value="<?php echo (int) $pidx; ?>">
 					<?php wp_nonce_field( 'stubli_act' ); ?>
 					<?php if ( $app ) : ?>
 						<input type="hidden" name="from" value="app">
 					<?php endif; ?>
 					<?php if ( 'follow' !== $do && 'accept' !== $do ) : ?>
 						<p>
-							<label for="og-act-text"><strong><?php echo 'sign' === $do ? esc_html__( 'Your message', 'stubli' ) : esc_html__( 'Your comment', 'stubli' ); ?></strong></label><br>
+							<label for="og-act-text"><strong><?php echo 'sign' === $do ? esc_html__( 'Your message', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Your note', 'stubli' ) : esc_html__( 'Your comment', 'stubli' ) ); ?></strong></label><br>
 							<textarea id="og-act-text" name="text" rows="5" class="<?php echo $app ? 'a-textarea' : 'large-text'; ?>" maxlength="2200" required></textarea>
 						</p>
+						<?php if ( 'note' !== $do ) : ?>
 						<p class="description"><?php esc_html_e( 'It\'s saved on your own site too, and you can delete it any time.', 'stubli' ); ?></p>
 					<?php endif; ?>
-					<p><button type="submit" id="submit" class="<?php echo esc_attr( $btn ); ?>"><?php echo esc_html( 'accept' === $do ? __( 'Follow each other', 'stubli' ) : ( 'follow' === $do ? __( 'Follow', 'stubli' ) : ( 'sign' === $do ? __( 'Sign the guest book', 'stubli' ) : __( 'Send comment', 'stubli' ) ) ) ); ?></button></p>
+					<?php endif; ?>
+					<p><button type="submit" id="submit" class="<?php echo esc_attr( $btn ); ?>"><?php echo esc_html( 'accept' === $do ? __( 'Follow each other', 'stubli' ) : ( 'follow' === $do ? __( 'Follow', 'stubli' ) : ( 'sign' === $do ? __( 'Sign the guest book', 'stubli' ) : ( 'note' === $do ? __( 'Send note', 'stubli' ) : __( 'Send comment', 'stubli' ) ) ) ) ); ?></button></p>
 				</form>
 			<?php endif; ?>
 		</div>
@@ -184,6 +198,8 @@ class Act {
 			$result         = Invites::accept_here( $target, $invite );
 		} elseif ( 'follow' === $do ) {
 			$result = Follows::add( $target );
+		} elseif ( 'note' === $do ) {
+			$result = Notes::send( $target, $text, isset( $_POST['p'] ) ? (int) $_POST['p'] : -1 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked above.
 		} elseif ( '' === trim( $text ) ) {
 			$result = new \WP_Error( 'stubli_empty', __( 'Write something first.', 'stubli' ) );
 		} else {
