@@ -77,6 +77,16 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 			'exclude'     => stubli_has_plugin() ? array( \Stubli\Guestbook::page_id() ) : array(),
 		)
 	);
+	// Pages ordered 90 or later stay out of the top bar (stubli.app keeps Privacy in its footer).
+	// WordPress's starter "Sample Page" never shows (audit #12).
+	$pages = array_values( array_filter( $pages, static fn( $p ) => (int) $p->menu_order < 90 && 'sample-page' !== $p->post_name ) );
+	/**
+	 * Filters the pages listed in the top bar.
+	 *
+	 * @param WP_Post[] $pages Pages, in order.
+	 */
+	$pages = (array) apply_filters( 'stubli_top_pages', $pages );
+	$hub   = class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub();
 	?>
 	<header class="st-top">
 		<?php if ( $back_url ) : ?>
@@ -87,8 +97,11 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 		<?php if ( $pages ) : ?>
 			<nav class="st-top-pages" aria-label="<?php esc_attr_e( 'Pages', 'stubli' ); ?>">
 				<?php foreach ( $pages as $page ) : ?>
-					<a href="<?php echo esc_url( get_permalink( $page ) ); ?>"<?php echo is_page( $page->ID ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $page ) ); ?></a>
+					<a href="<?php echo esc_url( get_permalink( $page ) ); ?>"<?php echo $hub && 'get-started' === $page->post_name ? ' class="st-top-join"' : ''; ?><?php echo is_page( $page->ID ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $page ) ); ?></a>
 				<?php endforeach; ?>
+				<?php if ( $hub && function_exists( 'stubli_story_on' ) && stubli_story_on() ) : ?>
+					<a class="st-top-join" href="<?php echo esc_url( stubli_story_url( 'join' ) ); ?>"><?php esc_html_e( 'Join Stubli', 'stubli' ); ?></a>
+				<?php endif; ?>
 			</nav>
 		<?php endif; ?>
 		<button type="button" class="st-mode" data-st-mode aria-label="<?php esc_attr_e( 'Reading mode', 'stubli' ); ?>"><span class="st-mode-aa" aria-hidden="true">Aa</span> <span class="st-mode-label"><?php esc_html_e( 'Auto', 'stubli' ); ?></span></button>
@@ -342,6 +355,9 @@ function stubli_view_profile() {
 	if ( $moved ) {
 		/* translators: %s: new address */
 		echo '<p class="st-card-tone st-moved" role="status">' . sprintf( esc_html__( 'This Stubli has moved to %s.', 'stubli' ), '<a href="' . esc_url( $moved ) . '">' . esc_html( untrailingslashit( preg_replace( '#^https?://#', '', $moved ) ) ) . '</a>' ) . '</p>';
+	}
+	if ( function_exists( 'stubli_hub_welcome' ) && ! is_category() ) {
+		stubli_hub_welcome();
 	}
 	stubli_profile_cards();
 	stubli_tabs( $active );
@@ -700,6 +716,12 @@ function stubli_view_page() {
 	echo '<main class="st-main st-narrow st-prose" id="main">';
 	if ( $page instanceof WP_Post ) {
 		echo '<h1 class="st-h1">' . esc_html( get_the_title( $page ) ) . '</h1>';
+		// stubli.app's About page is one long page: what, how, join, support, questions.
+		if ( 'about' === $page->post_name && function_exists( 'stubli_story_on' ) && stubli_story_on() && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+			stubli_story( $page );
+			echo '</main>';
+			return;
+		}
 		// stubli.app's Get started page is a guided flow: host first, then Stubli.
 		if ( 'get-started' === $page->post_name && function_exists( 'stubli_get_started' ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
 			stubli_get_started();

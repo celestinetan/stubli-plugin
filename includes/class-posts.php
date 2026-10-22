@@ -319,6 +319,9 @@ class Posts {
 		if ( '' !== $note ) {
 			update_post_meta( $post_id, '_stubli_content_note', $note );
 		}
+		if ( 'friends' === ( $extra['audience'] ?? '' ) ) {
+			Friends::set_audience( $post_id, 'friends' );
+		}
 
 		return array(
 			'id'     => $post_id,
@@ -627,6 +630,9 @@ class Posts {
 		$note = (string) get_post_meta( $post_id, '_stubli_content_note', true );
 		if ( '' !== $note ) {
 			echo "\t\t<stubli:contentNote>" . esc_html( $note ) . "</stubli:contentNote>\n";
+		}
+		if ( Friends::is_friends_post( $post_id ) ) {
+			echo "\t\t<stubli:audience>friends</stubli:audience>\n";
 		}
 	}
 

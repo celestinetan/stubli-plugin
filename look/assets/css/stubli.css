@@ -109,6 +109,15 @@ p { margin: 0 0 .75em; }
 	font-size: 14px; color: var(--st-muted); text-decoration: none; white-space: nowrap;
 }
 .st-top-pages a[aria-current] { color: var(--st-ink); font-weight: 600; }
+/* stubli.app: "Join Stubli" is the one filled pill (an action, design principle 2). */
+.st-top-pages a.st-top-join { position: relative; color: var(--st-accent-ink); font-weight: 600; padding: 0 14px; margin: 0 2px; }
+.st-top-pages a.st-top-join::before { content: ""; position: absolute; inset: 5px 0; border-radius: 999px; background: var(--st-accent); z-index: -1; }
+.st-top-pages { position: relative; z-index: 0; }
+@media (max-width: 760px) {
+	.st-top { flex-wrap: wrap; row-gap: 0; }
+	.st-top-pages { order: 3; flex-basis: 100%; margin: 0 -8px; padding: 0 8px 4px; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+	.st-top-pages + .st-mode { margin-left: auto; }
+}
 .st-mode {
 	margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
 	min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px;
@@ -496,3 +505,26 @@ p { margin: 0 0 .75em; }
 .st-gs-try-h { font-weight: 650; }
 .st-gs-try .st-button-quiet { background: var(--st-bg) !important; }
 .st-moved { margin: 0 0 16px; padding: 12px 16px; border-radius: 14px; }
+/* stubli.app: welcome card for visitors, and the questions under Join Stubli. */
+.st-welcome { display: block; margin: 0 0 16px; padding: 16px 18px; border-radius: 16px; }
+.st-welcome-h { margin: 0 0 4px; font-size: 17px; font-weight: 650; color: var(--st-ink); }
+.st-welcome-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.st-faq { margin: 32px 0 0; }
+.st-faq-q { border-top: 1px solid var(--st-field); }
+.st-faq-q:last-child { border-bottom: 1px solid var(--st-field); }
+.st-faq-q summary { min-height: 48px; display: flex; align-items: center; font-weight: 600; cursor: pointer; list-style: none; }
+.st-faq-q summary::-webkit-details-marker { display: none; }
+.st-faq-q summary::after { content: "+"; margin-left: auto; padding-left: 12px; color: var(--st-muted); font-weight: 400; font-size: 20px; }
+.st-faq-q[open] summary::after { content: "–"; }
+.st-faq-q p { margin: 0 0 14px; color: var(--st-muted); }
+/* stubli.app About: one scrolling page. */
+.st-story-nav { position: sticky; top: 56px; z-index: 3; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -8px 8px; padding: 8px; background: var(--st-bg); -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+.st-story-nav::-webkit-scrollbar { display: none; }
+.st-story-nav a { flex: none; display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--st-surface); color: var(--st-ink); text-decoration: none; font-size: 14px; font-weight: 500; }
+.st-story { scroll-margin-top: 120px; padding: 8px 0 24px; }
+.st-story + .st-story { border-top: 1px solid var(--st-field); padding-top: 28px; }
+.st-faq { scroll-margin-top: 120px; }
+.st-sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.st-story-end { margin: 28px 0 0; font-size: 14px; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

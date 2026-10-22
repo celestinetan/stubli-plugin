@@ -180,6 +180,7 @@ class App {
 			'maxPhotos'   => Posts::MAX_PHOTOS,
 			'maxCaption'  => Posts::MAX_CAPTION_LENGTH,
 			'maxNote'     => Posts::MAX_NOTE_LENGTH,
+			'friends'     => count( (array) get_option( 'stubli_friends', array() ) ),
 			'maxJournal'  => 5000,
 			'today'       => wp_date( 'l, j F' ),
 			'waiting'     => self::waiting(),
@@ -221,7 +222,11 @@ class App {
 		}
 		$d = trim( (string) $user->display_name );
 		if ( '' === $d || strtolower( $d ) === strtolower( (string) $user->user_login ) || strtolower( $d ) === strtolower( (string) $user->user_nicename ) ) {
-			return '';
+			// Fall back to the name on your page ("Ana Keller" → "Ana").
+			$d = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
+			if ( '' === $d || preg_match( '/^(your|my|the)\b/i', $d ) || preg_match( '/^(stubli|wordpress|my blog|site title)$/i', $d ) ) {
+				return '';
+			}
 		}
 		if ( preg_match( '/\s/', $d ) ) {
 			return (string) strtok( $d, ' ' );

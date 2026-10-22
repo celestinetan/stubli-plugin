@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.20.0
+Stable tag: 0.21.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,7 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 
 **Kind by design**
 
+* Friends only: tick friends among the people you follow and share some posts just with them. They're never on your public page.
 * Comments, not likes, and no counts anywhere.
 * Location and camera details are removed from photos and videos before they're shared.
 * People you follow can comment straight away; friends of friends wait for your OK; everyone else is blocked. Blocking is quiet: they are never told.
@@ -79,6 +80,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report. Privacy: https://stubli.app/privacy/
 * **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
 * **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
+* **Friends (only when you tick someone as a friend).** Your site gives that person's Stubli site a private key, and their site checks it back with yours. With the key, their reader can show your friends-only posts. Untick them and the key stops working.
 * **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
@@ -90,6 +92,14 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.21.0 =
+* Friends only: choose friends under You → Your people, and pick Everyone or Friends for each post.
+* A small smiling sun or sleepy moon over the Alps by the greeting, for morning, afternoon, evening and night on your own clock. It stays still when your phone asks for less motion.
+* Home recovers by itself: Try again after an error, your last feed while offline, and a fresh load when you're back online.
+* Clearer What's new: names and titles show properly, initials when a photo is missing, and many comments from one site fold together.
+* Easier to read and tap: readable placeholders, visible labels on journal photo fields, edges on quiet buttons, no small capitals.
+* Smaller things: the greeting uses your page's name, invite links are created right on Home, Back returns where you came from, the journal says "Draft saved".
 
 = 0.20.0 =
 * Yours to keep: download everything as one zip that opens offline in any browser.

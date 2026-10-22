@@ -220,6 +220,7 @@ class Install {
 				image_url varchar(255) NOT NULL DEFAULT '',
 				images longtext NULL,
 				content_note varchar(120) NOT NULL DEFAULT '',
+				audience varchar(20) NOT NULL DEFAULT '',
 				published datetime NOT NULL,
 				PRIMARY KEY  (id),
 				UNIQUE KEY follow_guid (follow_id,guid(150)),

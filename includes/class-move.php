@@ -563,7 +563,9 @@ class Move {
 				return $res;
 			}
 			$new = (int) $res['id'];
-			if ( 'private' === $p['status'] ) {
+			if ( 'friends' === ( $p['audience'] ?? '' ) ) {
+				Friends::set_audience( $new, 'friends' );
+			} elseif ( 'private' === $p['status'] ) {
 				wp_update_post(
 					array(
 						'ID'          => $new,

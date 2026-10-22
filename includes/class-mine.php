@@ -38,7 +38,7 @@ class Mine {
 		if ( ! $post || 'post' !== $post->post_type || ! in_array( get_post_format( $post ), array( 'image', 'gallery' ), true ) ) {
 			return null;
 		}
-		if ( ! $any_state && 'publish' !== $post->post_status ) {
+		if ( ! $any_state && 'publish' !== $post->post_status && ! Friends::is_friends_post( $post ) ) {
 			return null;
 		}
 		return $post;
@@ -103,6 +103,7 @@ class Mine {
 			'caption'    => self::caption_text( $post ),
 			'collection' => $coll,
 			'note'       => (string) get_post_meta( $post->ID, '_stubli_content_note', true ),
+			'audience'   => Friends::audience( $post ),
 			'photos'     => self::photos( $post->ID ),
 		);
 	}
@@ -117,7 +118,7 @@ class Mine {
 		$q     = new \WP_Query(
 			array(
 				'post_type'      => 'post',
-				'post_status'    => 'publish',
+				'post_status'    => array( 'publish', 'private' ),
 				'posts_per_page' => self::PER_PAGE,
 				'paged'          => max( 1, (int) $page ),
 				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
@@ -140,6 +141,7 @@ class Mine {
 				'missing' => $missing,
 				'note'    => '' !== (string) get_post_meta( $p->ID, '_stubli_content_note', true ),
 				'video'   => $photos && $photos[0]['video'],
+				'friends' => Friends::is_friends_post( $p ),
 				'title'   => html_entity_decode( wp_strip_all_tags( get_the_title( $p ) ), ENT_QUOTES, 'UTF-8' ),
 			);
 		}
@@ -209,6 +211,9 @@ class Mine {
 			} else {
 				update_post_meta( $post->ID, '_stubli_content_note', $note );
 			}
+		}
+		if ( array_key_exists( 'audience', $changes ) ) {
+			Friends::set_audience( $post->ID, 'friends' === $changes['audience'] ? 'friends' : 'everyone' );
 		}
 		if ( isset( $changes['alts'] ) && is_array( $changes['alts'] ) ) {
 			$mine = Posts::photo_ids( $post->ID );

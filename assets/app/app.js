@@ -10,6 +10,24 @@
 	};
 
 	/* ── Helpers ── */
+	// Titles and names can arrive with HTML entities ("Here&#8217;s").
+	function unent( s ) { var t = document.createElement( 'textarea' ); t.innerHTML = String( s == null ? '' : s ); return t.value; }
+	function initials( n ) { return unent( n ).trim().split( /\s+/ ).slice( 0, 2 ).map( function ( w ) { return w.charAt( 0 ); } ).join( '' ).toUpperCase(); }
+	// A photo of a person; their initials if it's missing or fails to load.
+	function face( url, name, size ) {
+		var ini = '<span class="a-av a-ini" style="width:' + size + 'px;height:' + size + 'px" aria-hidden="true">' + esc( initials( name ) ) + '</span>';
+		return url ? '<img src="' + esc( url ) + '" alt="" width="' + size + '" height="' + size + '" data-face="' + esc( initials( name ) ) + '">' : ini;
+	}
+	document.addEventListener( 'error', function ( e ) {
+		var im = e.target;
+		if ( im && im.tagName === 'IMG' && im.hasAttribute( 'data-face' ) ) {
+			var sp = document.createElement( 'span' );
+			sp.className = 'a-av a-ini'; sp.setAttribute( 'aria-hidden', 'true' );
+			sp.style.width = im.width + 'px'; sp.style.height = im.height + 'px';
+			sp.textContent = im.getAttribute( 'data-face' );
+			im.replaceWith( sp );
+		}
+	}, true );
 	function esc( s ) {
 		return String( s == null ? '' : s ).replace( /[&<>"']/g, function ( c ) {
 			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ];
@@ -41,9 +59,53 @@
 	function wordmark() {
 		return '<span class="a-wordmark" role="img" aria-label="Stubli"><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg><span aria-hidden="true">bli</span></span>';
 	}
+	/* Time of day on the reader's own clock: morning, afternoon, evening, night. */
+	function daypart() {
+		var h = new Date().getHours();
+		return h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 18 ? 'afternoon' : h >= 18 && h < 22 ? 'evening' : 'night';
+	}
+	/*
+	 * A small line drawing beside the greeting: the Stubli smile on a sun or a
+	 * sleepy moon, over a ridge of Alps (a nod to Zurich). The sun rises behind
+	 * the mountains in the morning, turns slowly in the afternoon, glows as it
+	 * sets in the evening; at night the stars twinkle. Motion only when the
+	 * reader hasn't asked for less (CSS).
+	 */
+	var skyN = 0;
+	function sky( size ) {
+		var d = daypart(), s = size || 44, id = 'a-sky-clip' + ( ++skyN );
+		var f = function ( n ) { return ( +n ).toFixed( 1 ); };
+		var ray = function ( cx, cy, a, r1, r2 ) { var c = Math.cos( a * Math.PI / 180 ), n = Math.sin( a * Math.PI / 180 ); return '<line x1="' + f( cx + r1 * c ) + '" y1="' + f( cy + r1 * n ) + '" x2="' + f( cx + r2 * c ) + '" y2="' + f( cy + r2 * n ) + '"/>'; };
+		var star = function ( x, y, r, i ) { return '<path class="a-sky-star a-sky-star' + i + '" d="M' + x + ' ' + ( y - r ) + 'Q' + x + ' ' + y + ' ' + ( x + r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y + r ) + 'Q' + x + ' ' + y + ' ' + ( x - r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y - r ) + 'z" fill="currentColor" stroke="none"/>'; };
+		// The Stubli smile: two dots and a curve. Asleep at night.
+		var face = function ( cx, cy, r, asleep ) {
+			var ex = r * 0.36, ey = cy - r * 0.16, er = Math.max( 0.95, r * 0.13 ), m = r * 0.38;
+			var eyes = asleep ?
+				'<path d="M' + f( cx - ex - er * 1.3 ) + ' ' + f( ey ) + 'q' + f( er * 1.3 ) + ' ' + f( er * 1.4 ) + ' ' + f( er * 2.6 ) + ' 0M' + f( cx + ex - er * 1.3 ) + ' ' + f( ey ) + 'q' + f( er * 1.3 ) + ' ' + f( er * 1.4 ) + ' ' + f( er * 2.6 ) + ' 0" stroke-width="1.3"/>' :
+				'<circle cx="' + f( cx - ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/><circle cx="' + f( cx + ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/>';
+			return eyes + '<path d="M' + f( cx - m ) + ' ' + f( cy + r * 0.18 ) + 'a' + f( m ) + ' ' + f( m ) + ' 0 0 0 ' + f( 2 * m ) + ' 0" stroke-width="1.5"/>';
+		};
+		var ridge = 'M2 37L11 27.5L15 31L22 22.5L28.5 30L32 26.5L42 37';
+		var alps = '<path class="a-sky-alps" d="' + ridge + '"/><path d="M19.9 25.1L21.2 25.9L22.3 24.9L23.3 25.8L24.1 25" stroke-width="1.1" opacity=".7"/>';
+		var clip = '<defs><clipPath id="' + id + '"><path d="M0 0H44V37H42L32 26.5L28.5 30L22 22.5L15 31L11 27.5L2 37H0Z"/></clipPath></defs>';
+		var body;
+		if ( d === 'afternoon' ) {
+			body = '<g clip-path="url(#' + id + ')"><g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 22, 13, a, 9.5, 12.5 ); } ).join( '' ) + '</g><circle cx="22" cy="13" r="7"/>' + face( 22, 13, 7 ) + '</g>' + alps;
+		} else if ( d === 'morning' ) {
+			body = '<g clip-path="url(#' + id + ')"><g class="a-sky-rise"><circle cx="32.5" cy="22.5" r="6.5"/>' + face( 32.5, 22.5, 6.5 ) + [ 215, 250, 290, 325 ].map( function ( a ) { return ray( 32.5, 22.5, a, 9, 12 ); } ).join( '' ) + '</g></g>' + alps;
+		} else if ( d === 'evening' ) {
+			body = '<g clip-path="url(#' + id + ')"><path class="a-sky-glow" d="M1.5 24.5a10 10 0 0 1 20 0" stroke-dasharray="1.5 3.2"/><g class="a-sky-set"><circle cx="11.5" cy="23.5" r="6"/>' + face( 11.5, 23.5, 6 ) + '</g></g>' + alps;
+		} else {
+			body = '<circle cx="25" cy="13" r="7.5"/>' + face( 25, 13, 7.5, true ) + star( 8, 9, 3.2, 1 ) + star( 39, 22, 2.6, 2 ) + star( 12, 19.5, 2.1, 3 ) + '<g opacity=".6">' + alps + '</g>';
+		}
+		return '<svg class="a-sky a-sky-' + d + '" width="' + s + '" height="' + s + '" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + clip + body + '</svg>';
+	}
+	function endLine() {
+		return { morning: 'Have a lovely morning.', afternoon: 'Enjoy the rest of your afternoon.', evening: 'Have a calm evening.', night: 'Sleep well.' }[ daypart() ];
+	}
+	document.addEventListener( 'visibilitychange', function () { document.documentElement.classList.toggle( 'a-hidden', document.hidden ); } );
 	function greeting() {
-		var h = B.hour;
-		var part = h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+		var part = { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good evening' }[ daypart() ];
 		return part + ( B.name ? ', ' + B.name : '' );
 	}
 
@@ -69,9 +131,9 @@
 				if ( x.status === 403 && d && d.code === 'rest_cookie_invalid_nonce' && ! retried ) {
 					return refreshNonce().then( function () { resolve( send( method, path, body instanceof FormData ? body : JSON.parse( body ), onProgress, true ) ); }, function () { reject( { message: 'Your session ended. Please sign in again and try once more.' } ); } );
 				}
-				reject( { message: ( d && d.message ) || 'Something went wrong on the way. Nothing was shared.', code: d && d.code } );
+				reject( { message: ( d && d.message ) || 'Something went wrong on the way. Try again in a moment.', code: d && d.code } );
 			};
-			x.onerror = function () { reject( { message: 'No connection right now. Your post is still here; try again when you\'re back online.' } ); };
+			x.onerror = function () { reject( { message: 'No connection right now. Try again when you\'re back online.', code: 'offline' } ); };
 			x.send( body );
 		} );
 	}
@@ -282,7 +344,7 @@
 	/* ── State ── */
 	var post = null;
 	function newPost() {
-		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: B.collections && B.collections[ 0 ] || '', newCollection: '', addingCollection: ! ( B.collections && B.collections.length ), note: false, noteText: '', linkOpen: false, altsChecked: false, busy: false, error: '' };
+		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: B.collections && B.collections[ 0 ] || '', newCollection: '', addingCollection: ! ( B.collections && B.collections.length ), note: false, noteText: '', audience: 'everyone', linkOpen: false, altsChecked: false, busy: false, error: '' };
 	}
 	var journal = { text: store.get( 'stubli-journal-draft' ) || '', visibility: store.get( 'stubli-journal-vis' ) || 'everyone', tool: '', busy: false, error: '', uploading: 0, photos: [] };
 	try { journal.photos = JSON.parse( store.get( 'stubli-journal-photos' ) || '[]' ) || []; } catch ( e ) { journal.photos = []; }
@@ -305,6 +367,13 @@
 		if ( ! location.hash && ! B.setupDone && ! store.get( 'stubli-setup-later' ) ) { location.replace( '#setup' ); return; }
 		return viewHome();
 	}
+	// Back buttons return to the tab you came from (audit #22).
+	var cameFrom = '#you';
+	window.addEventListener( 'hashchange', function ( e ) {
+		var was = ( e.oldURL || '' ).split( '#' )[ 1 ];
+		was = was === undefined ? 'home' : was;
+		if ( [ 'home', 'discover', 'whatsnew', 'you' ].indexOf( was ) > -1 ) { cameFrom = '#' + was; }
+	} );
 	window.addEventListener( 'hashchange', route );
 
 	function bar( active ) {
@@ -335,19 +404,51 @@
 			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + 'New photo post</a><a class="a-btn quiet" href="#journal">Journal entry</a></div></section>' +
 			'<section class="a-card" data-invite-card><h2>Invite a friend</h2><p class="muted">Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p>' +
 			'<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
-			'<section class="a-card"><h2>Follow someone</h2><p class="muted">Know someone with a Stubli? Type their address.</p>' + followForm( 'you' ) + '</section>' +
+			peopleCard() +
 			'<section class="a-card"><h2>Bring your photos from Instagram</h2><p class="muted">Your posts arrive with their original dates and captions.</p><a class="a-btn quiet" href="#import">Start</a></section>' +
 			keepCard() +
 			'<section class="a-card"><h2>Tell us what you think</h2><p class="muted">Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.</p><a class="a-btn quiet" href="#feedback">Send feedback</a></section>' +
 			( isStandalone() ? '' : '<section class="a-card"><h2>Put Stubli on your home screen</h2><p class="muted">' + ( ios ? 'In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.' : 'Open your browser\'s menu, then choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.' ) + ' It opens like an app, without the browser around it.</p></section>' ) +
-			'<p class="a-help a-thanks">Stubli is free and always will be. If you enjoy it, you can <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">buy Celestine a coffee</a>. It unlocks nothing; it just keeps Stubli going.</p>' +
+			'<p class="a-help a-thanks">Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">leave him a tip</a>. It unlocks nothing; it just keeps Stubli going.</p>' +
 			'</main>' + bar( 'you' );
-		bindInvite(); bindFollow(); bindMine(); bindSummary( redrawSummary ); bindKeep();
+		bindInvite(); bindFollow(); bindMine(); bindSummary( redrawSummary ); bindKeep(); bindPeople();
+		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( location.hash === '#you' ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
 		bindMove();
 		if ( ! mv.loaded ) { mv.loaded = true; Promise.all( [ send( 'GET', 'move/link', null ), send( 'GET', 'move/in', null ) ] ).then( function ( r ) { mv.out = r[ 0 ]; mv.inState = r[ 1 ]; if ( r[ 1 ].state === 'moving' ) { runMove( function () { if ( location.hash === '#you' ) { redrawMove(); } } ); } if ( location.hash === '#you' ) { redrawMove(); } }, function () {} ); }
 		if ( ! kp.loaded && ! kp.loading ) { kp.loading = true; send( 'GET', 'archive', null ).then( function ( r ) { kp.ar = r; kp.loaded = true; kp.loading = false; if ( r.state === 'packing' ) { packArchive(); } else if ( location.hash === '#you' ) { redrawKeep(); } }, function () { kp.loaded = true; kp.loading = false; } ); }
 		if ( ! ds.loaded && ! ds.loading ) { ds.loading = true; loadSummary().then( function () { ds.loading = false; if ( location.hash === '#you' ) { redrawSummary(); } } ); }
 		if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; loadMine( true ).then( function () { mine.loading = false; if ( location.hash === '#you' ) { swap( '[data-mine]', mineSection(), bindMine ); } } ); }
+	}
+
+	/* ── Your people: who you follow, and who is a friend (Q44) ── */
+	var pp = { loaded: false, loading: false, list: [], open: false, msg: '' };
+	function peopleCard() {
+		var list = pp.list || [], shown = pp.open ? list : list.slice( 0, 6 );
+		return '<section class="a-card" data-people><h2>Your people</h2>' +
+			( list.length ? '<p class="muted">Tick your friends. They see your posts marked "Friends", in their own Stubli; nobody else does.</p><ul class="a-people">' + shown.map( function ( f ) {
+				var host = hostOf( f.site_url ), name = f.name || host;
+				return '<li><span class="a-people-who"><strong>' + esc( name ) + '</strong><small class="muted">' + esc( host ) + ( f.list_name ? ' · ' + esc( f.list_name ) : '' ) + '</small></span>' +
+					'<label class="a-friend"><input type="checkbox" data-friend="' + f.id + '"' + ( f.friend ? ' checked' : '' ) + '><span>Friend</span><span class="sr"> – ' + esc( name ) + '</span></label></li>';
+			} ).join( '' ) + '</ul>' + ( list.length > 6 && ! pp.open ? '<button type="button" class="a-btn quiet wide" data-people-all>Show all ' + list.length + '</button>' : '' ) : ( pp.loaded ? '<p class="muted">You don\'t follow anyone yet.</p>' : '' ) ) +
+			( pp.msg ? '<p class="a-help" role="status">' + esc( pp.msg ) + '</p>' : '' ) +
+			'<p class="a-label">Follow someone</p><p class="muted" style="margin:0 0 8px">Know someone with a Stubli? Type their address.</p>' + followForm( 'you' ) + '</section>';
+	}
+	function redrawPeople() { swap( '[data-people]', peopleCard(), function () { bindPeople(); bindFollow(); } ); }
+	function bindPeople() {
+		var all = $( '[data-people-all]' ); if ( all ) { all.addEventListener( 'click', function () { pp.open = true; redrawPeople(); } ); }
+		$$( '[data-friend]' ).forEach( function ( cb ) {
+			cb.addEventListener( 'change', function () {
+				var id = +cb.dataset.friend, on = cb.checked, f = pp.list.filter( function ( x ) { return +x.id === id; } )[ 0 ];
+				cb.disabled = true;
+				send( 'PATCH', 'follows/' + id, { friend: on } ).then( function ( r ) {
+					if ( f ) { f.friend = r.friend; }
+					B.friends = pp.list.filter( function ( x ) { return x.friend; } ).length;
+					var name = f && ( f.name || hostOf( f.site_url ) );
+					pp.msg = on ? ( r.sent ? name + ' is a friend now.' : name + ' is a friend now. Their Stubli couldn\'t be reached just now, so they\'ll see your friends posts once it can (we keep trying for a week).' ) : name + ' is no longer a friend. Your friends posts leave their feed at its next check.';
+					redrawPeople();
+				}, function ( e ) { cb.checked = ! on; cb.disabled = false; pp.msg = e.message; redrawPeople(); } );
+			} );
+		} );
 	}
 
 	/* ── Yours to keep: download everything, move to another site ── */
@@ -456,9 +557,9 @@
 		return '<section class="a-card" data-mine><h2>Your posts</h2><p class="muted">Tap a photo to change its caption, collection or descriptions, or to delete it.</p>' +
 			( mine.missing && firstMissing ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? 'One photo has' : mine.missing + ' photos have' ) + ' no description yet. A few words help people who use screen readers.</p><a class="a-btn quiet" href="#edit/' + firstMissing.id + '">Add descriptions</a></div>' : '' ) +
 			'<div class="a-mine-grid">' + mine.items.map( function ( i ) {
-				var label = ( i.title || ( i.video ? 'Video post' : 'Photo post' ) ) + ( i.video && i.count === 1 ? ', video' : '' ) + ( i.count > 1 ? ', ' + i.count + ' photos' : '' ) + ( i.missing ? ', needs a description' : '' );
+				var label = ( i.title || ( i.video ? 'Video post' : 'Photo post' ) ) + ( i.video && i.count === 1 ? ', video' : '' ) + ( i.count > 1 ? ', ' + i.count + ' photos' : '' ) + ( i.missing ? ', needs a description' : '' ) + ( i.friends ? ', friends only' : '' );
 				return '<a href="#edit/' + i.id + '" aria-label="Edit: ' + esc( label ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy"' + ( i.note ? ' class="is-noted"' : '' ) + '>' : '' ) +
-					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.missing ? '<span class="a-mine-dot" aria-hidden="true"></span>' : '' ) + '</a>';
+					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.missing ? '<span class="a-mine-dot" aria-hidden="true"></span>' : '' ) + ( i.friends ? '<span class="a-mine-friends" aria-hidden="true">Friends</span>' : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
 			( mine.more ? '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">Show more</button>' : '' ) + '</section>';
 	}
@@ -487,6 +588,14 @@
 			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit post</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#you">Back to your posts</a></div></main>';
 		} );
 	}
+	/* Who can see a post: Everyone or Friends (design Q44). */
+	function audienceChips( on, attr ) {
+		var friends = on === 'friends';
+		return '<h2 class="a-label" id="a-aud-' + attr + '">Who can see it</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-aud-' + attr + '">' +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + ! friends + '" data-' + attr + '="everyone">' + ( ! friends ? icon( 'check', 16 ) : '' ) + 'Everyone</button>' +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + friends + '" data-' + attr + '="friends">' + ( friends ? icon( 'check', 16 ) : '' ) + 'Friends</button></div>' +
+			'<p class="a-help">' + ( friends ? ( B.friends ? 'Only the ' + ( B.friends === 1 ? 'friend' : B.friends + ' friends' ) + ' you chose see it, in their own Stubli. It isn\'t on your public page.' : 'You haven\'t chosen any friends yet. Tick them under You → Your people; until then, nobody else sees this post.' ) : 'On your page and in your followers\' feeds.' ) + '</p>';
+	}
 	function renderEdit() {
 		var d = ed.d, cols = ( B.collections || [] ).slice();
 		if ( d.collection && cols.indexOf( d.collection ) < 0 ) { cols.push( d.collection ); }
@@ -504,6 +613,7 @@
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + ( ! ed.adding && ! d.collection ) + '" data-ed-col="">' + ( ! ed.adding && ! d.collection ? icon( 'check', 16 ) : '' ) + 'None</button>' +
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + ed.adding + '" data-ed-col-new>' + ( ed.adding ? icon( 'check', 16 ) : '' ) + '+ New</button></div>' +
 			( ed.adding ? '<div class="a-inline"><label class="sr" for="a-ed-newcol">New collection name</label><input id="a-ed-newcol" class="a-field" maxlength="40" placeholder="e.g. Mountains" value="' + esc( ed.newCol ) + '"></div>' : '' ) +
+			audienceChips( d.audience, 'ed-aud' ) +
 			'<label class="a-check"><span><strong>Content note</strong><span class="muted small">The photo stays softly blurred until someone chooses to see it.</span></span><input type="checkbox" data-ed-note' + ( ed.noteOn ? ' checked' : '' ) + '></label>' +
 			( ed.noteOn ? '<div class="a-inline"><label class="sr" for="a-ed-notetext">Content note</label><input id="a-ed-notetext" class="a-field" maxlength="' + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( d.note ) + '"></div>' : '' ) +
 			( ed.error ? '<div class="a-notice" role="alert"><p>' + esc( ed.error ) + '</p></div>' : '' ) +
@@ -523,6 +633,7 @@
 		$$( '[data-ed-col]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.collection = b.dataset.edCol; ed.adding = false; renderEdit(); } ); } );
 		$( '[data-ed-col-new]' ).addEventListener( 'click', function () { ed.adding = true; renderEdit(); $( '#a-ed-newcol' ).focus(); } );
 		var nc = $( '#a-ed-newcol' ); if ( nc ) { nc.addEventListener( 'input', function () { ed.newCol = nc.value; } ); }
+		$$( '[data-ed-aud]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.audience = b.dataset.edAud; renderEdit(); $( '[data-ed-aud="' + d.audience + '"]' ).focus(); } ); } );
 		$( '[data-ed-note]' ).addEventListener( 'change', function ( e ) { ed.noteOn = e.target.checked; renderEdit(); if ( ed.noteOn ) { $( '#a-ed-notetext' ).focus(); } } );
 		var nt = $( '#a-ed-notetext' ); if ( nt ) { nt.addEventListener( 'input', function () { d.note = nt.value; } ); }
 		$( '[data-ed-save]' ).addEventListener( 'click', function () {
@@ -531,7 +642,7 @@
 			if ( ed.adding && ! col ) { ed.error = 'Give the new collection a name, or choose one above.'; renderEdit(); return; }
 			if ( ed.noteOn && ! d.note.trim() ) { ed.error = 'Write a short content note, like "Flashing lights", or turn it off.'; renderEdit(); return; }
 			ed.busy = true; ed.error = ''; renderEdit();
-			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts } ).then( function ( r ) {
+			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone' } ).then( function ( r ) {
 				if ( col && ( B.collections || [] ).indexOf( col ) < 0 ) { ( B.collections = B.collections || [] ).push( col ); }
 				ed = null; mine.loaded = false; location.hash = '#you'; toast( 'Saved.' );
 			}, function ( e ) { ed.busy = false; ed.error = e.message; renderEdit(); } );
@@ -635,7 +746,7 @@
 				if ( ! v ) { inp.focus(); return; }
 				if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
 				btn.disabled = true; btn.textContent = 'Following…'; m.textContent = '';
-				send( 'POST', 'follows', { url: v } ).then( function ( r ) {
+				send( 'POST', 'follows', { url: v } ).then( function ( r ) { pp.loaded = false;
 					m.textContent = 'You\'re following ' + ( r && r.name ? r.name : v ) + '. Their photos appear in Home.';
 					inp.value = ''; btn.disabled = false; btn.textContent = 'Follow'; feed.loaded = false;
 					if ( location.hash === '#setup' && su.loaded ) { send( 'GET', 'setup', null ).then( function ( d ) { su.d.follows = d.follows; renderSetup(); var mm = $( '[data-follow-msg]' ); if ( mm ) { mm.textContent = 'You\'re following ' + ( r && r.name ? r.name : v ) + '.'; } }, function () {} ); }
@@ -661,12 +772,25 @@
 		if ( feed.loading ) { return Promise.resolve(); }
 		feed.loading = true;
 		if ( reset ) { feed.page = 1; feed.items = []; feed.more = true; }
+		var first = feed.page === 1 && ! feed.list;
 		return send( 'GET', 'feed?page=' + feed.page + ( feed.list ? '&list=' + encodeURIComponent( feed.list ) : '' ), null ).then( function ( rows ) {
 			rows = Array.isArray( rows ) ? rows : [];
-			feed.items = feed.items.concat( rows ); feed.more = rows.length >= 20; feed.page++; feed.loaded = true; feed.loading = false;
-		}, function ( e ) { feed.loading = false; feed.loaded = true; feed.error = ( e && e.message ) || 'Couldn\'t load your feed.'; } );
+			feed.items = feed.items.concat( rows ); feed.more = rows.length >= 20; feed.page++; feed.loaded = true; feed.loading = false; feed.error = ''; feed.stale = false;
+			if ( first ) { store.set( 'stubli-feed-cache', JSON.stringify( rows.slice( 0, 20 ) ) ); }
+		}, function ( e ) {
+			feed.loading = false; feed.loaded = true;
+			var cached = null;
+			if ( first ) { try { cached = JSON.parse( store.get( 'stubli-feed-cache' ) || 'null' ); } catch ( x ) { cached = null; } }
+			if ( Array.isArray( cached ) && cached.length && ! feed.items.length ) {
+				// Show what we had last time, with a quiet note.
+				feed.items = cached; feed.more = false; feed.stale = true; feed.error = '';
+			} else {
+				feed.error = ( e && e.code === 'offline' ) ? 'No connection right now. Your feed comes back when you\'re online.' : 'Your feed didn\'t load this time.';
+			}
+		} );
 	}
 	function viewHome() {
+		if ( feed.error || feed.stale ) { feed.loaded = false; feed.error = ''; }
 		var first = ! feed.loaded;
 		renderHome();
 		if ( first ) {
@@ -690,15 +814,20 @@
 			} );
 		}
 	}
+	function retryFeed() {
+		feed.error = ''; feed.loaded = false; feed.stale = false; renderHome();
+		loadFeed( true ).then( function () { if ( location.hash === '' || location.hash === '#home' ) { renderHome(); } } );
+	}
+	window.addEventListener( 'online', function () { if ( ( feed.error || feed.stale ) && ( location.hash === '' || location.hash === '#home' ) ) { retryFeed(); } } );
 	function renderHome() {
 		var body = '';
 		if ( ! feed.loaded ) {
 			body = '<div class="a-feed-skel" aria-hidden="true"><span></span><span></span></div><p class="sr" role="status">Loading your feed…</p>';
 		} else if ( feed.error ) {
-			body = '<div class="a-notice" role="alert"><p>' + esc( feed.error ) + '</p></div>';
+			body = '<div class="a-notice" role="alert"><p>' + esc( feed.error ) + '</p><button type="button" class="a-btn quiet" data-feed-retry>Try again</button></div>';
 		} else if ( ! ( feed.follows || [] ).length ) {
 			body = '<section class="a-card"><h2>Your feed is waiting</h2><p class="muted">Follow someone and their new photos will appear here, newest first. No ads, no suggestions, just the people you chose.</p>' + followForm( 'home' ) + '</section>' +
-				'<section class="a-card"><h2>Or invite a friend</h2><p class="muted">When they\'ve set up their Stubli, you follow each other automatically.</p><a class="a-btn quiet" href="#you">Create an invite link</a></section>';
+				'<section class="a-card"><h2>Or invite a friend</h2><p class="muted">When they\'ve set up their Stubli, you follow each other automatically.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>';
 		} else {
 			var pills = '';
 			if ( feed.lists.length ) {
@@ -708,13 +837,14 @@
 			}
 			body = pills + ( feed.items.length ? feed.items.map( item ).join( '' ) : '<p class="muted" style="margin:24px 0">Nothing here yet. New posts arrive every 15 minutes or so.</p>' ) +
 				( feed.more && feed.items.length ? '<button type="button" class="a-btn quiet wide" data-older>Older posts</button>' : '' ) +
-				( feed.items.length && ! feed.more ? '<div class="a-end"><strong>That\'s everything for now</strong><span class="muted">You\'re all caught up. See you next time.</span></div>' : '' );
+				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + '<strong>That\'s everything for now</strong><span class="muted">You\'re all caught up. ' + esc( endLine() ) + '</span></div>' : '' );
 		}
-		var sub = feed.loaded && feed.newSince ? feed.newSince + ' new since your last visit' : '';
+		var sub = feed.stale ? 'Offline. Showing your feed from last time.' : feed.loaded && feed.newSince ? feed.newSince + ' new since your last visit' : '';
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
-			'<h1 class="a-greet">' + esc( greeting() ) + '</h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
+			'<h1 class="a-greet a-greet-sky">' + sky( 36 ) + '<span>' + esc( greeting() ) + '</span></h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
 			setupCard() + body + '</main>' + bar( 'home' );
-		bindFollow();
+		bindFollow(); bindInvite();
+		var fr = $( '[data-feed-retry]' ); if ( fr ) { fr.addEventListener( 'click', retryFeed ); }
 		$$( '[data-list]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { feed.list = b.dataset.list; loadFeed( true ).then( renderHome ); } ); } );
 		var older = $( '[data-older]' );
 		if ( older ) { older.addEventListener( 'click', function () { older.disabled = true; older.textContent = 'Loading…'; var y = window.scrollY; loadFeed( false ).then( function () { renderHome(); window.scrollTo( 0, y ); } ); } ); }
@@ -726,8 +856,8 @@
 		var note = it.content_note && ! feed.open[ it.id ];
 		var c = feed.open[ 'c' + it.id ];
 		return '<article class="a-item" data-item="' + it.id + '">' +
-			'<header class="a-item-head">' + ( it.author.avatar ? '<img src="' + esc( it.author.avatar ) + '" alt="" width="32" height="32">' : '<span class="a-av"></span>' ) +
-			'<span><a href="' + esc( it.author.url ) + '"><strong>' + esc( it.author.name ) + '</strong></a> <span class="muted">' + esc( gentle( it.published ) ) + '</span>' + ( isNew ? ' <span class="a-new">New</span>' : '' ) + '</span></header>' +
+			'<header class="a-item-head">' + face( it.author.avatar, it.author.name, 32 ) +
+			'<span><a href="' + esc( it.author.url ) + '"><strong>' + esc( unent( it.author.name ) ) + '</strong></a> <span class="muted">' + esc( gentle( it.published ) ) + '</span>' + ( it.audience === 'friends' ? ' <span class="a-friends-tag">For friends</span>' : '' ) + ( isNew ? ' <span class="a-new">New</span>' : '' ) + '</span></header>' +
 			( imgs.length ? '<div class="a-photos' + ( note ? ' has-note' : '' ) + '"><div class="a-track" tabindex="0" aria-label="Photos">' + imgs.map( function ( im ) {
 					if ( im.video && /^https?:\/\//.test( im.video ) ) {
 						return '<button type="button" class="a-play" data-play="' + esc( im.video ) + '" data-type="' + esc( im.type || 'video/mp4' ) + '" aria-label="' + esc( note ? 'Play video' : ( im.alt ? 'Play video: ' + im.alt : 'Play video' ) ) + '"><img src="' + esc( im.url ) + '" alt="" loading="lazy"><span class="a-play-icon" aria-hidden="true">' + icon( 'play', 28 ) + '</span></button>';
@@ -807,7 +937,8 @@
 	var disc = { loaded: false, list: [], followed: {} };
 	function viewDiscover() {
 		renderDiscover();
-		send( 'GET', 'discover', null ).then( function ( l ) { disc.list = Array.isArray( l ) ? l : []; disc.loaded = true; }, function ( e ) { disc.loaded = true; disc.error = ( e && e.message ) || 'Couldn\'t load suggestions.'; } ).then( function () { if ( location.hash === '#discover' ) { renderDiscover(); } } );
+		disc.error = '';
+		send( 'GET', 'discover', null ).then( function ( l ) { disc.list = Array.isArray( l ) ? l : []; disc.loaded = true; disc.error = ''; }, function ( e ) { disc.loaded = true; disc.error = ( e && e.message ) || 'Couldn\'t load suggestions.'; } ).then( function () { if ( location.hash === '#discover' ) { renderDiscover(); } } );
 	}
 	function viaText( v ) { return v.length > 2 ? v.slice( 0, 2 ).join( ', ' ) + ' and ' + ( v.length - 2 ) + ' more' : v.join( ' and ' ); }
 	function renderDiscover() {
@@ -815,7 +946,7 @@
 		if ( ! disc.loaded ) {
 			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:220px"></span><span style="height:220px"></span></div><p class="sr" role="status">Loading…</p>';
 		} else if ( disc.error ) {
-			body = '<div class="a-notice" role="alert"><p>' + esc( disc.error ) + '</p></div>';
+			body = '<div class="a-notice" role="alert"><p>' + esc( disc.error ) + '</p><button type="button" class="a-btn quiet" data-disc-retry>Try again</button></div>';
 		} else if ( ! disc.list.length ) {
 			body = '<p class="muted">No suggestions yet. They come from the public lists of the people you follow, so they appear once you follow a few people who share theirs.</p>';
 		} else {
@@ -833,6 +964,7 @@
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">Discover</h1>' +
 			'<p class="muted" style="margin:-2px 0 14px">Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.</p>' +
 			followForm( 'discover' ) + '<div style="height:12px"></div>' + body + '</main>' + bar( 'discover' );
+		var dr = $( '[data-disc-retry]' ); if ( dr ) { dr.addEventListener( 'click', function () { disc.loaded = false; viewDiscover(); } ); }
 		bindFollow();
 		$$( '[data-disc]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
@@ -869,8 +1001,18 @@
 		} else {
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
-			body += '<h2 class="a-label">Waiting for your OK</h2>';
-			body += waiting.length ? waiting.map( waitCard ).join( '' ) : '<p class="muted">Nothing is waiting. Comments from people you follow appear on your page straight away.</p>';
+			var open = waiting.filter( function ( c ) { return ! wn.done[ c.id ]; } ).length;
+			body += '<h2 class="a-label">Waiting for your OK' + ( open ? ' · ' + open : '' ) + '</h2>';
+			// Many comments from one site: show two, fold the rest.
+			var perHost = {}, folded = {};
+			body += waiting.length ? waiting.map( function ( c ) {
+				var h = hostOf( c.author.url );
+				perHost[ h ] = ( perHost[ h ] || 0 ) + 1;
+				if ( perHost[ h ] > 2 && ! ( wn.expand || {} )[ h ] && ! wn.done[ c.id ] ) { folded[ h ] = ( folded[ h ] || 0 ) + 1; return ''; }
+				return waitCard( c );
+			} ).join( '' ) + Object.keys( folded ).map( function ( h ) {
+				return '<button type="button" class="a-btn quiet wide" data-wn-more="' + esc( h ) + '">' + folded[ h ] + ' more from ' + esc( h ) + '</button>';
+			} ).join( '' ) : '<p class="muted">Nothing is waiting. Comments from people you follow appear on your page straight away.</p>';
 			if ( later.length ) {
 				body += '<button type="button" class="a-text-btn" data-later-toggle aria-expanded="' + wn.showLater + '">Set aside · ' + later.length + '</button>' + ( wn.showLater ? later.map( waitCard ).join( '' ) : '' );
 			}
@@ -889,10 +1031,11 @@
 			var recent = wn.activity.filter( function ( a ) { return a.status === 'approved' && Date.parse( a.date ) > Date.now() - 14 * 86400000; } ).slice( 0, 12 );
 			body += '<h2 class="a-label">On your page</h2>';
 			body += recent.length ? '<ul class="a-wn-list">' + recent.map( function ( a ) {
-				return '<li><strong>' + esc( a.author.name ) + '</strong> ' + ( a.where === 'guestbook' ? 'signed your guest book' : 'commented on <a href="' + esc( a.post_url ) + '">' + esc( a.post_title || 'your post' ) + '</a>' ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
+				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + ( a.where === 'guestbook' ? 'signed your guest book' : 'commented on <a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || 'your post' ) + '</a>' ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
 			} ).join( '' ) + '</ul>' : '<p class="muted">No new comments or guest book entries in the last two weeks.</p>';
 		}
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">What\'s new</h1><p class="muted" style="margin:-2px 0 6px">Since your last look</p>' + body + '</main>' + bar( 'whatsnew' );
+		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
 		$$( '[data-open-list]' ).forEach( function ( a ) { a.addEventListener( 'click', function () { feed.list = a.dataset.openList; feed.loaded = false; } ); } );
@@ -917,13 +1060,13 @@
 	function alertIn( id, text ) { var card = $( '[data-card="' + id + '"]' ); if ( card ) { card.insertAdjacentHTML( 'beforeend', '<p class="a-help" role="alert">' + esc( text ) + '</p>' ); } }
 	function waitCard( c ) {
 		var d = wn.done[ c.id ], host = hostOf( c.author.url );
-		var ctx = ( c.where === 'guestbook' ? 'Guest book' : 'Comment on ' + ( c.post && c.post.title ? c.post.title : 'your post' ) ) + ( c.via ? ' · followed by ' + c.via : '' );
+		var ctx = ( c.where === 'guestbook' ? 'Guest book' : 'Comment on ' + ( c.post && c.post.title ? unent( c.post.title ) : 'your post' ) ) + ( c.via ? ' · followed by ' + c.via : '' );
 		if ( d ) {
 			var msg = d.status === 'show' ? 'Shown on your page.' : d.status === 'later' ? 'Set aside. It stays hidden; you\'ll find it under Set aside.' : 'Blocked quietly. Nothing from ' + host + ' will show here, and they aren\'t told.';
 			return '<div class="a-card a-wait is-done" data-card="' + c.id + '"><p role="status" style="margin:0">' + esc( msg ) + '</p>' + ( d.status === 'block' ? '<button type="button" class="a-text-btn" data-wn="undo" data-id="' + c.id + '">Undo</button>' : '' ) + '</div>';
 		}
-		return '<div class="a-card a-wait" data-card="' + c.id + '"><div class="a-wait-head">' + ( c.author.avatar ? '<img src="' + esc( c.author.avatar ) + '" alt="" width="36" height="36">' : '' ) +
-			'<span><strong>' + esc( c.author.name ) + '</strong> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">' + esc( ctx ) + '</span></span></div>' +
+		return '<div class="a-card a-wait" data-card="' + c.id + '"><div class="a-wait-head">' + face( c.author.avatar, c.author.name, 36 ) +
+			'<span><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">' + esc( ctx ) + '</span></span></div>' +
 			'<p class="a-wait-text">' + esc( c.text ) + '</p>' +
 			'<div class="a-wait-acts"><button type="button" class="a-btn" data-wn="show" data-id="' + c.id + '">Show it</button>' + ( c.later ? '' : '<button type="button" class="a-btn quiet" data-wn="later" data-id="' + c.id + '">Not now</button>' ) +
 			'<button type="button" class="a-text-btn a-block" data-wn="block" data-id="' + c.id + '">Block this site</button></div></div>';
@@ -1001,7 +1144,7 @@
 				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="Your photo">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
 				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.avatar ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || 'Optional. A face, a place, anything that feels like you.' ) + '</p></div></div>' +
 				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="Ana Keller" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
-				'<label class="a-label" for="a-su-bio">One line about you</label><input id="a-su-bio" class="a-field" type="text" maxlength="160" value="' + esc( d.bio ) + '" placeholder="Photos from walks around Zurich"><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
+				'<label class="a-label" for="a-su-bio">One line about you</label><textarea id="a-su-bio" class="a-field a-grow" rows="2" maxlength="160" placeholder="Photos from walks around Zurich">' + esc( d.bio ) + '</textarea><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
 				'<label class="a-label" for="a-su-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' + esc( d.pronouns ) + '" placeholder="she/her, they/them…">' +
 				setupFoot( 'Next' ) + suMove();
 		} else if ( n === 1 ) {
@@ -1056,7 +1199,7 @@
 			var ios = /iphone|ipad|ipod/i.test( navigator.userAgent ), times = [];
 			for ( var h = 6; h <= 22; h++ ) { times.push( ( h < 10 ? '0' : '' ) + h + ':00' ); }
 			if ( times.indexOf( d.digest ) < 0 ) { times.push( d.digest ); times.sort(); }
-			body = '<h2 class="a-su-title">You\'re ready</h2><p class="muted">Two small things, then your feed.</p>' +
+			body = '<h2 class="a-su-title">You\'re ready</h2><p class="muted">A few last choices, then your feed.</p>' +
 				'<label class="a-label" for="a-su-dig">Your daily summary</label><p class="muted" style="margin:0 0 8px">At most one a day, with new comments and guest book entries. Never one per post.</p>' +
 				'<select id="a-su-dig" class="a-field a-su-select" data-su-dig>' + times.map( function ( t ) { return '<option' + ( t === d.digest ? ' selected' : '' ) + '>' + t + '</option>'; } ).join( '' ) + '</select>' +
 				( pushSupported() && ! iosNeedsInstall() ? '<div class="a-actions" style="margin-top:10px">' + ( ds.on ? '<p class="a-ds-status">' + icon( 'check', 16 ) + 'It will arrive on this phone</p>' : '<button type="button" class="a-btn quiet" data-su-push' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? 'Asking your phone…' : 'Send it to this phone' ) + '</button>' ) + '</div>' : '<p class="a-help">You can turn on phone notifications later in You → Daily summary.</p>' ) +
@@ -1085,6 +1228,13 @@
 	}
 	function bindSetup() {
 		var d = su.d, back = $( '[data-su-back]' ), later = $( '[data-su-later]' ), next = $( '[data-su-next]' );
+		var bioEl = $( '#a-su-bio' );
+		if ( bioEl ) {
+			var grow = function () { bioEl.style.height = 'auto'; bioEl.style.height = bioEl.scrollHeight + 'px'; };
+			bioEl.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { e.preventDefault(); } } );
+			bioEl.addEventListener( 'input', function () { if ( /\n/.test( bioEl.value ) ) { bioEl.value = bioEl.value.replace( /\s*\n+\s*/g, ' ' ); } grow(); } );
+			grow();
+		}
 		if ( back ) { back.addEventListener( 'click', function () { setupGo( su.step - 1 ); } ); }
 		later.addEventListener( 'click', function () {
 			store.set( 'stubli-setup-later', '1' );
@@ -1230,9 +1380,9 @@
 			'<main class="a-compose" id="main"><h1 class="sr">New photo post</h1>' +
 			'<div class="a-preview">' + ( p.loading ? '<p class="muted" role="status">Opening your video…</p>' : cur ? ( cur.video && cur.plain ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><img src="' + cur.thumb + '" alt="Video ' + ( p.current + 1 ) + ', ' + fmtDur( cur.duration ) + '"></div><p class="a-help">This browser can\'t preview this video, but it shares fine.</p>' : cur.video ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><video src="' + cur.src + '" poster="' + cur.thumb + '" controls playsinline preload="metadata" aria-label="Preview of video ' + ( p.current + 1 ) + '"></video></div>' : '<div class="a-preview-frame" style="aspect-ratio:' + RATIOS[ p.ratio ] + '"><img src="' + cur.thumb + '" alt="Preview of photo ' + ( p.current + 1 ) + '"></div>' ) :
 				'<div class="a-preview-empty"><p>Choose up to ' + B.maxPhotos + ' photos or videos for one post. Videos can be up to a minute.</p><label class="a-btn">' + icon( 'photo', 18 ) + 'Choose photos or videos<input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label></div>' ) + '</div>' +
-			'<div class="a-ratios" role="group" aria-label="Shape">' + Object.keys( RATIOS ).map( function ( k ) {
+			( p.photos.length ? '<div class="a-ratios" role="group" aria-label="Shape">' + Object.keys( RATIOS ).map( function ( k ) {
 				return '<button type="button" class="a-chip" data-ratio="' + k + '" aria-pressed="' + ( p.ratio === k ) + '">' + icon( k, 16 ) + ratioLabel[ k ] + '</button>';
-			} ).join( '' ) + '</div>' +
+			} ).join( '' ) + '</div>' : '' ) +
 			( p.photos.some( function ( x ) { return x.video; } ) ? '<p class="a-help" style="margin:-8px 0 12px">The shape applies to photos. Videos keep their own shape.</p>' : '' ) +
 			'<div class="a-row"><h2 class="a-label">Your photos</h2><span class="muted small" aria-live="polite">' + ( p.photos.length ? p.photos.length + ' selected · up to ' + B.maxPhotos : 'up to ' + B.maxPhotos ) + '</span></div>' +
 			'<div class="a-thumbs">' + p.photos.map( function ( ph, i ) {
@@ -1303,6 +1453,7 @@
 			p.photos.map( function ( ph, i ) {
 				return '<div class="a-alt"><img src="' + ph.thumb + '" alt=""><label class="sr" for="a-alt-' + i + '">Description of photo ' + ( i + 1 ) + '</label><input id="a-alt-' + i + '" class="a-field" data-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? 'Video ' + ( i + 1 ) + ': what happens in it?' : 'Photo ' + ( i + 1 ) + ': what\'s in it?' ) + '" value="' + esc( ph.alt ) + '"></div>';
 			} ).join( '' ) +
+			audienceChips( p.audience, 'aud' ) +
 			'<label class="a-check"><span><strong>Add a content note</strong><span class="muted small">The photo stays softly blurred until someone chooses to see it.</span></span><input type="checkbox" data-note' + ( p.note ? ' checked' : '' ) + '></label>' +
 			( p.note ? '<div class="a-inline"><label class="sr" for="a-note">Content note</label><input id="a-note" class="a-field" maxlength="' + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( p.noteText ) + '"></div>' : '' ) +
 			'<div data-msg aria-live="polite"></div>' +
@@ -1328,6 +1479,7 @@
 		var nc = $( '#a-newcol' );
 		if ( nc ) { nc.addEventListener( 'input', function () { p.newCollection = nc.value; } ); }
 		$$( '[data-alt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { p.photos[ +inp.dataset.alt ].alt = inp.value; p.altsChecked = false; } ); } );
+		$$( '[data-aud]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { p.audience = b.dataset.aud; viewDetails(); $( '[data-aud="' + p.audience + '"]' ).focus(); } ); } );
 		$( '[data-note]' ).addEventListener( 'change', function ( e ) { p.note = e.target.checked; viewDetails(); if ( p.note ) { $( '#a-note' ).focus(); } } );
 		var nt = $( '#a-note' );
 		if ( nt ) { nt.addEventListener( 'input', function () { p.noteText = nt.value; } ); }
@@ -1381,13 +1533,14 @@
 			fd.append( 'caption', p.caption.trim() );
 			fd.append( 'collection', p.addingCollection ? p.newCollection.trim() : p.collection );
 			if ( p.note ) { fd.append( 'content_note', p.noteText.trim() ); }
+			if ( p.audience === 'friends' ) { fd.append( 'audience', 'friends' ); }
 			var t = $( '.a-notice p' ); if ( t ) { t.textContent = 'Sharing…'; }
 			return send( 'POST', 'posts', fd, function ( f ) { bar( 0.3 + 0.7 * f ); } );
 		} ).then( function ( res ) {
-			var thumb = p.photos[ 0 ].thumb, col = p.addingCollection ? p.newCollection.trim() : p.collection;
+			var thumb = p.photos[ 0 ].thumb, col = p.addingCollection ? p.newCollection.trim() : p.collection, aud = p.audience;
 			if ( col && B.collections.indexOf( col ) < 0 ) { B.collections.unshift( col ); }
 			post = null;
-			doneView( 'Shared', 'Your post is on your page' + ( col ? ' in ' + col : '' ) + '.', res && res.url, 'See your post', thumb, '#new', 'New post' );
+			doneView( 'Shared', aud === 'friends' ? 'Your friends see it in their Stubli' + ( col ? ', in ' + col : '' ) + '. It isn\'t on your public page.' : 'Your post is on your page' + ( col ? ' in ' + col : '' ) + '.', res && res.url, 'See your post', thumb, '#new', 'New post' );
 		}, function ( err ) {
 			p.busy = false;
 			viewDetails();
@@ -1405,19 +1558,19 @@
 	/* ── Journal ── */
 	function viewJournal() {
 		var j = journal, max = B.maxJournal;
-		root.innerHTML = '<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>Cancel</button>' + seg( 'journal' ) +
+		root.innerHTML = '<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>Close</button>' + seg( 'journal' ) +
 			'<button type="button" class="a-btn" data-save' + ( j.text.trim() && ! j.busy ? '' : ' disabled' ) + '>' + ( j.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
 			'<main class="a-compose" id="main"><h1 class="sr">New journal entry</h1><p class="a-date">' + esc( B.today ) + '</p>' +
 			'<label class="sr" for="a-jtext">Journal entry</label><textarea id="a-jtext" class="a-journal-text" maxlength="' + max + '" placeholder="What happened today?">' + esc( j.text ) + '</textarea>' +
 			( j.tool ? '<div class="a-inline"><label class="sr" for="a-jlink">' + ( j.tool === 'video' ? 'YouTube or Vimeo address' : 'Web address' ) + '</label><input id="a-jlink" class="a-field" type="url" inputmode="url" placeholder="' + ( j.tool === 'video' ? 'A YouTube or Vimeo link' : 'https://…' ) + '"><button type="button" class="a-btn quiet" data-jadd>Add</button></div>' +
 				( j.tool === 'video' ? '<p class="a-help">It shows as a cover with a play button. Nothing loads from the video site until someone presses play.</p>' : '' ) : '' ) +
 			'<div class="a-tools"><label class="a-tool" aria-label="Add a photo" title="Add a photo">' + icon( 'photo', 20 ) + '<input class="a-file" type="file" accept="image/*" multiple data-jphoto></label><button type="button" class="a-tool" data-tool="video" aria-label="Add a video link">' + icon( 'video', 20 ) + '</button><button type="button" class="a-tool" data-tool="link" aria-label="Add a link">' + icon( 'link', 20 ) + '</button>' +
-			'<span class="a-count" data-jcount>' + j.text.length + ' / ' + max + '</span></div>' +
+			'<span class="a-count" data-jcount>' + ( j.text.trim() ? 'Draft saved · ' : '' ) + j.text.length + ' / ' + max + '</span></div>' +
 			( j.uploading ? '<div class="a-notice calm" aria-live="polite"><p>Adding ' + ( j.uploading === 1 ? 'a photo' : j.uploading + ' photos' ) + '…</p></div>' : '' ) +
 			( j.photos.length ? '<h2 class="a-caps">Photos in this entry</h2><p class="a-help" style="margin:-4px 0 10px">Each one appears where its [Photo] line is in your text. Move the line to move the photo.</p>' + j.photos.map( function ( ph ) {
 				return '<div class="a-jphoto"><img src="' + esc( ph.url ) + '" alt=""><div class="a-jphoto-fields"><strong>Photo ' + ph.n + '</strong>' +
-					'<label class="sr" for="a-jcap-' + ph.n + '">Caption for photo ' + ph.n + '</label><input id="a-jcap-' + ph.n + '" class="a-field" maxlength="300" data-jcap="' + ph.n + '" placeholder="Caption (shown under the photo)" value="' + esc( ph.caption ) + '">' +
-					'<label class="sr" for="a-jalt-' + ph.n + '">Description of photo ' + ph.n + '</label><input id="a-jalt-' + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" placeholder="Describe it for people who can\'t see it" value="' + esc( ph.alt ) + '">' +
+					'<label class="a-label a-jlabel" for="a-jcap-' + ph.n + '">Caption <span class="muted" style="font-weight:400">(shown under the photo)</span></label><input id="a-jcap-' + ph.n + '" class="a-field" maxlength="300" data-jcap="' + ph.n + '" value="' + esc( ph.caption ) + '">' +
+					'<label class="a-label a-jlabel" for="a-jalt-' + ph.n + '">Description <span class="muted" style="font-weight:400">(for people who can\'t see it)</span></label><input id="a-jalt-' + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" value="' + esc( ph.alt ) + '">' +
 					'<button type="button" class="a-text-btn a-jremove" data-jremove="' + ph.n + '">Remove photo ' + ph.n + '</button></div></div>';
 			} ).join( '' ) : '' ) +
 			'<h2 class="a-caps" id="a-vis-h">Who can see this</h2><div class="a-vis" role="radiogroup" aria-labelledby="a-vis-h">' +
@@ -1431,7 +1584,7 @@
 		var t = $( '#a-jtext' ), c = $( '[data-jcount]' ), save = $( '[data-save]' );
 		var grow = function () { t.style.height = 'auto'; t.style.height = Math.max( t.scrollHeight, window.innerHeight * 0.4 ) + 'px'; };
 		t.addEventListener( 'input', function () {
-			j.text = t.value; saveJournalDraft(); c.textContent = j.text.length + ' / ' + max; save.disabled = ! j.text.trim() || j.uploading > 0; grow();
+			j.text = t.value; saveJournalDraft(); c.textContent = ( j.text.trim() ? 'Draft saved · ' : '' ) + j.text.length + ' / ' + max; save.disabled = ! j.text.trim() || j.uploading > 0; grow();
 		} );
 		grow();
 		if ( j.uploading ) { save.disabled = true; }
@@ -1506,7 +1659,7 @@
 	function viewFeedback() {
 		var host = String( B.home || '' ).replace( /^https?:\/\//, '' ).replace( /\/$/, '' );
 		if ( fb.sent ) {
-			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#home" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header><main class="a-compose" id="main"><div class="a-done"><span class="a-tick">' + icon( 'check', 28 ) + '</span>' +
+			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header><main class="a-compose" id="main"><div class="a-done"><span class="a-tick">' + icon( 'check', 28 ) + '</span>' +
 				'<h2 tabindex="-1">Thank you' + ( B.name ? ', ' + esc( B.name ) : '' ) + '</h2><p class="muted">Your note is with the Stubli team.' + ( fb.address ? ' If you asked a question, Celestine will reply.' : '' ) + '</p>' +
 				'<div class="a-actions"><button type="button" class="a-btn quiet" data-again>Write another</button><a class="a-btn quiet" href="#home">Done</a></div></div></main>';
 			$( '.a-done h2' ).focus();
@@ -1514,7 +1667,7 @@
 			return;
 		}
 		var k = FB[ fb.kind ];
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#home" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header>' +
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header>' +
 			'<main class="a-compose" id="main"><p>This goes to the people who make Stubli, not to anyone you follow. Every message is read.</p>' +
 			'<div class="a-chips" role="radiogroup" aria-label="What is it about?">' + Object.keys( FB ).map( function ( key ) {
 				var on = fb.kind === key;
@@ -1713,7 +1866,7 @@
 			body = '<div class="a-done" style="padding-top:12px"><span class="a-tick">' + icon( 'check', 28 ) + '</span><h2>' + ( s.stop ? 'Stopped' : 'Done' ) + '</h2><p class="muted">' + ok + ' post' + ( ok === 1 ? '' : 's' ) + ' imported' + ( s.collection && ok ? ' into ' + esc( s.collection ) : '' ) + '.' + ( s.dup ? ' ' + s.dup + ' ' + ( s.dup === 1 ? 'was' : 'were' ) + ' already on your page, so nothing was doubled.' : '' ) +
 				( s.failed.length ? ' ' + s.failed.length + ' couldn\'t be imported; try again to retry them.' : '' ) + ( s.long ? ' ' + ( s.long === 1 ? 'One video was' : s.long + ' videos were' ) + ' longer than a minute and stayed behind.' : '' ) + ( s.bad ? ' ' + ( s.bad === 1 ? 'One video' : s.bad + ' videos' ) + ' couldn\'t be read and stayed behind.' : '' ) + ( s.stop && s.queue.length ? ' ' + s.queue.length + ' still to go.' : '' ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + '">See your page</a>' + ( s.failed.length || s.stop ? '<button type="button" class="a-btn quiet" data-retry>Try again</button>' : '' ) + '</div></div>';
 		}
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#home" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>From Instagram</h1><span></span></header><main class="a-compose" id="main">' + body + '</main>';
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>From Instagram</h1><span></span></header><main class="a-compose" id="main">' + body + '</main>';
 		var z = $( '[data-zip]' );
 		if ( z ) { z.addEventListener( 'change', function () { if ( z.files.length ) { scanImport( z.files ); } } ); }
 		var col = $( '#a-impcol' );

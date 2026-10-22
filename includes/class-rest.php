@@ -258,7 +258,7 @@ class Rest {
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => static fn() => rest_ensure_response( Follows::all() ),
+					'callback'            => static fn() => rest_ensure_response( array_map( static fn( $f ) => $f + array( 'friend' => Friends::is_friend( $f['site_url'] ) ), Follows::all() ) ),
 					'permission_callback' => array( self::class, 'is_owner' ),
 				),
 				array(
@@ -279,8 +279,19 @@ class Rest {
 					'methods'             => 'PATCH',
 					'callback'            => static function ( WP_REST_Request $r ) {
 						$changes = array_intersect_key( $r->get_params(), array_flip( array( 'list_name', 'note', 'is_public', 'muted' ) ) );
-						$row     = Follows::update( (int) $r['id'], $changes );
-						return $row ? rest_ensure_response( $row ) : new WP_Error( 'stubli_not_found', __( 'You don\'t follow that site.', 'stubli' ), array( 'status' => 404 ) );
+						$row     = $changes ? Follows::update( (int) $r['id'], $changes ) : Follows::get( (int) $r['id'] );
+						if ( ! $row ) {
+							return new WP_Error( 'stubli_not_found', __( 'You don\'t follow that site.', 'stubli' ), array( 'status' => 404 ) );
+						}
+						$sent = null;
+						if ( null !== $r['friend'] ) {
+							$res = Friends::set( $row['site_url'], rest_sanitize_boolean( $r['friend'] ) );
+							if ( is_wp_error( $res ) ) {
+								return $res;
+							}
+							$sent = $res['sent'];
+						}
+						return rest_ensure_response( $row + array( 'friend' => Friends::is_friend( $row['site_url'] ), 'sent' => $sent ) );
 					},
 					'permission_callback' => array( self::class, 'is_owner' ),
 					'args'                => $id,
@@ -461,6 +472,7 @@ class Rest {
 					'date'       => (int) $request['date'],
 					'import_key' => (string) $request['import_key'],
 					'posters'    => $posters,
+					'audience'   => 'friends' === (string) $request['audience'] ? 'friends' : 'everyone',
 				)
 			)
 		);

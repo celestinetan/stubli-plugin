@@ -349,7 +349,7 @@ class Archive {
 			if ( $first && $first['file'] ) {
 				$grid .= '<a href="#p' . (int) $post['id'] . '"><img src="' . esc_attr( $first['file'] ) . '" alt="' . esc_attr( $first['alt'] ) . '" loading="lazy">' . ( count( $post['photos'] ) > 1 ? '<span>' . count( $post['photos'] ) . '</span>' : '' ) . ( ! empty( $first['video'] ) ? '<span>▶</span>' : '' ) . '</a>';
 			}
-			$list .= '<article id="p' . (int) $post['id'] . '"><p class="m">' . $e( $day( $post['date'] ) ) . ( $post['collection'] ? ' · ' . $e( $post['collection'] ) : '' ) . ( $post['note'] ? ' · ' . $e( sprintf( /* translators: %s: content note */ __( 'Content note: %s', 'stubli' ), $post['note'] ) ) : '' ) . ( 'private' === $post['status'] ? ' · ' . $e( __( 'Only me', 'stubli' ) ) : '' ) . '</p>';
+			$list .= '<article id="p' . (int) $post['id'] . '"><p class="m">' . $e( $day( $post['date'] ) ) . ( $post['collection'] ? ' · ' . $e( $post['collection'] ) : '' ) . ( $post['note'] ? ' · ' . $e( sprintf( /* translators: %s: content note */ __( 'Content note: %s', 'stubli' ), $post['note'] ) ) : '' ) . ( 'friends' === ( $post['audience'] ?? '' ) ? ' · ' . $e( __( 'Friends only', 'stubli' ) ) : ( 'private' === $post['status'] ? ' · ' . $e( __( 'Only me', 'stubli' ) ) : '' ) ) . '</p>';
 			foreach ( $post['photos'] as $ph ) {
 				$list .= '<figure>' . $media( $ph ) . ( $ph['alt'] ? '<figcaption>' . $e( $ph['alt'] ) . '</figcaption>' : '' ) . '</figure>';
 			}

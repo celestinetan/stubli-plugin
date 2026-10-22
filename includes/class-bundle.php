@@ -179,6 +179,7 @@ class Bundle {
 			'format'     => $format ? $format : 'standard',
 			'date'       => get_post_time( 'c', true, $post ),
 			'status'     => $post->post_status,
+			'audience'   => Friends::audience( $post ),
 			'title'      => $post->post_title,
 			'url'        => (string) get_permalink( $post ),
 			'collection' => '',

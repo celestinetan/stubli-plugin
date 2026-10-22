@@ -133,6 +133,8 @@ class Replies {
 	 * @return array|WP_Error
 	 */
 	private static function send( $target, $text, $item_id ) {
+		// A friend's key never goes on a public reply page (design Q44).
+		$target = remove_query_arg( Friends::PARAM, html_entity_decode( (string) $target, ENT_QUOTES ) );
 		$text = trim( sanitize_textarea_field( (string) $text ) );
 		if ( '' === $text ) {
 			return new WP_Error( 'stubli_empty', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );

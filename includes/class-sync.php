@@ -56,7 +56,7 @@ class Sync {
 			$feed->enable_cache( false );
 		};
 		add_action( 'wp_feed_options', $no_cache );
-		$feed = fetch_feed( $follow['feed_url'] );
+		$feed = fetch_feed( Friends::feed_url( $follow ) );
 		remove_action( 'wp_feed_options', $no_cache );
 
 		$now = current_time( 'mysql', true );
@@ -100,6 +100,9 @@ class Sync {
 				$note = mb_substr( sanitize_text_field( (string) $tags[0]['data'] ), 0, Posts::MAX_NOTE_LENGTH );
 			}
 
+			$aud      = $item->get_item_tags( Posts::NS, 'audience' );
+			$audience = ! empty( $aud[0]['data'] ) && 'friends' === trim( (string) $aud[0]['data'] ) ? 'friends' : '';
+
 			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE follow_id = %d AND guid = %s", $follow['id'], $guid ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( $exists ) {
 				// The owner may have edited the caption, descriptions or content note.
@@ -110,9 +113,11 @@ class Sync {
 						'image_url'    => $images ? $images[0]['url'] : '',
 						'images'       => wp_json_encode( $images ),
 						'content_note' => $note,
+						'audience'     => $audience,
+						'permalink'    => esc_url_raw( $permalink ),
 					),
 					array( 'id' => (int) $exists ),
-					array( '%s', '%s', '%s', '%s' ),
+					array( '%s', '%s', '%s', '%s', '%s', '%s' ),
 					array( '%d' )
 				);
 				continue;
@@ -128,9 +133,10 @@ class Sync {
 					'image_url'    => $images ? $images[0]['url'] : '',
 					'images'       => wp_json_encode( $images ),
 					'content_note' => $note,
+					'audience'     => $audience,
 					'published'    => gmdate( 'Y-m-d H:i:s', (int) $item->get_date( 'U' ) ),
 				),
-				array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+				array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 			);
 			++$new;
 		}
@@ -289,6 +295,7 @@ class Sync {
 					'image'        => $images ? $images[0]['url'] : '',
 					'images'       => $images,
 					'content_note' => $row['content_note'],
+					'audience'     => (string) ( $row['audience'] ?? '' ),
 					'published'    => gmdate( 'c', (int) strtotime( $row['published'] . ' UTC' ) ),
 					'my_comments'  => Replies::count_for_item( (int) $row['id'] ),
 					'list'         => (string) $row['list_name'],
