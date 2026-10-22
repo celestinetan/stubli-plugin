@@ -334,6 +334,11 @@ function stubli_footer() {
 		?>
 	<footer class="st-footer">
 		<span>&copy; <?php echo (int) $now; ?> Celestine Tan</span>
+		<?php $help = get_page_by_path( 'help' ); ?>
+		<?php if ( $help && 'publish' === $help->post_status ) : ?>
+			<span aria-hidden="true">·</span>
+			<a href="<?php echo esc_url( get_permalink( $help ) ); ?>"><?php esc_html_e( 'Help', 'stubli' ); ?></a>
+		<?php endif; ?>
 		<span aria-hidden="true">·</span>
 		<a href="https://buymeacoffee.com/celestinetan"><?php esc_html_e( 'Support Stubli', 'stubli' ); ?></a>
 		<span aria-hidden="true">·</span>
@@ -827,6 +832,9 @@ function stubli_view_page() {
 		echo '<main class="st-main ' . esc_attr( $wide[ $page->post_name ] ) . '" id="main">';
 		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</main>';
+		return;
+	}
+	if ( $page instanceof WP_Post && function_exists( 'stubli_help_view' ) && stubli_help_view( $page ) ) {
 		return;
 	}
 	echo '<main class="st-main st-narrow st-prose" id="main">';

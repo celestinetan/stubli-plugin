@@ -1,0 +1,56 @@
+/* stubli.app · Help: an index you can search, groups, and calm articles. */
+
+.sh-main { padding-bottom: 48px; }
+.sh-hero { text-align: center; padding: 40px 16px 8px; }
+.sh-hero .st-h1 { font-family: var(--st-serif); font-weight: 500; letter-spacing: -.02em; font-size: clamp(36px, 5vw, 56px); color: var(--st-accent); }
+.sh-intro { max-width: 46ch; margin: 12px auto 0; color: var(--st-muted); font-size: 17px; }
+.sh-intro p { margin: 0; }
+.sh-search { position: relative; max-width: 560px; margin: 26px auto 0; color: var(--st-muted); }
+.sh-search svg { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.sh-search input { width: 100%; min-height: 56px; padding: 0 20px 0 50px; border: 0; border-radius: 999px; background: var(--st-surface); color: var(--st-ink); font: 400 17px var(--st-sans); }
+.sh-search input:focus-visible { outline: 2px solid var(--st-ink); outline-offset: 2px; }
+.sh-none { margin-top: 14px; color: var(--st-muted); }
+
+.sh-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 32px; }
+.sh-group { background: var(--st-surface); border-radius: 18px; padding: 20px 20px 10px; }
+.sh-group[hidden] { display: none; }
+.sh-group-h { margin: 0 0 6px; font-family: var(--st-serif); font-weight: 500; font-size: 24px; letter-spacing: -.01em; }
+.sh-group-h a { color: var(--st-ink); text-decoration: none; }
+.sh-group ul, .sh-list { list-style: none; margin: 0; padding: 0; }
+.sh-group li a, .sh-list li a { display: block; padding: 10px 0; text-decoration: none; color: var(--st-ink); }
+.sh-group li + li a { box-shadow: 0 -1px 0 var(--st-field); }
+.sh-group li b, .sh-list li b { display: block; font-weight: 600; }
+.sh-group li span, .sh-list li span { display: block; font-size: 14px; color: var(--st-muted); margin-top: 2px; }
+.sh-group li a:hover b, .sh-list li a:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.sh-group li[hidden] { display: none; }
+.sh-draft { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--st-field); font-size: 12px; font-weight: 600; color: var(--st-muted); vertical-align: 2px; }
+.sh-list { margin-top: 18px; background: var(--st-surface); border-radius: 18px; padding: 4px 20px; }
+.sh-list li + li a { box-shadow: 0 -1px 0 var(--st-field); }
+
+.sh-crumb { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 20px 0 10px; font-size: 14px; color: var(--st-muted); }
+.sh-crumb a { color: var(--st-muted); min-height: 32px; display: inline-flex; align-items: center; }
+.sh-article .st-h1 { font-family: var(--st-serif); font-weight: 500; letter-spacing: -.02em; }
+.sh-article .st-prose { margin-top: 6px; }
+.sh-article figure { margin: 24px 0; }
+.sh-article figure img { display: block; width: min(100%, 320px); height: auto; margin: 0 auto; border-radius: 22px; box-shadow: 0 18px 44px -26px rgba(34, 32, 29, .5); }
+.sh-article figure.is-wide img { width: 100%; border-radius: 12px; }
+.sh-article figcaption { text-align: center; font-size: 14px; color: var(--st-muted); margin-top: 10px; }
+.sh-article ol { padding-left: 1.3em; }
+.sh-article ol li { margin: 8px 0; padding-left: 4px; }
+.sh-article .sh-tip { background: var(--st-surface); border-radius: 14px; padding: 14px 16px; margin: 20px 0; }
+
+.sh-next { display: block; margin: 32px 0 0; padding: 18px 20px; border-radius: 16px; background: var(--st-surface); text-decoration: none; color: var(--st-ink); }
+.sh-next small { display: block; font-size: 13px; color: var(--st-muted); }
+.sh-next b { font-weight: 600; }
+.sh-next:hover b { text-decoration: underline; text-underline-offset: 3px; }
+
+.sh-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin: 32px 0 0; padding: 22px; border-radius: 18px; background: var(--st-surface); }
+.sh-ask > div { flex: 1 1 220px; }
+.sh-ask-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--st-bg); display: inline-flex; align-items: center; justify-content: center; color: var(--st-accent); }
+.sh-ask-mark svg { width: 20px; height: 26px; }
+.sh-ask-mark path { fill: none; stroke: currentColor; }
+.sh-ask-mark circle { fill: currentColor; }
+.sh-ask-h { font-weight: 600; margin: 0; }
+.sh-ask p { margin: 0; }
+.sh-ask .st-button { text-decoration: none; }
+.sh-article .sh-tip p { margin: 0; }

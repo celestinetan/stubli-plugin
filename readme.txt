@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.23.3
+Stable tag: 0.24.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.24.0 =
+* Edit page in the app now has your name, pronouns and your photo or smiley, so you can change them any time after setup.
 
 = 0.23.3 =
 * The built-in look is in step with the Stubli theme (stubli.app gets a visual "How Stubli works" page).

@@ -532,9 +532,9 @@
 		if ( ! ab ) {
 			ab = { loaded: false, cards: [], choices: [], max: 3, maxA: 150, bio: '', picking: null, own: '', busy: false, error: '' };
 			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div></main>';
-			Promise.all( [ send( 'GET', 'prompts', null ), me.p ? Promise.resolve( me.p ) : send( 'GET', 'profile', null ) ] ).then( function ( r ) {
+			Promise.all( [ send( 'GET', 'prompts', null ), me.p ? Promise.resolve( me.p ) : send( 'GET', 'profile', null ), send( 'GET', 'setup', null ) ] ).then( function ( r ) {
 				ab.cards = ( r[ 0 ].prompts || [] ).slice(); ab.choices = r[ 0 ].choices || []; ab.max = r[ 0 ].max || 3; ab.maxA = r[ 0 ].max_answer || 150;
-				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.loaded = true;
+				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.d = r[ 2 ]; ab.name = String( r[ 2 ].name || '' ); ab.pronouns = String( r[ 2 ].pronouns || '' ); ab.loaded = true;
 				if ( location.hash === '#about' ) { renderAbout(); }
 			}, function ( e ) { ab = null; root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#you">Back</a></div></main>'; } );
 			return;
@@ -550,7 +550,11 @@
 		};
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><button type="button" class="a-btn" data-ab-save' + ( ab.busy ? ' disabled' : '' ) + '>' + ( ab.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
 			'<main class="a-compose" id="main">' + ( ab.error ? '<div class="a-notice" role="alert"><p>' + esc( ab.error ) + '</p></div>' : '' ) +
-			'<label class="a-label" for="a-ab-bio" style="margin-top:4px">One line about you</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
+			( ab.d ? '<div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? 'Your photo' : 'Your smiley' ) + '">' : '' ) + '</label>' +
+				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? 'A face, a place, anything that feels like you.' : 'Or keep your smiley, and make it yours below.' ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
+			'<label class="a-label" for="a-ab-name">Your name</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' + esc( ab.name ) + '">' +
+			'<label class="a-label" for="a-ab-bio">One line about you</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
+			'<label class="a-label" for="a-ab-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-ab-pro" class="a-field" type="text" maxlength="30" value="' + esc( ab.pronouns ) + '" placeholder="she/her, they/them…">' +
 			'<h2 class="a-label">Cards about you</h2><p class="muted" style="margin:-4px 0 12px">Up to ' + ab.max + ' cards sit behind your bio on your page. Short answers work best, and people can reply to each one.</p>' +
 			ab.cards.map( function ( c, k ) {
 				return '<div class="a-card a-pedit">' + ( ab.picking === k ? picker( k ) :
@@ -560,6 +564,19 @@
 			( ab.cards.length < ab.max ? ( ab.picking === 'new' ? '<div class="a-card a-pedit">' + picker( 'new' ) + '</div>' : '<button type="button" class="a-btn quiet wide" data-add-card>' + icon( 'plus', 18 ) + 'Add a card</button>' ) : '' ) +
 			'</main>';
 		var grow = function ( t ) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+		$( '#a-ab-name' ).addEventListener( 'input', function ( e ) { ab.name = e.target.value; } );
+		$( '#a-ab-pro' ).addEventListener( 'input', function ( e ) { ab.pronouns = e.target.value; } );
+		if ( ab.d ) {
+			bindSmiley( ab.d, renderAbout );
+			var af = $( '#a-ab-file' );
+			af.addEventListener( 'change', function () {
+				var f = af.files && af.files[ 0 ], m = $( '[data-ab-photo-msg]' ); if ( ! f ) { return; }
+				m.textContent = 'Uploading…';
+				squareAvatar( f ).then( function ( blob ) { var fd = new FormData(); fd.append( 'photo', blob, 'profile.jpg' ); return send( 'POST', 'setup/photo', fd ); } )
+					.then( function ( r ) { ab.d.avatar = r.avatar; ab.d.photo = true; ab.d.smileyOpen = false; ab.d.photoMsg = 'Lovely. That\'s your photo now.'; me.p = null; renderAbout(); },
+						function ( e ) { m.textContent = ( e && e.message ) || 'That photo couldn\'t be read. Try another one.'; } );
+			} );
+		}
 		var bio = $( '#a-ab-bio' ); grow( bio );
 		bio.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { e.preventDefault(); } } );
 		bio.addEventListener( 'input', function () { ab.bio = bio.value.replace( /\s*\n+\s*/g, ' ' ); $( '[data-ab-bio-n]' ).textContent = ab.bio.length + ' / 160'; grow( bio ); } );
@@ -578,8 +595,9 @@
 		$( '[data-ab-save]' ).addEventListener( 'click', function () {
 			var empty = ab.cards.filter( function ( c ) { return ! c.a.trim(); } )[ 0 ];
 			if ( empty ) { ab.error = 'Write an answer for "' + empty.q + '", or remove that card.'; renderAbout(); return; }
+			if ( ! ab.name.trim() ) { ab.error = 'Add the name people should see.'; renderAbout(); $( '#a-ab-name' ).focus(); return; }
 			ab.busy = true; ab.error = ''; renderAbout();
-			Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio } ) ] ).then( function ( r ) {
+			Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim() } ) ] ).then( function ( r ) {
 				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( 'Your page is updated.' );
 			}, function ( e ) { ab.busy = false; ab.error = e.message; renderAbout(); } );
 		} );
@@ -1386,7 +1404,7 @@
 	function smileyPicker( d ) {
 		var sm = d.smiley; if ( ! sm ) { return ''; }
 		var on = ! d.photo;
-		return '<details class="a-su-smiley"' + ( su.smileyOpen ? ' open' : '' ) + '><summary>' + ( on ? 'Change your smiley' : 'Use a smiley instead' ) + '</summary>' +
+		return '<details class="a-su-smiley"' + ( d.smileyOpen ? ' open' : '' ) + '><summary>' + ( on ? 'Change your smiley' : 'Use a smiley instead' ) + '</summary>' +
 			'<p class="a-label" id="a-su-sc">Colour</p><div class="a-su-sc" role="radiogroup" aria-labelledby="a-su-sc">' + sm.colours.map( function ( hex, i ) {
 				var sel = on && i === sm.c;
 				return '<button type="button" role="radio" aria-checked="' + sel + '" aria-label="Colour ' + ( i + 1 ) + '" data-sm-c="' + i + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><span style="background:' + hex + '"></span></button>';
@@ -1396,19 +1414,19 @@
 				return '<button type="button" role="radio" aria-checked="' + sel + '" data-sm-x="' + esc( e.key ) + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><img src="' + esc( smileyData( sm, sm.c, e.key ) ) + '" alt="" width="44" height="44"><small>' + esc( e.label ) + '</small></button>';
 			} ).join( '' ) + '</div></details>';
 	}
-	function pickSmiley( d, c, x, focusSel ) {
-		var sm = d.smiley; sm.c = c; sm.x = x; d.avatar = smileyData( sm, c, x ); d.photo = false; su.smileyOpen = true; su.photoMsg = '';
-		renderSetup(); var f = $( focusSel ); if ( f ) { f.focus(); }
+	function pickSmiley( d, c, x, focusSel, redraw ) {
+		var sm = d.smiley; sm.c = c; sm.x = x; d.avatar = smileyData( sm, c, x ); d.photo = false; d.smileyOpen = true; d.photoMsg = '';
+		redraw(); var f = $( focusSel ); if ( f ) { f.focus(); }
 		send( 'POST', 'setup/smiley', { c: c, x: x } ).then( function ( r ) { d.avatar = r.avatar; }, function () { var m = $( '[data-su-photo-msg]' ); if ( m ) { m.textContent = 'That didn\'t save. Try again in a moment.'; } } );
 	}
-	function bindSmiley( d ) {
+	function bindSmiley( d, redraw ) {
 		var det = $( '.a-su-smiley' ); if ( ! det ) { return; }
-		det.addEventListener( 'toggle', function () { su.smileyOpen = det.open; } );
+		det.addEventListener( 'toggle', function () { d.smileyOpen = det.open; } );
 		[ [ '[data-sm-c]', 'smC' ], [ '[data-sm-x]', 'smX' ] ].forEach( function ( g ) {
 			var bs = $$( g[ 0 ] );
 			bs.forEach( function ( b, i ) {
 				var pick = function ( el ) {
-					if ( el.dataset.smC !== undefined ) { pickSmiley( d, +el.dataset.smC, d.smiley.x, '[data-sm-c="' + el.dataset.smC + '"]' ); } else { pickSmiley( d, d.smiley.c, el.dataset.smX, '[data-sm-x="' + el.dataset.smX + '"]' ); }
+					if ( el.dataset.smC !== undefined ) { pickSmiley( d, +el.dataset.smC, d.smiley.x, '[data-sm-c="' + el.dataset.smC + '"]', redraw ); } else { pickSmiley( d, d.smiley.c, el.dataset.smX, '[data-sm-x="' + el.dataset.smX + '"]', redraw ); }
 				};
 				b.addEventListener( 'click', function () { pick( b ); } );
 				b.addEventListener( 'keydown', function ( e ) {
@@ -1534,7 +1552,7 @@
 				$( '#' + id ).addEventListener( 'input', function ( e ) { d[ { 'a-su-name': 'name', 'a-su-bio': 'bio', 'a-su-pro': 'pronouns' }[ id ] ] = e.target.value; if ( su.error && id === 'a-su-name' && e.target.value.trim() ) { su.error = ''; var nt = $( '.a-su .a-notice' ); if ( nt ) { nt.remove(); } } } );
 			} );
 			bio.addEventListener( 'input', function () { cnt.textContent = bio.value.length + ' / 160'; } );
-			bindSmiley( d );
+			bindSmiley( d, renderSetup );
 			file.addEventListener( 'change', function () {
 				var f = file.files && file.files[ 0 ], m = $( '[data-su-photo-msg]' );
 				if ( ! f ) { return; }
@@ -1542,7 +1560,7 @@
 				squareAvatar( f ).then( function ( blob ) {
 					var fd = new FormData(); fd.append( 'photo', blob, 'profile.jpg' );
 					return send( 'POST', 'setup/photo', fd );
-				} ).then( function ( r ) { d.avatar = r.avatar; d.photo = true; su.smileyOpen = false; su.photoMsg = 'Lovely. That\'s your photo now.'; renderSetup(); },
+				} ).then( function ( r ) { d.avatar = r.avatar; d.photo = true; d.smileyOpen = false; su.photoMsg = 'Lovely. That\'s your photo now.'; renderSetup(); },
 					function ( e ) { m.textContent = ( e && e.message ) || 'That photo couldn\'t be read. Try another one.'; } );
 			} );
 			next.addEventListener( 'click', function () {

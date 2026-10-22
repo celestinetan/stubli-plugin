@@ -606,3 +606,10 @@ html { scroll-behavior: smooth; }
 .st-own { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 28px 0 4px; font-size: 14px; color: var(--st-muted); }
 .st-own .st-wordmark { color: var(--st-ink); font-weight: 600; }
 .st-own a { color: var(--st-ink); font-weight: 600; text-underline-offset: 3px; text-decoration-thickness: 1.5px; min-height: 44px; display: inline-flex; align-items: center; }
+
+/* stubli.app on a phone: one row, logo, then the one button and Aa. */
+@media (max-width: 760px) {
+	.st-top-brand .st-top-pages { order: 0; flex-basis: auto; margin: 0 0 0 auto; padding: 0; }
+	.st-top-brand .st-top-pages + .st-mode { margin-left: 4px; }
+	.st-top-brand .st-mode-label { display: none; }
+}

@@ -302,6 +302,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'chev'    => '<path d="M9 6l6 6-6 6"/>',
 		'stack'   => '<rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
 		'link'    => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+		'search'  => '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
 		'pin'     => '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		'play'    => '<path d="M8 5v14l11-7z" fill="currentColor"/>',
 		'eye'     => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
