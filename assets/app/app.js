@@ -80,32 +80,51 @@
 	 */
 	var skyN = 0;
 	function sky( size ) {
+		// The little house through the day: one chalet, and the light around it.
+		// Morning: low sun, shutters open. Afternoon: high sun, flowers out.
+		// Evening: the sun sets and the window starts to glow. Night: a sleeping
+		// moon, stars, and one warm lit window. Motion only when allowed (CSS).
 		var d = daypart(), s = size || 44, id = 'a-sky-clip' + ( ++skyN );
 		var f = function ( n ) { return ( +n ).toFixed( 1 ); };
 		var ray = function ( cx, cy, a, r1, r2 ) { var c = Math.cos( a * Math.PI / 180 ), n = Math.sin( a * Math.PI / 180 ); return '<line x1="' + f( cx + r1 * c ) + '" y1="' + f( cy + r1 * n ) + '" x2="' + f( cx + r2 * c ) + '" y2="' + f( cy + r2 * n ) + '"/>'; };
 		var star = function ( x, y, r, i ) { return '<path class="a-sky-star a-sky-star' + i + '" d="M' + x + ' ' + ( y - r ) + 'Q' + x + ' ' + y + ' ' + ( x + r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y + r ) + 'Q' + x + ' ' + y + ' ' + ( x - r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y - r ) + 'z" fill="currentColor" stroke="none"/>'; };
-		// The Stubli smile: two dots and a curve. Asleep at night.
 		var face = function ( cx, cy, r, asleep ) {
-			var ex = r * 0.36, ey = cy - r * 0.16, er = Math.max( 0.95, r * 0.13 ), m = r * 0.38;
+			var ex = r * 0.38, ey = cy - r * 0.14, er = Math.max( 0.7, r * 0.14 ), m = r * 0.4;
 			var eyes = asleep ?
-				'<path d="M' + f( cx - ex - er * 1.3 ) + ' ' + f( ey ) + 'q' + f( er * 1.3 ) + ' ' + f( er * 1.4 ) + ' ' + f( er * 2.6 ) + ' 0M' + f( cx + ex - er * 1.3 ) + ' ' + f( ey ) + 'q' + f( er * 1.3 ) + ' ' + f( er * 1.4 ) + ' ' + f( er * 2.6 ) + ' 0" stroke-width="1.3"/>' :
+				'<path d="M' + f( cx - ex - er ) + ' ' + f( ey ) + 'q' + f( er ) + ' ' + f( er * 1.2 ) + ' ' + f( er * 2 ) + ' 0M' + f( cx + ex - er ) + ' ' + f( ey ) + 'q' + f( er ) + ' ' + f( er * 1.2 ) + ' ' + f( er * 2 ) + ' 0" stroke-width="1.1"/>' :
 				'<circle cx="' + f( cx - ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/><circle cx="' + f( cx + ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/>';
-			return eyes + '<path d="M' + f( cx - m ) + ' ' + f( cy + r * 0.18 ) + 'a' + f( m ) + ' ' + f( m ) + ' 0 0 0 ' + f( 2 * m ) + ' 0" stroke-width="1.5"/>';
+			return eyes + '<path d="M' + f( cx - m ) + ' ' + f( cy + r * 0.2 ) + 'a' + f( m ) + ' ' + f( m ) + ' 0 0 0 ' + f( 2 * m ) + ' 0" stroke-width="1.2"/>';
 		};
-		var ridge = 'M2 37L11 27.5L15 31L22 22.5L28.5 30L32 26.5L42 37';
-		var alps = '<path class="a-sky-alps" d="' + ridge + '"/><path d="M19.9 25.1L21.2 25.9L22.3 24.9L23.3 25.8L24.1 25" stroke-width="1.1" opacity=".7"/>';
-		var clip = '<defs><clipPath id="' + id + '"><path d="M0 0H44V37H42L32 26.5L28.5 30L22 22.5L15 31L11 27.5L2 37H0Z"/></clipPath></defs>';
+		// The chalet sits left of centre on a gentle hill; the sky moves on the right.
+		var lit = d === 'evening' ? ' a-sky-window-dusk' : d === 'night' ? ' a-sky-window-lit' : '';
+		var hill = '<path d="M2 39.5c8-2.6 32-2.6 40 0"/>';
+		var house = '<g transform="translate(-5.5 0)"><path d="M30 16.5V11.5h3.4v7.4"/>' +
+			'<path class="a-sky-roof" d="M9.5 23.5L24 12.5l14.5 11"/>' +
+			'<path d="M13 21.2V38.2M35 21.2V38.2"/>' +
+			'<rect class="a-sky-window' + lit + '" x="19.6" y="25.5" width="8.8" height="7.2" rx="1"/><path d="M24 25.5v7.2M19.6 29.1h8.8" stroke-width="1.1"/>';
+		var hillClip = '<defs><clipPath id="' + id + '"><path d="M0 0H44V36.6C34 35 10 35 0 36.6Z"/></clipPath></defs>';
 		var body;
-		if ( d === 'afternoon' ) {
-			body = '<g clip-path="url(#' + id + ')"><g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 22, 13, a, 9.5, 12.5 ); } ).join( '' ) + '</g><circle cx="22" cy="13" r="7"/>' + face( 22, 13, 7 ) + '</g>' + alps;
-		} else if ( d === 'morning' ) {
-			body = '<g clip-path="url(#' + id + ')"><g class="a-sky-rise"><circle cx="32.5" cy="22.5" r="6.5"/>' + face( 32.5, 22.5, 6.5 ) + [ 215, 250, 290, 325 ].map( function ( a ) { return ray( 32.5, 22.5, a, 9, 12 ); } ).join( '' ) + '</g></g>' + alps;
+		if ( d === 'morning' ) {
+			// Shutters swung open; the sun just rising over the hill.
+			house += '<path d="M19.2 25.8l-3 -1.2v7.6l3 .8M28.8 25.8l3 -1.2v7.6l-3 .8" stroke-width="1.2"/>';
+			body = hillClip + '<g clip-path="url(#' + id + ')"><g class="a-sky-rise"><circle cx="37.6" cy="33.6" r="4.4"/>' + face( 37.6, 33.6, 4.4 ) + [ 235, 270, 305 ].map( function ( a ) { return ray( 37.6, 33.6, a, 6.4, 8.8 ); } ).join( '' ) + '</g></g>';
+		} else if ( d === 'afternoon' ) {
+			// High sun with its smile, flowers in the window box.
+			house += '<path d="M18.8 35.4h10.4" stroke-width="1.3"/><circle cx="20.8" cy="34.2" r=".95" fill="currentColor" stroke="none"/><circle cx="24" cy="34" r=".95" fill="currentColor" stroke="none"/><circle cx="27.2" cy="34.2" r=".95" fill="currentColor" stroke="none"/>';
+			body = '<g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 34.6, 10, a, 6.2, 8 ); } ).join( '' ) + '</g><circle cx="34.6" cy="10" r="4.6"/>' + face( 34.6, 10, 4.6 );
 		} else if ( d === 'evening' ) {
-			body = '<g clip-path="url(#' + id + ')"><path class="a-sky-glow" d="M1.5 24.5a10 10 0 0 1 20 0" stroke-dasharray="1.5 3.2"/><g class="a-sky-set"><circle cx="11.5" cy="23.5" r="6"/>' + face( 11.5, 23.5, 6 ) + '</g></g>' + alps;
+			// The sun sinks behind the hill; the first star; the window begins to glow.
+			body = hillClip + '<g clip-path="url(#' + id + ')"><path class="a-sky-glow" d="M30 36.4a7.6 7.6 0 0 1 15.2 0" stroke-dasharray="1.4 2.6"/><g class="a-sky-set"><circle cx="37.6" cy="35.6" r="4.4"/>' + face( 37.6, 35.6, 4.4 ) + '</g></g>' + star( 38, 12, 2.2, 1 );
 		} else {
-			body = '<circle cx="25" cy="13" r="7.5"/>' + face( 25, 13, 7.5, true ) + star( 8, 9, 3.2, 1 ) + star( 39, 22, 2.6, 2 ) + star( 12, 19.5, 2.1, 3 ) + '<g opacity=".6">' + alps + '</g>';
+			// A sleeping moon, stars, a curl of smoke and one warm window.
+			house += '<path class="a-sky-smoke" d="M31.8 10c-1.4-1.4 1.2-2.4 0-4" stroke-width="1.1" opacity=".7"/>';
+			body = '<path class="a-sky-moon" d="M35.4 3.6a6.6 6.6 0 1 0 6.4 8.8a5.4 5.4 0 0 1 -6.4 -8.8z"/>' +
+				'<path d="M31.6 9.2q.8 .9 1.6 0" stroke-width="1.1"/><path d="M32 12.6q1.4 1.1 2.8 -.2" stroke-width="1.1"/>' +
+				star( 5, 9, 2.2, 1 ) + star( 18, 4.4, 1.7, 2 ) + star( 41, 22, 1.6, 3 );
 		}
-		return '<svg class="a-sky a-sky-' + d + '" width="' + s + '" height="' + s + '" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + clip + body + '</svg>';
+		house += '</g>';
+		body = hill + body;
+		return '<svg class="a-sky a-sky-' + d + '" width="' + s + '" height="' + s + '" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + body + house + '</svg>';
 	}
 	function endLine() {
 		return { morning: 'Have a lovely morning.', afternoon: 'Enjoy the rest of your afternoon.', evening: 'Have a calm evening.', night: 'Sleep well.' }[ daypart() ];

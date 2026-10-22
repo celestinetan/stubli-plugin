@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.24.1
+Stable tag: 0.25.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.25.0 =
+* A new greeting picture: the little house through the day. Morning sun and open shutters, afternoon flowers, an evening glow, and one warm lit window at night.
+* Buttons and the bottom bar answer every tap: a gentle press, and a soft pill behind the tab you're on.
 
 = 0.24.1 =
 * Small ? links in the app open the matching answer in Stubli's help.

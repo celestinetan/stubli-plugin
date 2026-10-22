@@ -89,11 +89,14 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	$hub   = class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub();
 	if ( $hub ) {
 		// stubli.app's top bar: how it works, and the way in.
-		$pages = array_values( array_filter( $pages, static fn( $p ) => in_array( $p->post_name, array( 'how-it-works', 'get-started' ), true ) ) );
+		// In this order: the way in, how it works, help (then the reading mode).
+		$order = array( 'get-started', 'how-it-works', 'help' );
 		$help  = get_page_by_path( 'help' );
 		if ( $help && 'publish' === $help->post_status ) {
-			array_splice( $pages, max( 0, count( $pages ) - 1 ), 0, array( $help ) ); // Before the button.
+			$pages[] = $help;
 		}
+		$pages = array_values( array_filter( $pages, static fn( $p ) => in_array( $p->post_name, $order, true ) ) );
+		usort( $pages, static fn( $a, $b ) => array_search( $a->post_name, $order, true ) <=> array_search( $b->post_name, $order, true ) );
 	}
 	$welcome = $hub ? get_page_by_path( 'welcome' ) : null;
 	$join    = $welcome && 'publish' === $welcome->post_status ? ( function_exists( 'stubli_is_pitch' ) && stubli_is_pitch() ? '#start' : get_permalink( $welcome ) ) : '';
