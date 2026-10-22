@@ -80,11 +80,9 @@
 	 */
 	var skyN = 0;
 	function sky( size ) {
-		// The little house through the day: one chalet, and the light around it.
-		// Morning: low sun, shutters open. Afternoon: high sun, flowers out.
-		// Evening: the sun sets and the window starts to glow. Night: a sleeping
-		// moon, stars, and one warm lit window. Motion only when allowed (CSS).
-		var d = daypart(), s = size || 44, id = 'a-sky-clip' + ( ++skyN );
+		// The time of day in Stubli's line style, the sun and moon with the Stubli
+		// smile. Motion only when allowed (CSS).
+		var d = daypart(), s = size || 44;
 		var f = function ( n ) { return ( +n ).toFixed( 1 ); };
 		var ray = function ( cx, cy, a, r1, r2 ) { var c = Math.cos( a * Math.PI / 180 ), n = Math.sin( a * Math.PI / 180 ); return '<line x1="' + f( cx + r1 * c ) + '" y1="' + f( cy + r1 * n ) + '" x2="' + f( cx + r2 * c ) + '" y2="' + f( cy + r2 * n ) + '"/>'; };
 		var star = function ( x, y, r, i ) { return '<path class="a-sky-star a-sky-star' + i + '" d="M' + x + ' ' + ( y - r ) + 'Q' + x + ' ' + y + ' ' + ( x + r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y + r ) + 'Q' + x + ' ' + y + ' ' + ( x - r ) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + ( y - r ) + 'z" fill="currentColor" stroke="none"/>'; };
@@ -95,35 +93,40 @@
 				'<circle cx="' + f( cx - ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/><circle cx="' + f( cx + ex ) + '" cy="' + f( ey ) + '" r="' + f( er ) + '" fill="currentColor" stroke="none"/>';
 			return eyes + '<path d="M' + f( cx - m ) + ' ' + f( cy + r * 0.2 ) + 'a' + f( m ) + ' ' + f( m ) + ' 0 0 0 ' + f( 2 * m ) + ' 0" stroke-width="1.2"/>';
 		};
-		// The chalet sits left of centre on a gentle hill; the sky moves on the right.
-		var lit = d === 'evening' ? ' a-sky-window-dusk' : d === 'night' ? ' a-sky-window-lit' : '';
-		var hill = '<path d="M2 39.5c8-2.6 32-2.6 40 0"/>';
-		var house = '<g transform="translate(-5.5 0)"><path d="M30 16.5V11.5h3.4v7.4"/>' +
-			'<path class="a-sky-roof" d="M9.5 23.5L24 12.5l14.5 11"/>' +
-			'<path d="M13 21.2V38.2M35 21.2V38.2"/>' +
-			'<rect class="a-sky-window' + lit + '" x="19.6" y="25.5" width="8.8" height="7.2" rx="1"/><path d="M24 25.5v7.2M19.6 29.1h8.8" stroke-width="1.1"/>';
-		var hillClip = '<defs><clipPath id="' + id + '"><path d="M0 0H44V36.6C34 35 10 35 0 36.6Z"/></clipPath></defs>';
+		// Morning: the sun and a coffee. Afternoon: high sun and a cloud. Evening:
+		// the sun hands the sky over to the moon. Night: the moon, smiling.
+		// A crescent: outer circle (cx, cy, 12k) minus an inner one up and right.
+		var moon = function ( cx, cy, k, sleepy ) {
+			var r0 = 12 * k, r1 = 9 * k, ix = cx + 7 * k, iy = cy - 6 * k;
+			var dx = ix - cx, dy = iy - cy, dd = Math.sqrt( dx * dx + dy * dy );
+			var aa = ( r0 * r0 - r1 * r1 + dd * dd ) / ( 2 * dd ), hh = Math.sqrt( r0 * r0 - aa * aa );
+			var mx = cx + aa * dx / dd, my = cy + aa * dy / dd;
+			var p1 = [ mx + hh * dy / dd, my - hh * dx / dd ], p2 = [ mx - hh * dy / dd, my + hh * dx / dd ];
+			// The face sits in the thick of the crescent, level with the inner curve's edge.
+			var fy = iy + 1.5 * k, xin = ix - Math.sqrt( r1 * r1 - ( fy - iy ) * ( fy - iy ) ), xout = cx - Math.sqrt( r0 * r0 - ( fy - cy ) * ( fy - cy ) );
+			var fx = ( xin + xout ) / 2, t = xin - xout;
+			// p1 → p2 the long way round the outer circle, back along the inner one.
+			var cross = ( p1[ 0 ] - cx ) * ( p2[ 1 ] - cy ) - ( p1[ 1 ] - cy ) * ( p2[ 0 ] - cx );
+			var sw = cross > 0 ? 0 : 1;
+			return '<g class="a-sky-moon"><path d="M' + f( p1[ 0 ] ) + ' ' + f( p1[ 1 ] ) + 'A' + f( r0 ) + ' ' + f( r0 ) + ' 0 1 ' + sw + ' ' + f( p2[ 0 ] ) + ' ' + f( p2[ 1 ] ) + 'A' + f( r1 ) + ' ' + f( r1 ) + ' 0 0 ' + ( 1 - sw ) + ' ' + f( p1[ 0 ] ) + ' ' + f( p1[ 1 ] ) + 'Z"/>' + face( fx, fy, t * 0.5, sleepy ) + '</g>';
+		};
+		var steam = function ( x, k ) { return '<path class="a-sky-steam a-sky-steam' + k + '" d="M' + x + ' 24c-1.6 -1.6 1.6 -3 0 -4.6s1.6 -3 0 -4.6" stroke-width="1.3"/>'; };
 		var body;
 		if ( d === 'morning' ) {
-			// Shutters swung open; the sun just rising over the hill.
-			house += '<path d="M19.2 25.8l-3 -1.2v7.6l3 .8M28.8 25.8l3 -1.2v7.6l-3 .8" stroke-width="1.2"/>';
-			body = hillClip + '<g clip-path="url(#' + id + ')"><g class="a-sky-rise"><circle cx="37.6" cy="33.6" r="4.4"/>' + face( 37.6, 33.6, 4.4 ) + [ 235, 270, 305 ].map( function ( a ) { return ray( 37.6, 33.6, a, 6.4, 8.8 ); } ).join( '' ) + '</g></g>';
+			body = '<g class="a-sky-rise"><g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 14, 13, a, 7.6, 10 ); } ).join( '' ) + '</g><circle cx="14" cy="13" r="5.6"/>' + face( 14, 13, 5.6 ) + '</g>' +
+				steam( 27.5, 0 ) + steam( 32, 1 ) +
+				'<path d="M23 27H36.5V32.5a5.5 5.5 0 0 1 -5.5 5.5H28.5a5.5 5.5 0 0 1 -5.5 -5.5Z" fill="var(--bg, #fbfaf8)"/><path d="M36.5 29.2h1.4a2.6 2.6 0 0 1 0 5.2H36"/><path d="M21 41H38.5"/>';
 		} else if ( d === 'afternoon' ) {
-			// High sun with its smile, flowers in the window box.
-			house += '<path d="M18.8 35.4h10.4" stroke-width="1.3"/><circle cx="20.8" cy="34.2" r=".95" fill="currentColor" stroke="none"/><circle cx="24" cy="34" r=".95" fill="currentColor" stroke="none"/><circle cx="27.2" cy="34.2" r=".95" fill="currentColor" stroke="none"/>';
-			body = '<g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 34.6, 10, a, 6.2, 8 ); } ).join( '' ) + '</g><circle cx="34.6" cy="10" r="4.6"/>' + face( 34.6, 10, 4.6 );
+			body = '<g class="a-sky-rays">' + [ 0, 45, 90, 135, 180, 225, 270, 315 ].map( function ( a ) { return ray( 19, 15, a, 8.4, 11 ); } ).join( '' ) + '</g><circle cx="19" cy="15" r="6.2"/>' + face( 19, 15, 6.2 ) +
+				'<path class="a-sky-cloud" d="M25.4 33.6h12.2a3.6 3.6 0 0 0 .2 -7.2a5.2 5.2 0 0 0 -9.8 -1.4a4.3 4.3 0 0 0 -2.6 8.6z" fill="var(--bg, #fbfaf8)"/>';
 		} else if ( d === 'evening' ) {
-			// The sun sinks behind the hill; the first star; the window begins to glow.
-			body = hillClip + '<g clip-path="url(#' + id + ')"><path class="a-sky-glow" d="M30 36.4a7.6 7.6 0 0 1 15.2 0" stroke-dasharray="1.4 2.6"/><g class="a-sky-set"><circle cx="37.6" cy="35.6" r="4.4"/>' + face( 37.6, 35.6, 4.4 ) + '</g></g>' + star( 38, 12, 2.2, 1 );
+			body = '<g class="a-sky-set">' + [ 180, 225, 270, 315, 0, 90, 135, 45 ].map( function ( a ) { return ray( 13, 32, a, 7.4, 9.4 ); } ).join( '' ) + '<circle cx="13" cy="32" r="5.4"/>' + face( 13, 32, 5.4 ) + '</g>' +
+				moon( 29, 14, 0.78 ) + star( 39, 31, 2, 1 );
 		} else {
-			// A sleeping moon, stars, a curl of smoke and one warm window.
-			house += '<path class="a-sky-smoke" d="M31.8 10c-1.4-1.4 1.2-2.4 0-4" stroke-width="1.1" opacity=".7"/>';
-			body = '<path class="a-sky-moon" d="M35.4 3.6a6.6 6.6 0 1 0 6.4 8.8a5.4 5.4 0 0 1 -6.4 -8.8z"/>' +
-				'<path d="M31.6 9.2q.8 .9 1.6 0" stroke-width="1.1"/><path d="M32 12.6q1.4 1.1 2.8 -.2" stroke-width="1.1"/>' +
-				star( 5, 9, 2.2, 1 ) + star( 18, 4.4, 1.7, 2 ) + star( 41, 22, 1.6, 3 );
+			body = moon( 20, 23, 1.05 ) +
+				star( 35, 7, 3, 1 ) + star( 9, 7, 2.4, 2 ) + star( 39, 29, 2, 3 );
 		}
-		house += '</g>';
-		body = hill + body;
+		var house = '';
 		return '<svg class="a-sky a-sky-' + d + '" width="' + s + '" height="' + s + '" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + body + house + '</svg>';
 	}
 	function endLine() {

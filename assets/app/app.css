@@ -406,12 +406,14 @@ label.a-tool { position: relative; }
 .a-end .a-sky { align-self: center; margin-bottom: 4px; }
 .a-sky-glow { opacity: .55; }
 @media (prefers-reduced-motion: no-preference) {
-	.a-sky-rays { transform-box: view-box; transform-origin: 34.6px 10px; animation: a-sky-turn 120s linear infinite; }
+	.a-sky-rays { transform-box: fill-box; transform-origin: center; animation: a-sky-turn 120s linear infinite; }
 	.a-sky-rise { animation: a-sky-rise 2.8s cubic-bezier(.2,.7,.2,1) both; }
 	.a-sky-set { animation: a-sky-set 3.2s cubic-bezier(.3,.6,.3,1) both; }
-	.a-sky-glow { transform-box: view-box; transform-origin: 37.6px 36.4px; animation: a-sky-glow 7s ease-in-out infinite; }
-	.a-sky-smoke { animation: a-sky-smoke 5s ease-in-out infinite; }
-	.a-sky-window-dusk { animation: a-sky-dusk 4s ease-in-out both; }
+	.a-sky-glow { animation: a-sky-z 5s ease-in-out infinite; }
+	.a-sky-steam { animation: a-sky-steam 3.6s ease-in-out infinite; }
+	.a-sky-steam1 { animation-delay: 1.2s; }
+	.a-sky-moon { animation: a-sky-rock 8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+	.a-sky-cloud { animation: a-sky-drift 9s ease-in-out infinite alternate; }
 	.a-sky-star { animation: a-sky-twinkle 6s ease-in-out infinite; }
 	.a-sky-star2 { animation-delay: 2.1s; animation-duration: 7s; }
 	.a-sky-star3 { animation-delay: 4.3s; animation-duration: 8s; }
@@ -420,9 +422,10 @@ label.a-tool { position: relative; }
 @keyframes a-sky-turn { to { transform: rotate(360deg); } }
 @keyframes a-sky-rise { from { transform: translateY(9px); } to { transform: none; } }
 @keyframes a-sky-set { from { transform: translateY(-5px); } to { transform: none; } }
-@keyframes a-sky-glow { 0%, 100% { opacity: .3; transform: scale(.96); } 50% { opacity: .75; transform: scale(1.03); } }
-@keyframes a-sky-smoke { 0%, 100% { opacity: .2; transform: translateY(1px); } 50% { opacity: .8; transform: translateY(-1px); } }
-@keyframes a-sky-dusk { from { fill-opacity: 0; } }
+@keyframes a-sky-steam { 0%, 100% { opacity: .2; transform: translateY(1px); } 50% { opacity: 1; transform: translateY(-1px); } }
+@keyframes a-sky-rock { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes a-sky-z { 0%, 100% { opacity: .25; } 40%, 60% { opacity: 1; } }
+@keyframes a-sky-drift { to { transform: translateX(-2.5px); } }
 @keyframes a-sky-twinkle { 0%, 70%, 100% { opacity: 1; } 84% { opacity: .2; } }
 .a-ini { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--field); color: var(--muted); font-size: 13px; font-weight: 600; flex: none; }
 
@@ -499,10 +502,6 @@ label.a-tool { position: relative; }
 .a-helplink::after { content: ""; position: absolute; inset: -10px; }
 .a-helplink:hover { color: var(--ink); background: var(--field); }
 .a-card .a-helplink { background: var(--bg); }
-
-/* The chalet's window: a soft glow at dusk, warm and lit at night. */
-.a-sky-window-dusk { fill: #e5b552; fill-opacity: .45; }
-.a-sky-window-lit { fill: #e5b552; fill-opacity: 1; }
 
 /* ── Touch feedback: every tap answers, CSS only (no extra script) ── */
 .a-btn, .a-chip, .a-text-btn, .a-bar a, .a-su-sx button, .a-su-sc button, [data-accent] { -webkit-tap-highlight-color: transparent; }

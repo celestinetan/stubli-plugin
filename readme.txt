@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.25.0
+Stable tag: 0.25.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.25.1 =
+* New time-of-day greeting icons: a sun with coffee in the morning, the sun handing over to the moon in the evening, and a smiling moon at night.
 
 = 0.25.0 =
 * A new greeting picture: the little house through the day. Morning sun and open shutters, afternoon flowers, an evening glow, and one warm lit window at night.
