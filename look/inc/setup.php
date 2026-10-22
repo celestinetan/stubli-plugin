@@ -155,6 +155,9 @@ add_filter(
 			$parts['title'] = __( 'From your own Stubli', 'stubli' );
 		} elseif ( get_query_var( 'stubli_invite' ) ) {
 			$parts['title'] = __( 'You\'re invited', 'stubli' );
+		} elseif ( is_front_page() && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+			// stubli.app is found by people searching for Stubli, not for its owner's name.
+			$parts['title'] = 'Stubli';
 		}
 		return $parts;
 	}
