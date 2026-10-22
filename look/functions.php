@@ -11,12 +11,12 @@ defined( 'ABSPATH' ) || exit;
  * @return string
  */
 function stubli_look_dir() {
-	return untrailingslashit( OG_PLUGIN_DIR . 'look' );
+	return untrailingslashit( STUBLI_PLUGIN_DIR . 'look' );
 }
 
 /**
  * @return string
  */
 function stubli_look_uri() {
-	return untrailingslashit( OG_PLUGIN_URL . 'look' );
+	return untrailingslashit( STUBLI_PLUGIN_URL . 'look' );
 }
