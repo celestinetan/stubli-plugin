@@ -315,6 +315,9 @@ class Move {
 		if ( ! empty( $p['interests'] ) && is_array( $p['interests'] ) ) {
 			Setup::set_interests( array_map( 'strval', $p['interests'] ) );
 		}
+		if ( isset( $p['smiley']['c'] ) ) {
+			update_option( 'stubli_avatar', Avatar::clean( $p['smiley']['c'], $p['smiley']['x'] ?? '' ), false );
+		}
 		if ( ! empty( $p['avatar']['url'] ) ) {
 			$id = self::fetch( (string) $p['avatar']['url'], 0, (string) ( $p['avatar']['name'] ?? 'profile.jpg' ) );
 			if ( ! is_wp_error( $id ) ) {

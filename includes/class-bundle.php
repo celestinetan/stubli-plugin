@@ -31,6 +31,7 @@ class Bundle {
 			'tagline'   => get_bloginfo( 'description' ),
 			'url'       => home_url( '/' ),
 			'avatar'    => $icon ? self::media( $icon ) : null,
+			'smiley'    => Avatar::look(),
 			'accent'    => Setup::accent(),
 			'mode'      => Setup::mode(),
 			'links'     => (string) get_option( 'stubli_links', '' ),

@@ -1381,12 +1381,50 @@
 		var fm = $( '[data-su-move]' ); if ( fm ) { fm.addEventListener( 'submit', function ( e ) { e.preventDefault(); var v = $( '#a-su-mv' ).value.trim(); if ( v ) { startMove( v, redraw ).catch( function () {} ); } } ); }
 		var go = $( '[data-su-move-go]' ); if ( go ) { go.addEventListener( 'click', function () { send( 'GET', 'setup', null ).then( function ( d ) { su.d = d; su.picked = d.interests.map( function ( i ) { return i.name; } ); B.name = /^(your|my)\b/i.test( d.name ) ? '' : d.name.split( /\s+/ )[ 0 ]; applyLook(); setupGo( 4 ); } ); } ); }
 	}
+	function smileyUrl( sm, c, x ) { return sm.base + c + ( x ? '-' + x : '' ); }
+	function smileyData( sm, c, x ) { var svg = sm.own[ c + '-' + x ] || sm.tpl[ x ].split( '__BG__' ).join( sm.colours[ c ] ); return 'data:image/svg+xml,' + encodeURIComponent( svg ); }
+	function smileyPicker( d ) {
+		var sm = d.smiley; if ( ! sm ) { return ''; }
+		var on = ! d.photo;
+		return '<details class="a-su-smiley"' + ( su.smileyOpen ? ' open' : '' ) + '><summary>' + ( on ? 'Change your smiley' : 'Use a smiley instead' ) + '</summary>' +
+			'<p class="a-label" id="a-su-sc">Colour</p><div class="a-su-sc" role="radiogroup" aria-labelledby="a-su-sc">' + sm.colours.map( function ( hex, i ) {
+				var sel = on && i === sm.c;
+				return '<button type="button" role="radio" aria-checked="' + sel + '" aria-label="Colour ' + ( i + 1 ) + '" data-sm-c="' + i + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><span style="background:' + hex + '"></span></button>';
+			} ).join( '' ) + '</div>' +
+			'<p class="a-label" id="a-su-sx">Something extra</p><div class="a-su-sx" role="radiogroup" aria-labelledby="a-su-sx">' + sm.extras.map( function ( e, i ) {
+				var sel = on && e.key === sm.x;
+				return '<button type="button" role="radio" aria-checked="' + sel + '" data-sm-x="' + esc( e.key ) + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><img src="' + esc( smileyData( sm, sm.c, e.key ) ) + '" alt="" width="44" height="44"><small>' + esc( e.label ) + '</small></button>';
+			} ).join( '' ) + '</div></details>';
+	}
+	function pickSmiley( d, c, x, focusSel ) {
+		var sm = d.smiley; sm.c = c; sm.x = x; d.avatar = smileyData( sm, c, x ); d.photo = false; su.smileyOpen = true; su.photoMsg = '';
+		renderSetup(); var f = $( focusSel ); if ( f ) { f.focus(); }
+		send( 'POST', 'setup/smiley', { c: c, x: x } ).then( function ( r ) { d.avatar = r.avatar; }, function () { var m = $( '[data-su-photo-msg]' ); if ( m ) { m.textContent = 'That didn\'t save. Try again in a moment.'; } } );
+	}
+	function bindSmiley( d ) {
+		var det = $( '.a-su-smiley' ); if ( ! det ) { return; }
+		det.addEventListener( 'toggle', function () { su.smileyOpen = det.open; } );
+		[ [ '[data-sm-c]', 'smC' ], [ '[data-sm-x]', 'smX' ] ].forEach( function ( g ) {
+			var bs = $$( g[ 0 ] );
+			bs.forEach( function ( b, i ) {
+				var pick = function ( el ) {
+					if ( el.dataset.smC !== undefined ) { pickSmiley( d, +el.dataset.smC, d.smiley.x, '[data-sm-c="' + el.dataset.smC + '"]' ); } else { pickSmiley( d, d.smiley.c, el.dataset.smX, '[data-sm-x="' + el.dataset.smX + '"]' ); }
+				};
+				b.addEventListener( 'click', function () { pick( b ); } );
+				b.addEventListener( 'keydown', function ( e ) {
+					var k = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[ e.key ]; if ( ! k ) { return; }
+					e.preventDefault(); pick( bs[ ( i + k + bs.length ) % bs.length ] );
+				} );
+			} );
+		} );
+	}
 	function renderSetup() {
 		var d = su.d, n = su.step, body = '';
 		if ( n === 0 ) {
 			body = '<h2 class="a-su-title">Hello! Whose Stubli is this?</h2><p class="muted">This is what people see at the top of your page. You can change it any time.</p>' +
-				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="Your photo">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
-				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.avatar ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || 'Optional. A face, a place, anything that feels like you.' ) + '</p></div></div>' +
+				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="' + ( d.photo ? 'Your photo' : 'Your smiley' ) + '">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
+				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.photo ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || ( d.photo ? 'A face, a place, anything that feels like you.' : 'Optional. Until then, this smiley is you. Make it yours below.' ) ) + '</p></div></div>' +
+				smileyPicker( d ) +
 				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="Ana Keller" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
 				'<label class="a-label" for="a-su-bio">One line about you</label><textarea id="a-su-bio" class="a-field a-grow" rows="2" maxlength="160" placeholder="Photos from walks around Zurich">' + esc( d.bio ) + '</textarea><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
 				'<label class="a-label" for="a-su-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' + esc( d.pronouns ) + '" placeholder="she/her, they/them…">' +
@@ -1492,6 +1530,7 @@
 				$( '#' + id ).addEventListener( 'input', function ( e ) { d[ { 'a-su-name': 'name', 'a-su-bio': 'bio', 'a-su-pro': 'pronouns' }[ id ] ] = e.target.value; if ( su.error && id === 'a-su-name' && e.target.value.trim() ) { su.error = ''; var nt = $( '.a-su .a-notice' ); if ( nt ) { nt.remove(); } } } );
 			} );
 			bio.addEventListener( 'input', function () { cnt.textContent = bio.value.length + ' / 160'; } );
+			bindSmiley( d );
 			file.addEventListener( 'change', function () {
 				var f = file.files && file.files[ 0 ], m = $( '[data-su-photo-msg]' );
 				if ( ! f ) { return; }
@@ -1499,7 +1538,7 @@
 				squareAvatar( f ).then( function ( blob ) {
 					var fd = new FormData(); fd.append( 'photo', blob, 'profile.jpg' );
 					return send( 'POST', 'setup/photo', fd );
-				} ).then( function ( r ) { d.avatar = r.avatar; su.photoMsg = 'Lovely. That\'s your photo now.'; renderSetup(); },
+				} ).then( function ( r ) { d.avatar = r.avatar; d.photo = true; su.smileyOpen = false; su.photoMsg = 'Lovely. That\'s your photo now.'; renderSetup(); },
 					function ( e ) { m.textContent = ( e && e.message ) || 'That photo couldn\'t be read. Try another one.'; } );
 			} );
 			next.addEventListener( 'click', function () {

@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.22.11
+Stable tag: 0.23.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.23.0 =
+* Every Stubli without a photo now has a smiley: the Stubli smile in one of six colours, with a hat, glasses, a moustache or flowers. New Stublis get a random one; pick another in setup, or add a photo any time.
+* Fewer, clearer colours: Forest and Sage are gone (Moss covers them). If you had one of them, your Stubli now uses Moss.
 
 = 0.22.11 =
 * The Beta label beside the logo is a little larger and easier to read.

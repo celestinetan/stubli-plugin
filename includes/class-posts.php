@@ -64,17 +64,7 @@ class Posts {
 	 * @return array
 	 */
 	public static function profile() {
-		$admins = get_users(
-			array(
-				'role'   => 'administrator',
-				'number' => 1,
-				'fields' => array( 'ID' ),
-			)
-		);
-		$avatar = get_site_icon_url( 256 );
-		if ( ! $avatar && $admins ) {
-			$avatar = get_avatar_url( $admins[0]->ID, array( 'size' => 256 ) );
-		}
+		$avatar = Avatar::current();
 
 		return array(
 			'name'        => get_bloginfo( 'name' ),

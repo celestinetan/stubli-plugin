@@ -24,8 +24,6 @@ class Setup {
 	 */
 	const ACCENTS = array(
 		'moss'   => array( 'Moss', '#4f6a4a', '#ffffff', '#a8bf98' ),
-		'forest' => array( 'Forest', '#2f5d46', '#ffffff', '#8fc4a5' ),
-		'sage'   => array( 'Sage', '#5b7b51', '#ffffff', '#b5cba6' ),
 		'plum'   => array( 'Plum', '#6b3f5a', '#ffffff', '#d4a9c3' ),
 		'sea'    => array( 'Sea', '#3d5468', '#ffffff', '#a7c0d6' ),
 		'rust'   => array( 'Rust', '#8a4b2c', '#ffffff', '#e0a887' ),
@@ -193,7 +191,9 @@ class Setup {
 			'name'      => get_bloginfo( 'name' ),
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
-			'avatar'    => (string) get_site_icon_url( 256 ),
+			'avatar'    => Avatar::current(),
+			'photo'     => (bool) get_site_icon_url( 256 ),
+			'smiley'    => Avatar::look() + Avatar::choices(),
 			'interests' => self::interests(),
 			'ideas'     => self::IDEAS,
 			'max'       => self::MAX_INTERESTS,
@@ -298,7 +298,10 @@ class Setup {
 		}
 		update_post_meta( $id, '_wp_attachment_context', 'site-icon' );
 		update_option( 'site_icon', (int) $id );
-		return array( 'avatar' => (string) get_site_icon_url( 256 ) );
+		return array(
+			'avatar' => (string) get_site_icon_url( 256 ),
+			'photo'  => true,
+		);
 	}
 
 	/**
@@ -371,6 +374,23 @@ class Setup {
 				'callback'            => static function () {
 					$res = self::photo();
 					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+				},
+				'permission_callback' => $owner,
+			)
+		);
+		Rest::register(
+			'/setup/smiley',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$l = Avatar::save( $r['c'], (string) $r['x'] );
+					return rest_ensure_response(
+						array(
+							'avatar' => Avatar::url( $l ),
+							'photo'  => false,
+							'smiley' => $l + Avatar::choices(),
+						)
+					);
 				},
 				'permission_callback' => $owner,
 			)
