@@ -4,8 +4,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Requires Plugins: webmention
-Stable tag: 0.18.0
+Stable tag: 0.19.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,8 +44,8 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 == Installation ==
 
 1. Your host must let you upload plugins (on WordPress.com, any paid plan) and let other websites reach yours. https://stubli.app/get-started/ lists hosts that work.
-2. Install and activate Stubli. WordPress offers to add the Webmention plugin it needs; say yes.
-3. Stubli's setup opens by itself: your name and photo, interests, colour, your people and your daily summary.
+2. Install and activate Stubli.
+3. Stubli's setup opens by itself: your name and photo, interests, colour, your people and your daily summary. When you finish, Stubli adds the free Webmention plugin from WordPress.org, which carries comments between sites.
 4. On your phone, open yoursite/app and add it to your home screen.
 
 == Frequently Asked Questions ==
@@ -75,6 +74,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **stubli.app feedback (only when you press Send).** The app's feedback form sends your note, and, if you ticked them, your site address, device type and screenshot to stubli.app, the project's own site, so the people who make Stubli can read it. Privacy: https://stubli.app/privacy/
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report. Privacy: https://stubli.app/privacy/
 * **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
+* **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
@@ -85,6 +85,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.19.0 =
+* Stubli switches on straight away and opens its setup. The Webmention plugin it needs for comments is added with one tap at the end of the setup, or from Settings → Stubli.
 
 = 0.18.0 =
 * The setup now asks before changing site-wide settings: search engines, AI crawlers and comments.

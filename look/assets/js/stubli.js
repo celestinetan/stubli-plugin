@@ -70,6 +70,20 @@
 		};
 		window.addEventListener( 'hashchange', function () { if ( /^#gs-/.test( location.hash ) || ! location.hash ) { show( true ); } } );
 		show( false );
+		// "Type your address" → open that page on the visitor's own WordPress.
+		gs.querySelectorAll( '[data-gs-site]' ).forEach( function ( f ) {
+			f.addEventListener( 'submit', function ( e ) {
+				e.preventDefault();
+				var err = f.querySelector( '.st-error' ), v = ( f.addr.value || '' ).trim();
+				if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
+				var u;
+				try { u = new URL( v ); } catch ( x ) { u = null; }
+				if ( ! u || u.hostname.indexOf( '.' ) < 1 ) { err.textContent = T.badAddr || 'That doesn\'t look like a web address. Try something like yourname.com.'; err.hidden = false; f.addr.focus(); return; }
+				err.hidden = true;
+				var base = u.origin + u.pathname.replace( /\/(wp-admin|wp-login\.php).*$/, '' ).replace( /\/+$/, '' );
+				window.open( base + '/' + f.getAttribute( 'data-path' ), '_blank', 'noopener' );
+			} );
+		} );
 	}
 
 	/* Carousel: "1 of N", dots, arrow keys. */

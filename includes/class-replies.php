@@ -161,7 +161,7 @@ class Replies {
 			return $reply_id;
 		}
 
-		$result = send_webmention( get_permalink( $reply_id ), $target );
+		$result = Helper::active() ? send_webmention( get_permalink( $reply_id ), $target ) : null;
 
 		return array(
 			'id'        => $reply_id,
@@ -186,7 +186,7 @@ class Replies {
 		$source = get_permalink( $post );
 		$target = (string) get_post_meta( $post->ID, '_stubli_in_reply_to', true );
 		wp_delete_post( $post->ID, true );
-		$result = ( $source && $target ) ? send_webmention( $source, $target ) : null;
+		$result = ( $source && $target && Helper::active() ) ? send_webmention( $source, $target ) : null;
 		return array(
 			'deleted'   => true,
 			'delivered' => self::delivered( $result, true ),

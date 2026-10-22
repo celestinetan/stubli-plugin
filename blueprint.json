@@ -1,14 +1,46 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-  "meta": { "title": "Try Stubli", "author": "celestinetan", "description": "A temporary Stubli in your browser. Opens in the setup. Nothing is saved." },
+  "meta": {
+    "title": "Try Stubli",
+    "author": "celestinetan",
+    "description": "A temporary Stubli in your browser. Opens in the setup. Nothing is saved."
+  },
   "landingPage": "/app/#setup",
-  "preferredVersions": { "php": "8.3", "wp": "latest" },
-  "features": { "networking": true },
+  "preferredVersions": {
+    "php": "8.3",
+    "wp": "latest"
+  },
+  "features": {
+    "networking": true
+  },
   "steps": [
-    { "step": "login" },
-    { "step": "setSiteOptions", "options": { "blogname": "Your Stubli", "permalink_structure": "/%postname%/" } },
-    { "step": "installPlugin", "pluginData": { "resource": "wordpress.org/plugins", "slug": "webmention" }, "options": { "activate": true } },
-    { "step": "installPlugin", "pluginData": { "resource": "git:directory", "url": "https://github.com/celestinetan/stubli-plugin", "ref": "HEAD", "path": "/" }, "options": { "activate": true, "targetFolderName": "stubli" } },
-    { "step": "writeFile", "path": "/wordpress/wp-content/mu-plugins/stubli-demo.php", "data": "<?php\n// Playground demo: say plainly that nothing here is kept.\nadd_action( 'admin_notices', static function () { echo '<div class=\"notice notice-info\"><p>This is a Stubli demo in your browser. Nothing is saved or shared. To get your own Stubli: <a href=\"https://stubli.app/get-started/\">stubli.app/get-started</a></p></div>'; } );\n" }
+    {
+      "step": "login"
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "",
+        "permalink_structure": "/%postname%/"
+      }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/celestinetan/stubli-plugin",
+        "ref": "HEAD",
+        "path": "/"
+      },
+      "options": {
+        "activate": true,
+        "targetFolderName": "stubli"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/mu-plugins/stubli-demo.php",
+      "data": "<?php\n// Playground demo: say plainly that nothing here is kept.\nadd_action( 'admin_notices', static function () { echo '<div class=\"notice notice-info\"><p>This is a Stubli demo in your browser. Nothing is saved or shared. To get your own Stubli: <a href=\"https://stubli.app/get-started/\">stubli.app/get-started</a></p></div>'; } );\n"
+    }
   ]
 }

@@ -69,6 +69,24 @@ class Admin {
 			<?php if ( $saved ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Saved.', 'stubli' ); ?></p></div>
 			<?php endif; ?>
+			<?php
+			$helper = isset( $_GET['helper'] ) ? sanitize_key( wp_unslash( $_GET['helper'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( 'ok' === $helper && Helper::active() ) :
+				?>
+				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Webmention is on. Comments can now travel between sites.', 'stubli' ); ?></p></div>
+			<?php elseif ( ! Helper::active() ) : ?>
+				<div class="notice notice-warning">
+					<p><strong><?php esc_html_e( 'One piece is missing', 'stubli' ); ?></strong> · <?php esc_html_e( 'Comments and guest book entries travel between sites with the free Webmention plugin from WordPress.org.', 'stubli' ); ?></p>
+					<?php if ( $helper ) : ?>
+						<p><?php /* translators: %s: link to the Plugins screen */ printf( esc_html__( 'That didn\'t work here. You can add it yourself: %s.', 'stubli' ), '<a href="' . esc_url( Helper::manual_url() ) . '">' . esc_html__( 'open Webmention in Plugins', 'stubli' ) . '</a>' ); ?></p>
+					<?php endif; ?>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0 0 10px">
+						<input type="hidden" name="action" value="stubli_add_webmention">
+						<?php wp_nonce_field( 'stubli_add_webmention' ); ?>
+						<button type="submit" class="button button-primary"><?php echo esc_html( 'installed' === Helper::state() ? __( 'Switch on Webmention', 'stubli' ) : __( 'Add Webmention', 'stubli' ) ); ?></button>
+					</form>
+				</div>
+			<?php endif; ?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="stubli_save_settings">
 				<?php wp_nonce_field( 'stubli_save_settings' ); ?>

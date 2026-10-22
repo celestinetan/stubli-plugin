@@ -890,7 +890,7 @@
 			body = '<h2 class="a-su-title">Hello! Whose Stubli is this?</h2><p class="muted">This is what people see at the top of your page. You can change it any time.</p>' +
 				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="Your photo">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
 				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.avatar ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || 'Optional. A face, a place, anything that feels like you.' ) + '</p></div></div>' +
-				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
+				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="Ana Keller" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
 				'<label class="a-label" for="a-su-bio">One line about you</label><input id="a-su-bio" class="a-field" type="text" maxlength="160" value="' + esc( d.bio ) + '" placeholder="Photos from walks around Zurich"><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
 				'<label class="a-label" for="a-su-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' + esc( d.pronouns ) + '" placeholder="she/her, they/them…">' +
 				setupFoot( 'Next' );
@@ -955,9 +955,10 @@
 				'<p class="a-label">Your site</p>' +
 				'<label class="a-check"><span><strong>Keep my site out of search engines</strong><span class="muted small">Google and others won\'t list it. Friends still find you through Stubli.</span></span><input type="checkbox" data-su-hidden' + ( d.hidden ? ' checked' : '' ) + '></label>' +
 				'<label class="a-check"><span><strong>Ask AI crawlers to stay away</strong><span class="muted small">A request that respectable bots honour.</span></span><input type="checkbox" data-su-ai' + ( d.block_ai ? ' checked' : '' ) + '></label>' +
-				'<p class="a-help">Stubli also turns on comments, so replies from friends\' sites can arrive. You can change all of this later in Settings → Stubli.</p>' +
+				'<p class="a-help">' + ( d.helper === 'active' ? 'Stubli also turns on comments, so replies from friends\' sites can arrive.' : 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.' ) + ' You can change all of this later in Settings → Stubli.</p>' +
+				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + '">Add Webmention in Plugins</a></p></div>' : '' ) +
 				'<p class="a-su-note">Your first photo can wait. When you\'re ready, tap ' + icon( 'plus', 18 ) + ' at the bottom.</p>' +
-				setupFoot( 'Open my feed' );
+				setupFoot( su.helperFail ? 'Open my feed anyway' : ( su.busy && su.helperBusy ? 'Adding Webmention…' : 'Open my feed' ) );
 		}
 		root.innerHTML = setupHead() + '<main class="a-compose a-su" id="main">' + body + '</main>';
 		bindSetup();
@@ -998,7 +999,7 @@
 			} );
 			next.addEventListener( 'click', function () {
 				if ( ! d.name.trim() ) { su.error = 'Add the name people should see.'; renderSetup(); $( '#a-su-name' ).focus(); return; }
-				setupSave( { name: d.name, bio: d.bio, pronouns: d.pronouns, step: 1 } ).then( function () { B.name = d.name.split( /\s+/ )[ 0 ]; setupGo( 1 ); } );
+				setupSave( { name: d.name, bio: d.bio, pronouns: d.pronouns, step: 1 } ).then( function () { B.name = /^(your|my)\b/i.test( d.name.trim() ) ? '' : d.name.trim().split( /\s+/ )[ 0 ]; setupGo( 1 ); } );
 			} );
 		} else if ( su.step === 1 ) {
 			var msg = $( '[data-su-int-msg]' );
@@ -1078,7 +1079,17 @@
 				} );
 			}
 			next.addEventListener( 'click', function () {
-				setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+				var finish = function () {
+					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+				};
+				if ( d.helper === 'active' || su.helperFail ) { return finish(); }
+				// Add the Webmention plugin (from WordPress.org) so comments can travel between sites.
+				su.busy = true; su.helperBusy = true; renderSetup();
+				send( 'POST', 'setup/webmention', {} ).then( function ( r ) {
+					su.busy = false; su.helperBusy = false; d.helper = ( r && r.helper ) || 'active'; finish();
+				}, function ( e ) {
+					su.busy = false; su.helperBusy = false; su.helperFail = ( e && e.message ) || 'Webmention couldn\'t be added just now.'; renderSetup();
+				} );
 			} );
 		}
 	}

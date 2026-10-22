@@ -204,6 +204,8 @@ class Setup {
 			'hidden'    => ! get_option( 'blog_public', 1 ) || ! get_option( 'stubli_setup_done' ),
 			'block_ai'  => (bool) get_option( 'stubli_block_ai', 1 ),
 			'credit'    => (bool) get_option( 'stubli_credit', 0 ),
+			'helper'    => Helper::state(),
+			'manual'    => Helper::manual_url(),
 			'follows'   => array_map(
 				static fn( $f ) => array(
 					'id'   => (int) $f['id'],
@@ -349,6 +351,17 @@ class Setup {
 					},
 					'permission_callback' => $owner,
 				),
+			)
+		);
+		Rest::register(
+			'/setup/webmention',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => static function () {
+					$res = Helper::add();
+					return is_wp_error( $res ) ? $res : rest_ensure_response( array( 'helper' => Helper::state() ) );
+				},
+				'permission_callback' => $owner,
 			)
 		);
 		Rest::register(
