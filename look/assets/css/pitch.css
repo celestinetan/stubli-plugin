@@ -234,7 +234,8 @@
 .st-pitch-versus li { padding-left: 26px; position: relative; }
 .st-pitch-onstage li { color: var(--st-muted); }
 .st-pitch-onstage li::before { content: ""; position: absolute; left: 2px; top: .7em; width: 12px; height: 2px; background: currentColor; }
-.st-pitch-athome li::before { content: ""; position: absolute; left: 2px; top: .5em; width: 10px; height: 10px; border-radius: 50%; background: var(--moss); }
+.st-pitch-athome li::before { content: ""; position: absolute; left: 2px; top: .7em; width: 12px; height: 2px; background: var(--moss); }
+.st-pitch-athome li::after { content: ""; position: absolute; left: 7px; top: calc(.7em - 5px); width: 2px; height: 12px; background: var(--moss); }
 .sp-noise { display: flex; flex-wrap: wrap; gap: 8px; background: transparent; }
 .sp-chip, .sp-count { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--st-field); font-size: 14px; color: var(--st-muted); }
 .sp-count b { color: var(--st-ink); font-variant-numeric: tabular-nums; }
@@ -391,3 +392,25 @@
 /* The logo stays Moss whatever colour the room is (brand book: Logo). */
 .sp-app .sp-mark { color: #4f6a4a; }
 [data-mode="dark"] .sp-app .sp-mark { color: #a8bf98; }
+
+/* House rules, played one at a time as you scroll (like the four steps). */
+.st-pitch-rooms.is-scrolly { display: block; height: 420svh; }
+.is-scrolly .sp-rooms-pin { position: sticky; top: 12px; height: calc(100svh - 24px); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.is-scrolly .st-pitch-fixed { position: relative; top: 0; height: 100%; }
+.is-scrolly .st-pitch-read { display: flex; flex-direction: column; justify-content: center; gap: 28px; padding-top: 0; }
+.is-scrolly .st-pitch-room { display: none; min-height: 0; }
+.is-scrolly .st-pitch-room.is-on { display: flex; animation: sp-in .45s var(--ease); }
+.is-scrolly .sp-rooms-progress { display: flex; }
+.sp-rooms-progress { display: none; }
+.sp-room .sp-comment, .sp-room .sp-aud { transition: background .3s ease, color .3s ease, opacity .3s ease; }
+@media (max-width: 900px) {
+	.is-scrolly .sp-rooms-pin { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; }
+	.is-scrolly .st-pitch-fixed { padding: 0; order: 0; overflow: hidden; align-items: flex-start; }
+	.is-scrolly .sp-roomwrap { height: auto; align-items: flex-start; padding-top: 12px; }
+	.is-scrolly .sp-room { transform: scale(.66); transform-origin: 50% 0; height: 600px; }
+	.is-scrolly .st-pitch-read { order: 1; padding: 0 8px 8px; gap: 10px; justify-content: flex-start; }
+	.is-scrolly .st-pitch-read > h2 { font-size: 22px; }
+	.is-scrolly .st-pitch-room { gap: 8px; padding: 0; }
+	.is-scrolly .st-pitch-room h3 { font-size: 20px; }
+	.is-scrolly .st-pitch-room p { font-size: 15px; }
+}

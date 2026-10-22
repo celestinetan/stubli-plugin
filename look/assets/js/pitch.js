@@ -147,6 +147,46 @@
 		} );
 	} );
 
+	/* House rules, one at a time as you scroll, each shown working. */
+	var roomsSec = $( '.st-pitch-rooms' );
+	var rooms = $$( '.st-pitch-room' );
+	var roomDots = $$( '.sp-rooms-progress i' );
+	if ( roomsSec && rooms.length && ! still ) {
+		roomsSec.classList.add( 'is-scrolly' );
+		var colours = $$( '[data-sp-colour]' );
+		var cset = $$( '[data-sp-cset]' );
+		var setIf = function ( input, on ) { if ( input && input.checked !== on ) { input.checked = on; input.dispatchEvent( new Event( 'change', { bubbles: true } ) ); } };
+		var roomAt = -1, lastKey = '';
+		var paintRooms = function () {
+			var r = roomsSec.getBoundingClientRect();
+			var span = roomsSec.offsetHeight - window.innerHeight;
+			var p = Math.min( 1, Math.max( 0, -r.top / ( span || 1 ) ) );
+			var x = p * rooms.length;
+			var i = Math.min( rooms.length - 1, Math.floor( x ) );
+			var sub = Math.min( 1, x - i );
+			if ( i !== roomAt ) {
+				roomAt = i;
+				rooms.forEach( function ( el, k ) { el.classList.toggle( 'is-on', k === i ); } );
+				roomDots.forEach( function ( d, k ) { d.classList.toggle( 'is-on', k === i ); } );
+			}
+			var key = i + ':' + ( 0 === i ? ( sub > .35 ) : 1 === i ? Math.min( 2, Math.floor( sub * 3 ) ) : 2 === i ? ( sub > .4 ) : Math.min( colours.length - 1, Math.floor( sub * colours.length ) ) );
+			if ( key === lastKey ) { return; }
+			lastKey = key;
+			setIf( friends, i > 0 || sub > .35 );
+			if ( cset.length ) { setIf( cset[ i < 1 ? 0 : i > 1 ? 2 : Math.min( 2, Math.floor( sub * 3 ) ) ], true ); }
+			if ( end ) {
+				var showEnd = i > 2 || ( 2 === i && sub > .4 );
+				end.hidden = ! showEnd;
+				if ( room ) { room.scrollTop = showEnd ? room.scrollHeight : 0; }
+			}
+			if ( colours.length ) { setIf( colours[ i < 3 ? 0 : Math.min( colours.length - 1, Math.floor( sub * colours.length ) ) ], true ); }
+		};
+		var rq = false;
+		window.addEventListener( 'scroll', function () { if ( ! rq ) { rq = true; requestAnimationFrame( function () { rq = false; paintRooms(); } ); } }, { passive: true } );
+		window.addEventListener( 'resize', paintRooms );
+		paintRooms();
+	}
+
 	/* A stage: the numbers never stop. */
 	var likes = $( '[data-sp-likes]' ), follows = $( '[data-sp-follow]' );
 	if ( likes && ! still && 'IntersectionObserver' in window ) {
@@ -221,17 +261,18 @@
 	var hero = $( '.st-pitch-hero' );
 	var close = $( '.st-pitch-close' );
 	if ( sticky && hero && close && 'IntersectionObserver' in window ) {
-		var seen = { hero: true, close: false, how: false };
-		var upd = function () { sticky.classList.toggle( 'is-on', ! seen.hero && ! seen.close && ! seen.how ); };
+		var seen = { hero: true, close: false, how: false, rooms: false };
+		var upd = function () { sticky.classList.toggle( 'is-on', ! seen.hero && ! seen.close && ! seen.how && ! seen.rooms ); };
 		var watch = function ( el, key ) { new IntersectionObserver( function ( es ) { es.forEach( function ( e ) { seen[ key ] = e.isIntersecting; } ); upd(); } ).observe( el ); };
 		watch( hero, 'hero' );
 		watch( close, 'close' );
 		if ( how ) { watch( how, 'how' ); }
+		if ( roomsSec ) { watch( roomsSec, 'rooms' ); }
 	}
 
 	/* Entrances: heading, words, then the picture, once per section. */
 	if ( 'IntersectionObserver' in window && ! still ) {
-		var groups = $$( ':scope > section, .st-pitch-room, .st-pitch-onstage, .st-pitch-athome, .st-pitch-fact' );
+		var groups = $$( ':scope > section, .st-pitch-onstage, .st-pitch-athome, .st-pitch-fact' );
 		groups.forEach( function ( g ) {
 			var parts = $$( ':scope > h1, :scope > h2, :scope > h3, :scope > p, :scope > .wp-block-buttons, :scope > ul, :scope > .sp-ctl, :scope > .sp-noise, :scope > .sp-calm, :scope > .sp-dialog, .st-pitch-sheet > *, .st-pitch-dark > *, .st-pitch-closewords > *', g );
 			parts.forEach( function ( el, i ) { el.setAttribute( 'data-reveal', '' ); el.style.setProperty( '--d', Math.min( i, 6 ) * 80 + 'ms' ); } );
