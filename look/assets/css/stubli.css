@@ -409,6 +409,13 @@ p { margin: 0 0 .75em; }
 	.st-panel { padding: 22px 20px 24px; }
 	.st-cards { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: stretch; }
 	.st-cards > .st-card:only-child { grid-column: 1 / -1; }
+	/* The Latest card is exactly as tall as the profile card, not the cards behind it or the arrows. */
+	.st-cards .st-stack-wrap { display: contents; }
+	.st-cards .st-stack { grid-column: 1; grid-row: 1; }
+	.st-cards .st-stack-nav { grid-column: 1; grid-row: 2; margin-top: -8px; }
+	.st-cards > .st-latest { grid-column: 2; grid-row: 1; }
+	.st-cards:has(.st-stack.is-live) > .st-latest { margin-bottom: 18px; }
+	.st-cards:not(:has(> .st-latest)) { grid-template-columns: minmax(0, 1fr); }
 	.st-latest { align-self: stretch; }
 	.st-carousel { margin: 0; }
 	.st-carousel-track { border-radius: 10px; }
