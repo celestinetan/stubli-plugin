@@ -31,7 +31,7 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 * A daily summary at a time you choose, only when something is new, as a phone notification or by email. Never one per post.
 * Edit or delete your posts, bring your photos and videos from Instagram, and invite friends with links that make you follow each other.
 
-**Calm and private by default**
+**Kind by design**
 
 * Comments, not likes, and no counts anywhere.
 * Location and camera details are removed from photos and videos before they're shared.
