@@ -181,7 +181,7 @@ class Follows {
 		global $wpdb;
 		$origin   = self::origin( $follow['site_url'] );
 		$endpoint = '';
-		$profile  = wp_safe_remote_get( esc_url_raw( trailingslashit( $follow['site_url'] ) . '?rest_route=/' . LEGACY_NS . '/profile' ), array( 'timeout' => 10 ) );
+		$profile  = Rest::remote( $follow['site_url'], '/profile', array( 'timeout' => 10 ) );
 		$data     = is_wp_error( $profile ) ? null : json_decode( wp_remote_retrieve_body( $profile ), true );
 		if ( is_array( $data ) && ! empty( $data['following'] ) && self::origin( $data['following'] ) === $origin ) {
 			$endpoint = esc_url_raw( $data['following'] );

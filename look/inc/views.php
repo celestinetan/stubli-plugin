@@ -280,7 +280,7 @@ function stubli_comments( $post_id ) {
 }
 
 /**
- * Footer: "Made with stübli", quiet.
+ * Footer: © years and name; "Made with stübli" only if the owner turned it on.
  */
 function stubli_footer() {
 	$now = (int) wp_date( 'Y' );
@@ -312,8 +312,10 @@ function stubli_footer() {
 	?>
 	<footer class="st-footer">
 		<span>&copy; <?php echo esc_html( $years . ' ' . get_bloginfo( 'name' ) ); ?></span>
-		<span aria-hidden="true">·</span>
-		<a href="https://stubli.app/"><?php esc_html_e( 'Made with', 'stubli' ); ?> <?php echo stubli_wordmark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+		<?php if ( get_option( 'stubli_credit', 0 ) ) : // Opt-in only: the owner ticks it in the setup or in Settings → Stubli. ?>
+			<span aria-hidden="true">·</span>
+			<a href="https://stubli.app/"><?php esc_html_e( 'Made with', 'stubli' ); ?> <?php echo stubli_wordmark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+		<?php endif; ?>
 	</footer>
 	<?php
 }
@@ -692,7 +694,7 @@ function stubli_view_page() {
 	if ( $page instanceof WP_Post ) {
 		echo '<h1 class="st-h1">' . esc_html( get_the_title( $page ) ) . '</h1>';
 		// stubli.app's Get started page is a guided flow: host first, then Stubli.
-		if ( 'get-started' === $page->post_name && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+		if ( 'get-started' === $page->post_name && function_exists( 'stubli_get_started' ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
 			stubli_get_started();
 			echo '</main>';
 			return;
@@ -755,155 +757,4 @@ function stubli_view_notfound() {
 		</section>
 	</main>
 	<?php
-}
-
-/**
- * Hosts for the Get started guide (keep in step with the project doc "Stubli hosts").
- *
- * @return array
- */
-function stubli_hosts() {
-	return array(
-		'tested'   => array(
-			array(
-				'name'  => 'WordPress.com, Personal plan',
-				'price' => __( 'About $4 a month, billed yearly ($9 month to month)', 'stubli' ),
-				'note'  => __( 'Tested. stubli.app runs here.', 'stubli' ),
-				'url'   => 'https://wordpress.com/start',
-			),
-		),
-		'untested' => array(
-			array( 'Infomaniak', __( 'Switzerland · Web Hosting from about €6 a month', 'stubli' ), 'https://www.infomaniak.com/en/hosting/web-hosting' ),
-			array( 'cyon', __( 'Switzerland · from about CHF 15 a month', 'stubli' ), 'https://www.cyon.ch' ),
-			array( 'Hostpoint', __( 'Switzerland', 'stubli' ), 'https://www.hostpoint.ch' ),
-			array( 'SiteGround', __( 'Servers in Europe · from about €2 a month to start, more on renewal', 'stubli' ), 'https://www.siteground.com' ),
-		),
-		'no'       => array(
-			__( 'WordPress.com Free: no plugins allowed.', 'stubli' ),
-			__( 'InfinityFree and Byethost (free): they show other websites a "checking your browser" page, so friends\' sites can\'t reach yours.', 'stubli' ),
-			__( 'AwardSpace free plan: your site can\'t reach other websites, so you couldn\'t follow anyone. Their paid plans can switch this on.', 'stubli' ),
-		),
-	);
-}
-
-/**
- * Get started, as a guide (DESIGN §13.2): do you have WordPress? → a host that
- * allows plugins → install Stubli → Stubli's own setup opens by itself.
- * Plain HTML with in-page links, so it works without JavaScript; stubli.js
- * shows one step at a time.
- */
-function stubli_get_started() {
-	$h    = stubli_hosts();
-	$next = static function ( $to, $label, $quiet = false ) {
-		return '<a class="st-button' . ( $quiet ? ' st-button-quiet' : '' ) . '" href="#gs-' . esc_attr( $to ) . '" data-gs-go="' . esc_attr( $to ) . '">' . esc_html( $label ) . '</a>';
-	};
-	$back = static function ( $to ) {
-		return '<p class="st-gs-back"><a href="#gs-' . esc_attr( $to ) . '" data-gs-go="' . esc_attr( $to ) . '">' . stubli_icon( 'back', 16 ) . esc_html__( 'Back', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	};
-	// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above.
-	?>
-	<div class="st-gs" data-st-gs>
-		<p class="st-lead"><?php esc_html_e( 'Stubli is in beta: anyone is welcome to try it, and your feedback shapes what comes next. Your own Stubli takes about 20 minutes, in three steps: a home for your site, the Stubli plugin, then Stubli sets itself up.', 'stubli' ); ?></p>
-		<div class="st-card-tone st-gs-try">
-			<div>
-				<p class="st-gs-try-h"><?php esc_html_e( 'Want to look around first?', 'stubli' ); ?></p>
-				<p class="st-muted"><?php esc_html_e( 'Try Stubli in your browser, right now. No sign-up and nothing is saved: it disappears when you close the tab.', 'stubli' ); ?></p>
-			</div>
-			<a class="st-button st-button-quiet" href="<?php echo esc_url( 'https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/celestinetan/stubli-plugin/main/blueprint.json' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Try Stubli', 'stubli' ); ?></a>
-		</div>
-		<p class="st-gs-progress" data-gs-progress aria-live="polite" hidden></p>
-
-		<section class="st-gs-step" id="gs-start" data-gs-step="start" data-gs-n="1" aria-labelledby="gs-start-h">
-			<h2 class="st-h2" id="gs-start-h"><?php esc_html_e( 'Do you already have a WordPress website?', 'stubli' ); ?></h2>
-			<p><?php esc_html_e( 'Your Stubli is your own website, so it lives with a host. If you have a WordPress site already, it may be ready for Stubli.', 'stubli' ); ?></p>
-			<div class="st-gs-choices">
-				<?php echo $next( 'host', __( 'No, I need one', 'stubli' ) ); ?>
-				<?php echo $next( 'check', __( 'Yes, I have one', 'stubli' ), true ); ?>
-			</div>
-		</section>
-
-		<section class="st-gs-step" id="gs-host" data-gs-step="host" data-gs-n="1" aria-labelledby="gs-host-h">
-			<?php echo $back( 'start' ); ?>
-			<h2 class="st-h2" id="gs-host-h"><?php esc_html_e( 'Choose a home for your Stubli', 'stubli' ); ?></h2>
-			<p><?php esc_html_e( 'A Stubli host has to let you add your own plugins, and let other websites reach yours, because that\'s how follows and comments travel. Hosting is the one part that costs money; Stubli itself is free.', 'stubli' ); ?></p>
-			<?php foreach ( $h['tested'] as $t ) : ?>
-				<div class="st-gs-host is-pick">
-					<p class="st-gs-badge"><?php echo stubli_icon( 'pin', 14 ) . esc_html__( 'Recommended', 'stubli' ); ?></p>
-					<h3 class="st-h3"><?php echo esc_html( $t['name'] ); ?></h3>
-					<p class="st-muted"><?php echo esc_html( $t['price'] . ' · ' . $t['note'] ); ?></p>
-					<ol>
-						<li><?php /* translators: %s: link to wordpress.com/start */ printf( esc_html__( 'Go to %s and sign up.', 'stubli' ), '<a href="' . esc_url( $t['url'] ) . '" target="_blank" rel="noopener">wordpress.com/start</a>' ); ?></li>
-						<li><?php esc_html_e( 'Pick an address. A free one ending in .wordpress.com works fine; your own domain is optional.', 'stubli' ); ?></li>
-						<li><?php esc_html_e( 'Choose the Personal plan (yearly is cheapest). Any paid plan works; the Free plan doesn\'t allow plugins.', 'stubli' ); ?></li>
-						<li><?php esc_html_e( 'When your site is ready, come back here.', 'stubli' ); ?></li>
-					</ol>
-					<?php echo $next( 'install', __( 'My site is ready', 'stubli' ) ); ?>
-				</div>
-			<?php endforeach; ?>
-			<details class="st-gs-more">
-				<summary><?php esc_html_e( 'Prefer a Swiss or European host?', 'stubli' ); ?></summary>
-				<p><?php esc_html_e( 'These should work but haven\'t been tested with Stubli yet. Choose a plan with one-click WordPress, install WordPress from the host\'s control panel, then come back here. Stubli\'s host check will tell you if anything needs changing.', 'stubli' ); ?></p>
-				<ul>
-					<?php foreach ( $h['untested'] as $u ) : ?>
-						<li><a href="<?php echo esc_url( $u[2] ); ?>" target="_blank" rel="noopener"><strong><?php echo esc_html( $u[0] ); ?></strong></a> <span class="st-muted"><?php echo esc_html( $u[1] ); ?></span></li>
-					<?php endforeach; ?>
-				</ul>
-				<?php echo $next( 'install', __( 'My site is ready', 'stubli' ), true ); ?>
-			</details>
-			<details class="st-gs-more">
-				<summary><?php esc_html_e( 'Hosts that don\'t work', 'stubli' ); ?></summary>
-				<ul><?php foreach ( $h['no'] as $n ) : ?><li><?php echo esc_html( $n ); ?></li><?php endforeach; ?></ul>
-				<p><?php /* translators: %s: "tell us" link */ printf( esc_html__( 'We haven\'t found a free host that works yet. If you know one, %s.', 'stubli' ), '<a href="/feedback/">' . esc_html__( 'tell us', 'stubli' ) . '</a>' ); ?></p>
-			</details>
-		</section>
-
-		<section class="st-gs-step" id="gs-check" data-gs-step="check" data-gs-n="1" aria-labelledby="gs-check-h">
-			<?php echo $back( 'start' ); ?>
-			<h2 class="st-h2" id="gs-check-h"><?php esc_html_e( 'Can your site take plugins?', 'stubli' ); ?></h2>
-			<p><?php esc_html_e( 'In your WordPress dashboard, open Plugins, then Add New Plugin. Is there an Upload Plugin button at the top?', 'stubli' ); ?></p>
-			<div class="st-gs-choices">
-				<?php echo $next( 'install', __( 'Yes, I see it', 'stubli' ) ); ?>
-				<?php echo $next( 'noplugins', __( 'No, it isn\'t there', 'stubli' ), true ); ?>
-			</div>
-		</section>
-
-		<section class="st-gs-step" id="gs-noplugins" data-gs-step="noplugins" data-gs-n="1" aria-labelledby="gs-noplugins-h">
-			<?php echo $back( 'check' ); ?>
-			<h2 class="st-h2" id="gs-noplugins-h"><?php esc_html_e( 'Your plan doesn\'t allow your own plugins yet', 'stubli' ); ?></h2>
-			<ul>
-				<li><?php esc_html_e( 'On WordPress.com: any paid plan allows plugins. Personal is enough (about $4 a month, billed yearly). Upgrade under Upgrades → Plans.', 'stubli' ); ?></li>
-				<li><?php esc_html_e( 'On another host: ask them whether you can upload plugins, or move to one of the hosts we recommend.', 'stubli' ); ?></li>
-			</ul>
-			<div class="st-gs-choices">
-				<?php echo $next( 'install', __( 'I\'ve upgraded', 'stubli' ) ); ?>
-				<?php echo $next( 'host', __( 'Show me the hosts', 'stubli' ), true ); ?>
-			</div>
-		</section>
-
-		<section class="st-gs-step" id="gs-install" data-gs-step="install" data-gs-n="2" aria-labelledby="gs-install-h">
-			<?php echo $back( 'start' ); ?>
-			<h2 class="st-h2" id="gs-install-h"><?php esc_html_e( 'Install Stubli', 'stubli' ); ?></h2>
-			<p class="st-muted"><?php esc_html_e( 'This is easiest on a computer.', 'stubli' ); ?></p>
-			<ol>
-				<li><?php esc_html_e( 'Get the Stubli file. During the test, Celestine sends it to you. It\'s a zip file: keep it as it is, don\'t unpack it.', 'stubli' ); ?></li>
-				<li><?php esc_html_e( 'In your dashboard: Plugins → Add New Plugin → Upload Plugin. Choose the file, then Install Now, then Activate.', 'stubli' ); ?></li>
-				<li><?php esc_html_e( 'WordPress offers to add the Webmention plugin that Stubli needs. Say yes.', 'stubli' ); ?></li>
-			</ol>
-			<?php echo $next( 'setup', __( 'Done, what\'s next?', 'stubli' ) ); ?>
-		</section>
-
-		<section class="st-gs-step" id="gs-setup" data-gs-step="setup" data-gs-n="3" aria-labelledby="gs-setup-h">
-			<?php echo $back( 'install' ); ?>
-			<h2 class="st-h2" id="gs-setup-h"><?php esc_html_e( 'Stubli sets itself up', 'stubli' ); ?></h2>
-			<p><?php esc_html_e( 'Right after you activate it, Stubli\'s setup opens by itself: your name and photo, what you like to photograph, your colour, your people and your daily summary. About three minutes, and you can finish later.', 'stubli' ); ?></p>
-			<ul>
-				<li><?php esc_html_e( 'Got an invite link from a friend? Paste it at "Your people", and you\'ll follow each other.', 'stubli' ); ?></li>
-				<li><?php esc_html_e( 'Then open your address followed by /app on your phone, and add it to your home screen. That\'s where you post.', 'stubli' ); ?></li>
-				<li><?php esc_html_e( 'If something seems off, Settings → Stubli → "Is this host Stubli-ready?" checks your host in a few seconds.', 'stubli' ); ?></li>
-			</ul>
-			<div class="st-card-tone st-gs-end"><p><?php /* translators: %s: "Send feedback" link */ printf( esc_html__( 'Stuck anywhere? %s. Every note reaches Celestine.', 'stubli' ), '<a href="/feedback/">' . esc_html__( 'Send feedback', 'stubli' ) . '</a>' ); ?></p></div>
-		</section>
-	</div>
-	<?php
-	// phpcs:enable
 }

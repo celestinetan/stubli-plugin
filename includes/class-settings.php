@@ -30,6 +30,7 @@ class Settings {
 			'digest_email'  => (bool) get_option( 'stubli_digest_email', 0 ),
 			'who_can_comment' => (string) get_option( 'stubli_who_can_comment', 'friends_of_friends' ),
 			'look'          => (bool) get_option( 'stubli_look', 0 ),
+			'credit'        => (bool) get_option( 'stubli_credit', 0 ),
 		);
 	}
 
@@ -60,6 +61,9 @@ class Settings {
 		}
 		if ( array_key_exists( 'who_can_comment', $changes ) && in_array( $changes['who_can_comment'], array( 'friends_of_friends', 'following' ), true ) ) {
 			update_option( 'stubli_who_can_comment', $changes['who_can_comment'] );
+		}
+		if ( array_key_exists( 'credit', $changes ) ) {
+			update_option( 'stubli_credit', rest_sanitize_boolean( $changes['credit'] ) ? 1 : 0 );
 		}
 		if ( array_key_exists( 'look', $changes ) ) {
 			update_option( 'stubli_look', rest_sanitize_boolean( $changes['look'] ) ? 1 : 0 );

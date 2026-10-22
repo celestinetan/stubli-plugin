@@ -82,7 +82,11 @@ class HostCheck {
 		if ( ! $url || ! in_array( wp_parse_url( $url, PHP_URL_SCHEME ), array( 'http', 'https' ), true ) ) {
 			return new \WP_Error( 'stubli_bad_url', 'Bad address.', array( 'status' => 400 ) );
 		}
-		return self::probe( add_query_arg( 'rest_route', '/' . LEGACY_NS . '/profile', trailingslashit( $url ) ) );
+		$r = self::probe( Rest::remote_url( $url, '/profile' ) );
+		if ( 404 === $r['status'] ) {
+			$r = self::probe( Rest::remote_url( $url, '/profile', array(), LEGACY_NS ) ); // Stubli 0.16 or older.
+		}
+		return $r;
 	}
 
 	/**
@@ -174,7 +178,7 @@ class HostCheck {
 			$cron_ok ? __( 'New posts from people you follow are fetched regularly.', 'stubli' ) : ( $cron_off ? __( 'WordPress\'s own background jobs are switched off here. Ask your host to run wp-cron.php every 15 minutes, or your feed won\'t update.', 'stubli' ) : __( 'Background jobs haven\'t run in the last two hours. On quiet sites they only run when someone visits; a real cron job from your host every 15 minutes fixes that.', 'stubli' ) )
 		);
 
-		$out_probe = self::probe( add_query_arg( 'rest_route', '/' . LEGACY_NS . '/profile', Feedback::hub() . '/' ) );
+		$out_probe = self::probe( Rest::remote_url( Feedback::hub(), '/profile' ) );
 		$add( 'outgoing', $out_probe['ok'], __( 'Reaching other Stubli sites', 'stubli' ), $out_probe['ok'] ? __( 'This site can open other Stubli sites, so following works.', 'stubli' ) : __( 'This site couldn\'t reach stubli.app. Some hosts block outgoing connections; ask yours to allow them.', 'stubli' ) );
 
 		if ( Feedback::is_hub() ) {
@@ -184,7 +188,7 @@ class HostCheck {
 			);
 		} else {
 			$res = wp_safe_remote_post(
-				add_query_arg( 'rest_route', '/' . LEGACY_NS . '/reach', Feedback::hub() . '/' ),
+				Rest::remote_url( Feedback::hub(), '/reach' ),
 				array(
 					'timeout' => 30,
 					'body'    => array( 'url' => home_url( '/' ) ),

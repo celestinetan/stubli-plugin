@@ -1,11 +1,11 @@
 === Stubli ===
 Contributors: celestinetan
-Tags: photos, instagram, indieweb, webmention, social
+Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
 Requires Plugins: webmention
-Stable tag: 0.17.2
+Stable tag: 0.18.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,7 +39,8 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 * Location and camera details are removed from photos and videos before they're shared.
 * People you follow can comment straight away; friends of friends wait for your OK; everyone else is blocked. Blocking is quiet: they are never told.
 * Take a break: pause comments and the guest book without deleting anything.
-* New sites stay out of search engines and ask AI crawlers to stay away. You can change both.
+* At the end of the setup you choose whether to stay out of search engines and to ask AI crawlers to stay away (both suggested). You can change both later.
+* No "Powered by" link: a small "Made with Stubli" link in your footer appears only if you turn it on.
 
 == Installation ==
 
@@ -73,6 +74,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **Sites you follow, comment on or invite.** Your site fetches their public feed and profile (address, name, photos) and sends comments by Webmention. These are other people's Stubli sites, chosen by you.
 * **stubli.app feedback (only when you press Send).** The app's feedback form sends your note, and, if you ticked them, your site address, device type and screenshot to stubli.app, the project's own site, so the people who make Stubli can read it. Privacy: https://stubli.app/privacy/
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result", the result (PHP and WordPress versions and the checks' outcomes, no personal data) is sent as a host report. Privacy: https://stubli.app/privacy/
+* **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
@@ -83,6 +85,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.18.0 =
+* The setup now asks before changing site-wide settings: search engines, AI crawlers and comments.
+* The "Made with Stubli" footer link is off unless you turn it on.
+* The "Stubli look" switch in Settings → Stubli now saves.
+* New sites answer only at stubli/v1.
 
 = 0.17.2 =
 * Marked as beta. Developer notes updated for the stubli_ prefix.
@@ -111,7 +119,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 == Developer notes ==
 
-* Internal prefix stubli_, PHP namespace Stubli, REST namespace stubli/v1 (og/v1 still answers for older sites).
+* Internal prefix stubli_, PHP namespace Stubli, REST namespace stubli/v1. Sites that ran Stubli before 0.17 also answer at the older og/v1 so friends' sites that haven't updated can still reach them; calls to other sites try stubli/v1 first.
 * Content is standard WordPress posts: image, gallery and status post formats; collections are categories; the guest book is a page. A video is attached to its cover photo (meta _stubli_video), so everything that expects photos keeps working.
 * Feeds add Media RSS for each photo, plus stubli:contentNote and stubli:video in the urn:stubli:1 namespace.
 * Tables: {prefix}stubli_follows and {prefix}stubli_items.

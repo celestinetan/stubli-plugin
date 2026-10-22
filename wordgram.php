@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Stubli
  * Description:       Turns a WordPress site into a cosy, familiar photo-sharing home: a public profile with collections, a journal and a guest book, a private reader for the Stubli sites you follow, and comments between sites via Webmention.
- * Version:           0.17.2
+ * Version:           0.18.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  webmention
@@ -21,8 +21,8 @@ namespace Stubli;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION        = '0.17.2';
-const SCHEMA_VERSION = 3;
+const VERSION        = '0.18.0';
+const SCHEMA_VERSION = 4;
 const REST_NS        = 'stubli/v1';
 /** Every route also answers here, and calls to other sites use it, so sites on older versions keep understanding each other. */
 const LEGACY_NS      = 'og/v1';

@@ -170,10 +170,8 @@ class Install {
 		if ( get_option( 'stubli_defaults_applied' ) ) {
 			return;
 		}
-		update_option( 'users_can_register', 0 );   // Nobody can sign up on your site.
-		update_option( 'blog_public', 0 );          // Keep out of search engines.
-		update_option( 'default_comment_status', 'open' ); // Needed to receive comments from other sites.
-		update_option( 'comment_registration', 0 );
+		// Site-wide WordPress settings (search engines, comments) are only changed
+		// when the owner confirms them at the end of the setup. See Setup::save().
 		add_option( 'stubli_block_ai', 1 );
 		add_option( 'stubli_break', 0 );
 		add_option( 'stubli_blocked', array() );
@@ -229,6 +227,11 @@ class Install {
 			) {$charset};"
 		);
 
+		$before = get_option( 'stubli_schema_version' );
+		if ( false !== $before && (int) $before < 4 ) {
+			// This site ran Stubli before 0.17: keep answering at og/v1 for friends who haven't updated.
+			update_option( 'stubli_legacy_api', 1 );
+		}
 		update_option( 'stubli_schema_version', SCHEMA_VERSION, false );
 	}
 }

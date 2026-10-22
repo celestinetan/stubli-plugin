@@ -201,6 +201,9 @@ class Setup {
 			'accents'   => $accents,
 			'mode'      => self::mode(),
 			'digest'    => (string) get_option( 'stubli_digest_time', '08:00' ),
+			'hidden'    => ! get_option( 'blog_public', 1 ) || ! get_option( 'stubli_setup_done' ),
+			'block_ai'  => (bool) get_option( 'stubli_block_ai', 1 ),
+			'credit'    => (bool) get_option( 'stubli_credit', 0 ),
 			'follows'   => array_map(
 				static fn( $f ) => array(
 					'id'   => (int) $f['id'],
@@ -242,6 +245,15 @@ class Setup {
 		if ( array_key_exists( 'mode', $c ) && in_array( (string) $c['mode'], self::MODES, true ) ) {
 			update_option( 'stubli_mode', (string) $c['mode'] );
 		}
+		if ( array_key_exists( 'credit', $c ) ) {
+			Settings::update( array( 'credit' => $c['credit'] ) );
+		}
+		if ( array_key_exists( 'block_ai', $c ) ) {
+			Settings::update( array( 'block_ai' => $c['block_ai'] ) );
+		}
+		if ( array_key_exists( 'hidden', $c ) ) {
+			Settings::update( array( 'search_engines' => ! rest_sanitize_boolean( $c['hidden'] ) ) );
+		}
 		if ( array_key_exists( 'digest', $c ) ) {
 			Settings::update( array( 'digest_time' => $c['digest'] ) );
 		}
@@ -249,6 +261,11 @@ class Setup {
 			update_option( 'stubli_setup_step', max( 0, min( 4, (int) $c['step'] ) ), false );
 		}
 		if ( ! empty( $c['done'] ) ) {
+			if ( ! get_option( 'stubli_setup_done' ) ) {
+				// The owner was told on the last step: replies from other sites need comments open.
+				update_option( 'default_comment_status', 'open' );
+				update_option( 'comment_registration', 0 );
+			}
 			update_option( 'stubli_setup_done', 1 );
 			delete_option( 'stubli_setup_step' );
 		}

@@ -102,7 +102,7 @@ class Discover {
 			if ( false !== $cached ) {
 				$out[ $o ] = $cached ? $cached : null;
 			} else {
-				$todo[ $o ] = add_query_arg( 'rest_route', '/' . LEGACY_NS . '/profile', trailingslashit( $o ) );
+				$todo[ $o ] = Rest::remote_url( $o, '/profile' );
 			}
 		}
 		$responses = array();
@@ -126,6 +126,10 @@ class Discover {
 		foreach ( $todo as $o => $url ) {
 			$r    = $responses[ $o ] ?? null;
 			$body = ( $r instanceof \WpOrg\Requests\Response && 200 === (int) $r->status_code ) ? json_decode( $r->body, true ) : null;
+			if ( $r instanceof \WpOrg\Requests\Response && 404 === (int) $r->status_code ) {
+				$old  = wp_safe_remote_get( Rest::remote_url( $o, '/profile', array(), LEGACY_NS ), array( 'timeout' => 8 ) ); // Stubli 0.16 or older.
+				$body = ! is_wp_error( $old ) && 200 === (int) wp_remote_retrieve_response_code( $old ) ? json_decode( (string) wp_remote_retrieve_body( $old ), true ) : null;
+			}
 			$p    = self::clean( $o, $body );
 			set_transient( 'stubli_disc_' . md5( $o ), $p ? $p : 0, $p ? 12 * HOUR_IN_SECONDS : HOUR_IN_SECONDS );
 			$out[ $o ] = $p;

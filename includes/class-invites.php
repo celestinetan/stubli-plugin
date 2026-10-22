@@ -112,10 +112,11 @@ class Invites {
 			return $follow;
 		}
 		set_transient( 'stubli_invite_proof_' . self::key( $token ), Follows::origin( $follow['site_url'] ), 10 * MINUTE_IN_SECONDS );
-		$endpoint = add_query_arg( 'rest_route', '/' . LEGACY_NS . '/invites/accept', trailingslashit( $follow['site_url'] ) );
-		$res      = wp_safe_remote_post(
-			$endpoint,
+		$res      = Rest::remote(
+			$follow['site_url'],
+			'/invites/accept',
 			array(
+				'method'  => 'POST',
 				'timeout' => 15,
 				'headers' => array( 'Content-Type' => 'application/json' ),
 				'body'    => wp_json_encode(
@@ -154,16 +155,7 @@ class Invites {
 			return new WP_Error( 'stubli_bad_url', __( 'That doesn\'t look like a site address.', 'stubli' ), array( 'status' => 400 ) );
 		}
 		// Ask the friend's site whether it really is accepting this invite.
-		$proof = wp_safe_remote_get(
-			add_query_arg(
-				array(
-					'rest_route' => '/' . LEGACY_NS . '/invites/proof',
-					'token'      => $token,
-				),
-				trailingslashit( $site )
-			),
-			array( 'timeout' => 10 )
-		);
+		$proof = Rest::remote( $site, '/invites/proof', array( 'timeout' => 10 ), array( 'token' => $token ) );
 		$body  = json_decode( (string) wp_remote_retrieve_body( $proof ), true );
 		if ( 200 !== (int) wp_remote_retrieve_response_code( $proof ) || empty( $body['inviter'] ) || Follows::origin( $body['inviter'] ) !== Follows::origin( home_url() ) ) {
 			return new WP_Error( 'stubli_invite_unproven', __( 'Your site couldn\'t confirm the invite. Try the link again.', 'stubli' ), array( 'status' => 403 ) );

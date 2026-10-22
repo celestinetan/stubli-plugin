@@ -228,7 +228,7 @@ class Feedback {
 		}
 		$body .= "--{$boundary}--\r\n";
 		$res   = wp_safe_remote_post(
-			add_query_arg( 'rest_route', '/' . LEGACY_NS . '/feedback', self::hub() . '/' ),
+			Rest::remote_url( self::hub(), '/feedback' ),
 			array(
 				'timeout' => 30,
 				'headers' => array( 'Content-Type' => 'multipart/form-data; boundary=' . $boundary ),

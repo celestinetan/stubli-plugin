@@ -923,6 +923,7 @@
 				'<p class="a-label" id="a-su-mode">Reading mode</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' + [ [ 'auto', 'Automatic' ], [ 'light', 'Light' ], [ 'paper', 'Paper' ], [ 'dark', 'Dark' ] ].map( function ( m ) {
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 				} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' Visitors can still switch with the Aa button.</p>' +
+				'<label class="a-check" style="margin-top:18px"><span><strong>Show "Made with Stubli" in my footer</strong><span class="muted small">A small link to stubli.app, so visitors can find out how to get their own. Off unless you tick it.</span></span><input type="checkbox" data-su-credit' + ( d.credit ? ' checked' : '' ) + '></label>' +
 				setupFoot( 'Next' );
 		} else if ( n === 3 ) {
 			var opts = [ '' ].concat( su.picked );
@@ -951,6 +952,10 @@
 				( pushSupported() && ! iosNeedsInstall() ? '<div class="a-actions" style="margin-top:10px">' + ( ds.on ? '<p class="a-ds-status">' + icon( 'check', 16 ) + 'It will arrive on this phone</p>' : '<button type="button" class="a-btn quiet" data-su-push' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? 'Asking your phone…' : 'Send it to this phone' ) + '</button>' ) + '</div>' : '<p class="a-help">You can turn on phone notifications later in You → Daily summary.</p>' ) +
 				( ds.msg ? '<p class="a-help" role="status">' + esc( ds.msg ) + '</p>' : '' ) +
 				( isStandalone() ? '' : '<p class="a-label">Put Stubli on your home screen</p><div class="a-su-hs"><section' + ( ios ? ' class="is-you"' : '' ) + '><strong>iPhone</strong><p class="muted">In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.</p></section><section' + ( ios ? '' : ' class="is-you"' ) + '><strong>Android</strong><p class="muted">Open the browser menu ⋮, then <strong>Add to Home screen</strong> or <strong>Install app</strong>.</p></section></div><p class="a-help">It opens like an app, without the browser around it.</p>' ) +
+				'<p class="a-label">Your site</p>' +
+				'<label class="a-check"><span><strong>Keep my site out of search engines</strong><span class="muted small">Google and others won\'t list it. Friends still find you through Stubli.</span></span><input type="checkbox" data-su-hidden' + ( d.hidden ? ' checked' : '' ) + '></label>' +
+				'<label class="a-check"><span><strong>Ask AI crawlers to stay away</strong><span class="muted small">A request that respectable bots honour.</span></span><input type="checkbox" data-su-ai' + ( d.block_ai ? ' checked' : '' ) + '></label>' +
+				'<p class="a-help">Stubli also turns on comments, so replies from friends\' sites can arrive. You can change all of this later in Settings → Stubli.</p>' +
 				'<p class="a-su-note">Your first photo can wait. When you\'re ready, tap ' + icon( 'plus', 18 ) + ' at the bottom.</p>' +
 				setupFoot( 'Open my feed' );
 		}
@@ -1026,7 +1031,9 @@
 				} );
 			} );
 			$$( '[data-mode-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.mode = b.dataset.modePick; renderSetup(); $( '[data-mode-pick="' + d.mode + '"]' ).focus(); } ); } );
-			next.addEventListener( 'click', function () { setupSave( { accent: d.accent, mode: d.mode, step: 3 } ).then( function () { applyLook(); setupGo( 3 ); } ); } );
+			var cr = $( '[data-su-credit]' );
+			cr.addEventListener( 'change', function () { d.credit = cr.checked; } );
+			next.addEventListener( 'click', function () { setupSave( { accent: d.accent, mode: d.mode, credit: !! d.credit, step: 3 } ).then( function () { applyLook(); setupGo( 3 ); } ); } );
 		} else if ( su.step === 3 ) {
 			bindFollow(); bindInvite();
 			$$( '[data-su-list]' ).forEach( function ( s ) {
@@ -1060,6 +1067,9 @@
 		} else {
 			var dig = $( '[data-su-dig]' );
 			dig.addEventListener( 'change', function () { d.digest = dig.value; } );
+			var hid = $( '[data-su-hidden]' ), ai = $( '[data-su-ai]' );
+			hid.addEventListener( 'change', function () { d.hidden = hid.checked; } );
+			ai.addEventListener( 'change', function () { d.block_ai = ai.checked; } );
 			var sp = $( '[data-su-push]' );
 			if ( sp ) {
 				sp.addEventListener( 'click', function () {
@@ -1068,7 +1078,7 @@
 				} );
 			}
 			next.addEventListener( 'click', function () {
-				setupSave( { digest: d.digest, done: true } ).then( function () { B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+				setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
 			} );
 		}
 	}

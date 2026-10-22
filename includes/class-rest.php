@@ -35,15 +35,56 @@ class Rest {
 	 * @return bool
 	 */
 	/**
-	 * Register a route under both addresses (stubli/v1 and the older og/v1).
+	 * Register a route at stubli/v1. Sites that ran Stubli before 0.17 also
+	 * answer at the older og/v1, so friends' sites that haven't updated yet
+	 * can still reach them.
 	 *
 	 * @param string $path Route.
 	 * @param array  $args Route arguments.
 	 */
 	public static function register( $path, array $args ) {
-		foreach ( array( REST_NS, LEGACY_NS ) as $ns ) {
-			register_rest_route( $ns, $path, $args );
+		register_rest_route( REST_NS, $path, $args );
+		if ( get_option( 'stubli_legacy_api' ) ) {
+			register_rest_route( LEGACY_NS, $path, $args );
 		}
+	}
+
+	/**
+	 * Address of a route on another Stubli site.
+	 *
+	 * @param string $site  Site address.
+	 * @param string $route Route, starting with a slash.
+	 * @param array  $query Extra query arguments.
+	 * @param string $ns    Namespace.
+	 * @return string
+	 */
+	public static function remote_url( $site, $route, array $query = array(), $ns = REST_NS ) {
+		return add_query_arg( array_merge( array( 'rest_route' => '/' . $ns . $route ), $query ), trailingslashit( $site ) );
+	}
+
+	/**
+	 * Call another Stubli site's API: stubli/v1 first, then og/v1 for sites
+	 * still on Stubli 0.16 or older.
+	 *
+	 * @param string $site  Site address.
+	 * @param string $route Route, starting with a slash.
+	 * @param array  $args  Arguments for wp_safe_remote_request().
+	 * @param array  $query Extra query arguments.
+	 * @return array|\WP_Error
+	 */
+	public static function remote( $site, $route, array $args = array(), array $query = array() ) {
+		$res = null;
+		foreach ( array( REST_NS, LEGACY_NS ) as $ns ) {
+			$res = wp_safe_remote_request( self::remote_url( $site, $route, $query, $ns ), $args );
+			if ( is_wp_error( $res ) || 404 !== (int) wp_remote_retrieve_response_code( $res ) ) {
+				break;
+			}
+			$body = json_decode( (string) wp_remote_retrieve_body( $res ), true );
+			if ( ! is_array( $body ) || 'rest_no_route' !== ( $body['code'] ?? '' ) ) {
+				break;
+			}
+		}
+		return $res;
 	}
 
 	/**

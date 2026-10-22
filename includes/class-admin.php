@@ -80,6 +80,7 @@ class Admin {
 					} else {
 						$row( 'look', __( 'Stubli look', 'stubli' ), __( 'Show your site in the Stubli design (recommended). Turn off to keep your current theme.', 'stubli' ), $s['look'] );
 					}
+					$row( 'credit', __( 'Footer link', 'stubli' ), __( 'Show "Made with Stubli" in your footer, with a link to stubli.app', 'stubli' ), $s['credit'] );
 					?>
 				</table>
 				<h2><?php esc_html_e( 'Privacy', 'stubli' ); ?></h2>
@@ -132,15 +133,18 @@ class Admin {
 		}
 		check_admin_referer( 'stubli_save_settings' );
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked above.
-		Settings::update(
-			array(
+		$changes = array(
 				'search_engines'  => ! empty( $_POST['search_engines'] ),
+				'credit'          => ! empty( $_POST['credit'] ),
 				'block_ai'        => ! empty( $_POST['block_ai'] ),
 				'on_break'        => ! empty( $_POST['on_break'] ),
 				'who_can_comment' => isset( $_POST['who_can_comment'] ) ? sanitize_key( wp_unslash( $_POST['who_can_comment'] ) ) : 'friends_of_friends',
 				'pronouns'        => isset( $_POST['pronouns'] ) ? sanitize_text_field( wp_unslash( $_POST['pronouns'] ) ) : '',
-			)
 		);
+		if ( 'stubli' !== get_option( 'stylesheet' ) ) {
+			$changes['look'] = ! empty( $_POST['look'] );
+		}
+		Settings::update( $changes );
 		update_option( 'stubli_bio', isset( $_POST['bio'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ), 0, 300 ) : '' );
 		$links = array();
 		foreach ( preg_split( '/\r?\n/', isset( $_POST['links'] ) ? sanitize_textarea_field( wp_unslash( $_POST['links'] ) ) : '' ) as $line ) {
