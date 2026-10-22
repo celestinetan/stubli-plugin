@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.23.0
+Stable tag: 0.23.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,11 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.23.1 =
+* "Made with Stubli · Make your own" is now on for new Stublis: one quiet line below your photos and in your footer. Untick it in setup or Settings any time.
+* Visitors who want to follow you or comment but have no Stubli yet now get a clear way to make one.
+* stubli.app: the top bar has a single "Make your Stubli" button.
 
 = 0.23.0 =
 * Every Stubli without a photo now has a smiley: the Stubli smile in one of six colours, with a hat, glasses, a moustache or flowers. New Stublis get a random one; pick another in setup, or add a photo any time.

@@ -1458,7 +1458,7 @@
 				'<p class="a-label" id="a-su-mode">Reading mode</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' + [ [ 'auto', 'Automatic' ], [ 'light', 'Light' ], [ 'paper', 'Paper' ], [ 'dark', 'Dark' ] ].map( function ( m ) {
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 				} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' Visitors can still switch with the Aa button.</p>' +
-				'<label class="a-check" style="margin-top:18px"><span><strong>Show "Made with Stubli" in my footer</strong><span class="muted small">A small link to stubli.app, so visitors can find out how to get their own. Off unless you tick it.</span></span><input type="checkbox" data-su-credit' + ( d.credit ? ' checked' : '' ) + '></label>' +
+				'<label class="a-check" style="margin-top:18px"><span><strong>Show "Made with Stubli" on my page</strong><span class="muted small">One quiet line below your photos and in your footer, so visitors can find out how to get their own. Untick it any time.</span></span><input type="checkbox" data-su-credit' + ( d.credit ? ' checked' : '' ) + '></label>' +
 				setupFoot( 'Next' );
 		} else if ( n === 3 ) {
 			var opts = [ '' ].concat( su.picked );

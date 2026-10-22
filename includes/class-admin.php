@@ -98,7 +98,7 @@ class Admin {
 					} else {
 						$row( 'look', __( 'Stubli look', 'stubli' ), __( 'Show your site in the Stubli design (recommended). Turn off to keep your current theme.', 'stubli' ), $s['look'] );
 					}
-					$row( 'credit', __( 'Footer link', 'stubli' ), __( 'Show "Made with Stubli" in your footer, with a link to stubli.app', 'stubli' ), $s['credit'] );
+					$row( 'credit', __( 'Made with Stubli', 'stubli' ), __( 'Show "Made with Stubli · Make your own" below your photos and in your footer, so visitors can find out how to get their own', 'stubli' ), $s['credit'] );
 					?>
 				</table>
 				<h2><?php esc_html_e( 'Privacy', 'stubli' ); ?></h2>

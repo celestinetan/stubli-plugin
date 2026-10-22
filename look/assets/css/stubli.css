@@ -599,3 +599,10 @@ html { scroll-behavior: smooth; }
 .st-top-brand .st-mode:hover { background: rgba(255, 255, 255, .14); }
 .st-top-brand :focus-visible { outline-color: var(--on-brand); }
 @media (max-width: 760px) { .st-top-brand .st-top-pages { -webkit-mask-image: none; mask-image: none; } }
+
+/* ── Make your own (visitors only) ── */
+.st-card-tone.st-no-stubli a.st-button { margin-top: 4px; text-decoration: none; background: transparent; color: var(--st-ink); box-shadow: inset 0 0 0 1.5px var(--st-ink); }
+.st-note-own { margin: 14px 0 0; }
+.st-own { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 28px 0 4px; font-size: 14px; color: var(--st-muted); }
+.st-own .st-wordmark { color: var(--st-ink); font-weight: 600; }
+.st-own a { color: var(--st-ink); font-weight: 600; text-underline-offset: 3px; text-decoration-thickness: 1.5px; min-height: 44px; display: inline-flex; align-items: center; }

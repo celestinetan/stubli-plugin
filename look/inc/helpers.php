@@ -421,3 +421,26 @@ function stubli_empty( $where ) {
 	}
 	return $out . '</div>';
 }
+
+/**
+ * Whether this Stubli shows "Made with Stubli". On for new Stublis; the
+ * owner can untick it in setup or in Settings → Stubli.
+ *
+ * @return bool
+ */
+function stubli_credit_on() {
+	return (bool) get_option( 'stubli_credit', 1 );
+}
+
+/**
+ * A quiet invitation below the photos, for visitors: "Made with Stubli ·
+ * Make your own". Never for the owner, never on stubli.app itself, and
+ * only when the owner shows the credit.
+ */
+function stubli_make_your_own() {
+	if ( ! stubli_credit_on() || current_user_can( 'manage_options' ) || ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) ) {
+		return;
+	}
+	$GLOBALS['stubli_own_shown'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- own prefix.
+	echo '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/get-started/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wordmark is static SVG.
+}

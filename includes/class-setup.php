@@ -203,7 +203,7 @@ class Setup {
 			'digest'    => (string) get_option( 'stubli_digest_time', '08:00' ),
 			'hidden'    => ! get_option( 'blog_public', 1 ) || ! get_option( 'stubli_setup_done' ),
 			'block_ai'  => (bool) get_option( 'stubli_block_ai', 1 ),
-			'credit'    => (bool) get_option( 'stubli_credit', 0 ),
+			'credit'    => (bool) get_option( 'stubli_credit', 1 ),
 			'helper'    => Helper::state(),
 			'manual'    => Helper::manual_url(),
 			'follows'   => array_map(
