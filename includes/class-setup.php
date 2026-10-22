@@ -1,0 +1,360 @@
+<?php
+/**
+ * The setup wizard's data (design §13): Hello, Interests, Look, Your people, Ready.
+ *
+ * The wizard itself is drawn by the app at /app/#setup. This class stores what
+ * it asks for, prints the chosen accent colour and reading mode, and opens the
+ * wizard right after the plugin is activated.
+ *
+ * @package Stubli
+ */
+
+namespace Stubli;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Setup wizard storage and REST routes.
+ */
+class Setup {
+
+	/**
+	 * Accent colours (DESIGN.md §3.3): light hex, text on it, dark-mode partner.
+	 * Dark partners are light enough for ≥ 4.5:1 on #1c1916, with dark text on them.
+	 */
+	const ACCENTS = array(
+		'moss'   => array( 'Moss', '#4f6a4a', '#ffffff', '#a8bf98' ),
+		'forest' => array( 'Forest', '#2f5d46', '#ffffff', '#8fc4a5' ),
+		'sage'   => array( 'Sage', '#5b7b51', '#ffffff', '#b5cba6' ),
+		'plum'   => array( 'Plum', '#6b3f5a', '#ffffff', '#d4a9c3' ),
+		'sea'    => array( 'Sea', '#3d5468', '#ffffff', '#a7c0d6' ),
+		'rust'   => array( 'Rust', '#8a4b2c', '#ffffff', '#e0a887' ),
+		'gold'   => array( 'Gold', '#e0b65a', '#1d2433', '#e0b65a' ),
+	);
+
+	const MODES = array( 'auto', 'light', 'paper', 'dark' );
+
+	/** Interest ideas offered as chips. */
+	const IDEAS = array( 'Hikes', 'Food', 'Coffee', 'City', 'Travel', 'Friends', 'Family', 'Pets', 'Art', 'Nature', 'Books', 'Music' );
+
+	const MAX_INTERESTS = 8;
+
+	/**
+	 * Hooks.
+	 */
+	public static function init() {
+		add_action( 'rest_api_init', array( self::class, 'routes' ) );
+		add_action( 'admin_init', array( self::class, 'maybe_open' ) );
+		add_action( 'wp_head', array( self::class, 'print_accent' ), 100 );
+	}
+
+	/**
+	 * Called on activation: open the wizard on the next admin page load.
+	 */
+	public static function flag_open() {
+		if ( ! get_option( 'stubli_setup_done' ) ) {
+			update_option( 'stubli_setup_open', 1, false );
+		}
+	}
+
+	/**
+	 * After activation, take the owner straight to the wizard ("the setup opens by itself").
+	 */
+	public static function maybe_open() {
+		if ( ! get_option( 'stubli_setup_open' ) || wp_doing_ajax() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		delete_option( 'stubli_setup_open' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reads whether this was a bulk activation.
+		if ( isset( $_GET['activate-multi'] ) || get_option( 'stubli_setup_done' ) ) {
+			return;
+		}
+		wp_safe_redirect( home_url( '/app/#setup' ) );
+		exit;
+	}
+
+	/**
+	 * The chosen accent key.
+	 *
+	 * @return string
+	 */
+	public static function accent() {
+		$a = (string) get_option( 'stubli_accent', 'moss' );
+		return isset( self::ACCENTS[ $a ] ) ? $a : 'moss';
+	}
+
+	/**
+	 * The default reading mode for visitors who haven't picked one.
+	 *
+	 * @return string
+	 */
+	public static function mode() {
+		$m = (string) get_option( 'stubli_mode', 'auto' );
+		return in_array( $m, self::MODES, true ) ? $m : 'auto';
+	}
+
+	/**
+	 * CSS that swaps the accent, for the app (--accent) and the look (--st-accent).
+	 *
+	 * @return string Empty for the default.
+	 */
+	public static function accent_css() {
+		$key = self::accent();
+		if ( 'moss' === $key ) {
+			return '';
+		}
+		list( , $light, $ink, $dark ) = self::ACCENTS[ $key ];
+		return sprintf(
+			':root,[data-mode="light"],[data-mode="paper"]{--accent:%1$s;--accent-ink:%2$s;--st-accent:%1$s;--st-accent-ink:%2$s}[data-mode="dark"]{--accent:%3$s;--accent-ink:#1c1916;--st-accent:%3$s;--st-accent-ink:#1c1916}',
+			$light,
+			$ink,
+			$dark
+		);
+	}
+
+	/**
+	 * Print the accent on public pages (theme or built-in look).
+	 */
+	public static function print_accent() {
+		$css = self::accent_css();
+		if ( '' !== $css ) {
+			echo '<style id="stubli-accent">' . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from fixed hex values.
+		}
+	}
+
+	/**
+	 * Interests: categories, minus an empty "Uncategorized".
+	 *
+	 * @return array List of { name, count }.
+	 */
+	public static function interests() {
+		$out     = array();
+		$default = (int) get_option( 'default_category' );
+		foreach ( get_categories( array( 'hide_empty' => false, 'orderby' => 'name' ) ) as $t ) {
+			if ( $default === (int) $t->term_id ) {
+				continue;
+			}
+			$out[] = array(
+				'name'  => $t->name,
+				'count' => (int) $t->count,
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Make the categories match the chosen interests. Interests with posts are
+	 * never removed; empty ones that were unticked are.
+	 *
+	 * @param array $names Chosen names.
+	 */
+	public static function set_interests( array $names ) {
+		$clean = array();
+		foreach ( $names as $n ) {
+			$n = mb_substr( trim( sanitize_text_field( (string) $n ) ), 0, 40 );
+			if ( '' !== $n && ! in_array( mb_strtolower( $n ), array_map( 'mb_strtolower', $clean ), true ) ) {
+				$clean[] = $n;
+			}
+		}
+		$clean   = array_slice( $clean, 0, self::MAX_INTERESTS );
+		$lower   = array_map( 'mb_strtolower', $clean );
+		$default = (int) get_option( 'default_category' );
+		foreach ( get_categories( array( 'hide_empty' => false ) ) as $t ) {
+			if ( $default !== (int) $t->term_id && 0 === (int) $t->count && ! in_array( mb_strtolower( $t->name ), $lower, true ) ) {
+				wp_delete_term( $t->term_id, 'category' );
+			}
+		}
+		foreach ( $clean as $n ) {
+			if ( ! term_exists( $n, 'category' ) ) {
+				wp_insert_term( $n, 'category' );
+			}
+		}
+	}
+
+	/**
+	 * Everything the wizard shows.
+	 *
+	 * @return array
+	 */
+	public static function state() {
+		$accents = array();
+		foreach ( self::ACCENTS as $key => $a ) {
+			$accents[] = array(
+				'key'  => $key,
+				'name' => $a[0],
+				'hex'  => $a[1],
+				'ink'  => $a[2],
+				'dark' => $a[3],
+			);
+		}
+		return array(
+			'done'      => (bool) get_option( 'stubli_setup_done' ),
+			'step'      => (int) get_option( 'stubli_setup_step', 0 ),
+			'name'      => get_bloginfo( 'name' ),
+			'bio'       => (string) get_option( 'stubli_bio', '' ),
+			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
+			'avatar'    => (string) get_site_icon_url( 256 ),
+			'interests' => self::interests(),
+			'ideas'     => self::IDEAS,
+			'max'       => self::MAX_INTERESTS,
+			'accent'    => self::accent(),
+			'accents'   => $accents,
+			'mode'      => self::mode(),
+			'digest'    => (string) get_option( 'stubli_digest_time', '08:00' ),
+			'follows'   => array_map(
+				static fn( $f ) => array(
+					'id'   => (int) $f['id'],
+					'name' => (string) $f['name'],
+					'url'  => (string) $f['site_url'],
+					'list' => (string) $f['list_name'],
+				),
+				Follows::all()
+			),
+		);
+	}
+
+	/**
+	 * Save what a step changed. Unknown keys are ignored.
+	 *
+	 * @param array $c Changes.
+	 * @return array|\WP_Error New state.
+	 */
+	public static function save( array $c ) {
+		if ( array_key_exists( 'name', $c ) ) {
+			$name = mb_substr( trim( sanitize_text_field( (string) $c['name'] ) ), 0, 60 );
+			if ( '' === $name ) {
+				return new \WP_Error( 'stubli_name', __( 'Add the name people should see.', 'stubli' ), array( 'status' => 400 ) );
+			}
+			update_option( 'blogname', $name );
+		}
+		if ( array_key_exists( 'bio', $c ) ) {
+			update_option( 'stubli_bio', mb_substr( trim( sanitize_text_field( (string) $c['bio'] ) ), 0, 160 ) );
+		}
+		if ( array_key_exists( 'pronouns', $c ) ) {
+			Settings::update( array( 'pronouns' => $c['pronouns'] ) );
+		}
+		if ( array_key_exists( 'interests', $c ) && is_array( $c['interests'] ) ) {
+			self::set_interests( $c['interests'] );
+		}
+		if ( array_key_exists( 'accent', $c ) && isset( self::ACCENTS[ (string) $c['accent'] ] ) ) {
+			update_option( 'stubli_accent', (string) $c['accent'] );
+		}
+		if ( array_key_exists( 'mode', $c ) && in_array( (string) $c['mode'], self::MODES, true ) ) {
+			update_option( 'stubli_mode', (string) $c['mode'] );
+		}
+		if ( array_key_exists( 'digest', $c ) ) {
+			Settings::update( array( 'digest_time' => $c['digest'] ) );
+		}
+		if ( array_key_exists( 'step', $c ) ) {
+			update_option( 'stubli_setup_step', max( 0, min( 4, (int) $c['step'] ) ), false );
+		}
+		if ( ! empty( $c['done'] ) ) {
+			update_option( 'stubli_setup_done', 1 );
+			delete_option( 'stubli_setup_step' );
+		}
+		return self::state();
+	}
+
+	/**
+	 * Save an uploaded profile photo and use it as the site icon (the avatar
+	 * everywhere in Stubli). The app sends a square JPEG, already scaled.
+	 *
+	 * @return array|\WP_Error
+	 */
+	public static function photo() {
+		if ( empty( $_FILES['photo'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST checks the nonce.
+			return new \WP_Error( 'stubli_no_photo', __( 'Choose a photo first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		$file = $_FILES['photo']; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput -- handed to WordPress's upload checks.
+		$type = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+		if ( empty( $type['type'] ) || 0 !== strpos( (string) $type['type'], 'image/' ) ) {
+			return new \WP_Error( 'stubli_not_photo', __( 'That file isn\'t a photo. Try a JPEG or PNG.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$id = media_handle_upload( 'photo', 0, array( 'post_title' => get_bloginfo( 'name' ) ) );
+		if ( is_wp_error( $id ) ) {
+			return new \WP_Error( 'stubli_upload', __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		update_post_meta( $id, '_wp_attachment_context', 'site-icon' );
+		update_option( 'site_icon', (int) $id );
+		return array( 'avatar' => (string) get_site_icon_url( 256 ) );
+	}
+
+	/**
+	 * Use an invite link pasted in the wizard ("Got an invite link?").
+	 *
+	 * @param string $link Like https://ana.ch/invite/?t=abc.
+	 * @return array|\WP_Error
+	 */
+	public static function use_invite( $link ) {
+		$link  = trim( (string) $link );
+		$parts = wp_parse_url( $link );
+		$query = array();
+		if ( ! empty( $parts['query'] ) ) {
+			parse_str( $parts['query'], $query );
+		}
+		$token = isset( $query['t'] ) ? preg_replace( '/[^A-Za-z0-9]/', '', (string) $query['t'] ) : '';
+		if ( empty( $parts['host'] ) || empty( $parts['scheme'] ) || ! in_array( $parts['scheme'], array( 'http', 'https' ), true ) || '' === $token ) {
+			return new \WP_Error( 'stubli_invite_link', __( 'That doesn\'t look like an invite link. It ends in /invite/?t= and a code.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$path = isset( $parts['path'] ) ? preg_replace( '#invite/?$#', '', $parts['path'] ) : '/';
+		$home = $parts['scheme'] . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' ) . ( '' === $path ? '/' : $path );
+		$res  = Invites::accept_here( $home, $token );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+		return array(
+			'result'  => $res,
+			'follows' => self::state()['follows'],
+		);
+	}
+
+	/**
+	 * REST routes (owner only).
+	 */
+	public static function routes() {
+		$owner = array( Rest::class, 'is_owner' );
+		Rest::register(
+			'/setup',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => static fn() => rest_ensure_response( self::state() ),
+					'permission_callback' => $owner,
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => static function ( \WP_REST_Request $r ) {
+						$res = self::save( (array) $r->get_json_params() + (array) $r->get_body_params() );
+						return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+					},
+					'permission_callback' => $owner,
+				),
+			)
+		);
+		Rest::register(
+			'/setup/photo',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => static function () {
+					$res = self::photo();
+					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+				},
+				'permission_callback' => $owner,
+			)
+		);
+		Rest::register(
+			'/setup/invite',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$res = self::use_invite( (string) $r['link'] );
+					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+				},
+				'permission_callback' => $owner,
+			)
+		);
+	}
+}
