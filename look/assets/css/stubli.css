@@ -483,3 +483,9 @@ p { margin: 0 0 .75em; }
 .st-gs-end { margin-top: 20px; }
 .st-gs-end p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .st-gs-progress span i { transition: none; } }
+
+.st-gs-try { margin: 16px 0 4px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
+.st-gs-try p { margin: 0; }
+.st-gs-try .st-muted { font-size: 14px; max-width: 38em; }
+.st-gs-try-h { font-weight: 650; }
+.st-gs-try .st-button-quiet { background: var(--st-bg) !important; }

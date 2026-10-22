@@ -802,6 +802,13 @@ function stubli_get_started() {
 	?>
 	<div class="st-gs" data-st-gs>
 		<p class="st-lead"><?php esc_html_e( 'Stubli is in a small test with friends right now. Your own Stubli takes about 20 minutes, in three steps: a home for your site, the Stubli plugin, then Stubli sets itself up.', 'stubli' ); ?></p>
+		<div class="st-card-tone st-gs-try">
+			<div>
+				<p class="st-gs-try-h"><?php esc_html_e( 'Want to look around first?', 'stubli' ); ?></p>
+				<p class="st-muted"><?php esc_html_e( 'Try Stubli in your browser, right now. No sign-up and nothing is saved: it disappears when you close the tab.', 'stubli' ); ?></p>
+			</div>
+			<a class="st-button st-button-quiet" href="<?php echo esc_url( 'https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/celestinetan/stubli-plugin/main/blueprint.json' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Try Stubli', 'stubli' ); ?></a>
+		</div>
 		<p class="st-gs-progress" data-gs-progress aria-live="polite" hidden></p>
 
 		<section class="st-gs-step" id="gs-start" data-gs-step="start" data-gs-n="1" aria-labelledby="gs-start-h">
