@@ -126,10 +126,10 @@
 /* Made-up people and Swiss line drawings stand in for photos. */
 .sp-ava { overflow: hidden; display: inline-flex; }
 .sp-ava svg { width: 100%; height: 100%; display: block; }
-.sp-photo { background: var(--sp-green); color: var(--sp-accent); display: flex; align-items: center; justify-content: center; }
-.sp-art { width: 82%; height: 82%; display: block; }
-.sp-grid span { background: var(--sp-green); color: var(--sp-accent); display: flex; align-items: center; justify-content: center; }
-.sp-grid .sp-art { width: 90%; height: 90%; }
+.sp-photo { background: #f1e7d2; display: block; }
+.sp-art { width: 100%; height: 100%; display: block; }
+.sp-grid span { background: #f1e7d2; display: block; }
+.sp-grid .sp-art { width: 100%; height: 100%; }
 .sp-sign { display: flex; gap: 10px; padding: 12px; border-radius: 14px; background: var(--sp-green); margin-bottom: 12px; }
 .sp-sign p span { display: block; font-family: var(--st-serif); font-size: 15px; }
 .st-pitch-free { margin-top: 28px !important; font-size: 17px; }
