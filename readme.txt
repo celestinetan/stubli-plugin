@@ -5,13 +5,15 @@ Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
 Requires Plugins: webmention
-Stable tag: 0.17.1
+Stable tag: 0.17.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Your own cosy photo home on your own WordPress site. Follow friends, comment, keep a journal. No ads, no algorithm, no central server.
+A kinder social network for everyone, on your own WordPress site. Share photos, follow friends, comment. No ads, no algorithm, no central server.
 
 == Description ==
+
+**Stubli is in beta.** Anyone is welcome to try it. The feedback button in the app goes straight to the people who make Stubli.
 
 Stubli turns your WordPress site into a calm, familiar place for your photos and the people you like. If you know Instagram, you know where to tap. But everything lives on your own site, and Stubli sites talk to each other directly with RSS and Webmention.
 
@@ -82,6 +84,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 == Changelog ==
 
+= 0.17.2 =
+* Marked as beta. Developer notes updated for the stubli_ prefix.
+
+= 0.17.0 =
+* Internal names moved from og_ to stubli_; existing sites are migrated automatically. REST API at stubli/v1 (og/v1 still answers).
+
 = 0.16.1 =
 * Daily summary as a phone notification (Web Push), with email as an option.
 * White home-screen icon; the app is named just "Stubli".
@@ -103,7 +111,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 == Developer notes ==
 
-* Internal prefix og_, PHP namespace OG, REST namespace og/v1.
-* Content is standard WordPress posts: image, gallery and status post formats; collections are categories; the guest book is a page. A video is attached to its cover photo (meta _og_video), so everything that expects photos keeps working.
+* Internal prefix stubli_, PHP namespace Stubli, REST namespace stubli/v1 (og/v1 still answers for older sites).
+* Content is standard WordPress posts: image, gallery and status post formats; collections are categories; the guest book is a page. A video is attached to its cover photo (meta _stubli_video), so everything that expects photos keeps working.
 * Feeds add Media RSS for each photo, plus stubli:contentNote and stubli:video in the urn:stubli:1 namespace.
-* Tables: {prefix}og_follows and {prefix}og_items.
+* Tables: {prefix}stubli_follows and {prefix}stubli_items.

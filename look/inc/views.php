@@ -803,7 +803,7 @@ function stubli_get_started() {
 	// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above.
 	?>
 	<div class="st-gs" data-st-gs>
-		<p class="st-lead"><?php esc_html_e( 'Stubli is in a small test with friends right now. Your own Stubli takes about 20 minutes, in three steps: a home for your site, the Stubli plugin, then Stubli sets itself up.', 'stubli' ); ?></p>
+		<p class="st-lead"><?php esc_html_e( 'Stubli is in beta: anyone is welcome to try it, and your feedback shapes what comes next. Your own Stubli takes about 20 minutes, in three steps: a home for your site, the Stubli plugin, then Stubli sets itself up.', 'stubli' ); ?></p>
 		<div class="st-card-tone st-gs-try">
 			<div>
 				<p class="st-gs-try-h"><?php esc_html_e( 'Want to look around first?', 'stubli' ); ?></p>

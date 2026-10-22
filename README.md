@@ -1,6 +1,8 @@
 # Stubli
 
-Your own cosy photo home on your own WordPress site. Follow friends, comment, keep a journal. No ads, no algorithm, no central server.
+A kinder social network for everyone, on your own WordPress site. Share photos, follow friends, comment. No ads, no algorithm, no central server.
+
+**Stubli is in beta.** Anyone is welcome to try it and tell us what works and what doesn't.
 
 Stubli turns a WordPress site into a calm, familiar place for photos and the people you like. Sites talk to each other directly with RSS and Webmention.
 
