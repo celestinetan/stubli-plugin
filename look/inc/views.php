@@ -803,6 +803,13 @@ function stubli_view_invite() {
 function stubli_view_page() {
 	$page = get_queried_object();
 	stubli_topbar();
+	// stubli.app's elevator pitch: a wide, designed page whose words stay editable as ordinary blocks.
+	if ( $page instanceof WP_Post && 'pitch' === $page->post_name && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+		echo '<main class="st-main st-pitch" id="main">';
+		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '</main>';
+		return;
+	}
 	echo '<main class="st-main st-narrow st-prose" id="main">';
 	if ( $page instanceof WP_Post ) {
 		echo '<h1 class="st-h1">' . esc_html( get_the_title( $page ) ) . '</h1>';

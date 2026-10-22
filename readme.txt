@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.22.4
+Stable tag: 0.22.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.22.5 =
+* The built-in look: a wide, designed layout for the Stubli project site's "Stubli in a minute" page.
 
 = 0.22.4 =
 * The built-in look: the logo sits level with the top bar, with the Beta label at its top right. The home page of the Stubli project site is titled "Stubli".
