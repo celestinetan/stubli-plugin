@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.22.9
+Stable tag: 0.22.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.22.10 =
+* Profile pages: no more small gap between the collection tabs and the panel below them.
 
 = 0.22.9 =
 * Built-in look: vintage Swiss poster illustrations for the pitch page, one for each default interest.

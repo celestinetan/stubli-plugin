@@ -218,9 +218,9 @@ p { margin: 0 0 .75em; }
 	background: var(--st-surface); border-radius: 14px; padding: 18px 12px 20px;
 	min-height: 200px;
 }
-.st-panel.is-first { border-top-left-radius: 0; }
+/* Tabs always sit on both top corners (collections on the left, Guest book and Links on the right), so the panel's top corners stay square and no page shows between a tab and the panel. */
+.st-panel { border-top-left-radius: 0; border-top-right-radius: 0; }
 .st-panel-green { background: var(--st-green-on); }
-.st-panel-green.is-last { border-top-right-radius: 0; }
 .st-wall-label {
 	font-size: 14px; line-height: 1.5; color: var(--st-muted); max-width: 34em;
 	border-left: 2px solid var(--st-field); padding-left: 12px; margin: 0 0 16px 2px;
