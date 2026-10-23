@@ -503,6 +503,12 @@ function stubli_view_single() {
 
 	echo '<div class="st-post-side">';
 	echo '<p class="st-post-meta st-muted">' . esc_html( get_the_date( 'F Y', $post ) );
+	$edited = (int) get_post_meta( $post->ID, '_stubli_edited', true );
+	if ( $edited ) {
+		// The photos changed after posting (added, removed or replaced).
+		/* translators: %s: date and time */
+		echo ' · <span class="st-post-edited" title="' . esc_attr( sprintf( __( 'Edited %s', 'stubli' ), wp_date( 'j M Y, ' . get_option( 'time_format' ), $edited ) ) ) . '">' . esc_html__( 'Edited', 'stubli' ) . '</span>';
+	}
 	if ( $coll ) {
 		echo ' · <a href="' . esc_url( get_category_link( $coll ) ) . '">' . esc_html( stubli_collection_name( $coll ) ) . '</a>';
 	}

@@ -484,6 +484,29 @@ class Rest {
 	}
 
 	/**
+	 * Files sent as name[] in a form, one array per file, keyed by position.
+	 *
+	 * @param array  $params File parameters of the request.
+	 * @param string $name   Field name.
+	 * @return array
+	 */
+	public static function file_list( array $params, $name ) {
+		$out = array();
+		if ( ! empty( $params[ $name ] ) && is_array( $params[ $name ]['name'] ?? null ) ) {
+			foreach ( array_keys( $params[ $name ]['name'] ) as $i ) {
+				$out[ (int) $i ] = array(
+					'name'     => $params[ $name ]['name'][ $i ],
+					'type'     => $params[ $name ]['type'][ $i ],
+					'tmp_name' => $params[ $name ]['tmp_name'][ $i ],
+					'error'    => $params[ $name ]['error'][ $i ],
+					'size'     => $params[ $name ]['size'][ $i ],
+				);
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * Publish a photo or carousel. Files arrive as "photo" (one) or
 	 * "photos[]" (up to ten), with "alts[]" in the same order.
 	 *
@@ -494,32 +517,11 @@ class Rest {
 		if ( ! current_user_can( 'upload_files' ) ) {
 			return new WP_Error( 'stubli_forbidden', __( 'You can\'t upload photos here.', 'stubli' ), array( 'status' => 403 ) );
 		}
-		$params = $request->get_file_params();
-		$files  = array();
-		if ( ! empty( $params['photos'] ) && is_array( $params['photos']['name'] ?? null ) ) {
-			foreach ( array_keys( $params['photos']['name'] ) as $i ) {
-				$files[] = array(
-					'name'     => $params['photos']['name'][ $i ],
-					'type'     => $params['photos']['type'][ $i ],
-					'tmp_name' => $params['photos']['tmp_name'][ $i ],
-					'error'    => $params['photos']['error'][ $i ],
-					'size'     => $params['photos']['size'][ $i ],
-				);
-			}
-		} elseif ( ! empty( $params['photo'] ) ) {
+		$params  = $request->get_file_params();
+		$files   = array_values( self::file_list( $params, 'photos' ) );
+		$posters = self::file_list( $params, 'posters' );
+		if ( ! $files && ! empty( $params['photo'] ) ) {
 			$files[] = $params['photo'];
-		}
-		$posters = array();
-		if ( ! empty( $params['posters'] ) && is_array( $params['posters']['name'] ?? null ) ) {
-			foreach ( array_keys( $params['posters']['name'] ) as $i ) {
-				$posters[ (int) $i ] = array(
-					'name'     => $params['posters']['name'][ $i ],
-					'type'     => $params['posters']['type'][ $i ],
-					'tmp_name' => $params['posters']['tmp_name'][ $i ],
-					'error'    => $params['posters']['error'][ $i ],
-					'size'     => $params['posters']['size'][ $i ],
-				);
-			}
 		}
 		$alts = $request->get_param( 'alts' );
 		$alts = is_array( $alts ) ? array_values( $alts ) : array( (string) $request['alt'] );

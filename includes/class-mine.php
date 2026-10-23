@@ -20,10 +20,17 @@ class Mine {
 	const PER_PAGE = 24;
 
 	/**
+	 * How long a photo taken out of a post is kept, so Undo can bring it back
+	 * (seconds). After that it's deleted from the site.
+	 */
+	const KEEP_REMOVED = 600;
+
+	/**
 	 * Hooks.
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', array( self::class, 'routes' ) );
+		add_action( 'stubli_purge_removed', array( self::class, 'purge_removed' ) );
 	}
 
 	/**
@@ -97,7 +104,30 @@ class Mine {
 			'note'       => (string) get_post_meta( $post->ID, '_stubli_content_note', true ),
 			'audience'   => Friends::audience( $post ),
 			'photos'     => self::photos( $post->ID ),
+			'ratio'      => self::ratio( $post->ID ),
+			'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
 		);
+	}
+
+	/**
+	 * The post's shape, from its first photo: portrait, square or landscape.
+	 * New photos added in the editor are cropped to it unless the owner picks another.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return string
+	 */
+	private static function ratio( $post_id ) {
+		foreach ( Posts::photo_ids( $post_id ) as $aid ) {
+			if ( Posts::video_for( $aid ) ) {
+				continue;
+			}
+			$meta = wp_get_attachment_metadata( $aid );
+			if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+				$r = $meta['width'] / $meta['height'];
+				return $r > 1.2 ? 'landscape' : ( $r > 0.9 ? 'square' : 'portrait' );
+			}
+		}
+		return 'portrait';
 	}
 
 	/**
@@ -186,16 +216,157 @@ class Mine {
 	}
 
 	/**
-	 * Change a post's caption, collection, content note or descriptions.
+	 * When a post's photos were last changed (Unix time), or 0.
+	 *
+	 * @param int $id Post ID.
+	 * @return int
+	 */
+	public static function edited( $id ) {
+		return (int) get_post_meta( (int) $id, '_stubli_edited', true );
+	}
+
+	/**
+	 * Photos taken out of this post that Undo can still bring back.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return int[]
+	 */
+	private static function removed_photos( $post_id ) {
+		$ids = get_posts(
+			array(
+				'post_type'   => 'attachment',
+				'post_status' => 'inherit',
+				'post_parent' => (int) $post_id,
+				'numberposts' => 50,
+				'fields'      => 'ids',
+				'meta_key'    => '_stubli_removed', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			)
+		);
+		return array_map( 'intval', $ids );
+	}
+
+	/**
+	 * Delete photos (and their videos) that were taken out of a post more
+	 * than KEEP_REMOVED seconds ago. Runs from a scheduled event.
+	 *
+	 * @param int $post_id Post ID.
+	 */
+	public static function purge_removed( $post_id ) {
+		$keep = Posts::photo_ids( (int) $post_id );
+		$left = false;
+		foreach ( self::removed_photos( (int) $post_id ) as $aid ) {
+			if ( in_array( $aid, $keep, true ) ) {
+				delete_post_meta( $aid, '_stubli_removed' );
+				continue;
+			}
+			if ( time() - (int) get_post_meta( $aid, '_stubli_removed', true ) < self::KEEP_REMOVED ) {
+				$left = true;
+				continue;
+			}
+			$video = Posts::video_for( $aid );
+			if ( $video ) {
+				wp_delete_attachment( $video, true );
+			}
+			wp_delete_attachment( $aid, true );
+		}
+		if ( $left && ! wp_next_scheduled( 'stubli_purge_removed', array( (int) $post_id ) ) ) {
+			wp_schedule_single_event( time() + self::KEEP_REMOVED, 'stubli_purge_removed', array( (int) $post_id ) );
+		}
+	}
+
+	/**
+	 * Work out a post's new photos from the app's list, uploading new ones.
+	 * Entries are photo IDs, or 'new0', 'new1'… for the uploaded files in order.
+	 * Returns null when the photos stay as they are.
+	 *
+	 * @param \WP_Post $post    Post.
+	 * @param array    $order   The app's list.
+	 * @param array    $uploads { files, posters, alts } for new photos.
+	 * @return array|null|\WP_Error { order, added } or null.
+	 */
+	private static function new_photos( $post, array $order, array $uploads ) {
+		$files = array_values( (array) ( $uploads['files'] ?? array() ) );
+		if ( $files && ! current_user_can( 'upload_files' ) ) {
+			return new \WP_Error( 'stubli_forbidden', __( 'You can\'t upload photos here.', 'stubli' ), array( 'status' => 403 ) );
+		}
+		$mine    = Posts::photo_ids( $post->ID );
+		$allowed = array_merge( $mine, self::removed_photos( $post->ID ) );
+		$wanted  = array();
+		foreach ( $order as $entry ) {
+			if ( is_string( $entry ) && preg_match( '/^new(\d+)$/', $entry, $m ) ) {
+				if ( (int) $m[1] < count( $files ) ) {
+					$wanted[] = $entry;
+				}
+			} elseif ( in_array( (int) $entry, $allowed, true ) ) {
+				$wanted[] = (int) $entry;
+			}
+		}
+		$wanted = array_values( array_unique( $wanted, SORT_REGULAR ) );
+		if ( ! $wanted ) {
+			return new \WP_Error( 'stubli_no_photo', __( 'A post keeps at least one photo. To remove them all, delete the post instead.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( count( $wanted ) > Posts::MAX_PHOTOS ) {
+			return new \WP_Error( 'stubli_too_many_photos', __( 'A post can hold up to 10 photos.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( ! $files && $wanted === $mine ) {
+			return null;
+		}
+		$added = array();
+		if ( $files ) {
+			$posters = (array) ( $uploads['posters'] ?? array() );
+			$videos  = Posts::check_media( $files, $posters );
+			if ( is_wp_error( $videos ) ) {
+				return $videos;
+			}
+			$ids = Posts::sideload_media( $files, (array) ( $uploads['alts'] ?? array() ), $posters, $videos, $post->ID );
+			if ( is_wp_error( $ids ) ) {
+				return 'stubli_upload_failed' === $ids->get_error_code() && ! $videos ? new \WP_Error( 'stubli_upload_failed', __( 'That photo didn\'t upload, so nothing has changed. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) ) : $ids;
+			}
+			foreach ( $wanted as $k => $entry ) {
+				if ( is_string( $entry ) ) {
+					$wanted[ $k ] = $ids[ (int) substr( $entry, 3 ) ];
+					$added[]      = $wanted[ $k ];
+				}
+			}
+			// Uploaded files the list didn't use aren't kept.
+			foreach ( array_diff( $ids, $added ) as $unused ) {
+				$video = Posts::video_for( $unused );
+				if ( $video ) {
+					wp_delete_attachment( $video, true );
+				}
+				wp_delete_attachment( $unused, true );
+			}
+		}
+		return array(
+			'order' => array_map( 'intval', $wanted ),
+			'added' => $added,
+		);
+	}
+
+	/**
+	 * Change a post's photos, caption, collection, content note or descriptions.
+	 *
+	 * Photos can be added, removed, replaced and reordered. Taken-out photos
+	 * stay on the site for KEEP_REMOVED seconds so Undo works, then are
+	 * deleted. Changing the photos gives the post an "Edited" time.
 	 *
 	 * @param int   $id      Post ID.
 	 * @param array $changes Changes.
+	 * @param array $uploads New photos: { files, posters, alts }.
 	 * @return array|\WP_Error
 	 */
-	public static function update( $id, array $changes ) {
+	public static function update( $id, array $changes, array $uploads = array() ) {
 		$post = self::photo_post( $id );
 		if ( ! $post ) {
 			return new \WP_Error( 'stubli_not_found', __( 'That post isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		if ( array_key_exists( 'caption', $changes ) && Posts::visible_length( sanitize_textarea_field( (string) $changes['caption'] ) ) > Posts::MAX_CAPTION_LENGTH ) {
+			return new \WP_Error( 'stubli_caption_too_long', __( 'That caption is a little long. Trim it to 2,200 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		// Photos first: if an upload fails, nothing else changes either.
+		$photos = isset( $changes['order'] ) && is_array( $changes['order'] ) ? self::new_photos( $post, $changes['order'], $uploads ) : null;
+		if ( is_wp_error( $photos ) ) {
+			return $photos;
 		}
 		$fields = array( 'ID' => $post->ID );
 		if ( array_key_exists( 'caption', $changes ) ) {
@@ -228,20 +399,42 @@ class Mine {
 		if ( array_key_exists( 'audience', $changes ) ) {
 			Friends::set_audience( $post->ID, 'friends' === $changes['audience'] ? 'friends' : 'everyone' );
 		}
-		if ( isset( $changes['order'] ) && is_array( $changes['order'] ) ) {
-			// A new order for the photos: the same photos, rearranged. The first is the cover.
-			$mine  = Posts::photo_ids( $post->ID );
-			$order = array_values( array_unique( array_map( 'intval', $changes['order'] ) ) );
-			$same  = $order;
-			sort( $same );
-			$had = $mine;
-			sort( $had );
-			if ( $same === $had && $order !== $mine ) {
-				update_post_meta( $post->ID, '_stubli_photos', $order );
-				set_post_thumbnail( $post->ID, $order[0] );
-				// Readers notice the change at their next check.
-				wp_update_post( array( 'ID' => $post->ID, 'post_modified' => current_time( 'mysql' ), 'post_modified_gmt' => current_time( 'mysql', true ) ) );
+		if ( $photos ) {
+			$mine    = Posts::photo_ids( $post->ID );
+			$order   = $photos['order'];
+			$removed = array_values( array_diff( $mine, $order ) );
+			$added   = array_values( array_diff( $order, $mine ) );
+			foreach ( $removed as $aid ) {
+				update_post_meta( $aid, '_stubli_removed', time() );
 			}
+			foreach ( $added as $aid ) {
+				delete_post_meta( $aid, '_stubli_removed' );
+			}
+			update_post_meta( $post->ID, '_stubli_photos', $order );
+			set_post_thumbnail( $post->ID, $order[0] );
+			set_post_format( $post->ID, count( $order ) > 1 ? 'gallery' : 'image' );
+			if ( $removed || $added ) {
+				$prev = array_map( 'intval', (array) get_post_meta( $post->ID, '_stubli_prev_photos', true ) );
+				if ( $prev && $order === $prev && ! $photos['added'] ) {
+					// Undo: back to the photos from before, and to the "Edited" time from before.
+					$was = (int) get_post_meta( $post->ID, '_stubli_prev_edited', true );
+					if ( $was ) {
+						update_post_meta( $post->ID, '_stubli_edited', $was );
+					} else {
+						delete_post_meta( $post->ID, '_stubli_edited' );
+					}
+					delete_post_meta( $post->ID, '_stubli_prev_photos' );
+				} else {
+					update_post_meta( $post->ID, '_stubli_prev_photos', $mine );
+					update_post_meta( $post->ID, '_stubli_prev_edited', self::edited( $post->ID ) );
+					update_post_meta( $post->ID, '_stubli_edited', time() );
+				}
+				if ( $removed && ! wp_next_scheduled( 'stubli_purge_removed', array( (int) $post->ID ) ) ) {
+					wp_schedule_single_event( time() + self::KEEP_REMOVED + 60, 'stubli_purge_removed', array( (int) $post->ID ) );
+				}
+			}
+			// Readers notice the change at their next check.
+			wp_update_post( array( 'ID' => $post->ID, 'post_modified' => current_time( 'mysql' ), 'post_modified_gmt' => current_time( 'mysql', true ) ) );
 		}
 		if ( isset( $changes['alts'] ) && is_array( $changes['alts'] ) ) {
 			$mine = Posts::photo_ids( $post->ID );
@@ -323,7 +516,26 @@ class Mine {
 				),
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => static fn( \WP_REST_Request $r ) => $wrap( self::update( (int) $r['id'], (array) $r->get_json_params() ) ),
+					'callback'            => static function ( \WP_REST_Request $r ) use ( $wrap ) {
+						// Plain changes come as JSON; with new photos, as a form whose 'data' field holds the JSON.
+						$changes = (array) $r->get_json_params();
+						$files   = $r->get_file_params();
+						if ( ! $changes && is_string( $r->get_param( 'data' ) ) ) {
+							$changes = (array) json_decode( $r->get_param( 'data' ), true );
+						}
+						$alts = $r->get_param( 'new_alts' );
+						return $wrap(
+							self::update(
+								(int) $r['id'],
+								$changes,
+								array(
+									'files'   => array_values( Rest::file_list( $files, 'photos' ) ),
+									'posters' => Rest::file_list( $files, 'posters' ),
+									'alts'    => is_array( $alts ) ? array_values( $alts ) : array(),
+								)
+							)
+						);
+					},
 					'permission_callback' => $owner,
 					'args'                => $id,
 				),

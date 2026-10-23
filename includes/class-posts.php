@@ -222,31 +222,9 @@ class Posts {
 			return new WP_Error( 'stubli_too_many_photos', __( 'A post can hold up to 10 photos.', 'stubli' ), array( 'status' => 400 ) );
 		}
 		$posters = isset( $extra['posters'] ) && is_array( $extra['posters'] ) ? $extra['posters'] : array();
-		$videos  = array();
-		foreach ( array_values( $files ) as $i => $file ) {
-			$check = wp_check_filetype_and_ext( $file['tmp_name'] ?? '', $file['name'] ?? '' );
-			if ( empty( $check['type'] ) && self::looks_like_video( $file ) ) {
-				// The host doesn't accept video files (WordPress.com Personal, for one): say so plainly.
-				return new WP_Error( 'stubli_video_not_allowed', self::no_video_message(), array( 'status' => 400 ) );
-			}
-			if ( in_array( $check['type'], self::VIDEO_TYPES, true ) ) {
-				if ( empty( $posters[ $i ]['tmp_name'] ) ) {
-					return new WP_Error( 'stubli_no_poster', __( 'That video arrived without its cover picture. Try sharing it again.', 'stubli' ), array( 'status' => 400 ) );
-				}
-				$pcheck = wp_check_filetype_and_ext( $posters[ $i ]['tmp_name'], $posters[ $i ]['name'] ?? 'poster.jpg' );
-				if ( ! in_array( $pcheck['type'], self::PHOTO_TYPES, true ) ) {
-					return new WP_Error( 'stubli_bad_poster', __( 'That video\'s cover picture couldn\'t be read. Try sharing it again.', 'stubli' ), array( 'status' => 400 ) );
-				}
-				$seconds = self::video_seconds( $file['tmp_name'] );
-				if ( $seconds > self::MAX_VIDEO_SECONDS + 1 ) {
-					return new WP_Error( 'stubli_video_too_long', __( 'Videos can be up to a minute long. Trim it on your phone, then share it again.', 'stubli' ), array( 'status' => 400 ) );
-				}
-				$videos[ $i ] = true;
-				continue;
-			}
-			if ( ! in_array( $check['type'], self::PHOTO_TYPES, true ) ) {
-				return new WP_Error( 'stubli_not_a_photo', __( 'That file isn\'t a photo or video. Try a JPEG, PNG or HEIC photo, or an MP4 or MOV video.', 'stubli' ), array( 'status' => 400 ) );
-			}
+		$videos  = self::check_media( $files, $posters );
+		if ( is_wp_error( $videos ) ) {
+			return $videos;
 		}
 		if ( self::visible_length( $caption ) > self::MAX_CAPTION_LENGTH ) {
 			return new WP_Error( 'stubli_caption_too_long', __( 'That caption is a little long. Trim it to 2,200 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
@@ -266,39 +244,10 @@ class Posts {
 			return $post_id;
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/media.php';
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-
-		$ids   = array();
-		$extra_ids = array();
-		foreach ( array_values( $files ) as $i => $file ) {
-			$video_id = 0;
-			if ( isset( $videos[ $i ] ) ) {
-				// The poster stands in for the video everywhere a photo is expected
-				// (grid, Discover, older readers); the video hangs off it.
-				$video_id = media_handle_sideload( $file, $post_id );
-				$file     = $posters[ $i ];
-				if ( ! is_wp_error( $video_id ) ) {
-					$extra_ids[] = (int) $video_id;
-				}
-			}
-			$attachment_id = is_wp_error( $video_id ) ? $video_id : media_handle_sideload( $file, $post_id );
-			if ( is_wp_error( $attachment_id ) ) {
-				foreach ( array_merge( $ids, $extra_ids ) as $done ) {
-					wp_delete_attachment( $done, true );
-				}
-				wp_delete_post( $post_id, true );
-				return new WP_Error( 'stubli_upload_failed', $video_id ? __( 'That video didn\'t upload. It may be too large for your host; try a shorter clip.', 'stubli' ) : __( 'That photo didn\'t upload. Your caption is saved; try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
-			}
-			if ( $video_id ) {
-				update_post_meta( $attachment_id, '_stubli_video', (int) $video_id );
-			}
-			$alt = sanitize_text_field( (string) ( $alts[ $i ] ?? '' ) );
-			if ( '' !== $alt ) {
-				update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt );
-			}
-			$ids[] = (int) $attachment_id;
+		$ids = self::sideload_media( $files, $alts, $posters, $videos, $post_id );
+		if ( is_wp_error( $ids ) ) {
+			wp_delete_post( $post_id, true );
+			return $ids;
 		}
 
 		if ( '' !== $import_key ) {
@@ -326,6 +275,91 @@ class Posts {
 			'photos' => count( $ids ),
 			'videos' => count( $videos ),
 		);
+	}
+
+	/**
+	 * Check uploaded photos and videos before anything is saved.
+	 *
+	 * @param array $files   Uploaded files.
+	 * @param array $posters Cover pictures for videos, keyed by position.
+	 * @return array|WP_Error Positions that are videos (position => true).
+	 */
+	public static function check_media( array $files, array $posters ) {
+		$videos = array();
+		foreach ( array_values( $files ) as $i => $file ) {
+			$check = wp_check_filetype_and_ext( $file['tmp_name'] ?? '', $file['name'] ?? '' );
+			if ( empty( $check['type'] ) && self::looks_like_video( $file ) ) {
+				// The host doesn't accept video files (WordPress.com Personal, for one): say so plainly.
+				return new WP_Error( 'stubli_video_not_allowed', self::no_video_message(), array( 'status' => 400 ) );
+			}
+			if ( in_array( $check['type'], self::VIDEO_TYPES, true ) ) {
+				if ( empty( $posters[ $i ]['tmp_name'] ) ) {
+					return new WP_Error( 'stubli_no_poster', __( 'That video arrived without its cover picture. Try sharing it again.', 'stubli' ), array( 'status' => 400 ) );
+				}
+				$pcheck = wp_check_filetype_and_ext( $posters[ $i ]['tmp_name'], $posters[ $i ]['name'] ?? 'poster.jpg' );
+				if ( ! in_array( $pcheck['type'], self::PHOTO_TYPES, true ) ) {
+					return new WP_Error( 'stubli_bad_poster', __( 'That video\'s cover picture couldn\'t be read. Try sharing it again.', 'stubli' ), array( 'status' => 400 ) );
+				}
+				$seconds = self::video_seconds( $file['tmp_name'] );
+				if ( $seconds > self::MAX_VIDEO_SECONDS + 1 ) {
+					return new WP_Error( 'stubli_video_too_long', __( 'Videos can be up to a minute long. Trim it on your phone, then share it again.', 'stubli' ), array( 'status' => 400 ) );
+				}
+				$videos[ $i ] = true;
+				continue;
+			}
+			if ( ! in_array( $check['type'], self::PHOTO_TYPES, true ) ) {
+				return new WP_Error( 'stubli_not_a_photo', __( 'That file isn\'t a photo or video. Try a JPEG, PNG or HEIC photo, or an MP4 or MOV video.', 'stubli' ), array( 'status' => 400 ) );
+			}
+		}
+		return $videos;
+	}
+
+	/**
+	 * Save checked photos and videos to a post's media. If one fails, the
+	 * ones already saved from this batch are removed again.
+	 *
+	 * @param array $files   Uploaded files.
+	 * @param array $alts    Descriptions, same order.
+	 * @param array $posters Cover pictures for videos, keyed by position.
+	 * @param array $videos  From check_media().
+	 * @param int   $post_id Post ID.
+	 * @return int[]|WP_Error Attachment IDs of the photos (video covers), in order.
+	 */
+	public static function sideload_media( array $files, array $alts, array $posters, array $videos, $post_id ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$ids       = array();
+		$extra_ids = array();
+		foreach ( array_values( $files ) as $i => $file ) {
+			$video_id = 0;
+			if ( isset( $videos[ $i ] ) ) {
+				// The poster stands in for the video everywhere a photo is expected
+				// (grid, Discover, older readers); the video hangs off it.
+				$video_id = media_handle_sideload( $file, $post_id );
+				$file     = $posters[ $i ];
+				if ( ! is_wp_error( $video_id ) ) {
+					$extra_ids[] = (int) $video_id;
+				}
+			}
+			$attachment_id = is_wp_error( $video_id ) ? $video_id : media_handle_sideload( $file, $post_id );
+			if ( is_wp_error( $attachment_id ) ) {
+				foreach ( array_merge( $ids, $extra_ids ) as $done ) {
+					wp_delete_attachment( $done, true );
+				}
+				return new WP_Error( 'stubli_upload_failed', $video_id ? __( 'That video didn\'t upload. It may be too large for your host; try a shorter clip.', 'stubli' ) : __( 'That photo didn\'t upload. Your caption is saved; try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
+			}
+			if ( $video_id ) {
+				update_post_meta( $attachment_id, '_stubli_video', (int) $video_id );
+			}
+			$alt = sanitize_text_field( (string) ( $alts[ $i ] ?? '' ) );
+			if ( '' !== $alt ) {
+				update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt );
+			}
+			$ids[] = (int) $attachment_id;
+		}
+		return $ids;
 	}
 
 	/**

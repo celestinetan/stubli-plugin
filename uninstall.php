@@ -18,6 +18,7 @@ foreach ( array( 'stubli_', 'og_' ) as $stubli_prefix ) {
 		delete_option( $stubli_prefix . $stubli_option );
 	}
 	wp_clear_scheduled_hook( $stubli_prefix . 'poll_follows' );
+	wp_clear_scheduled_hook( $stubli_prefix . 'purge_removed' );
 	$stubli_replies = get_posts(
 		array(
 			'post_type'   => array( $stubli_prefix . 'reply', $stubli_prefix . 'like', $stubli_prefix . 'note' ),

@@ -1141,7 +1141,7 @@
 		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' );
 		send( 'GET', 'mine/' + id, null ).then( function ( d ) {
 			if ( ! ed || ed.id !== id ) { return; }
-			ed.d = d; ed.noteOn = !! d.note; renderEdit();
+			ed.d = d; ed.noteOn = !! d.note; ed.orig = d.photos.map( function ( ph ) { return ph.id; } ); ed.ratio = d.ratio || 'portrait'; renderEdit();
 		}, function ( e ) {
 			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' ) + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#you">' + __( 'Back to your posts', 'stubli' ) + '</a></div></main>' );
 		} );
@@ -1160,18 +1160,29 @@
 		var missing = d.photos.filter( function ( p ) { return ! p.alt.trim(); } ).length;
 		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><button type="button" class="a-btn" data-ed-save' ) + ( ed.busy ? ' disabled' : '' ) + '>' + ( ed.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' +
-			( '<h2 class="a-label" id="a-ed-desc">' + ( d.photos.length > 1 ? __( 'Photos', 'stubli' ) : __( 'Description', 'stubli' ) ) + '</h2>' ) +
+			( '<h2 class="a-label" id="a-ed-desc">' + ( d.photos.length > 1 ? __( 'Photos', 'stubli' ) : __( 'Photo', 'stubli' ) ) + '</h2>' ) +
 			( d.photos.length > 1 ? '<p class="a-help" style="margin:-4px 0 10px">' + __( 'The first photo is the cover: it shows on your page and in your followers\' feeds. Change the order with the arrows. Descriptions are optional.', 'stubli' ) + '</p>' : '' ) +
-			
 			d.photos.map( function ( ph, i ) {
-				var n = d.photos.length;
-				return '<div class="a-alt a-ed-ph"><span class="a-ed-thumb"><img src="' + esc( ph.src ) + '" alt="">' + ( n > 1 && i === 0 ? '<span class="a-ed-cover">' + __( 'Cover', 'stubli' ) + '</span>' : '' ) + '</span>' +
-					'<span class="a-ed-ph-main"><label class="sr" for="a-ed-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + esc( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '">' +
-					( n > 1 ? '<span class="a-ed-ph-tools">' + ( i > 0 ? '<button type="button" class="a-text-btn" data-ed-cover="' + i + '">' + __( 'Make cover', 'stubli' ) + '</button>' : '' ) +
-						'<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s earlier', 'stubli' ), i + 1 ) ) + '">' + icon( 'up', 18 ) + '</button>' +
-						'<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s later', 'stubli' ), i + 1 ) ) + '">' + icon( 'down', 18 ) + '</button></span>' : '' ) +
+				var n = d.photos.length, kind = ph.video ? 'video' : 'photo';
+				return '<div class="a-alt a-ed-ph"><span class="a-ed-thumb"><img src="' + esc( ph.nu ? ph.thumb : ph.src ) + '" alt="">' + ( n > 1 && i === 0 ? '<span class="a-ed-cover">' + __( 'Cover', 'stubli' ) + '</span>' : ( ph.nu ? '<span class="a-ed-cover a-ed-new">' + _x( 'New', 'photo', 'stubli' ) + '</span>' : '' ) ) + '</span>' +
+					'<span class="a-ed-ph-main"><label class="sr" for="a-ed-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + esc( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '"></span>' +
+					'<span class="a-ed-ph-tools"><span class="a-ed-ph-acts">' +
+						( n > 1 && i > 0 ? '<button type="button" class="a-text-btn" data-ed-cover="' + i + '">' + __( 'Make cover', 'stubli' ) + '</button>' : '' ) +
+						'<label class="a-text-btn">' + __( 'Replace', 'stubli' ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" data-ed-rep="' + i + '" aria-label="' + esc( kind === 'video' ? _f( __( 'Replace video %s', 'stubli' ), i + 1 ) : _f( __( 'Replace photo %s', 'stubli' ), i + 1 ) ) + '"></label>' +
+						( n > 1 ? '<button type="button" class="a-text-btn" data-ed-rm="' + i + '" aria-label="' + esc( kind === 'video' ? _f( __( 'Remove video %s', 'stubli' ), i + 1 ) : _f( __( 'Remove photo %s', 'stubli' ), i + 1 ) ) + '">' + __( 'Remove', 'stubli' ) + '</button>' : '' ) +
+					'</span>' +
+					( n > 1 ? '<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s earlier', 'stubli' ), i + 1 ) ) + '">' + icon( 'up', 18 ) + '</button>' +
+						'<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s later', 'stubli' ), i + 1 ) ) + '">' + icon( 'down', 18 ) + '</button>' : '' ) +
 					'</span></div>';
 			} ).join( '' ) +
+			( d.photos.length < B.maxPhotos ? '<label class="a-btn quiet a-ed-add">' + icon( 'plus', 18 ) + ( ( B.videoTypes || [] ).length ? __( 'Add photos or videos', 'stubli' ) : __( 'Add photos', 'stubli' ) ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-ed-add></label>' : '' ) +
+			( ed.loading ? '<p class="muted" role="status">' + __( 'Opening your video…', 'stubli' ) + '</p>' : '' ) +
+			( d.photos.some( function ( ph ) { return ph.nu && ! ph.video; } ) ? '<h2 class="a-label" id="a-ed-shape">' + __( 'Shape for new photos', 'stubli' ) + '</h2><div class="a-ratios" role="radiogroup" aria-labelledby="a-ed-shape">' + Object.keys( RATIOS ).map( function ( k ) {
+				var lab = { portrait: __( 'Portrait', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
+				return '<button type="button" class="a-chip" role="radio" data-ed-ratio="' + k + '" aria-checked="' + ( ed.ratio === k ) + '">' + icon( k, 16 ) + lab[ k ] + '</button>';
+			} ).join( '' ) + '</div><p class="a-help">' + __( 'New photos are cropped to this shape, from the middle. The photos already in the post stay as they are.', 'stubli' ) + '</p>' : '' ) +
+			( ed.orig.some( function ( id ) { return ! d.photos.some( function ( ph ) { return ph.id === id; } ); } ) ? '<p class="a-help">' + __( 'Photos you take out are deleted from your site when you tap Save. You can undo straight after.', 'stubli' ) + '</p>' : '' ) +
+			( ed.photoMsg ? '<div class="a-notice calm" role="alert"><p>' + esc( ed.photoMsg ) + '</p></div>' : '' ) +
 			( '<label class="a-label" for="a-ed-cap">' + __( 'Caption', 'stubli' ) + '</label><textarea id="a-ed-cap" class="a-textarea" maxlength="' ) + B.maxCaption + '">' + esc( d.caption ) + '</textarea>' +
 			'<p class="a-count" data-ed-count' + ( d.caption.length < B.maxCaption - 200 ? ' hidden' : '' ) + '>' + d.caption.length + ' / ' + B.maxCaption + '</p>' +
 			( '<h2 class="a-label" id="a-ed-col">' + __( 'Collection', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-ed-col">' ) +
@@ -1195,6 +1206,23 @@
 		var d = ed.d;
 		$$( '[data-ed-alt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { d.photos[ +inp.dataset.edAlt ].alt = inp.value; } ); } );
 		$$( '[data-ed-mv]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var i = +b.dataset.edMv, j = i + ( +b.dataset.dir ); var t = d.photos[ i ]; d.photos[ i ] = d.photos[ j ]; d.photos[ j ] = t; ed.moved = true; renderEdit(); var f = $( '[data-ed-mv="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-ed-mv="' + j + '"]' ); if ( f && ! f.disabled ) { f.focus(); } } ); } );
+		var edFiles = function ( list, at ) {
+			var files = Array.prototype.slice.call( list || [] ), room = B.maxPhotos - d.photos.length + ( at == null ? 0 : 1 );
+			ed.photoMsg = '';
+			if ( files.length > room ) { ed.photoMsg = _f( __( 'A post holds up to %s photos, so only the first %s were added.', 'stubli' ), B.maxPhotos, room ); files = files.slice( 0, room ); }
+			prepFiles( files, function () { ed.loading = true; renderEdit(); } ).then( function ( r ) {
+				ed.loading = false;
+				r.got.forEach( function ( g ) { g.nu = true; } );
+				if ( at == null ) { Array.prototype.push.apply( d.photos, r.got ); } else if ( r.got.length ) { d.photos.splice( at, 1, r.got[ 0 ] ); }
+				if ( r.notes.length ) { ed.photoMsg = ( ed.photoMsg ? ed.photoMsg + ' ' : '' ) + r.notes.join( ' ' ); }
+				renderEdit();
+				if ( r.got.length ) { toast( at == null ? __( 'Added. Tap Save to keep it.', 'stubli' ) : __( 'Replaced. Tap Save to keep it.', 'stubli' ) ); }
+			} );
+		};
+		$$( '[data-ed-rep]' ).forEach( function ( inp ) { inp.addEventListener( 'change', function () { edFiles( inp.files, +inp.dataset.edRep ); } ); } );
+		var add = $( '[data-ed-add]' ); if ( add ) { add.addEventListener( 'change', function () { edFiles( add.files, null ); } ); }
+		$$( '[data-ed-rm]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var i = +b.dataset.edRm; d.photos.splice( i, 1 ); renderEdit(); var f = $( '[data-ed-alt="' + Math.min( i, d.photos.length - 1 ) + '"]' ); if ( f ) { f.focus(); } toast( __( 'Taken out. Tap Save to keep the change.', 'stubli' ) ); } ); } );
+		$$( '[data-ed-ratio]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { ed.ratio = b.dataset.edRatio; renderEdit(); $( '[data-ed-ratio="' + ed.ratio + '"]' ).focus(); } ); } );
 		$$( '[data-ed-cover]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var i = +b.dataset.edCover; d.photos.unshift( d.photos.splice( i, 1 )[ 0 ] ); ed.moved = true; renderEdit(); toast( __( 'That\'s the cover now. Tap Save to keep it.', 'stubli' ) ); } ); } );
 		var cap = $( '#a-ed-cap' ), cnt = $( '[data-ed-count]' );
 		cap.addEventListener( 'input', function () { d.caption = cap.value; cnt.textContent = cap.value.length + ' / ' + B.maxCaption; cnt.hidden = cap.value.length < B.maxCaption - 200; } );
@@ -1205,14 +1233,41 @@
 		$( '[data-ed-note]' ).addEventListener( 'change', function ( e ) { ed.noteOn = e.target.checked; renderEdit(); if ( ed.noteOn ) { $( '#a-ed-notetext' ).focus(); } } );
 		var nt = $( '#a-ed-notetext' ); if ( nt ) { nt.addEventListener( 'input', function () { d.note = nt.value; } ); }
 		$( '[data-ed-save]' ).addEventListener( 'click', function () {
-			var alts = {}; d.photos.forEach( function ( p ) { alts[ p.id ] = p.alt; } );
+			var alts = {}; d.photos.forEach( function ( p ) { if ( ! p.nu ) { alts[ p.id ] = p.alt; } } );
 			var col = ed.adding ? ed.newCol.trim() : d.collection;
 			if ( ed.adding && ! col ) { ed.error = __( 'Give the new collection a name, or choose one above.', 'stubli' ); renderEdit(); return; }
 			if ( ed.noteOn && ! d.note.trim() ) { ed.error = __( 'Write a short content note, like "Flashing lights", or turn it off.', 'stubli' ); renderEdit(); return; }
 			ed.busy = true; ed.error = ''; renderEdit();
-			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone', order: d.photos.map( function ( ph ) { return ph.id; } ) } ).then( function ( r ) {
+			var news = d.photos.filter( function ( ph ) { return ph.nu; } ), orig = ed.orig.slice(), id = ed.id;
+			var body = { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone', order: d.photos.map( function ( ph ) { return ph.nu ? 'new' + news.indexOf( ph ) : ph.id; } ) };
+			var total = 0;
+			var req = ! news.length ? send( 'POST', 'mine/' + id, body ) : Promise.all( news.map( function ( ph ) {
+				return ( ph.video ? stripLocation( ph.file ) : cropped( ph.file, ed.ratio ) ).then( function ( b ) { total += b.size + ( ph.video ? ph.poster.size : 0 ); return b; } );
+			} ) ).then( function ( blobs ) {
+				if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: _f( __( 'Together these are %s, and your host accepts up to %s at once. Add the videos one at a time, or choose a shorter clip.', 'stubli' ), fmtMB( total ), fmtMB( B.maxPost ) ) } ); }
+				var fd = new FormData();
+				blobs.forEach( function ( b, i ) {
+					var ph = news[ i ];
+					if ( ph.video ) {
+						fd.append( 'photos[]', b, 'video-' + ( i + 1 ) + ( /quicktime/.test( b.type ) || /\.mov$/i.test( ph.file.name ) ? '.mov' : '.mp4' ) );
+						fd.append( 'posters[' + i + ']', ph.poster, 'video-' + ( i + 1 ) + '-cover.jpg' );
+					} else {
+						fd.append( 'photos[]', b, 'photo-' + ( i + 1 ) + '.jpg' );
+					}
+					fd.append( 'new_alts[]', ( ph.alt || '' ).trim() );
+				} );
+				fd.append( 'data', JSON.stringify( body ) );
+				return send( 'POST', 'mine/' + id, fd );
+			} );
+			req.then( function ( r ) {
 				if ( col && ( B.collections || [] ).indexOf( col ) < 0 ) { ( B.collections = B.collections || [] ).push( col ); }
-				ed = null; mine.loaded = false; location.hash = '#you'; toast( __( 'Saved.', 'stubli' ) );
+				var now = ( r && r.photos || [] ).map( function ( ph ) { return ph.id; } );
+				var gone = orig.some( function ( x ) { return now.indexOf( x ) < 0; } );
+				ed = null; mine.loaded = false; location.hash = '#you';
+				// Photos taken out stay on the site for a few minutes, so Undo can put them back.
+				toast( __( 'Saved.', 'stubli' ), gone ? function () {
+					send( 'POST', 'mine/' + id, { order: orig } ).then( function () { mine.loaded = false; if ( location.hash === '#you' ) { route(); } toast( __( 'The photos are back as they were.', 'stubli' ) ); }, function ( e ) { toast( e.message ); } );
+				} : null );
 			}, function ( e ) { ed.busy = false; ed.error = e.message; renderEdit(); } );
 		} );
 		var del = $( '[data-ed-del]' ); if ( del ) { del.addEventListener( 'click', function () { ed.sure = true; renderEdit(); $( '[data-ed-del-no]' ).focus(); } ); }
@@ -2253,17 +2308,17 @@
 		var next = $( '[data-next]' );
 		next.addEventListener( 'click', function () { if ( p.photos.length ) { location.hash = '#new/details'; } } );
 	}
-	function addFiles( list ) {
-		var p = post, files = Array.prototype.slice.call( list || [] ), room = B.maxPhotos - p.photos.length;
-		if ( files.length > room ) { p.error = _f( __( 'A post holds up to %s photos, so only the first %s were added.', 'stubli' ), B.maxPhotos, room ); files = files.slice( 0, room ); }
+	// Read chosen files into photo entries (thumbnail, or video details), leaving out
+	// what can't be used and saying why. Used by the composer and the post editor.
+	function prepFiles( files, onVideo ) {
 		var bad = 0, notes = [];
 		// Videos the host can't take are left out before anything is read or written.
 		if ( files.some( function ( f ) { return isVideo( f ) && ! canVideo( videoType( f ) ); } ) ) {
 			files = files.filter( function ( f ) { return ! isVideo( f ) || canVideo( videoType( f ) ); } );
 			notes.push( B.noVideo || '' );
 		}
-		if ( files.some( isVideo ) ) { p.loading = true; viewPick(); }
-		Promise.all( files.map( function ( f ) {
+		if ( onVideo && files.some( isVideo ) ) { onVideo(); }
+		return Promise.all( files.map( function ( f ) {
 			if ( isVideo( f ) ) {
 				if ( B.maxUpload && f.size > B.maxUpload ) { notes.push( _f( __( 'This video is %s, and your host accepts up to %s per file. Try a shorter clip.', 'stubli' ), fmtMB( f.size ), fmtMB( B.maxUpload ) ) ); return null; }
 				return videoInfo( f ).catch( function () { return videoInfoFromFile( f ); } ).then( function ( v ) {
@@ -2273,10 +2328,17 @@
 			}
 			return makeThumb( f ).then( function ( t ) { return { file: f, thumb: t, alt: '' }; }, function () { bad++; return null; } );
 		} ) ).then( function ( got ) {
-			p.loading = false;
-			got.forEach( function ( g ) { if ( g ) { p.photos.push( g ); } } );
 			if ( bad ) { notes.push( ( bad === 1 ? __( 'One photo couldn\'t be opened. Try a JPEG or PNG, or pick it again.', 'stubli' ) : _f( __( '%s photos couldn\'t be opened. Try a JPEG or PNG, or pick it again.', 'stubli' ), bad ) ) ); }
-			if ( notes.length ) { p.error = ( p.error ? p.error + ' ' : '' ) + notes.join( ' ' ); }
+			return { got: got.filter( Boolean ), notes: notes };
+		} );
+	}
+	function addFiles( list ) {
+		var p = post, files = Array.prototype.slice.call( list || [] ), room = B.maxPhotos - p.photos.length;
+		if ( files.length > room ) { p.error = _f( __( 'A post holds up to %s photos, so only the first %s were added.', 'stubli' ), B.maxPhotos, room ); files = files.slice( 0, room ); }
+		prepFiles( files, function () { p.loading = true; viewPick(); } ).then( function ( r ) {
+			p.loading = false;
+			r.got.forEach( function ( g ) { p.photos.push( g ); } );
+			if ( r.notes.length ) { p.error = ( p.error ? p.error + ' ' : '' ) + r.notes.join( ' ' ); }
 			p.current = Math.max( 0, p.photos.length - 1 );
 			viewPick();
 		} );

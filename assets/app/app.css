@@ -623,7 +623,13 @@ label.a-tool { position: relative; }
 .a-ed-cover { position: absolute; left: 4px; bottom: 4px; line-height: 1.3; padding: 2px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; }
 .a-ed-ph-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .a-ed-ph-tools { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-.a-ed-ph-tools .a-text-btn { margin-right: auto; }
+.a-ed-ph-tools { grid-column: 1 / -1; }
+.a-ed-ph-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 2px; margin: 0 auto 0 -8px; }
+.a-ed-ph-acts .a-text-btn { font-size: 14px; }
+.a-ed-ph-acts .a-text-btn { position: relative; cursor: pointer; }
+.a-ed-ph-acts label.a-text-btn:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 8px; }
+.a-ed-new { background: var(--surface); color: var(--ink); }
+.a-ed-add { margin: 12px 0 4px; cursor: pointer; }
 .a-desc-open { margin-top: 8px; }
 
 /* Hold to edit: no text selection or phone menus on long-press. */
