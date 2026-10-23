@@ -226,6 +226,21 @@ class Mine {
 		if ( array_key_exists( 'audience', $changes ) ) {
 			Friends::set_audience( $post->ID, 'friends' === $changes['audience'] ? 'friends' : 'everyone' );
 		}
+		if ( isset( $changes['order'] ) && is_array( $changes['order'] ) ) {
+			// A new order for the photos: the same photos, rearranged. The first is the cover.
+			$mine  = Posts::photo_ids( $post->ID );
+			$order = array_values( array_unique( array_map( 'intval', $changes['order'] ) ) );
+			$same  = $order;
+			sort( $same );
+			$had = $mine;
+			sort( $had );
+			if ( $same === $had && $order !== $mine ) {
+				update_post_meta( $post->ID, '_stubli_photos', $order );
+				set_post_thumbnail( $post->ID, $order[0] );
+				// Readers notice the change at their next check.
+				wp_update_post( array( 'ID' => $post->ID, 'post_modified' => current_time( 'mysql' ), 'post_modified_gmt' => current_time( 'mysql', true ) ) );
+			}
+		}
 		if ( isset( $changes['alts'] ) && is_array( $changes['alts'] ) ) {
 			$mine = Posts::photo_ids( $post->ID );
 			foreach ( $changes['alts'] as $aid => $alt ) {

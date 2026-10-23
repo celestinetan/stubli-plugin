@@ -974,9 +974,17 @@
 		var missing = d.photos.filter( function ( p ) { return ! p.alt.trim(); } ).length;
 		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><button type="button" class="a-btn" data-ed-save' ) + ( ed.busy ? ' disabled' : '' ) + '>' + ( ed.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' +
-			( '<h2 class="a-label" id="a-ed-desc">' + __( 'Descriptions', 'stubli' ) + '</h2>' ) + ( missing ? '<p class="a-help" style="margin:-4px 0 10px">' + ( missing === 1 ? __( 'One photo needs a few words: what\'s in it, for people who can\'t see it.', 'stubli' ) : _f( __( '%s photos need a few words: what\'s in it, for people who can\'t see it.', 'stubli' ), missing ) ) + '</p>' : '' ) +
+			( '<h2 class="a-label" id="a-ed-desc">' + ( d.photos.length > 1 ? __( 'Photos', 'stubli' ) : __( 'Description', 'stubli' ) ) + '</h2>' ) +
+			( d.photos.length > 1 ? '<p class="a-help" style="margin:-4px 0 10px">' + __( 'The first photo is the cover: it shows on your page and in your followers\' feeds. Change the order with the arrows. Descriptions are optional.', 'stubli' ) + '</p>' : '' ) +
+			( missing ? '<p class="a-help" style="margin:-4px 0 10px">' + ( missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), missing ) ) + '</p>' : '' ) +
 			d.photos.map( function ( ph, i ) {
-				return '<div class="a-alt"><img src="' + esc( ph.src ) + '" alt=""><label class="sr" for="a-ed-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '"></div>';
+				var n = d.photos.length;
+				return '<div class="a-alt a-ed-ph"><span class="a-ed-thumb"><img src="' + esc( ph.src ) + '" alt="">' + ( n > 1 && i === 0 ? '<span class="a-ed-cover">' + __( 'Cover', 'stubli' ) + '</span>' : '' ) + '</span>' +
+					'<span class="a-ed-ph-main"><label class="sr" for="a-ed-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + esc( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '">' +
+					( n > 1 ? '<span class="a-ed-ph-tools">' + ( i > 0 ? '<button type="button" class="a-text-btn" data-ed-cover="' + i + '">' + __( 'Make cover', 'stubli' ) + '</button>' : '' ) +
+						'<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s earlier', 'stubli' ), i + 1 ) ) + '">' + icon( 'up', 18 ) + '</button>' +
+						'<button type="button" class="a-icon-btn" data-ed-mv="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move photo %s later', 'stubli' ), i + 1 ) ) + '">' + icon( 'down', 18 ) + '</button></span>' : '' ) +
+					'</span></div>';
 			} ).join( '' ) +
 			( '<label class="a-label" for="a-ed-cap">' + __( 'Caption', 'stubli' ) + '</label><textarea id="a-ed-cap" class="a-textarea" maxlength="' ) + B.maxCaption + '">' + esc( d.caption ) + '</textarea>' +
 			'<p class="a-count" data-ed-count' + ( d.caption.length < B.maxCaption - 200 ? ' hidden' : '' ) + '>' + d.caption.length + ' / ' + B.maxCaption + '</p>' +
@@ -1000,6 +1008,8 @@
 	function bindEdit() {
 		var d = ed.d;
 		$$( '[data-ed-alt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { d.photos[ +inp.dataset.edAlt ].alt = inp.value; } ); } );
+		$$( '[data-ed-mv]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var i = +b.dataset.edMv, j = i + ( +b.dataset.dir ); var t = d.photos[ i ]; d.photos[ i ] = d.photos[ j ]; d.photos[ j ] = t; ed.moved = true; renderEdit(); var f = $( '[data-ed-mv="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-ed-mv="' + j + '"]' ); if ( f && ! f.disabled ) { f.focus(); } } ); } );
+		$$( '[data-ed-cover]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var i = +b.dataset.edCover; d.photos.unshift( d.photos.splice( i, 1 )[ 0 ] ); ed.moved = true; renderEdit(); toast( __( 'That\'s the cover now. Tap Save to keep it.', 'stubli' ) ); } ); } );
 		var cap = $( '#a-ed-cap' ), cnt = $( '[data-ed-count]' );
 		cap.addEventListener( 'input', function () { d.caption = cap.value; cnt.textContent = cap.value.length + ' / ' + B.maxCaption; cnt.hidden = cap.value.length < B.maxCaption - 200; } );
 		$$( '[data-ed-col]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.collection = b.dataset.edCol; ed.adding = false; renderEdit(); } ); } );
@@ -1014,7 +1024,7 @@
 			if ( ed.adding && ! col ) { ed.error = __( 'Give the new collection a name, or choose one above.', 'stubli' ); renderEdit(); return; }
 			if ( ed.noteOn && ! d.note.trim() ) { ed.error = __( 'Write a short content note, like "Flashing lights", or turn it off.', 'stubli' ); renderEdit(); return; }
 			ed.busy = true; ed.error = ''; renderEdit();
-			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone' } ).then( function ( r ) {
+			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone', order: d.photos.map( function ( ph ) { return ph.id; } ) } ).then( function ( r ) {
 				if ( col && ( B.collections || [] ).indexOf( col ) < 0 ) { ( B.collections = B.collections || [] ).push( col ); }
 				ed = null; mine.loaded = false; location.hash = '#you'; toast( __( 'Saved.', 'stubli' ) );
 			}, function ( e ) { ed.busy = false; ed.error = e.message; renderEdit(); } );
@@ -1947,10 +1957,11 @@
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>';
 			} ).join( '' ) + '<button type="button" class="a-chip" role="radio" aria-checked="' + p.addingCollection + '" data-col-new>' + ( p.addingCollection ? icon( 'check', 16 ) : '' ) + ( __( '+ New', 'stubli' ) + '</button></div>' ) +
 			( p.addingCollection ? ( '<div class="a-inline"><label class="sr" for="a-newcol">' + __( 'New collection name', 'stubli' ) + '</label><input id="a-newcol" class="a-field" maxlength="40" placeholder="' + esc( __( 'e.g. Mountains', 'stubli' ) ) + '" value="' ) + esc( p.newCollection ) + ( '"></div><p class="a-help">' + __( 'Each collection is a folder tab on your page. An emoji at the start is welcome.', 'stubli' ) + '</p>' ) : '' ) +
-			'<h2 class="a-label">' + ( p.photos.some( function ( x ) { return x.video; } ) ? __( 'Describe what\'s shown for people who can\'t see it', 'stubli' ) : __( 'Describe the photos for people who can\'t see them', 'stubli' ) ) + '</h2>' +
+			( ( p.descOpen || p.photos.some( function ( x ) { return x.alt && x.alt.trim(); } ) ) ? '' : '<button type="button" class="a-btn quiet a-desc-open" data-desc-open aria-expanded="false">' + icon( 'plus', 16 ) + __( 'Add descriptions', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></button><p class="a-help">' + __( 'A few words per photo, read aloud to people who use screen readers. You can add them later too.', 'stubli' ) + '</p>' ) +
+			( ( p.descOpen || p.photos.some( function ( x ) { return x.alt && x.alt.trim(); } ) ) ? '<h2 class="a-label">' + ( p.photos.some( function ( x ) { return x.video; } ) ? __( 'Describe what\'s shown for people who can\'t see it', 'stubli' ) : __( 'Describe the photos for people who can\'t see them', 'stubli' ) ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></h2>' +
 			p.photos.map( function ( ph, i ) {
 				return '<div class="a-alt"><img src="' + ph.thumb + '" alt=""><label class="sr" for="a-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-alt-' + i + '" class="a-field" data-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '"></div>';
-			} ).join( '' ) +
+			} ).join( '' ) : '' ) +
 			audienceChips( p.audience, 'aud' ) +
 			( '<label class="a-check"><span><strong>' + __( 'Add a content note', 'stubli' ) + '</strong><span class="muted small">' + __( 'The photo stays softly blurred until someone chooses to see it.', 'stubli' ) + '</span></span><input type="checkbox" data-note' ) + ( p.note ? ' checked' : '' ) + '></label>' +
 			( p.note ? ( '<div class="a-inline"><label class="sr" for="a-note">' + __( 'Content note', 'stubli' ) + '</label><input id="a-note" class="a-field" maxlength="' ) + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( p.noteText ) + '"></div>' : '' ) +
@@ -1977,6 +1988,7 @@
 		var nc = $( '#a-newcol' );
 		if ( nc ) { nc.addEventListener( 'input', function () { p.newCollection = nc.value; } ); }
 		$$( '[data-alt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { p.photos[ +inp.dataset.alt ].alt = inp.value; p.altsChecked = false; } ); } );
+		var dop = $( '[data-desc-open]' ); if ( dop ) { dop.addEventListener( 'click', function () { p.descOpen = true; viewDetails(); var f = $( '#a-alt-0' ); if ( f ) { f.focus(); } } ); }
 		$$( '[data-aud]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { p.audience = b.dataset.aud; viewDetails(); $( '[data-aud="' + p.audience + '"]' ).focus(); } ); } );
 		$( '[data-note]' ).addEventListener( 'change', function ( e ) { p.note = e.target.checked; viewDetails(); if ( p.note ) { $( '#a-note' ).focus(); } } );
 		var nt = $( '#a-note' );
@@ -1990,7 +2002,7 @@
 		var p = post;
 		if ( p.busy ) { return; }
 		var missing = p.photos.map( function ( ph, i ) { return ph.alt.trim() ? 0 : i + 1; } ).filter( Boolean );
-		if ( missing.length && ! p.altsChecked ) {
+		if ( false && missing.length && ! p.altsChecked ) { // Descriptions are optional (23 Oct): no stop before sharing.
 			msg( '<div class="a-notice calm" role="alert"><p>' + ( missing.length === 1 ? _f( __( 'Photo %s has no description yet. People using a screen reader will only hear "photo".', 'stubli' ), missing[ 0 ] ) : _f( __( 'Photos %s have no description yet. People using a screen reader will only hear "photo".', 'stubli' ), missing.join( ', ' ) ) ) + ( '</p><div class="a-actions"><button type="button" class="a-btn quiet" data-fix>' + __( 'Add a description', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-anyway>' + __( 'Share anyway', 'stubli' ) + '</button></div></div>' ) );
 			$( '[data-fix]' ).addEventListener( 'click', function () { var f = $( '#a-alt-' + ( missing[ 0 ] - 1 ) ); f.focus(); f.scrollIntoView( { block: 'center' } ); } );
 			$( '[data-anyway]' ).addEventListener( 'click', function () { p.altsChecked = true; share(); } );

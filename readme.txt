@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.28.3
+Stable tag: 0.29.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,15 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.29.1 =
+* A collection whose first photo is landscape (or square) shows all its tiles that way.
+* Fix: a cover photo no longer makes the page wider than a phone screen.
+
+= 0.29.0 =
+* Edit post: change the order of the photos and choose the cover.
+* New post: descriptions are optional, behind Add descriptions.
+* Cards about you look like party-game cards: bold colour, the question big.
 
 = 0.28.3 =
 * Cards about you: short answers are larger and centred, so every card looks full.

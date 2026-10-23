@@ -281,7 +281,18 @@ function stubli_grid( WP_Query $q ) {
 		echo stubli_empty( 'photos' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		return;
 	}
-	echo '<ul class="st-grid" role="list">';
+	// The collection takes the shape of its first photo: landscape, square or portrait (the default).
+	$shape = 'portrait';
+	$first = stubli_photo_ids( $q->posts[0]->ID );
+	if ( $first ) {
+		$meta = wp_get_attachment_metadata( $first[0] );
+		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+			$r     = (float) $meta['width'] / (float) $meta['height'];
+			$shape = $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : 'portrait' );
+		}
+	}
+	$size = 'portrait' === $shape ? 'stubli-tile' : 'medium_large';
+	echo '<ul class="st-grid' . ( 'portrait' !== $shape ? ' is-' . esc_attr( $shape ) : '' ) . '" role="list">';
 	foreach ( $q->posts as $post ) {
 		$ids  = stubli_photo_ids( $post->ID );
 		$note = (string) get_post_meta( $post->ID, '_stubli_content_note', true );
@@ -289,7 +300,7 @@ function stubli_grid( WP_Query $q ) {
 		echo '<li><a class="st-tile" href="' . esc_url( get_permalink( $post ) ) . '">';
 		echo '<span class="st-tile-photo' . ( $note ? ' has-note' : '' ) . '">';
 		if ( $ids ) {
-			echo wp_get_attachment_image( $ids[0], 'stubli-tile', false, array( 'alt' => $note ? '' : $alt, 'loading' => 'lazy', 'sizes' => '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 46vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_get_attachment_image( $ids[0], $size, false, array( 'alt' => $note ? '' : $alt, 'loading' => 'lazy', 'sizes' => '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 46vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 		if ( count( $ids ) > 1 ) {
 			echo '<span class="st-badge">' . stubli_icon( 'stack', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Photos:', 'stubli' ) . ' </span>' . (int) count( $ids ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
