@@ -671,3 +671,6 @@ html { scroll-behavior: smooth; }
 	.st-top-brand .st-top-pages a.st-top-join { padding: 0 7px; }
 	.st-top-brand .st-top-pages a.st-top-help, .st-top-brand .st-mode { width: 30px; min-width: 30px; }
 }
+
+/* A pinned post: a small pin, top left (the photo-count badge is top right). */
+.st-badge.st-badge-pin { right: auto; left: 8px; }

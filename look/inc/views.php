@@ -298,6 +298,9 @@ function stubli_grid( WP_Query $q ) {
 		if ( $note ) {
 			echo '<span class="st-tile-note">' . esc_html( $note ) . '</span>';
 		}
+		if ( ! empty( $post->stubli_pinned ) ) {
+			echo '<span class="st-badge st-badge-pin">' . stubli_icon( 'pin', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Pinned', 'stubli' ) . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
 		echo '</span><span class="st-tile-caption"><span class="st-muted">' . esc_html( stubli_short_date( $post ) ) . '</span> · ' . esc_html( stubli_post_label( $post ) ) . '</span>';
 		echo '</a></li>';
 	}

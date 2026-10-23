@@ -140,9 +140,19 @@ function stubli_collections() {
 			$out[]              = $term;
 		}
 	}
+	// The owner's order (Arrange in the app) first, the rest biggest first.
+	$order = array_map( 'intval', (array) get_option( 'stubli_coll_order', array() ) );
 	usort(
 		$out,
-		static function ( $a, $b ) {
+		static function ( $a, $b ) use ( $order ) {
+			$ia = array_search( (int) $a->term_id, $order, true );
+			$ib = array_search( (int) $b->term_id, $order, true );
+			if ( false !== $ia && false !== $ib ) {
+				return $ia - $ib;
+			}
+			if ( false !== $ia || false !== $ib ) {
+				return false !== $ia ? -1 : 1;
+			}
 			return $b->stubli_count - $a->stubli_count;
 		}
 	);
@@ -182,7 +192,56 @@ function stubli_photos( $cat = 0, $paged = 1 ) {
 	if ( $cat ) {
 		$args['cat'] = (int) $cat;
 	}
-	return new WP_Query( $args );
+	$pins = $cat ? stubli_pins( (int) $cat ) : array();
+	if ( ! $pins ) {
+		return new WP_Query( $args );
+	}
+	// Pinned posts lead the collection's first page; the rest follow newest first.
+	$n                    = count( $pins );
+	$args['post__not_in'] = $pins;
+	$page                 = max( 1, (int) $paged );
+	$args['offset']       = 1 === $page ? 0 : ( $page - 1 ) * 24 - $n;
+	if ( 1 === $page ) {
+		$args['posts_per_page'] = 24 - $n;
+	}
+	$q = new WP_Query( $args );
+	if ( 1 === $page ) {
+		$top = get_posts(
+			array(
+				'post__in'       => $pins,
+				'orderby'        => 'post__in',
+				'post_status'    => 'publish',
+				'posts_per_page' => $n,
+			)
+		);
+		foreach ( $top as $t ) {
+			$t->stubli_pinned = true;
+		}
+		$q->posts      = array_merge( $top, $q->posts );
+		$q->post_count = count( $q->posts );
+	}
+	$q->found_posts  += $n;
+	$q->max_num_pages = (int) ceil( $q->found_posts / 24 );
+	$q->set( 'paged', $page );
+	return $q;
+}
+
+/**
+ * Posts pinned to the top of a collection (Arrange in the app), still there.
+ *
+ * @param int $cat Category ID.
+ * @return int[]
+ */
+function stubli_pins( $cat ) {
+	$all  = (array) get_option( 'stubli_pins', array() );
+	$keep = array();
+	foreach ( (array) ( $all[ $cat ] ?? array() ) as $id ) {
+		$p = get_post( (int) $id );
+		if ( $p && 'publish' === $p->post_status && has_category( (int) $cat, $p ) ) {
+			$keep[] = (int) $id;
+		}
+	}
+	return array_slice( $keep, 0, 3 );
 }
 
 /**

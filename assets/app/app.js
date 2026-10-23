@@ -64,6 +64,9 @@
 		landscape: '<rect x="3" y="7.5" width="18" height="9" rx="2"/>',
 		play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
 		chev: '<path d="M9 6l6 6-6 6"/>',
+		up: '<path d="M6 15l6-6 6 6"/>',
+		down: '<path d="M6 9l6 6 6-6"/>',
+		pin: '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
@@ -398,6 +401,8 @@
 		if ( h === 'you' ) { return viewYou(); }
 		if ( h === 'more' ) { return viewMore(); }
 		if ( h === 'about' ) { return viewAbout(); }
+		if ( h === 'arrange' ) { return viewArrange(); }
+		if ( /^arrange\/\d+$/.test( h ) ) { return viewPins( +h.split( '/' )[ 1 ] ); }
 		if ( /^note\/\d+$/.test( h ) ) { return viewNote( +h.split( '/' )[ 1 ] ); }
 		if ( h === 'feedback' ) { return viewFeedback(); }
 		if ( h === 'import' ) { if ( imp && ( imp.state === 'done' || imp.state === 'empty' ) ) { imp = null; } return viewImport(); }
@@ -439,6 +444,7 @@
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Settings and more', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' ) +
 			( '<section class="a-card"><h2>' + __( 'Your page', 'stubli' ) + '</h2><p class="muted">' ) + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a><a class="a-btn quiet" href="' ) + esc( B.settings ) + ( '">' + __( 'Advanced settings', 'stubli' ) + '</a></div><p class="a-help">' + __( 'Your name, photo and bio are under Edit page. Advanced settings open your WordPress dashboard.', 'stubli' ) + '</p></section>' ) +
 			summaryCard() +
+			( '<section class="a-card"><h2>' + __( 'Arrange your page', 'stubli' ) + '</h2><p class="muted">' + __( 'Put your collection tabs in the order you like, and pin up to three favourites to the top of each.', 'stubli' ) + '</p><a class="a-btn quiet" href="#arrange">' + __( 'Arrange', 'stubli' ) + '</a></section>' ) +
 			( '<section class="a-card"><h2>' + __( 'Share something', 'stubli' ) + '</h2><p class="muted">' + __( 'Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.', 'stubli' ) + '</p>' ) +
 			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + ( __( 'New photo post', 'stubli' ) + '</a><a class="a-btn quiet" href="#journal">' + __( 'Journal entry', 'stubli' ) + '</a></div></section>' ) +
 			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
@@ -529,6 +535,8 @@
 		var latest = mine.loaded && mine.items[ 0 ];
 		var colls = [];
 		mine.items.forEach( function ( i ) { if ( i.coll && colls.indexOf( i.coll ) < 0 ) { colls.push( i.coll ); } } );
+		// Same order as your page (Arrange); new ones at the end.
+		var ord = B.collOrder || []; colls.sort( function ( a, b ) { var x = ord.indexOf( a ), y = ord.indexOf( b ); return ( x < 0 ? 999 : x ) - ( y < 0 ? 999 : y ); } );
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a></div>' +
 			( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1>' ) +
 			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
@@ -557,6 +565,69 @@
 	function bindYouGrid() {
 		var m = $( '[data-mine-more]' );
 		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = __( 'Loading…', 'stubli' ); mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
+	}
+
+	/* ── Arrange your page: tab order, and pins inside each collection ── */
+	var ar = { list: null, msg: '' };
+	function arrangeHead( back, title ) {
+		return '<header class="a-head"><a class="a-text-btn" href="' + back + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + esc( title ) + '</h1><span></span></header>';
+	}
+	function viewArrange() {
+		if ( ! ar.list ) {
+			root.innerHTML = arrangeHead( '#more', __( 'Arrange your page', 'stubli' ) ) + '<main class="a-main" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:220px"></span></div></main>';
+			send( 'GET', 'arrange', null ).then( function ( r ) { ar.list = r.collections; if ( location.hash === '#arrange' ) { viewArrange(); } }, function ( e ) { toast( e.message ); } );
+			return;
+		}
+		var n = ar.list.length;
+		root.innerHTML = arrangeHead( '#more', __( 'Arrange your page', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			'<section class="a-card"><h2>' + __( 'Tab order', 'stubli' ) + '</h2><p class="muted">' + __( 'The first tab is the one people see when they open your page.', 'stubli' ) + '</p>' +
+			( n ? '<ol class="a-arr">' + ar.list.map( function ( c, i ) {
+				return '<li><span class="a-arr-n" aria-hidden="true">' + ( i + 1 ) + '</span><span class="a-arr-name"><strong>' + esc( c.name ) + '</strong><small class="muted">' + ( c.count === 1 ? __( '1 post', 'stubli' ) : _f( __( '%s posts', 'stubli' ), c.count ) ) + ( c.pins ? ' · ' + ( c.pins === 1 ? __( '1 pinned', 'stubli' ) : _f( __( '%s pinned', 'stubli' ), c.pins ) ) : '' ) + '</small></span>' +
+					'<a class="a-btn quiet a-arr-pin" href="#arrange/' + c.id + '">' + icon( 'pin', 16 ) + __( 'Pin', 'stubli' ) + '</a>' +
+					'<button type="button" class="a-icon-btn" data-arr-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), c.name ) ) + '">' + icon( 'up', 20 ) + '</button>' +
+					'<button type="button" class="a-icon-btn" data-arr-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), c.name ) ) + '">' + icon( 'down', 20 ) + '</button></li>';
+			} ).join( '' ) + '</ol>' : '<p class="muted">' + __( 'Your collections appear here once you\'ve posted.', 'stubli' ) + '</p>' ) +
+			'<p class="a-help" aria-live="polite" data-arr-msg>' + esc( ar.msg ) + '</p></section>' +
+			'<p class="a-help">' + __( 'Only your own page changes. Your followers still see your posts newest first in their Home.', 'stubli' ) + '</p>' +
+			'</main>' + bar( 'you' );
+		$$( '[data-arr-move]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var i = +b.getAttribute( 'data-arr-move' ), j = i + ( +b.getAttribute( 'data-dir' ) );
+				if ( j < 0 || j >= ar.list.length ) { return; }
+				var t = ar.list[ i ]; ar.list[ i ] = ar.list[ j ]; ar.list[ j ] = t;
+				ar.msg = __( 'Saving…', 'stubli' ); viewArrange();
+				var again = $( '[data-arr-move="' + j + '"][data-dir="' + b.getAttribute( 'data-dir' ) + '"]' ) || $( '[data-arr-move="' + j + '"]' ); if ( again ) { again.focus(); }
+				send( 'POST', 'arrange', { order: ar.list.map( function ( c ) { return c.id; } ) } ).then( function ( r ) { ar.list = r.collections; B.collOrder = r.collections.map( function ( c ) { return c.name; } ); ar.msg = __( 'Saved. Your page shows the new order.', 'stubli' ); var m = $( '[data-arr-msg]' ); if ( m ) { m.textContent = ar.msg; } me.p = null; }, function ( e ) { ar.msg = e.message; var m = $( '[data-arr-msg]' ); if ( m ) { m.textContent = e.message; } } );
+			} );
+		} );
+	}
+	var pn = null;
+	function viewPins( cat ) {
+		var c = ( ar.list || [] ).filter( function ( x ) { return x.id === cat; } )[ 0 ], title = c ? c.name : __( 'Pin posts', 'stubli' );
+		if ( ! pn || pn.cat !== cat ) {
+			pn = { cat: cat, posts: null, pins: [], max: 3, msg: '' };
+			root.innerHTML = arrangeHead( '#arrange', title ) + '<main class="a-main" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:260px"></span></div></main>';
+			send( 'GET', 'arrange/' + cat, null ).then( function ( r ) { pn.posts = r.posts; pn.pins = r.pins; pn.max = r.max; if ( location.hash === '#arrange/' + cat ) { viewPins( cat ); } }, function ( e ) { toast( e.message ); } );
+			return;
+		}
+		if ( ! pn.posts ) { return; }
+		root.innerHTML = arrangeHead( '#arrange', title ) + '<main class="a-main" id="main">' +
+			'<p class="muted" style="margin:4px 0 12px">' + _f( __( 'Tap up to %s posts to pin them to the top of this collection, in the order you tap them. Tap again to unpin. Everything else stays newest first.', 'stubli' ), pn.max ) + '</p>' +
+			'<ul class="a-pins" role="list">' + pn.posts.map( function ( p ) {
+				var at = pn.pins.indexOf( p.id );
+				return '<li><button type="button" class="a-pin-tile' + ( at > -1 ? ' is-pinned' : '' ) + '" data-pin="' + p.id + '" aria-pressed="' + ( at > -1 ) + '" aria-label="' + esc( ( p.title || __( 'Photo post', 'stubli' ) ) + ( at > -1 ? ', ' + _f( __( 'pinned %s', 'stubli' ), at + 1 ) : '' ) ) + '">' +
+					( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" loading="lazy">' : '' ) + ( at > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( at + 1 ) + '</span>' : '' ) + '</button></li>';
+			} ).join( '' ) + '</ul>' +
+			'<p class="a-help" aria-live="polite" data-pin-msg>' + esc( pn.msg ) + '</p></main>' + bar( 'you' );
+		$$( '[data-pin]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var id = +b.getAttribute( 'data-pin' ), at = pn.pins.indexOf( id ), next = pn.pins.slice();
+				if ( at > -1 ) { next.splice( at, 1 ); } else if ( next.length >= pn.max ) { pn.msg = _f( __( 'That\'s %s pinned already. Tap one to unpin it first.', 'stubli' ), pn.max ); $( '[data-pin-msg]' ).textContent = pn.msg; return; } else { next.push( id ); }
+				pn.pins = next; pn.msg = __( 'Saving…', 'stubli' ); viewPins( cat );
+				var f = $( '[data-pin="' + id + '"]' ); if ( f ) { f.focus(); }
+				send( 'POST', 'arrange/' + cat, { pins: next } ).then( function ( r ) { pn.pins = r.pins; pn.msg = next.length ? __( 'Saved. Pinned posts lead this collection on your page.', 'stubli' ) : __( 'Saved. Nothing pinned here now.', 'stubli' ); var m = $( '[data-pin-msg]' ); if ( m ) { m.textContent = pn.msg; } ar.list = null; me.p = null; }, function ( e ) { var m = $( '[data-pin-msg]' ); if ( m ) { m.textContent = e.message; } } );
+			} );
+		} );
 	}
 
 	/* ── Edit page: your line and your prompt cards ── */

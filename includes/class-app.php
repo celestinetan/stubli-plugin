@@ -177,6 +177,7 @@ class App {
 			'settings'    => admin_url( 'options-general.php?page=stubli' ),
 			'dashboard'   => admin_url(),
 			'collections' => array_values( array_unique( $collections ) ),
+			'collOrder'   => array_column( Arrange::collections(), 'name' ),
 			'maxPhotos'   => Posts::MAX_PHOTOS,
 			'maxCaption'  => Posts::MAX_CAPTION_LENGTH,
 			'maxNote'     => Posts::MAX_NOTE_LENGTH,
