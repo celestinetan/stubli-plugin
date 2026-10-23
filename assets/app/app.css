@@ -537,3 +537,14 @@ label.a-tool { position: relative; }
 .a-cover { aspect-ratio: 3 / 1; border-radius: 14px; overflow: hidden; background: var(--surface); margin: 0 0 10px; }
 .a-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .a-cover.is-empty { display: flex; align-items: center; justify-content: center; color: var(--muted); border: 1.5px dashed var(--field); }
+
+/* Cover editor: the 3:1 frame you drag the photo in, with zoom and turn. */
+.a-cc { margin: 0 0 6px; }
+.a-cc-frame { position: relative; aspect-ratio: 3 / 1; border-radius: 14px; overflow: hidden; background: var(--surface); cursor: grab; touch-action: none; user-select: none; }
+.a-cc-frame.is-dragging { cursor: grabbing; }
+.a-cc-frame canvas { display: block; width: 100%; height: 100%; }
+.a-cc-grid { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, transparent calc(33.33% - .5px), rgba(255,255,255,.45) calc(33.33% - .5px), rgba(255,255,255,.45) calc(33.33% + .5px), transparent calc(33.33% + .5px), transparent calc(66.66% - .5px), rgba(255,255,255,.45) calc(66.66% - .5px), rgba(255,255,255,.45) calc(66.66% + .5px), transparent calc(66.66% + .5px)); opacity: 0; transition: opacity .2s; }
+.a-cc-frame.is-dragging .a-cc-grid { opacity: 1; }
+.a-cc-tools { display: flex; align-items: center; gap: 12px; margin: 12px 0 4px; }
+.a-cc-zoom { flex: 1; display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.a-cc-zoom input { flex: 1; accent-color: var(--accent); height: 32px; }
