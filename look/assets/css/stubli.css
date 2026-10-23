@@ -10,6 +10,7 @@
 	--st-muted: #625d57;
 	--st-accent: #4f6a4a;
 	--st-accent-ink: #fff;
+	--st-accent-far: #000;
 	--st-green: #4f6a4a;
 	--st-green-off: #dfe7d9;
 	--st-green-on: #e9efe4;
@@ -38,6 +39,7 @@
 	--st-muted: #aa9e90;
 	--st-accent: #a8bf98;
 	--st-accent-ink: #1c1916;
+	--st-accent-far: #fff;
 	--st-green: #a8bf98;
 	--st-green-off: #1f2820;
 	--st-green-on: #253027;
@@ -582,15 +584,22 @@ html { scroll-behavior: smooth; }
 .st-stack.is-live > .st-card[data-pos="2"] { z-index: 1; transform: translateY(17px) scale(.93); background: var(--st-field); }
 .st-stack.is-live > .st-card[data-pos="1"] > *, .st-stack.is-live > .st-card[data-pos="2"] > *, .st-stack.is-live > .st-card[data-pos="hide"] { visibility: hidden; }
 .st-stack:not(.is-live) > .st-prompt { margin-top: 10px; }
-.st-prompt, .st-stack > .st-card.st-prompt { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; position: relative;
-	padding: 22px 20px 16px; border: 0; background: var(--st-accent); color: var(--st-accent-ink); }
-/* Like a party-game card: a bold solid card, the question big and loud, your
-   answer underneath, and a small Stubli mark in the corner. */
-.st-prompt-q { margin: auto 0 0; max-width: 18ch; font-family: var(--st-sans, Figtree, system-ui, sans-serif); font-size: clamp(22px, 6vw, 28px); font-weight: 800; line-height: 1.12; letter-spacing: -.005em; text-transform: uppercase; text-wrap: balance; color: inherit; }
-.st-prompt-a { margin: 0 0 auto; padding: 0 8px; max-width: 30ch; font-family: var(--st-serif, Literata, Georgia, serif); font-size: 18px; font-style: italic; line-height: 1.35; text-wrap: balance; overflow-wrap: anywhere; opacity: .92; }
-.st-prompt-a.is-mid { font-size: 20px; }
-.st-prompt-a.is-short { font-size: 23px; }
-.st-prompt::after { content: "stübli"; position: absolute; left: 16px; bottom: 14px; font: 700 12px/1 var(--st-sans, Figtree, system-ui, sans-serif); letter-spacing: .02em; opacity: .7; }
+.st-prompt, .st-stack > .st-card.st-prompt { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; position: relative;
+	padding: 22px 20px 16px; border: 0; color: var(--st-accent-ink);
+	background: linear-gradient(165deg, color-mix(in srgb, var(--st-accent), var(--st-accent-far) var(--tone)), color-mix(in srgb, var(--st-accent), var(--st-accent-far) calc(var(--tone) + 10%))); }
+/* Like a game card: a solid card in your colour, the question quiet on top and
+   your answer as the main thing. Each card is a deeper shade of the same
+   colour (always away from the text colour, so words stay easy to read), so
+   the cards waiting behind show as you flip through. */
+.st-prompt { --tone: 0%; }
+.st-prompt.is-tone-1 { --tone: 20%; }
+.st-prompt.is-tone-2 { --tone: 36%; }
+.st-prompt.is-tone-3 { --tone: 10%; }
+.st-stack.is-live > .st-card.st-prompt[data-pos="1"], .st-stack.is-live > .st-card.st-prompt[data-pos="2"] { background: linear-gradient(165deg, color-mix(in srgb, var(--st-accent), var(--st-accent-far) var(--tone)), color-mix(in srgb, var(--st-accent), var(--st-accent-far) calc(var(--tone) + 10%))); }
+.st-prompt-q { margin: auto 0 0; max-width: 26ch; font-family: var(--st-sans, Figtree, system-ui, sans-serif); font-size: 15px; font-weight: 600; line-height: 1.3; text-wrap: balance; color: inherit; opacity: .82; }
+.st-prompt-a { margin: 0 0 auto; padding: 0 8px; max-width: 26ch; font-family: var(--st-serif, Literata, Georgia, serif); font-size: 20px; line-height: 1.35; text-wrap: balance; overflow-wrap: anywhere; }
+.st-prompt-a.is-mid { font-size: 23px; line-height: 1.3; }
+.st-prompt-a.is-short { font-size: 28px; line-height: 1.2; }
 .st-prompt-reply { align-self: flex-end; margin: 0; position: relative; }
 .st-prompt .st-pill-quiet span { background: color-mix(in srgb, var(--st-accent-ink) 18%, transparent); color: inherit; }
 .st-stack-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 2px; }

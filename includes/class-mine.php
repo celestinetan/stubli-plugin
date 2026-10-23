@@ -145,6 +145,7 @@ class Mine {
 			'more'    => $q->max_num_pages > max( 1, (int) $page ),
 			'total'   => (int) $q->found_posts,
 			'missing' => self::missing_count(),
+			'shapes'  => 1 === max( 1, (int) $page ) ? Arrange::shapes() : null,
 		);
 	}
 
@@ -157,7 +158,8 @@ class Mine {
 	public static function collection_of( $id ) {
 		$def = (int) get_option( 'default_category' );
 		foreach ( get_the_category( $id ) as $c ) {
-			if ( (int) $c->term_id !== $def ) {
+			// The default category counts once it has a real name (renamed under Arrange).
+			if ( (int) $c->term_id !== $def || ! in_array( strtolower( $c->name ), array( 'uncategorized', 'uncategorised' ), true ) ) {
 				return html_entity_decode( $c->name, ENT_QUOTES, 'UTF-8' );
 			}
 		}

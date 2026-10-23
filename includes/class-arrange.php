@@ -50,7 +50,7 @@ class Arrange {
 	 * @return string
 	 */
 	private static function name( $t ) {
-		if ( (int) $t->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $t->slug ), array( 'uncategorized', 'uncategorised' ), true ) ) {
+		if ( (int) $t->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $t->name ), array( 'uncategorized', 'uncategorised' ), true ) ) {
 			return __( 'Photos', 'stubli' );
 		}
 		return html_entity_decode( $t->name, ENT_QUOTES );
@@ -106,6 +106,54 @@ class Arrange {
 	}
 
 	/**
+	 * The shape a collection's tiles take, from its first photo (the first
+	 * pinned post, or else the newest): landscape, square or portrait.
+	 * Matches what the page shows.
+	 *
+	 * @param int $cat Category ID.
+	 * @return string
+	 */
+	public static function shape( $cat ) {
+		$pins = self::all_pins()[ (int) $cat ] ?? array();
+		$id   = $pins ? $pins[0] : 0;
+		if ( ! $id ) {
+			$q  = new \WP_Query(
+				array(
+					'post_type'      => 'post',
+					'post_status'    => 'publish',
+					'cat'            => (int) $cat,
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'tax_query'      => self::photo_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				)
+			);
+			$id = $q->posts ? (int) $q->posts[0] : 0;
+		}
+		$ids = $id ? Posts::photo_ids( $id ) : array();
+		if ( $ids ) {
+			$m = wp_get_attachment_metadata( $ids[0] );
+			if ( ! empty( $m['width'] ) && ! empty( $m['height'] ) ) {
+				$r = (float) $m['width'] / (float) $m['height'];
+				return $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : 'portrait' );
+			}
+		}
+		return 'portrait';
+	}
+
+	/**
+	 * Shapes by collection name, for the app's You tabs.
+	 *
+	 * @return array
+	 */
+	public static function shapes() {
+		$out = array();
+		foreach ( self::collections() as $c ) {
+			$out[ $c['name'] ] = self::shape( $c['id'] );
+		}
+		return $out;
+	}
+
+	/**
 	 * Pinned post IDs per collection, only ones still published there.
 	 *
 	 * @return array
@@ -155,10 +203,13 @@ class Arrange {
 				'pinned' => array_search( (int) $p->ID, $pins, true ),
 			);
 		}
+		$term = get_term( (int) $cat, 'category' );
 		return array(
-			'posts' => $out,
-			'pins'  => $pins,
-			'max'   => self::MAX_PINS,
+			'posts'       => $out,
+			'pins'        => $pins,
+			'max'         => self::MAX_PINS,
+			'name'        => $term && ! is_wp_error( $term ) ? self::name( $term ) : '',
+			'description' => $term && ! is_wp_error( $term ) ? wp_strip_all_tags( (string) $term->description ) : '',
 		);
 	}
 
@@ -197,7 +248,42 @@ class Arrange {
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => static function ( \WP_REST_Request $r ) {
-						$cat  = (int) $r['cat'];
+						$cat = (int) $r['cat'];
+						// The collection's name and the short line shown under its tab.
+						if ( null !== $r['name'] || null !== $r['description'] ) {
+							$term = get_term( $cat, 'category' );
+							if ( ! $term || is_wp_error( $term ) ) {
+								return new \WP_Error( 'stubli_no_collection', __( 'That collection isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+							}
+							$args = array();
+							if ( null !== $r['name'] ) {
+								$name = trim( sanitize_text_field( (string) $r['name'] ) );
+								if ( '' === $name ) {
+									return new \WP_Error( 'stubli_collection_name', __( 'Give the collection a name.', 'stubli' ), array( 'status' => 400 ) );
+								}
+								$taken = false;
+								foreach ( get_categories( array( 'hide_empty' => false ) ) as $o ) {
+									// Compare with what each tab shows, so "Photos" counts too.
+									if ( (int) $o->term_id !== $cat && 0 === strcasecmp( self::name( $o ), $name ) ) {
+										$taken = true;
+									}
+								}
+								if ( $taken ) {
+									return new \WP_Error( 'stubli_collection_name', __( 'You already have a collection with that name.', 'stubli' ), array( 'status' => 400 ) );
+								}
+								$args['name'] = mb_substr( $name, 0, 40 );
+							}
+							if ( null !== $r['description'] ) {
+								$args['description'] = mb_substr( sanitize_text_field( (string) $r['description'] ), 0, 200 );
+							}
+							$res = wp_update_term( $cat, 'category', $args );
+							if ( is_wp_error( $res ) ) {
+								return new \WP_Error( 'stubli_collection_name', __( 'That name didn\'t save. Try another one.', 'stubli' ), array( 'status' => 400 ) );
+							}
+							if ( null === $r['pins'] ) {
+								return rest_ensure_response( self::posts( $cat ) );
+							}
+						}
 						$keep = array();
 						foreach ( array_map( 'intval', (array) $r['pins'] ) as $id ) {
 							$p = get_post( $id );

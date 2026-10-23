@@ -332,6 +332,11 @@ class Posts {
 	 */
 	public static function collection_id( $name ) {
 		$name = mb_substr( sanitize_text_field( $name ), 0, 40 );
+		// "Photos" is how the untouched default category is shown; posting there means that one.
+		$default = get_term( (int) get_option( 'default_category' ), 'category' );
+		if ( $default && ! is_wp_error( $default ) && __( 'Photos', 'stubli' ) === $name && in_array( strtolower( $default->name ), array( 'uncategorized', 'uncategorised' ), true ) ) {
+			return (int) $default->term_id;
+		}
 		$term = term_exists( $name, 'category' );
 		if ( ! $term ) {
 			$term = wp_insert_term( $name, 'category' );

@@ -105,11 +105,13 @@ class Setup {
 		// Gold is too pale for words on a light page, so text gets a deeper gold.
 		$text = 'gold' === $key ? '#7d5f16' : $light;
 		return sprintf(
-			':root,[data-mode="light"],[data-mode="paper"]{--accent:%1$s;--accent-ink:%2$s;--accent-text:%4$s;--st-accent:%1$s;--st-accent-ink:%2$s;--st-accent-text:%4$s}[data-mode="dark"]{--accent:%3$s;--accent-ink:#1c1916;--accent-text:%3$s;--st-accent:%3$s;--st-accent-ink:#1c1916;--st-accent-text:%3$s}',
+			':root,[data-mode="light"],[data-mode="paper"]{--accent:%1$s;--accent-ink:%2$s;--accent-text:%4$s;--accent-far:%5$s;--st-accent:%1$s;--st-accent-ink:%2$s;--st-accent-text:%4$s;--st-accent-far:%5$s}[data-mode="dark"]{--accent:%3$s;--accent-ink:#1c1916;--accent-text:%3$s;--accent-far:#fff;--st-accent:%3$s;--st-accent-ink:#1c1916;--st-accent-text:%3$s;--st-accent-far:#fff}',
 			$light,
 			$ink,
 			$dark,
-			$text
+			$text,
+			// Card shades move away from the text colour, so words stay readable.
+			in_array( strtolower( $ink ), array( '#fff', '#ffffff' ), true ) ? '#000' : '#fff'
 		);
 	}
 

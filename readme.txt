@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.29.1
+Stable tag: 0.29.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.29.2 =
+* Rename a collection and change the line under its tab, any time (Arrange → Edit).
+* Prompt cards: calmer question, your answer first, each card a deeper shade of your colour, no logo.
+* Landscape crop is now 3:2, the same shape as landscape tiles on your page.
+* Descriptions are fully optional: no more reminders.
 
 = 0.29.1 =
 * A collection whose first photo is landscape (or square) shows all its tiles that way.

@@ -180,7 +180,7 @@
 	}
 
 	/* ── Photos: load, thumbnail, crop (re-encoding drops location data) ── */
-	var RATIOS = { portrait: 4 / 5, square: 1, landscape: 1.91 };
+	var RATIOS = { portrait: 4 / 5, square: 1, landscape: 3 / 2 };
 	function loadImage( file ) {
 		if ( window.createImageBitmap ) {
 			return createImageBitmap( file, { imageOrientation: 'from-image' } ).catch( function () { return loadViaImg( file ); } );
@@ -481,7 +481,7 @@
 		var cards = deck.map( function ( c, k ) {
 			var pos = ( k - i + n ) % n, front = pos === 0;
 			var inner = c.bio ? bioHtml : '<p class="a-pcard-q">' + esc( c.q ) + '</p><p class="a-pcard-a' + ( String( c.a ).length <= 28 ? ' is-short' : String( c.a ).length <= 80 ? ' is-mid' : '' ) + '">' + esc( c.a ) + '</p>' + ( opts && opts.reply ? opts.reply( k - 1 ) : '' );
-			return '<div class="a-pcard' + ( c.bio ? ' a-pcard-bio' : '' ) + '" data-pos="' + ( pos > 2 ? 'hide' : pos ) + '"' + ( front ? '' : ' aria-hidden="true" inert' ) + '>' + inner + '</div>';
+			return '<div class="a-pcard' + ( c.bio ? ' a-pcard-bio' : ' t-' + ( ( k - 1 ) % 4 ) ) + '" data-pos="' + ( pos > 2 ? 'hide' : pos ) + '"' + ( front ? '' : ' aria-hidden="true" inert' ) + '>' + inner + '</div>';
 		} ).join( '' );
 		var nav = n > 1 ? '<div class="a-stack-nav"><button type="button" class="a-stack-btn" data-stack-prev aria-label="' + esc( __( 'Previous card', 'stubli' ) ) + '">' + icon( 'back', 18 ) + '</button><span class="a-stack-dots" aria-hidden="true">' + deck.map( function ( _, k ) { return '<span' + ( k === i ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</span><button type="button" class="a-stack-btn" data-stack-next aria-label="' + esc( __( 'Next card', 'stubli' ) ) + '">' + icon( 'chev', 18 ) + '</button><span class="sr" aria-live="polite" data-stack-status></span></div>' : '';
 		return '<div class="a-stack' + ( n > 1 ? ' is-deck' : '' ) + '" data-stack>' + cards + '</div>' + nav;
@@ -505,9 +505,10 @@
 		var list = mine.items.filter( function ( i ) { return ! me.coll || i.coll === me.coll; } );
 		if ( ! list.length ) { return '<div class="a-empty-you">' + smile() + '<p>' + ( me.coll ? _f( __( 'Nothing in %s yet.', 'stubli' ), esc( me.coll ) ) : __( 'Your page is waiting for its first photo.', 'stubli' ) ) + ( '</p><a class="a-btn quiet" href="#new">' + __( 'Post a photo', 'stubli' ) + '</a></div>' ); }
 		var firstMissing = mine.items.filter( function ( i ) { return i.missing; } )[ 0 ];
-		return ( mine.missing && firstMissing && ! me.coll ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), mine.missing ) ) + ( '</p><a class="a-btn quiet" href="#edit/' ) + firstMissing.id + ( '">' + __( 'Add descriptions', 'stubli' ) + '</a></div>' ) : '' ) +
-			'<div class="a-mine-grid">' + list.map( function ( i ) {
-				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.missing ? __( ', needs a description', 'stubli' ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
+		var shape = me.coll && mine.shapes ? mine.shapes[ me.coll ] : '';
+		return ( '' ) + // Descriptions are optional (23 Oct): no reminders.
+			'<div class="a-mine-grid' + ( shape && shape !== 'portrait' ? ' is-' + shape : '' ) + '">' + list.map( function ( i ) {
+				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
 				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '' ) +
 					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) +
 					( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
@@ -583,7 +584,7 @@
 			'<section class="a-card"><h2>' + __( 'Tab order', 'stubli' ) + '</h2><p class="muted">' + __( 'The first tab is the one people see when they open your page.', 'stubli' ) + '</p>' +
 			( n ? '<ol class="a-arr">' + ar.list.map( function ( c, i ) {
 				return '<li><span class="a-arr-n" aria-hidden="true">' + ( i + 1 ) + '</span><span class="a-arr-name"><strong>' + esc( c.name ) + '</strong><small class="muted">' + ( c.count === 1 ? __( '1 post', 'stubli' ) : _f( __( '%s posts', 'stubli' ), c.count ) ) + ( c.pins ? ' · ' + ( c.pins === 1 ? __( '1 pinned', 'stubli' ) : _f( __( '%s pinned', 'stubli' ), c.pins ) ) : '' ) + '</small></span>' +
-					'<a class="a-btn quiet a-arr-pin" href="#arrange/' + c.id + '">' + icon( 'pin', 16 ) + __( 'Pin', 'stubli' ) + '</a>' +
+					'<a class="a-btn quiet a-arr-pin" href="#arrange/' + c.id + '" aria-label="' + esc( _f( __( 'Edit %s', 'stubli' ), c.name ) ) + '">' + icon( 'pen', 16 ) + __( 'Edit', 'stubli' ) + '</a>' +
 					'<button type="button" class="a-icon-btn" data-arr-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), c.name ) ) + '">' + icon( 'up', 20 ) + '</button>' +
 					'<button type="button" class="a-icon-btn" data-arr-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), c.name ) ) + '">' + icon( 'down', 20 ) + '</button></li>';
 			} ).join( '' ) + '</ol>' : '<p class="muted">' + __( 'Your collections appear here once you\'ve posted.', 'stubli' ) + '</p>' ) +
@@ -607,11 +608,16 @@
 		if ( ! pn || pn.cat !== cat ) {
 			pn = { cat: cat, posts: null, pins: [], max: 3, msg: '' };
 			root.innerHTML = arrangeHead( '#arrange', title ) + '<main class="a-main" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:260px"></span></div></main>';
-			send( 'GET', 'arrange/' + cat, null ).then( function ( r ) { pn.posts = r.posts; pn.pins = r.pins; pn.max = r.max; if ( location.hash === '#arrange/' + cat ) { viewPins( cat ); } }, function ( e ) { toast( e.message ); } );
+			send( 'GET', 'arrange/' + cat, null ).then( function ( r ) { pn.posts = r.posts; pn.pins = r.pins; pn.max = r.max; pn.name = r.name || ''; pn.desc = r.description || ''; if ( location.hash === '#arrange/' + cat ) { viewPins( cat ); } }, function ( e ) { toast( e.message ); } );
 			return;
 		}
 		if ( ! pn.posts ) { return; }
-		root.innerHTML = arrangeHead( '#arrange', title ) + '<main class="a-main" id="main">' +
+		root.innerHTML = arrangeHead( '#arrange', pn.name || title ) + '<main class="a-main" id="main">' +
+			'<section class="a-card"><h2>' + __( 'Name and words', 'stubli' ) + '</h2>' +
+			'<label class="a-label" for="a-cn">' + __( 'Name', 'stubli' ) + '</label><input id="a-cn" class="a-field" maxlength="40" value="' + esc( pn.name ) + '">' +
+			'<label class="a-label" for="a-cd">' + __( 'A line under the tab', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-cd" class="a-field" maxlength="200" placeholder="' + esc( __( 'e.g. Mostly at dawn, by the lake.', 'stubli' ) ) + '" value="' + esc( pn.desc ) + '">' +
+			'<div class="a-actions" style="margin-top:14px"><button type="button" class="a-btn" data-cn-save>' + __( 'Save', 'stubli' ) + '</button></div><p class="a-help" aria-live="polite" data-cn-msg>' + esc( pn.nameMsg || '' ) + '</p></section>' +
+			'<h2 class="a-label">' + __( 'Pin to the top', 'stubli' ) + '</h2>' +
 			'<p class="muted" style="margin:4px 0 12px">' + _f( __( 'Tap up to %s posts to pin them to the top of this collection, in the order you tap them. Tap again to unpin. Everything else stays newest first.', 'stubli' ), pn.max ) + '</p>' +
 			'<ul class="a-pins" role="list">' + pn.posts.map( function ( p ) {
 				var at = pn.pins.indexOf( p.id );
@@ -619,6 +625,15 @@
 					( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" loading="lazy">' : '' ) + ( at > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( at + 1 ) + '</span>' : '' ) + '</button></li>';
 			} ).join( '' ) + '</ul>' +
 			'<p class="a-help" aria-live="polite" data-pin-msg>' + esc( pn.msg ) + '</p></main>' + bar( 'you' );
+		$( '#a-cn' ).addEventListener( 'input', function ( e ) { pn.name = e.target.value; } );
+		$( '#a-cd' ).addEventListener( 'input', function ( e ) { pn.desc = e.target.value; } );
+		$( '[data-cn-save]' ).addEventListener( 'click', function ( e ) {
+			var btn = e.currentTarget, m = $( '[data-cn-msg]' );
+			if ( ! pn.name.trim() ) { m.textContent = __( 'Give the collection a name.', 'stubli' ); return; }
+			btn.disabled = true; m.textContent = __( 'Saving…', 'stubli' );
+			send( 'POST', 'arrange/' + cat, { name: pn.name, description: pn.desc } ).then( function ( r ) { pn.name = r.name; pn.desc = r.description; pn.nameMsg = __( 'Saved. Your page shows the new name.', 'stubli' ); ar.list = null; B.collOrder = null; mine.loaded = false; me.p = null; viewPins( cat ); },
+				function ( err ) { btn.disabled = false; m.textContent = err.message; } );
+		} );
 		$$( '[data-pin]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var id = +b.getAttribute( 'data-pin' ), at = pn.pins.indexOf( id ), next = pn.pins.slice();
@@ -919,7 +934,7 @@
 		if ( reset ) { mine.page = 1; }
 		return send( 'GET', 'mine?page=' + mine.page, null ).then( function ( r ) {
 			mine.items = reset ? r.items : mine.items.concat( r.items );
-			mine.more = r.more; mine.total = r.total; mine.missing = r.missing; mine.loaded = true;
+			mine.more = r.more; mine.total = r.total; mine.missing = r.missing; mine.loaded = true; if ( r.shapes ) { mine.shapes = r.shapes; }
 		}, function () { mine.loaded = true; } );
 	}
 	function mineSection() {
@@ -927,11 +942,11 @@
 		if ( ! mine.items.length ) { return '<div data-mine hidden></div>'; }
 		var firstMissing = mine.items.filter( function ( i ) { return i.missing; } )[ 0 ];
 		return ( '<section class="a-card" data-mine><h2>' + __( 'Your posts', 'stubli' ) + '</h2><p class="muted">' + __( 'Tap a photo to change its caption, collection or descriptions, or to delete it.', 'stubli' ) + '</p>' ) +
-			( mine.missing && firstMissing ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), mine.missing ) ) + ( '</p><a class="a-btn quiet" href="#edit/' ) + firstMissing.id + ( '">' + __( 'Add descriptions', 'stubli' ) + '</a></div>' ) : '' ) +
+			( '' ) + // Descriptions are optional (23 Oct): no reminders.
 			'<div class="a-mine-grid">' + mine.items.map( function ( i ) {
-				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.video && i.count === 1 ? __( ', video', 'stubli' ) : '' ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.missing ? __( ', needs a description', 'stubli' ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
+				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.video && i.count === 1 ? __( ', video', 'stubli' ) : '' ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
 				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy"' + ( i.note ? ' class="is-noted"' : '' ) + '>' : '' ) +
-					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.missing ? '<span class="a-mine-dot" aria-hidden="true"></span>' : '' ) + ( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
+					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
 			( mine.more ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' ) + '</section>';
 	}
@@ -976,7 +991,7 @@
 			'<main class="a-compose" id="main">' +
 			( '<h2 class="a-label" id="a-ed-desc">' + ( d.photos.length > 1 ? __( 'Photos', 'stubli' ) : __( 'Description', 'stubli' ) ) + '</h2>' ) +
 			( d.photos.length > 1 ? '<p class="a-help" style="margin:-4px 0 10px">' + __( 'The first photo is the cover: it shows on your page and in your followers\' feeds. Change the order with the arrows. Descriptions are optional.', 'stubli' ) + '</p>' : '' ) +
-			( missing ? '<p class="a-help" style="margin:-4px 0 10px">' + ( missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), missing ) ) + '</p>' : '' ) +
+			
 			d.photos.map( function ( ph, i ) {
 				var n = d.photos.length;
 				return '<div class="a-alt a-ed-ph"><span class="a-ed-thumb"><img src="' + esc( ph.src ) + '" alt="">' + ( n > 1 && i === 0 ? '<span class="a-ed-cover">' + __( 'Cover', 'stubli' ) + '</span>' : '' ) + '</span>' +

@@ -164,7 +164,7 @@ class App {
 			if ( $default === (int) $term->term_id && 0 === (int) $term->count ) {
 				continue; // An empty "Uncategorized" isn't a collection yet.
 			}
-			$name = ( $default === (int) $term->term_id && in_array( $term->slug, array( 'uncategorized', 'uncategorised' ), true ) ) ? __( 'Photos', 'stubli' ) : $term->name;
+			$name = ( $default === (int) $term->term_id && in_array( strtolower( $term->name ), array( 'uncategorized', 'uncategorised' ), true ) ) ? __( 'Photos', 'stubli' ) : $term->name;
 			$collections[] = $name;
 		}
 		return array(

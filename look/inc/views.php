@@ -179,7 +179,7 @@ function stubli_profile_cards() {
 			<?php endif; ?>
 		</section>
 		<?php foreach ( $prompts as $i => $card ) : ?>
-			<section class="st-card st-prompt" data-st-card aria-label="<?php echo esc_attr( $card['q'] ); ?>">
+			<section class="st-card st-prompt is-tone-<?php echo (int) $i % 4; ?>" data-st-card aria-label="<?php echo esc_attr( $card['q'] ); ?>">
 				<p class="st-prompt-q"><?php echo esc_html( $card['q'] ); ?></p>
 				<?php $len = function_exists( 'mb_strlen' ) ? mb_strlen( (string) $card['a'] ) : strlen( (string) $card['a'] ); ?>
 				<p class="st-prompt-a<?php echo $len <= 28 ? ' is-short' : ( $len <= 80 ? ' is-mid' : '' ); ?>"><?php echo esc_html( $card['a'] ); ?></p>

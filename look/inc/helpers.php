@@ -167,7 +167,7 @@ function stubli_collections() {
  * @return string
  */
 function stubli_collection_name( $term ) {
-	if ( (int) $term->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $term->slug ), array( 'uncategorized', 'uncategorised' ), true ) ) {
+	if ( (int) $term->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $term->name ), array( 'uncategorized', 'uncategorised' ), true ) ) {
 		return __( 'Photos', 'stubli' );
 	}
 	return $term->name;
