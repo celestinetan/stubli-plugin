@@ -333,6 +333,17 @@ p { margin: 0 0 .75em; }
 .st-entry.is-long .st-entry-text { max-height: 18em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .st-entry.is-full { margin-top: 12px; }
 .st-entry.is-full .st-entry-date { font-size: 13px; }
+.st-entry-date + .st-entry-meta { margin: -4px 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font: 400 13px/1.4 var(--st-sans); color: var(--st-muted); }
+.st-entry-edit { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; color: var(--st-accent-text, var(--st-accent)); font-weight: 600; text-decoration: none; }
+/* Simple formatting from the journal editor. */
+.st-entry-text h3 { margin: 1.3em 0 .4em; font: 650 19px/1.3 var(--st-sans); }
+.st-entry-text h3:first-child { margin-top: 0; }
+.st-entry-text ul, .st-entry-text ol { margin: 0 0 1em; padding-left: 1.4em; }
+.st-entry-text li { margin: .2em 0; }
+.st-entry-text li::marker { color: var(--st-muted); }
+.st-entry-text blockquote { margin: 1em 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--st-accent); color: var(--st-ink); font-style: italic; }
+.st-entry-text blockquote p { margin: 0; }
+.st-entry-text s { color: var(--st-muted); }
 .st-reading { max-width: 640px; margin: 0 auto; width: 100%; padding: 0 8px; }
 .st-read-more { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 14px; }
 .st-video {

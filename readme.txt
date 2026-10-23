@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.29.2
+Stable tag: 0.30.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.30.0 =
+* Journal: simple formatting like the Notes app (headings, bold, italic, strikethrough, lists, quotes), photos placed right in the text.
+* Journal: edit or delete any entry (You → Settings and more → Your journal). Edits keep the date and show an "Edited" time; delete can be undone.
 
 = 0.29.2 =
 * Rename a collection and change the line under its tab, any time (Arrange → Edit).

@@ -70,7 +70,10 @@
 		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
-		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>'
+		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
+		ul: '<path d="M9.5 7h10M9.5 12h10M9.5 17h10"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="5" cy="17" r="1.1" fill="currentColor" stroke="none"/>',
+		ol: '<path d="M10 7h10M10 12h10M10 17h10"/><path d="M4 5.5 5.3 5v4M4 9h2.6" stroke-width="1.4"/><path d="M4 14.3a1.3 1.3 0 0 1 2.5.4c0 .9-2.5 1.7-2.5 3.3h2.6" stroke-width="1.4"/>',
+		quote: '<path d="M5 17.5c2.5-1 3.5-3 3.5-5.5V7.5H4.5v4.5h4M14 17.5c2.5-1 3.5-3 3.5-5.5V7.5h-4v4.5h4"/>'
 	};
 	function icon( n, w ) {
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
@@ -387,9 +390,9 @@
 	function newPost() {
 		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: B.collections && B.collections[ 0 ] || '', newCollection: '', addingCollection: ! ( B.collections && B.collections.length ), note: false, noteText: '', audience: 'everyone', linkOpen: false, altsChecked: false, busy: false, error: '' };
 	}
-	var journal = { text: store.get( 'stubli-journal-draft' ) || '', visibility: store.get( 'stubli-journal-vis' ) || 'everyone', tool: '', busy: false, error: '', uploading: 0, photos: [] };
+	var journal = { html: store.get( 'stubli-journal-html' ) || jTextToHtml( store.get( 'stubli-journal-draft' ) ), visibility: store.get( 'stubli-journal-vis' ) || 'everyone', tool: '', busy: false, error: '', uploading: 0, photos: [], pending: {} };
 	try { journal.photos = JSON.parse( store.get( 'stubli-journal-photos' ) || '[]' ) || []; } catch ( e ) { journal.photos = []; }
-	function saveJournalDraft() { store.set( 'stubli-journal-draft', journal.text ); store.set( 'stubli-journal-photos', JSON.stringify( journal.photos ) ); }
+	function saveJournalDraft() { store.set( 'stubli-journal-html', journal.html ); store.del( 'stubli-journal-draft' ); store.set( 'stubli-journal-photos', JSON.stringify( journal.photos ) ); }
 
 	/* ── Router ── */
 	function route() {
@@ -397,7 +400,9 @@
 		window.scrollTo( 0, 0 );
 		if ( h === 'new' ) { if ( ! post ) { newPost(); } return viewPick(); }
 		if ( h === 'new/details' ) { if ( ! post || ! post.photos.length ) { location.replace( '#new' ); return; } return viewDetails(); }
-		if ( h === 'journal' ) { return viewJournal(); }
+		if ( h === 'journal' ) { return viewJournal( 0 ); }
+		if ( /^journal\/\d+$/.test( h ) ) { return viewJournal( +h.split( '/' )[ 1 ] ); }
+		if ( h === 'journals' ) { return viewJournals(); }
 		if ( h === 'you' ) { return viewYou(); }
 		if ( h === 'more' ) { return viewMore(); }
 		if ( h === 'about' ) { return viewAbout(); }
@@ -446,7 +451,7 @@
 			summaryCard() +
 			( '<section class="a-card"><h2>' + __( 'Arrange your page', 'stubli' ) + '</h2><p class="muted">' + __( 'Put your collection tabs in the order you like, and pin up to three favourites to the top of each.', 'stubli' ) + '</p><a class="a-btn quiet" href="#arrange">' + __( 'Arrange', 'stubli' ) + '</a></section>' ) +
 			( '<section class="a-card"><h2>' + __( 'Share something', 'stubli' ) + '</h2><p class="muted">' + __( 'Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.', 'stubli' ) + '</p>' ) +
-			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + ( __( 'New photo post', 'stubli' ) + '</a><a class="a-btn quiet" href="#journal">' + __( 'Journal entry', 'stubli' ) + '</a></div></section>' ) +
+			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + ( __( 'New photo post', 'stubli' ) + '</a><a class="a-btn quiet" href="#journal">' + __( 'Journal entry', 'stubli' ) + '</a><a class="a-btn quiet" href="#journals">' + __( 'Your journal', 'stubli' ) + '</a></div></section>' ) +
 			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
 			( '<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			peopleCard() +
@@ -2081,21 +2086,134 @@
 	}
 
 	/* ── Journal ── */
-	function viewJournal() {
-		var j = journal, max = B.maxJournal;
-		root.innerHTML = ( '<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>' + __( 'Close', 'stubli' ) + '</button>' ) + seg( 'journal' ) +
-			'<button type="button" class="a-btn" data-save' + ( j.text.trim() && ! j.busy ? '' : ' disabled' ) + '>' + ( j.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
-			( '<main class="a-compose" id="main"><h1 class="sr">' + __( 'New journal entry', 'stubli' ) + '</h1><p class="a-date">' ) + esc( B.today ) + '</p>' +
-			( '<label class="sr" for="a-jtext">' + __( 'Journal entry', 'stubli' ) + '</label><textarea id="a-jtext" class="a-journal-text" maxlength="' ) + max + '" placeholder="' + esc( __( 'What happened today?', 'stubli' ) ) + '">' + esc( j.text ) + '</textarea>' +
+	/* ── Journal: write, edit and delete entries, with simple formatting like Notes ── */
+	var JFIG = /<figure\b[^>]*\bdata-photo="(\d{1,2})"[^>]*>[\s\S]*?<\/figure>/g;
+	var jed = null, jSel = null, jl = { loaded: false, loading: false, items: [], page: 1, more: false, error: '' };
+	function jCollapse( html ) { return String( html || '' ).replace( JFIG, function ( m, n ) { return '<figure data-photo="' + n + '"></figure>'; } ); }
+	function jPhoto( j, n ) { return j.photos.filter( function ( p ) { return p.n === +n; } )[ 0 ]; }
+	function jFig( j, n ) {
+		var ph = jPhoto( j, n );
+		if ( ! ph && ! ( j.pending && j.pending[ n ] ) ) { return ''; }
+		return '<figure class="a-jfig" data-photo="' + n + '" contenteditable="false">' + ( ph ? '<img src="' + esc( ph.url ) + '" alt="">' : '<span class="a-jfig-wait">' + __( 'Adding a photo…', 'stubli' ) + '</span>' ) + '<span class="a-jfig-n">' + _f( __( 'Photo %s', 'stubli' ), n ) + '</span></figure>';
+	}
+	function jExpand( j ) { return String( j.html || '' ).replace( JFIG, function ( m, n ) { return jFig( j, n ); } ); }
+	function jUsed( html ) { var out = [], m; JFIG.lastIndex = 0; while ( ( m = JFIG.exec( html ) ) ) { out.push( +m[ 1 ] ); } return out; }
+	// Drafts from before the formatting editor were plain text with [Photo N] lines.
+	function jTextToHtml( text ) {
+		return String( text || '' ).split( '\n' ).map( function ( line ) {
+			var m = line.trim().match( /^\[Photo (\d{1,2})\]$/i );
+			if ( m ) { return '<figure data-photo="' + m[ 1 ] + '"></figure>'; }
+			return line.trim() ? '<p>' + esc( line ) + '</p>' : '';
+		} ).join( '' );
+	}
+	function jWhen( iso, withTime ) {
+		var d = new Date( iso );
+		if ( isNaN( d ) ) { return ''; }
+		var lang = document.documentElement.lang || undefined;
+		try {
+			return withTime ? d.toLocaleString( lang, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' } ) : d.toLocaleDateString( lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } );
+		} catch ( e ) { return d.toDateString(); }
+	}
+	var FMT = [
+		{ k: 'h3', label: __( 'Heading', 'stubli' ), html: '<span class="a-fmt-h" aria-hidden="true">H</span>' },
+		{ k: 'bold', label: __( 'Bold', 'stubli' ), html: '<b aria-hidden="true">B</b>' },
+		{ k: 'italic', label: __( 'Italic', 'stubli' ), html: '<i aria-hidden="true">I</i>' },
+		{ k: 'strikeThrough', label: __( 'Strikethrough', 'stubli' ), html: '<s aria-hidden="true">S</s>' },
+		{ k: 'insertUnorderedList', label: __( 'Bulleted list', 'stubli' ), html: icon( 'ul', 20 ) },
+		{ k: 'insertOrderedList', label: __( 'Numbered list', 'stubli' ), html: icon( 'ol', 20 ) },
+		{ k: 'blockquote', label: __( 'Quote', 'stubli' ), html: icon( 'quote', 20 ) }
+	];
+	function fmtOn( k ) {
+		try {
+			if ( k === 'h3' || k === 'blockquote' ) { return String( document.queryCommandValue( 'formatBlock' ) || '' ).toLowerCase().replace( /[<>]/g, '' ) === k; }
+			// Quotes and headings look italic or bold already; don't light those buttons for them.
+			if ( ( k === 'italic' && fmtOn( 'blockquote' ) ) || ( k === 'bold' && fmtOn( 'h3' ) ) ) { return false; }
+			return document.queryCommandState( k );
+		} catch ( e ) { return false; }
+	}
+	function fmtState() {
+		var ed = document.getElementById( 'a-jtext' );
+		if ( ! ed ) { return; }
+		var inside = jSel && ed.contains( jSel.startContainer );
+		$$( '[data-fmt]' ).forEach( function ( b ) { b.setAttribute( 'aria-pressed', inside && fmtOn( b.dataset.fmt ) ? 'true' : 'false' ); } );
+	}
+	document.addEventListener( 'selectionchange', function () {
+		var ed = document.getElementById( 'a-jtext' ), s = window.getSelection();
+		if ( ed && s && s.rangeCount && ed.contains( s.anchorNode ) ) { jSel = s.getRangeAt( 0 ).cloneRange(); fmtState(); }
+	} );
+	function jRestore( ed ) {
+		ed.focus();
+		var s = window.getSelection();
+		if ( jSel && ed.contains( jSel.startContainer ) ) { s.removeAllRanges(); s.addRange( jSel ); return; }
+		var r = document.createRange(); r.selectNodeContents( ed ); r.collapse( false ); s.removeAllRanges(); s.addRange( r );
+	}
+
+	function viewJournals() {
+		if ( ! jl.loaded && ! jl.loading ) {
+			jl.loading = true;
+			send( 'GET', 'journal?page=' + jl.page, null ).then( function ( r ) {
+				var list = Array.isArray( r ) ? r : [];
+				jl.items = jl.page === 1 ? list : jl.items.concat( list ); jl.more = list.length >= 20; jl.loaded = true; jl.loading = false; jl.error = '';
+			}, function ( e ) { jl.loading = false; jl.loaded = true; jl.error = e.message; } ).then( function () { if ( location.hash === '#journals' ) { viewJournals(); } } );
+		}
+		var body;
+		if ( ! jl.loaded ) {
+			body = '<p class="muted" role="status">' + __( 'Opening your journal…', 'stubli' ) + '</p>';
+		} else if ( jl.error && ! jl.items.length ) {
+			body = '<div class="a-notice" role="alert"><p>' + esc( jl.error ) + '</p></div>';
+		} else if ( ! jl.items.length ) {
+			body = '<div class="a-empty-you">' + smile() + '<p>' + __( 'No journal entries yet.', 'stubli' ) + '</p><a class="a-btn quiet" href="#journal">' + __( 'Write one', 'stubli' ) + '</a></div>';
+		} else {
+			body = '<ul class="a-jl" role="list">' + jl.items.map( function ( e ) {
+				return '<li><a href="#journal/' + e.id + '"><span class="a-jl-date">' + esc( jWhen( e.date ) ) + ( e.visibility === 'only_me' ? ' <span class="a-jl-me">' + icon( 'lock', 12 ) + __( 'Only me', 'stubli' ) + '</span>' : '' ) + '</span>' +
+					'<span class="a-jl-x">' + esc( e.excerpt || '' ) + '</span>' + ( e.edited ? '<span class="a-jl-ed">' + esc( _f( __( 'Edited %s', 'stubli' ), jWhen( e.edited, true ) ) ) + '</span>' : '' ) + '</a></li>';
+			} ).join( '' ) + '</ul>' + ( jl.more ? '<button type="button" class="a-btn quiet wide" data-jl-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' : '' );
+		}
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Your journal', 'stubli' ) + '</h1><a class="a-btn quiet" href="#journal">' + __( 'New entry', 'stubli' ) + '</a></header>' +
+			'<main class="a-main" id="main"><p class="muted" style="margin:4px 0 14px">' + __( 'Every entry, including Only-me ones. Tap one to change or delete it.', 'stubli' ) + '</p>' + body + '</main>';
+		var more = $( '[data-jl-more]' );
+		if ( more ) { more.addEventListener( 'click', function () { jl.page++; jl.loaded = false; more.disabled = true; more.textContent = __( 'Loading…', 'stubli' ); viewJournals(); } ); }
+	}
+	function jlReset() { jl.loaded = false; jl.page = 1; jl.items = []; }
+
+	function viewJournal( id ) {
+		id = +id || 0;
+		if ( id ) {
+			if ( ! jed || jed.id !== id ) {
+				jed = { id: id, loading: true, html: '', photos: [], pending: {}, visibility: 'everyone', tool: '', busy: false, error: '', uploading: 0, sure: false };
+				send( 'GET', 'journal/' + id, null ).then( function ( r ) {
+					jed.loading = false; jed.html = r.html; jed.photos = r.photos || []; jed.visibility = r.visibility; jed.date = r.date; jed.edited = r.edited; jed.url = r.url;
+				}, function ( e ) { jed.loading = false; jed.fail = e.message; } ).then( function () { if ( location.hash === '#journal/' + id ) { viewJournal( id ); } } );
+			}
+		} else { jed = null; }
+		var j = jed || journal, max = B.maxJournal, editing = !! j.id;
+		var head = editing ?
+			'<header class="a-head"><a class="a-text-btn" href="#journals" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Edit entry', 'stubli' ) + '</h1>' :
+			'<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>' + __( 'Close', 'stubli' ) + '</button>' + seg( 'journal' );
+		if ( j.loading || j.fail ) {
+			root.innerHTML = head + '<span></span></header><main class="a-main" id="main">' + ( j.fail ? '<div class="a-notice" role="alert"><p>' + esc( j.fail ) + '</p></div><a class="a-btn quiet" href="#journals">' + __( 'Back to your journal', 'stubli' ) + '</a>' : '<p class="muted" role="status">' + __( 'Opening your entry…', 'stubli' ) + '</p>' ) + '</main>';
+			if ( j.fail ) { jed = null; }
+			bindCommon(); return;
+		}
+		// Photos whose place in the text was deleted are dropped.
+		var used = jUsed( j.html );
+		j.photos = j.photos.filter( function ( p ) { return used.indexOf( p.n ) > -1 || ( j.pending && j.pending[ p.n ] ); } );
+		var hasText = function () { return !! String( j.html || '' ).replace( /<[^>]*>/g, '' ).replace( /&nbsp;/g, ' ' ).trim(); };
+		root.innerHTML = head +
+			'<button type="button" class="a-btn" data-save' + ( hasText() && ! j.busy && ! j.uploading ? '' : ' disabled' ) + '>' + ( j.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
+			'<main class="a-compose" id="main"><h1 class="sr">' + ( editing ? __( 'Edit journal entry', 'stubli' ) : __( 'New journal entry', 'stubli' ) ) + '</h1>' +
+			'<p class="a-date">' + esc( editing ? jWhen( j.date ) : B.today ) + ( editing && j.edited ? ' · ' + esc( _f( __( 'Edited %s', 'stubli' ), jWhen( j.edited, true ) ) ) : '' ) + ( editing ? '' : ' · <a href="#journals">' + __( 'All your entries', 'stubli' ) + '</a>' ) + '</p>' +
+			'<div class="a-fmt" role="toolbar" aria-label="' + esc( __( 'Formatting', 'stubli' ) ) + '">' + FMT.map( function ( f ) { return '<button type="button" class="a-fmt-b" data-fmt="' + f.k + '" aria-pressed="false" aria-label="' + esc( f.label ) + '" title="' + esc( f.label ) + '">' + f.html + '</button>'; } ).join( '' ) + '</div>' +
+			'<div id="a-jtext" class="a-journal-text a-rich" contenteditable="true" role="textbox" aria-multiline="true" aria-label="' + esc( __( 'Journal entry', 'stubli' ) ) + '" data-ph="' + esc( __( 'What happened today?', 'stubli' ) ) + '">' + ( jExpand( j ) || '<p><br></p>' ) + '</div>' +
 			( j.tool ? '<div class="a-inline"><label class="sr" for="a-jlink">' + ( j.tool === 'video' ? __( 'YouTube or Vimeo address', 'stubli' ) : __( 'Web address', 'stubli' ) ) + '</label><input id="a-jlink" class="a-field" type="url" inputmode="url" placeholder="' + ( j.tool === 'video' ? __( 'A YouTube or Vimeo link', 'stubli' ) : 'https://…' ) + ( '"><button type="button" class="a-btn quiet" data-jadd>' + __( 'Add', 'stubli' ) + '</button></div>' ) +
 				( j.tool === 'video' ? ( '<p class="a-help">' + __( 'It shows as a cover with a play button. Nothing loads from the video site until someone presses play.', 'stubli' ) + '</p>' ) : '' ) : '' ) +
 			'<div class="a-tools"><label class="a-tool" aria-label="' + esc( __( 'Add a photo', 'stubli' ) ) + '" title="' + esc( __( 'Add a photo', 'stubli' ) ) + '">' + icon( 'photo', 20 ) + '<input class="a-file" type="file" accept="image/*" multiple data-jphoto></label><button type="button" class="a-tool" data-tool="video" aria-label="' + esc( __( 'Add a video link', 'stubli' ) ) + '">' + icon( 'video', 20 ) + '</button><button type="button" class="a-tool" data-tool="link" aria-label="' + esc( __( 'Add a link', 'stubli' ) ) + '">' + icon( 'link', 20 ) + '</button>' +
-			'<span class="a-count" data-jcount>' + ( j.text.trim() ? ( __( 'Draft saved ·', 'stubli' ) + ' ' ) : '' ) + j.text.length + ' / ' + max + '</span></div>' +
+			'<span class="a-count" data-jcount></span></div>' +
 			( j.uploading ? '<div class="a-notice calm" aria-live="polite"><p>' + ( j.uploading === 1 ? __( 'Adding a photo…', 'stubli' ) : _f( __( 'Adding %s photos…', 'stubli' ), j.uploading ) ) + '</p></div>' : '' ) +
-			( j.photos.length ? ( '<h2 class="a-caps">' + __( 'Photos in this entry', 'stubli' ) + '</h2><p class="a-help" style="margin:-4px 0 10px">' + __( 'Each one appears where its [Photo] line is in your text. Move the line to move the photo.', 'stubli' ) + '</p>' ) + j.photos.map( function ( ph ) {
-				return '<div class="a-jphoto"><img src="' + esc( ph.url ) + '" alt=""><div class="a-jphoto-fields"><strong>' + _f( __( 'Photo %s', 'stubli' ), ph.n ) + '</strong>' +
+			( j.photos.length ? ( '<h2 class="a-caps">' + __( 'Photos in this entry', 'stubli' ) + '</h2><p class="a-help" style="margin:-4px 0 10px">' + __( 'Each photo sits where you put it in your text. Use the arrows to move it up or down.', 'stubli' ) + '</p>' ) + j.photos.map( function ( ph ) {
+				return '<div class="a-jphoto"><img src="' + esc( ph.url ) + '" alt=""><div class="a-jphoto-fields"><div class="a-jphoto-top"><strong>' + _f( __( 'Photo %s', 'stubli' ), ph.n ) + '</strong><span><button type="button" class="a-icon-btn" data-jmove="' + ph.n + ':-1" aria-label="' + esc( _f( __( 'Move photo %s up', 'stubli' ), ph.n ) ) + '">' + icon( 'up', 18 ) + '</button><button type="button" class="a-icon-btn" data-jmove="' + ph.n + ':1" aria-label="' + esc( _f( __( 'Move photo %s down', 'stubli' ), ph.n ) ) + '">' + icon( 'down', 18 ) + '</button></span></div>' +
 					'<label class="a-label a-jlabel" for="a-jcap-' + ph.n + ( '">' + __( 'Caption', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(shown under the photo)', 'stubli' ) + '</span></label><input id="a-jcap-' ) + ph.n + '" class="a-field" maxlength="300" data-jcap="' + ph.n + '" value="' + esc( ph.caption ) + '">' +
-					'<label class="a-label a-jlabel" for="a-jalt-' + ph.n + ( '">' + __( 'Description', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(for people who can\'t see it)', 'stubli' ) + '</span></label><input id="a-jalt-' ) + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" value="' + esc( ph.alt ) + '">' +
+					'<label class="a-label a-jlabel" for="a-jalt-' + ph.n + ( '">' + __( 'Description', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional, for people who can\'t see it)', 'stubli' ) + '</span></label><input id="a-jalt-' ) + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" value="' + esc( ph.alt ) + '">' +
 					'<button type="button" class="a-text-btn a-jremove" data-jremove="' + ph.n + '">' + _f( __( 'Remove photo %s', 'stubli' ), ph.n ) + '</button></div></div>';
 			} ).join( '' ) : '' ) +
 			( '<h2 class="a-caps" id="a-vis-h">' + __( 'Who can see this', 'stubli' ) + '</h2><div class="a-vis" role="radiogroup" aria-labelledby="a-vis-h">' ) +
@@ -2103,71 +2221,187 @@
 			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'only_me' ) + '" data-vis="only_me"><strong>' + ( j.visibility === 'only_me' ? '✓ ' : '' ) + ( __( 'Only me', 'stubli' ) + '</strong><span>' + __( 'A private note', 'stubli' ) + '</span></button></div>' ) +
 			'<div data-msg aria-live="polite">' + ( j.error ? '<div class="a-notice" role="alert"><p>' + esc( j.error ) + '</p></div>' : '' ) + '</div>' +
 			( j.visibility === 'only_me' && j.photos.length ? ( '<p class="a-help" style="margin-top:14px">' + __( 'Photos in an Only-me entry aren\'t shown anywhere, but anyone who has a photo\'s exact web address could open it.', 'stubli' ) + '</p>' ) : '' ) +
-			( '<p class="a-help" style="margin-top:14px">' + __( 'Journal entries never appear in anyone\'s feed. Visitors find them in your Journal tab. Your draft is saved as you type.', 'stubli' ) + '</p></main>' );
+			( editing ?
+				'<p class="a-help" style="margin-top:14px">' + __( 'Saving keeps the original date and adds an "Edited" time under it. The earlier version is kept, privately, in WordPress.', 'stubli' ) + '</p>' +
+				'<section class="a-card a-ed-del">' + ( j.sure ?
+					'<p><strong>' + __( 'Delete this entry?', 'stubli' ) + '</strong> ' + __( 'It leaves your Journal tab. You can undo right after.', 'stubli' ) + '</p><div class="a-actions"><button type="button" class="a-btn a-danger" data-jdel-yes>' + __( 'Delete entry', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-jdel-no>' + __( 'Keep it', 'stubli' ) + '</button></div>' :
+					'<button type="button" class="a-text-btn a-danger-text" data-jdel>' + __( 'Delete entry…', 'stubli' ) + '</button>' ) + '</section>' :
+				'<p class="a-help" style="margin-top:14px">' + __( 'Journal entries never appear in anyone\'s feed. Visitors find them in your Journal tab. Your draft is saved as you type.', 'stubli' ) + '</p>' ) +
+			'</main>';
 		j.error = '';
 		bindCommon();
-		var t = $( '#a-jtext' ), c = $( '[data-jcount]' ), save = $( '[data-save]' );
-		var grow = function () { t.style.height = 'auto'; t.style.height = Math.max( t.scrollHeight, window.innerHeight * 0.4 ) + 'px'; };
-		t.addEventListener( 'input', function () {
-			j.text = t.value; saveJournalDraft(); c.textContent = ( j.text.trim() ? ( __( 'Draft saved ·', 'stubli' ) + ' ' ) : '' ) + j.text.length + ' / ' + max; save.disabled = ! j.text.trim() || j.uploading > 0; grow();
+		var ed = $( '#a-jtext' ), c = $( '[data-jcount]' ), save = $( '[data-save]' );
+		try { document.execCommand( 'defaultParagraphSeparator', false, 'p' ); } catch ( e ) {}
+		var count = function () {
+			var n = ( ed.textContent || '' ).length;
+			c.textContent = ( ! editing && hasText() ? __( 'Draft saved ·', 'stubli' ) + ' ' : '' ) + n + ' / ' + max;
+			c.classList.toggle( 'is-over', n > max );
+			ed.classList.toggle( 'is-empty', ! ( ed.textContent || '' ).trim() && ! ed.querySelector( 'figure' ) );
+		};
+		// Browsers sometimes put a list or quote inside a paragraph; lift it out, keeping the caret.
+		var tidy = function () {
+			var wrapped = Array.prototype.filter.call( ed.children, function ( el ) { return el.tagName === 'P' && el.querySelector( ':scope > ul, :scope > ol, :scope > blockquote, :scope > h3, :scope > p' ); } );
+			if ( ! wrapped.length ) { return; }
+			var s = window.getSelection(), r = s.rangeCount ? s.getRangeAt( 0 ) : null, sc = r && r.startContainer, so = r ? r.startOffset : 0;
+			wrapped.forEach( function ( el ) { while ( el.firstChild ) { ed.insertBefore( el.firstChild, el ); } ed.removeChild( el ); } );
+			if ( sc && ed.contains( sc ) ) { var nr = document.createRange(); nr.setStart( sc, Math.min( so, sc.nodeType === 3 ? sc.length : sc.childNodes.length ) ); nr.collapse( true ); s.removeAllRanges(); s.addRange( nr ); }
+		};
+		var sync = function () {
+			tidy();
+			j.html = jCollapse( ed.innerHTML );
+			if ( ! editing ) { saveJournalDraft(); }
+			save.disabled = ! hasText() || j.uploading > 0 || j.busy;
+			count();
+		};
+		count();
+		ed.addEventListener( 'input', function ( e ) {
+			// Like Notes: "- " starts a bulleted list, "1. " a numbered one, "# " a heading, "> " a quote.
+			if ( e.inputType === 'insertText' && e.data === ' ' ) {
+				var s = window.getSelection(), node = s.anchorNode;
+				if ( node && node.nodeType === 3 && ! node.previousSibling ) {
+					var before = node.textContent.slice( 0, s.anchorOffset ).replace( / /g, ' ' ), block = node.parentNode;
+					var inList = block.closest && block.closest( 'li' );
+					var cmd = /^[-*•] $/.test( before ) ? [ 'insertUnorderedList' ] : /^1[.)] $/.test( before ) ? [ 'insertOrderedList' ] : /^# $/.test( before ) ? [ 'formatBlock', '<h3>' ] : /^> $/.test( before ) ? [ 'formatBlock', '<blockquote>' ] : null;
+					if ( cmd && ! inList ) {
+						// Select the typed "- " and delete it the normal way, so the caret stays on this line.
+						var r = document.createRange(); r.setStart( node, 0 ); r.setEnd( node, before.length ); s.removeAllRanges(); s.addRange( r );
+						document.execCommand( 'delete', false, null );
+						document.execCommand( cmd[ 0 ], false, cmd[ 1 ] || null );
+					}
+				}
+			}
+			sync();
 		} );
-		grow();
-		if ( j.uploading ) { save.disabled = true; }
+		// Pasted text comes in plain, so the entry keeps your own simple formatting.
+		ed.addEventListener( 'paste', function ( e ) {
+			var t = ( e.clipboardData || window.clipboardData );
+			if ( ! t ) { return; }
+			e.preventDefault();
+			document.execCommand( 'insertText', false, t.getData( 'text/plain' ) );
+		} );
+		ed.addEventListener( 'keydown', function ( e ) {
+			if ( ( e.metaKey || e.ctrlKey ) && ! e.altKey ) {
+				var k = { b: 'bold', i: 'italic' }[ String( e.key ).toLowerCase() ];
+				if ( k ) { e.preventDefault(); document.execCommand( k, false, null ); sync(); fmtState(); }
+			}
+		} );
+		$$( '[data-fmt]' ).forEach( function ( b ) {
+			var go = function () {
+				jRestore( ed );
+				var k = b.dataset.fmt;
+				if ( k === 'h3' || k === 'blockquote' ) { document.execCommand( 'formatBlock', false, fmtOn( k ) ? '<p>' : '<' + k + '>' ); } else { document.execCommand( k, false, null ); }
+				var s = window.getSelection(); if ( s.rangeCount ) { jSel = s.getRangeAt( 0 ).cloneRange(); }
+				sync(); fmtState();
+			};
+			// Keep the keyboard and the selection while tapping a button.
+			b.addEventListener( 'pointerdown', function ( e ) { e.preventDefault(); go(); } );
+			b.addEventListener( 'click', function ( e ) { if ( e.detail === 0 ) { go(); } } );
+		} );
+		var rerender = function () { viewJournal( j.id ); };
 		var jp = $( '[data-jphoto]' );
 		jp.addEventListener( 'change', function () {
-			var files = Array.prototype.slice.call( jp.files || [] ).slice( 0, 10 ), at = t.selectionStart != null ? t.selectionStart : j.text.length;
+			var files = Array.prototype.slice.call( jp.files || [] ).slice( 0, 10 );
 			if ( ! files.length ) { return; }
-			j.uploading += files.length; j.text = t.value; viewJournal();
-			files.reduce( function ( chain, f ) {
+			j.pending = j.pending || {};
+			var top = function ( n ) { while ( n && n.parentNode !== ed ) { n = n.parentNode; } return n && n.parentNode === ed ? n : null; };
+			var at = jSel && ed.contains( jSel.startContainer ) ? top( jSel.startContainer ) : null;
+			var nums = files.map( function () {
+				var n = Math.max.apply( null, [ 0 ].concat( j.photos.map( function ( p ) { return p.n; } ), Object.keys( j.pending ).map( Number ), jUsed( jCollapse( ed.innerHTML ) ) ) ) + 1;
+				j.pending[ n ] = true;
+				var holder = document.createElement( 'div' ); holder.innerHTML = jFig( j, n ); var fig = holder.firstChild;
+				if ( at && ! ( at.textContent || '' ).trim() && at.tagName === 'P' ) { ed.replaceChild( fig, at ); } else if ( at ) { at.parentNode.insertBefore( fig, at.nextSibling ); } else { ed.appendChild( fig ); }
+				if ( ! fig.nextSibling ) { var p = document.createElement( 'p' ); p.innerHTML = '<br>'; ed.appendChild( p ); }
+				at = fig;
+				return n;
+			} );
+			sync();
+			j.uploading += files.length; rerender();
+			files.reduce( function ( chain, f, i ) {
 				return chain.then( function () {
+					var n = nums[ i ];
 					return resized( f ).then( function ( blob ) {
 						var fd = new FormData(); fd.append( 'photo', blob, 'journal.jpg' );
 						return send( 'POST', 'journal/photos', fd );
 					} ).then( function ( r ) {
-						var n = j.photos.reduce( function ( m, p ) { return Math.max( m, p.n ); }, 0 ) + 1;
 						j.photos.push( { n: n, id: r.id, url: r.url, caption: '', alt: '' } );
-						var before = j.text.slice( 0, at ).replace( /[ \t]+$/, '' ), after = j.text.slice( at ).replace( /^[ \t]+/, '' );
-						var ins = ( before && ! /\n$/.test( before ) ? '\n' : '' ) + '[Photo ' + n + ']' + ( after && ! /^\n/.test( after ) ? '\n' : '' ) + ( after ? '' : '\n' );
-						j.text = before + ins + after; at = ( before + ins ).length;
-					}, function ( e ) { j.error = ( e && e.message ) || __( 'A photo couldn\'t be added. Try again.', 'stubli' ); } ).then( function () { j.uploading--; saveJournalDraft(); viewJournal(); } );
+					}, function ( e ) {
+						j.error = ( e && e.message ) || __( 'A photo couldn\'t be added. Try again.', 'stubli' );
+						j.html = String( j.html ).replace( new RegExp( '<figure data-photo="' + n + '"></figure>' ), '' );
+					} ).then( function () {
+						delete j.pending[ n ]; j.uploading--;
+						if ( ! editing ) { saveJournalDraft(); }
+						if ( location.hash === ( editing ? '#journal/' + j.id : '#journal' ) ) { rerender(); }
+					} );
 				} );
 			}, Promise.resolve() );
 		} );
-		$$( '[data-jcap]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { var p = j.photos.filter( function ( x ) { return x.n === +inp.dataset.jcap; } )[ 0 ]; if ( p ) { p.caption = inp.value; saveJournalDraft(); } } ); } );
-		$$( '[data-jalt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { var p = j.photos.filter( function ( x ) { return x.n === +inp.dataset.jalt; } )[ 0 ]; if ( p ) { p.alt = inp.value; saveJournalDraft(); } } ); } );
+		$$( '[data-jcap]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { var p = jPhoto( j, inp.dataset.jcap ); if ( p ) { p.caption = inp.value; if ( ! editing ) { saveJournalDraft(); } } } ); } );
+		$$( '[data-jalt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { var p = jPhoto( j, inp.dataset.jalt ); if ( p ) { p.alt = inp.value; if ( ! editing ) { saveJournalDraft(); } } } ); } );
 		$$( '[data-jremove]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var n = +b.dataset.jremove;
 				j.photos = j.photos.filter( function ( x ) { return x.n !== n; } );
-				j.text = j.text.replace( new RegExp( '^[ \\t]*\\[Photo ' + n + '\\][ \\t]*\\n?', 'mi' ), '' );
-				saveJournalDraft(); viewJournal();
+				j.html = String( j.html ).replace( '<figure data-photo="' + n + '"></figure>', '' );
+				if ( ! editing ) { saveJournalDraft(); }
+				rerender();
 			} );
 		} );
-		$$( '[data-tool]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.tool = j.tool === b.dataset.tool ? '' : b.dataset.tool; viewJournal(); var f = $( '#a-jlink' ); if ( f ) { f.focus(); } } ); } );
+		$$( '[data-jmove]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var parts = b.dataset.jmove.split( ':' ), n = parts[ 0 ], dir = +parts[ 1 ];
+				var box = document.createElement( 'div' ); box.innerHTML = j.html;
+				var fig = box.querySelector( 'figure[data-photo="' + n + '"]' );
+				if ( ! fig ) { return; }
+				while ( fig.parentNode !== box ) { fig.parentNode.parentNode.insertBefore( fig, fig.parentNode.nextSibling ); }
+				var other = dir < 0 ? fig.previousElementSibling : fig.nextElementSibling;
+				if ( other ) { if ( dir < 0 ) { box.insertBefore( fig, other ); } else { box.insertBefore( fig, other.nextSibling ); } }
+				j.html = box.innerHTML;
+				if ( ! editing ) { saveJournalDraft(); }
+				rerender();
+				var again = $( '[data-jmove="' + b.dataset.jmove + '"]' ); if ( again ) { again.focus(); }
+			} );
+		} );
+		$$( '[data-tool]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.tool = j.tool === b.dataset.tool ? '' : b.dataset.tool; rerender(); var f = $( '#a-jlink' ); if ( f ) { f.focus(); } } ); } );
 		var add = $( '[data-jadd]' );
 		if ( add ) {
 			add.addEventListener( 'click', function () {
 				var v = $( '#a-jlink' ).value.trim();
 				if ( v && ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
-				if ( v ) { j.text = ( j.text ? j.text.replace( /\s+$/, '' ) + '\n\n' : '' ) + v; saveJournalDraft(); }
-				j.tool = ''; viewJournal();
+				if ( v ) { j.html = String( j.html || '' ) + '<p>' + esc( v ) + '</p>'; if ( ! editing ) { saveJournalDraft(); } }
+				j.tool = ''; rerender();
 			} );
 		}
-		$$( '[data-vis]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.visibility = b.dataset.vis; store.set( 'stubli-journal-vis', j.visibility ); viewJournal(); } ); } );
+		$$( '[data-vis]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.visibility = b.dataset.vis; if ( ! editing ) { store.set( 'stubli-journal-vis', j.visibility ); } rerender(); } ); } );
+		var del = $( '[data-jdel]' ); if ( del ) { del.addEventListener( 'click', function () { j.sure = true; rerender(); $( '[data-jdel-no]' ).focus(); } ); }
+		var no = $( '[data-jdel-no]' ); if ( no ) { no.addEventListener( 'click', function () { j.sure = false; rerender(); $( '[data-jdel]' ).focus(); } ); }
+		var yes = $( '[data-jdel-yes]' );
+		if ( yes ) {
+			yes.addEventListener( 'click', function () {
+				var eid = j.id; yes.disabled = true; yes.textContent = __( 'Deleting…', 'stubli' );
+				send( 'DELETE', 'journal/' + eid, null ).then( function () {
+					jed = null; jlReset(); location.hash = '#journals';
+					toast( __( 'Entry deleted.', 'stubli' ), function () {
+						send( 'POST', 'journal/' + eid + '/restore', {} ).then( function () { jlReset(); if ( location.hash === '#journals' ) { viewJournals(); } toast( __( 'It\'s back in your journal.', 'stubli' ) ); }, function ( e ) { toast( e.message ); } );
+					} );
+				}, function ( e ) { j.error = e.message; j.sure = false; rerender(); } );
+			} );
+		}
 		save.addEventListener( 'click', function () {
-			if ( ! j.text.trim() || j.busy ) { return; }
+			sync();
+			if ( ! hasText() || j.busy ) { return; }
+			var used2 = jUsed( j.html );
 			j.busy = true; save.disabled = true; save.textContent = __( 'Saving…', 'stubli' );
-			send( 'POST', 'journal', { text: j.text.trim(), visibility: j.visibility, photos: j.photos.map( function ( p ) { return { n: p.n, id: p.id, caption: p.caption.trim(), alt: p.alt.trim() }; } ) } ).then( function ( res ) {
+			send( 'POST', editing ? 'journal/' + j.id : 'journal', { html: j.html, visibility: j.visibility, photos: j.photos.filter( function ( p ) { return used2.indexOf( p.n ) > -1; } ).map( function ( p ) { return { n: p.n, id: p.id, caption: String( p.caption || '' ).trim(), alt: String( p.alt || '' ).trim() }; } ) } ).then( function () {
+				jlReset();
+				if ( editing ) { jed = null; location.hash = '#journals'; toast( __( 'Saved. It shows when you edited it.', 'stubli' ) ); return; }
 				var priv = j.visibility === 'only_me';
-				j.text = ''; j.photos = []; j.busy = false; store.del( 'stubli-journal-draft' ); store.del( 'stubli-journal-photos' );
+				j.html = ''; j.photos = []; j.busy = false; store.del( 'stubli-journal-html' ); store.del( 'stubli-journal-draft' ); store.del( 'stubli-journal-photos' );
 				doneView( __( 'Saved', 'stubli' ), priv ? __( 'Only you can see this entry.', 'stubli' ) : __( 'Your entry is in your Journal tab.', 'stubli' ), B.journal, __( 'See your journal', 'stubli' ), '', '#journal', __( 'New entry', 'stubli' ) );
 			}, function ( err ) {
-				j.busy = false; j.error = ( err && err.message ) || __( 'Something went wrong. Your entry is still here.', 'stubli' ); viewJournal();
+				j.busy = false; j.error = ( err && err.message ) || __( 'Something went wrong. Your entry is still here.', 'stubli' ); rerender();
 			} );
 		} );
 	}
-
-
 
 	/* ── Send feedback ── */
 	var fb = { kind: 'idea', text: '', address: true, shot: null, busy: false, sent: false, error: '' };

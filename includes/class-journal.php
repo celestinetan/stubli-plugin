@@ -109,13 +109,11 @@ class Journal {
 	 * @param string $visibility "everyone" or "only_me".
 	 * @return array|WP_Error
 	 */
-	public static function create( $text, $visibility = 'everyone', array $photos = array() ) {
-		$text = (string) $text;
-		if ( '' === trim( wp_strip_all_tags( $text ) ) ) {
-			return new WP_Error( 'stubli_empty', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );
-		}
-		if ( Posts::visible_length( $text ) > self::MAX_LENGTH ) {
-			return new WP_Error( 'stubli_entry_too_long', __( 'That entry is over 5,000 characters. Trim a little and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+	public static function create( $text, $visibility = 'everyone', array $photos = array(), $html = null ) {
+		$content = null !== $html ? self::sanitize_html( (string) $html, $photos ) : self::content_with_photos( (string) $text, $photos );
+		$check   = self::check( $content );
+		if ( is_wp_error( $check ) ) {
+			return $check;
 		}
 		$private = 'only_me' === $visibility;
 
@@ -123,7 +121,7 @@ class Journal {
 			array(
 				'post_status'  => $private ? 'private' : 'publish',
 				'post_title'   => wp_date( get_option( 'date_format' ) ),
-				'post_content' => self::content_with_photos( $text, $photos ),
+				'post_content' => $content,
 				'post_author'  => get_current_user_id(),
 			),
 			true
@@ -132,17 +130,7 @@ class Journal {
 			return $post_id;
 		}
 		set_post_format( $post_id, 'status' );
-		foreach ( self::valid_photos( $photos ) as $ph ) {
-			wp_update_post(
-				array(
-					'ID'          => $ph['id'],
-					'post_parent' => $post_id,
-				)
-			);
-			if ( '' !== $ph['alt'] ) {
-				update_post_meta( $ph['id'], '_wp_attachment_image_alt', $ph['alt'] );
-			}
-		}
+		self::attach_photos( $post_id, $photos );
 
 		return array(
 			'id'         => $post_id,
@@ -150,6 +138,295 @@ class Journal {
 			'type'       => 'journal',
 			'visibility' => $private ? 'only_me' : 'everyone',
 		);
+	}
+
+	/**
+	 * An entry needs words, and fits in 5,000 characters.
+	 *
+	 * @param string $content Entry HTML.
+	 * @return true|WP_Error
+	 */
+	private static function check( $content ) {
+		if ( '' === trim( wp_strip_all_tags( (string) $content ) ) ) {
+			return new WP_Error( 'stubli_empty', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( Posts::visible_length( $content ) > self::MAX_LENGTH ) {
+			return new WP_Error( 'stubli_entry_too_long', __( 'That entry is over 5,000 characters. Trim a little and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Hang the entry's photos under it and save their descriptions.
+	 *
+	 * @param int   $post_id Entry.
+	 * @param array $photos  Raw photo list.
+	 */
+	private static function attach_photos( $post_id, array $photos ) {
+		foreach ( self::valid_photos( $photos ) as $ph ) {
+			wp_update_post(
+				array(
+					'ID'          => $ph['id'],
+					'post_parent' => $post_id,
+				)
+			);
+			update_post_meta( $ph['id'], '_wp_attachment_image_alt', $ph['alt'] );
+		}
+	}
+
+	/**
+	 * Clean HTML from the journal editor: simple formatting only (headings,
+	 * bold, italic, strikethrough, lists, quotes, links), and each photo
+	 * rebuilt from its upload, never from what the browser sent.
+	 *
+	 * @param string $html   Editor HTML.
+	 * @param array  $photos Attached photos.
+	 * @return string
+	 */
+	public static function sanitize_html( $html, array $photos ) {
+		$valid = self::valid_photos( $photos );
+		$html  = Posts::drop_code( (string) $html );
+		// Photos become markers first, so nothing inside them survives.
+		$html = (string) preg_replace( '#<figure\b[^>]*\bdata-photo="(\d{1,2})"[^>]*>.*?</figure>#is', "\n[[stubli-photo:$1]]\n", $html );
+		$html = (string) preg_replace( '#<figure\b[^>]*>.*?</figure>#is', '', $html );
+		// Browsers write new lines as <div>; the page wants paragraphs.
+		$html = (string) preg_replace( '#<div\b[^>]*>#i', '<p>', $html );
+		$html = (string) preg_replace( '#</div\s*>#i', '</p>', $html );
+		$html = (string) preg_replace( '#<(/?)b\b[^>]*>#i', '<$1strong>', $html );
+		$html = (string) preg_replace( '#<(/?)i\b[^>]*>#i', '<$1em>', $html );
+		$html = (string) preg_replace( '#<(/?)(?:strike|del)\b[^>]*>#i', '<$1s>', $html );
+		$html = (string) preg_replace( '#<(/?)h[1-6]\b[^>]*>#i', '<$1h3>', $html );
+		$html = wp_kses(
+			$html,
+			array(
+				'p'          => array(),
+				'br'         => array(),
+				'strong'     => array(),
+				'em'         => array(),
+				's'          => array(),
+				'h3'         => array(),
+				'ul'         => array(),
+				'ol'         => array(),
+				'li'         => array(),
+				'blockquote' => array(),
+				'a'          => array( 'href' => true ),
+			),
+			array( 'http', 'https' )
+		);
+		$html = make_clickable( $html );
+		$html = wp_kses(
+			$html,
+			array(
+				'p'          => array(),
+				'br'         => array(),
+				'strong'     => array(),
+				'em'         => array(),
+				's'          => array(),
+				'h3'         => array(),
+				'ul'         => array(),
+				'ol'         => array(),
+				'li'         => array(),
+				'blockquote' => array(),
+				'a'          => array(
+					'href' => true,
+					'rel'  => true,
+				),
+			),
+			array( 'http', 'https' )
+		);
+		// Lists, headings and quotes never sit inside a paragraph.
+		$html = (string) preg_replace( '#<p>\s*(?=<(?:ul|ol|h3|blockquote|p)\b)#i', '', $html );
+		$html = (string) preg_replace( '#(</(?:ul|ol|h3|blockquote|p)>)\s*</p>#i', '$1', $html );
+		$html = force_balance_tags( $html );
+		// Text typed straight into the box, outside any paragraph.
+		if ( ! preg_match( '#^\s*<(p|h3|ul|ol|blockquote)\b#i', $html ) && false === strpos( $html, '[[stubli-photo:' ) ) {
+			$html = wpautop( $html );
+		}
+		$used = array();
+		$html = (string) preg_replace_callback(
+			'#(?:<p>\s*)?\[\[stubli-photo:(\d{1,2})\]\](?:\s*</p>)?#',
+			static function ( $m ) use ( $valid, &$used ) {
+				$n = (int) $m[1];
+				if ( ! isset( $valid[ $n ] ) || isset( $used[ $n ] ) ) {
+					return '';
+				}
+				$used[ $n ] = true;
+				return self::figure( $valid[ $n ] );
+			},
+			$html
+		);
+		foreach ( $valid as $n => $ph ) {
+			if ( ! isset( $used[ $n ] ) ) {
+				$html .= self::figure( $ph );
+			}
+		}
+		// Empty lines and empty paragraphs go; spacing comes from the page.
+		$html = (string) preg_replace( '#<(p|h3|li|blockquote)>(?:\s|&nbsp;|<br\s*/?>)*</\1>#i', '', $html );
+		$html = (string) preg_replace( '#<(ul|ol)>\s*</\1>#i', '', $html );
+		return trim( $html );
+	}
+
+	/**
+	 * The owner's own journal entry, or null.
+	 *
+	 * @param int  $id       Post ID.
+	 * @param bool $trashed  Also find entries in the bin.
+	 * @return \WP_Post|null
+	 */
+	private static function own_entry( $id, $trashed = false ) {
+		$post = get_post( (int) $id );
+		if ( ! $post || 'post' !== $post->post_type || ! has_post_format( 'status', $post ) ) {
+			return null;
+		}
+		$ok = $trashed ? array( 'publish', 'private', 'trash' ) : array( 'publish', 'private' );
+		if ( ! in_array( $post->post_status, $ok, true ) || ! current_user_can( 'edit_post', $post->ID ) ) {
+			return null;
+		}
+		return $post;
+	}
+
+	/**
+	 * When the entry was last edited (Unix time), or 0.
+	 *
+	 * @param int $id Post ID.
+	 * @return int
+	 */
+	public static function edited( $id ) {
+		return (int) get_post_meta( (int) $id, '_stubli_edited', true );
+	}
+
+	/**
+	 * One entry, ready for the editor: its HTML with each photo as a
+	 * numbered placeholder, and the photos with their captions.
+	 *
+	 * @param int $id Post ID.
+	 * @return array|WP_Error
+	 */
+	public static function get( $id ) {
+		$post = self::own_entry( $id );
+		if ( ! $post ) {
+			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		// Every size of every photo under the entry, to recognise older entries' photos.
+		$by_url = array();
+		foreach ( get_attached_media( 'image', $post->ID ) as $att ) {
+			foreach ( array( 'large', 'medium', 'full', 'medium_large' ) as $size ) {
+				$src = wp_get_attachment_image_src( $att->ID, $size );
+				if ( $src ) {
+					$by_url[ $src[0] ] = (int) $att->ID;
+				}
+			}
+		}
+		$photos = array();
+		$html   = (string) preg_replace_callback(
+			'#<figure class="og-journal-photo"[^>]*>(.*?)</figure>#is',
+			static function ( $m ) use ( &$photos, $by_url ) {
+				$id = 0;
+				if ( preg_match( '#data-photo-id="(\d+)"#', $m[0], $d ) ) {
+					$id = (int) $d[1];
+				} elseif ( preg_match( '#<img[^>]+src="([^"]+)"#i', $m[1], $u ) && isset( $by_url[ html_entity_decode( $u[1] ) ] ) ) {
+					$id = $by_url[ html_entity_decode( $u[1] ) ];
+				}
+				if ( ! $id || 'attachment' !== get_post_type( $id ) ) {
+					return '';
+				}
+				$n   = count( $photos ) + 1;
+				$src = wp_get_attachment_image_src( $id, 'medium' );
+				$cap = preg_match( '#<figcaption>(.*?)</figcaption>#is', $m[1], $c ) ? html_entity_decode( wp_strip_all_tags( $c[1] ), ENT_QUOTES ) : '';
+				$photos[] = array(
+					'n'       => $n,
+					'id'      => $id,
+					'url'     => $src ? $src[0] : (string) wp_get_attachment_url( $id ),
+					'caption' => $cap,
+					'alt'     => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
+				);
+				return '<figure data-photo="' . $n . '"></figure>';
+			},
+			(string) $post->post_content
+		);
+		return array(
+			'id'         => (int) $post->ID,
+			'html'       => $html,
+			'photos'     => $photos,
+			'visibility' => 'private' === $post->post_status ? 'only_me' : 'everyone',
+			'date'       => get_post_time( 'c', true, $post ),
+			'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
+			'url'        => get_permalink( $post ),
+		);
+	}
+
+	/**
+	 * Change an entry. Its date stays; it gets an "Edited" time, and the
+	 * earlier version is kept as a WordPress revision.
+	 *
+	 * @param int    $id         Post ID.
+	 * @param string $html       Editor HTML.
+	 * @param string $visibility "everyone" or "only_me".
+	 * @param array  $photos     Attached photos.
+	 * @return array|WP_Error
+	 */
+	public static function update( $id, $html, $visibility, array $photos ) {
+		$post = self::own_entry( $id );
+		if ( ! $post ) {
+			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		$content = self::sanitize_html( (string) $html, $photos );
+		$check   = self::check( $content );
+		if ( is_wp_error( $check ) ) {
+			return $check;
+		}
+		$status = 'only_me' === $visibility ? 'private' : 'publish';
+		if ( $content !== $post->post_content || $status !== $post->post_status ) {
+			$res = wp_update_post(
+				array(
+					'ID'           => $post->ID,
+					'post_content' => $content,
+					'post_status'  => $status,
+				),
+				true
+			);
+			if ( is_wp_error( $res ) ) {
+				return new WP_Error( 'stubli_not_saved', __( 'That didn\'t save. Your changes are still here, so try again.', 'stubli' ), array( 'status' => 500 ) );
+			}
+			update_post_meta( $post->ID, '_stubli_edited', time() );
+		}
+		self::attach_photos( $post->ID, $photos );
+		return self::get( $post->ID );
+	}
+
+	/**
+	 * Move an entry to the bin (it can come back straight after).
+	 *
+	 * @param int $id Post ID.
+	 * @return array|WP_Error
+	 */
+	public static function delete( $id ) {
+		$post = self::own_entry( $id );
+		if ( ! $post ) {
+			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		wp_trash_post( $post->ID );
+		return array(
+			'deleted' => true,
+			'id'      => (int) $post->ID,
+		);
+	}
+
+	/**
+	 * Bring an entry back from the bin, as it was.
+	 *
+	 * @param int $id Post ID.
+	 * @return array|WP_Error
+	 */
+	public static function restore( $id ) {
+		$post = self::own_entry( $id, true );
+		if ( ! $post || 'trash' !== $post->post_status ) {
+			return new WP_Error( 'stubli_not_found', __( 'That entry can\'t be brought back.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+		wp_untrash_post( $post->ID );
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
+		return self::get( $post->ID );
 	}
 
 	/**
@@ -184,6 +461,8 @@ class Journal {
 					'html'       => apply_filters( 'the_content', $post->post_content ),
 					'visibility' => 'private' === $post->post_status ? 'only_me' : 'everyone',
 					'url'        => get_permalink( $post ),
+					'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
+					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
 				);
 			},
 			$query->posts
@@ -274,7 +553,7 @@ class Journal {
 				'class'   => 'og-journal-img',
 			)
 		);
-		return "\n<figure class=\"og-journal-photo\">" . $img . ( '' !== $ph['caption'] ? '<figcaption>' . esc_html( $ph['caption'] ) . '</figcaption>' : '' ) . "</figure>\n";
+		return "\n<figure class=\"og-journal-photo\" data-photo-id=\"" . (int) $ph['id'] . "\">" . $img . ( '' !== $ph['caption'] ? '<figcaption>' . esc_html( $ph['caption'] ) . '</figcaption>' : '' ) . "</figure>\n";
 	}
 
 	/**

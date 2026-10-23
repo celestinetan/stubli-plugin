@@ -224,10 +224,11 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array() ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null ) ),
 					'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
 					'args'                => array(
-						'text'       => $text,
+						'text'       => array_merge( $text, array( 'required' => false ) ),
+						'html'       => array( 'type' => 'string' ),
 						'visibility' => array(
 							'type'    => 'string',
 							'enum'    => array( 'everyone', 'only_me' ),
@@ -240,6 +241,52 @@ class Rest {
 						),
 					),
 				),
+			)
+		);
+
+		// One entry, for the owner: read it into the editor, change it, delete it.
+		Rest::register(
+			'/journal/(?P<id>\d+)',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::get( (int) $r['id'] ) ),
+					'permission_callback' => array( self::class, 'is_owner' ),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array() ) ),
+					'permission_callback' => array( self::class, 'is_owner' ),
+					'args'                => array(
+						'html'       => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'visibility' => array(
+							'type'    => 'string',
+							'enum'    => array( 'everyone', 'only_me' ),
+							'default' => 'everyone',
+						),
+						'photos'     => array(
+							'type'    => 'array',
+							'default' => array(),
+							'items'   => array( 'type' => 'object' ),
+						),
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::DELETABLE,
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::delete( (int) $r['id'] ) ),
+					'permission_callback' => array( self::class, 'is_owner' ),
+				),
+			)
+		);
+		Rest::register(
+			'/journal/(?P<id>\d+)/restore',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::restore( (int) $r['id'] ) ),
+				'permission_callback' => array( self::class, 'is_owner' ),
 			)
 		);
 

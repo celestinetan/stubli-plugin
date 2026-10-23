@@ -459,6 +459,7 @@ function stubli_view_single() {
 		stubli_topbar( home_url( '/journal/' ), __( 'Journal', 'stubli' ) );
 		echo '<main class="st-main st-reading" id="main"><article class="st-entry is-full">';
 		echo '<h1 class="st-entry-date">' . esc_html( get_the_date( 'l, j F Y', $post ) ) . '</h1>';
+		echo stubli_entry_meta( $post ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo '<div class="st-entry-text">' . stubli_entry_html( $post ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</article>';
 		stubli_comments( $post->ID );
@@ -516,6 +517,26 @@ function stubli_view_single() {
 		echo '<span><span class="st-muted">' . esc_html( $coll ? sprintf( __( 'Next in %s', 'stubli' ), stubli_collection_name( $coll ) ) : __( 'Next', 'stubli' ) ) . '</span><span>' . esc_html( stubli_post_label( $next ) ) . '</span></span>' . stubli_icon( 'chev', 20 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 	echo '</div></article></main>';
+}
+
+/**
+ * Under an entry's date: when it was last edited, and for the owner an Edit
+ * link into the app.
+ *
+ * @param WP_Post $post Entry.
+ * @return string
+ */
+function stubli_entry_meta( $post ) {
+	$edited = (int) get_post_meta( $post->ID, '_stubli_edited', true );
+	$out    = '';
+	if ( $edited ) {
+		/* translators: %s: date and time */
+		$out .= '<span class="st-entry-edited">' . esc_html( sprintf( __( 'Edited %s', 'stubli' ), wp_date( 'j M Y, ' . get_option( 'time_format' ), $edited ) ) ) . '</span>';
+	}
+	if ( stubli_is_owner() ) {
+		$out .= '<a class="st-entry-edit" href="' . esc_url( home_url( '/app/#journal/' . $post->ID ) ) . '">' . stubli_icon( 'pen', 14 ) . esc_html__( 'Edit', 'stubli' ) . '</a>';
+	}
+	return '' !== $out ? '<p class="st-entry-meta">' . $out . '</p>' : '';
 }
 
 /**
@@ -590,6 +611,7 @@ function stubli_view_journal() {
 		$long = mb_strlen( wp_strip_all_tags( $entry->post_content ) ) > 600;
 		echo '<article class="st-entry' . ( $long ? ' is-long' : '' ) . '">';
 		echo '<h2 class="st-entry-date"><time datetime="' . esc_attr( get_post_time( 'c', true, $entry ) ) . '">' . esc_html( get_the_date( 'l, j F', $entry ) ) . '</time></h2>';
+		echo stubli_entry_meta( $entry ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo '<div class="st-entry-text">' . stubli_entry_html( $entry ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		if ( $long ) {
 			echo '<a class="st-read-more" href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html__( 'Read more', 'stubli' ) . '</a>';
