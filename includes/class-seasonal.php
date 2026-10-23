@@ -1,11 +1,11 @@
 <?php
 /**
- * Little surprises on special days (easter eggs): Samichlaus, New Year,
- * Easter and the Stubli's own birthday. Dates follow the site's time zone.
+ * Little surprises on special days: the two dots of the ü in the Stubli
+ * logo dress up for Samichlaus, New Year, Easter and the Stubli's own
+ * birthday. Dates follow the site's time zone.
  *
- * On by default; the owner can switch them off in the app (Colour and reading
- * mode). Visitors see each one at most once a day (the script remembers that
- * in their browser).
+ * On by default; the owner can switch them off in the app (Colour and
+ * reading mode).
  *
  * @package Stubli
  */
@@ -193,27 +193,76 @@ class Seasonal {
 	}
 
 	/**
-	 * The words the script needs, in the site's language.
+	 * The two dots of the ü in the logo, dressed for the day (SVG, viewBox
+	 * 0 0 60 80, dots at 19,15 and 41,15). Plain dots on other days.
 	 *
-	 * @return array
+	 * @param string $key Surprise key.
+	 * @return string
 	 */
-	public static function text() {
-		return array(
-			'samichlaus' => __( 'Samichlaus waves hello and leaves a mandarin and some peanuts.', 'stubli' ),
-			'newyear'    => __( 'Little fireworks for the New Year.', 'stubli' ),
-			'egg'        => __( 'A little Easter egg. Tap to open it.', 'stubli' ),
-			'chick'      => __( 'A chick says hello. Happy Easter!', 'stubli' ),
-			/* translators: %s: number of years */
-			'birthday'   => __( 'Balloons: this Stubli is %s today.', 'stubli' ),
-		);
+	public static function dots( $key ) {
+		switch ( $key ) {
+			case 'samichlaus':
+				// A mandarin and a peanut.
+				return '<g class="st-dots st-dots-samichlaus"><circle cx="19" cy="16" r="7" fill="#f08a24"/><path d="M19 9c.6-2.6 2.8-3.8 5-3.2-.8 2-2.6 3-5 3.2z" fill="#5d8a45"/>'
+					. '<path d="M41 6.5c3.4 0 5 2.6 4.4 5.4-.3 1.5-1.4 2.3-1.4 3.6s1.1 2.1 1.4 3.6c.6 2.8-1 5.4-4.4 5.4s-5-2.6-4.4-5.4c.3-1.5 1.4-2.3 1.4-3.6s-1.1-2.1-1.4-3.6c-.6-2.8 1-5.4 4.4-5.4z" fill="#d9b483"/></g>';
+			case 'newyear':
+				// Two sparkles.
+				$star = static function ( $x, $y, $r ) {
+					$k = $r * 0.22;
+					$f = static fn( $n ) => rtrim( rtrim( number_format( $n, 2, '.', '' ), '0' ), '.' );
+					return '<path d="M' . $f( $x ) . ' ' . $f( $y - $r ) . 'Q' . $f( $x + $k ) . ' ' . $f( $y - $k ) . ' ' . $f( $x + $r ) . ' ' . $f( $y )
+						. 'Q' . $f( $x + $k ) . ' ' . $f( $y + $k ) . ' ' . $f( $x ) . ' ' . $f( $y + $r )
+						. 'Q' . $f( $x - $k ) . ' ' . $f( $y + $k ) . ' ' . $f( $x - $r ) . ' ' . $f( $y )
+						. 'Q' . $f( $x - $k ) . ' ' . $f( $y - $k ) . ' ' . $f( $x ) . ' ' . $f( $y - $r ) . 'z"/>';
+				};
+				return '<g class="st-dots st-dots-newyear" fill="currentColor"><g>' . $star( 19, 15, 9 ) . '</g><g>' . $star( 41, 15, 9 ) . '</g></g>';
+			case 'easter':
+				// Two small eggs with a stripe.
+				return '<g class="st-dots st-dots-easter"><g transform="rotate(-10 19 15)"><ellipse cx="19" cy="15" rx="5.6" ry="7.4" fill="currentColor"/><path d="M13.8 15.5h10.4" stroke="#f6cf45" stroke-width="2"/></g>'
+					. '<g transform="rotate(10 41 15)"><ellipse cx="41" cy="15" rx="5.6" ry="7.4" fill="currentColor"/><path d="M35.8 13.5h10.4" stroke="#e8879a" stroke-width="2"/></g></g>';
+			case 'birthday':
+				// Two balloons on strings.
+				return '<g class="st-dots st-dots-birthday"><g><path d="M19 17.5q-1.5 4 0 8" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="19" cy="10" rx="6" ry="7.4" fill="currentColor"/><path d="M17.8 17.2h2.4L19 19z" fill="currentColor"/></g>'
+					. '<g><path d="M41 17.5q1.5 4 0 8" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="41" cy="10" rx="6" ry="7.4" fill="currentColor"/><path d="M39.8 17.2h2.4L41 19z" fill="currentColor"/></g></g>';
+		}
+		return '';
 	}
 
 	/**
-	 * The shared script's address.
+	 * A short line for the logo's tooltip.
 	 *
+	 * @param array $season Today's surprise.
 	 * @return string
 	 */
-	public static function script_url() {
-		return STUBLI_PLUGIN_URL . 'assets/season/season.js';
+	public static function title( array $season ) {
+		switch ( $season['key'] ?? '' ) {
+			case 'samichlaus':
+				return __( 'Samichlaus was here', 'stubli' );
+			case 'newyear':
+				return __( 'Happy New Year', 'stubli' );
+			case 'easter':
+				return __( 'Happy Easter', 'stubli' );
+			case 'birthday':
+				/* translators: %s: number of years */
+				return sprintf( _n( 'This Stubli is %s year old today', 'This Stubli is %s years old today', (int) ( $season['years'] ?? 1 ), 'stubli' ), number_format_i18n( (int) ( $season['years'] ?? 1 ) ) );
+		}
+		return '';
+	}
+
+	/**
+	 * Today's logo, ready for the page and the app: null on ordinary days.
+	 *
+	 * @return array|null { key, dots, title }
+	 */
+	public static function logo() {
+		$s = self::current();
+		if ( ! $s ) {
+			return null;
+		}
+		return array(
+			'key'   => $s['key'],
+			'dots'  => self::dots( $s['key'] ),
+			'title' => self::title( $s ),
+		);
 	}
 }

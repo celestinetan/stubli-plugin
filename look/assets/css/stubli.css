@@ -743,3 +743,15 @@ html { scroll-behavior: smooth; }
 .st-links .st-link-row:hover, .st-links .st-site-row:hover { background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg)); }
 .st-links .st-empty { padding: 14px 16px; border-radius: 14px; background: var(--st-bg); color: var(--st-muted); margin: 0; }
 .st-gb-intro { margin: 4px 0 18px 2px; }
+
+/* Little surprises on special days: the dots of the ü dress up (Seasonal::dots). */
+.st-dots g { transform-box: fill-box; transform-origin: center; }
+.st-dots-newyear > g { animation: st-twinkle 2.2s ease-in-out 3; }
+.st-dots-newyear > g + g { animation-delay: .7s; }
+.st-dots-birthday > g { transform-origin: bottom; animation: st-bob 3s ease-in-out 4; }
+.st-dots-birthday > g + g { animation-delay: 1.4s; }
+.st-dots-easter > g, .st-dots-samichlaus > * { animation: st-nudge 1s ease-in-out .6s 1; }
+@keyframes st-twinkle { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(.72) rotate(25deg); } }
+@keyframes st-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(4deg); } }
+@keyframes st-nudge { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-12deg); } 65% { transform: rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .st-dots g, .st-dots-samichlaus > * { animation: none; } }

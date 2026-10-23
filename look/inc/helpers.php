@@ -410,7 +410,17 @@ function stubli_glyph( $wink = false ) {
  * @return string
  */
 function stubli_wordmark( $wink = false ) {
-	return '<span class="st-wordmark" role="img" aria-label="Stubli"><span aria-hidden="true">st</span><svg class="st-wordmark-u" viewBox="0 0 60 80" aria-hidden="true" focusable="false">' . stubli_glyph( $wink ) . '</svg><span aria-hidden="true">bli</span></span>';
+	$glyph = stubli_glyph( $wink );
+	$title = '';
+	// The logo at the top (the winking one) dresses its dots up on special days.
+	if ( $wink && class_exists( '\\Stubli\\Seasonal' ) ) {
+		$logo = \Stubli\Seasonal::logo();
+		if ( $logo ) {
+			$glyph = '<path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>' . $logo['dots'];
+			$title = ' title="' . esc_attr( $logo['title'] ) . '"';
+		}
+	}
+	return '<span class="st-wordmark" role="img" aria-label="Stubli"' . $title . '><span aria-hidden="true">st</span><svg class="st-wordmark-u" viewBox="0 0 60 80" aria-hidden="true" focusable="false">' . $glyph . '</svg><span aria-hidden="true">bli</span></span>';
 }
 
 /**

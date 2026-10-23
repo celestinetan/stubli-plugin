@@ -7,7 +7,6 @@
 	// Translations come through WordPress (wp.i18n), in the site's language.
 	// _f fills in each %s in order, after translating.
 	function __( s, d ) { return window.wp && wp.i18n ? wp.i18n.__( s, d || 'stubli' ) : s; }
-	function _n( s, p, n, d ) { return window.wp && wp.i18n ? wp.i18n._n( s, p, n, d || 'stubli' ) : ( n === 1 ? s : p ); }
 	function _x( s, c, d ) { return window.wp && wp.i18n ? wp.i18n._x( s, c, d || 'stubli' ) : s; }
 	function _f( s ) { var a = arguments, i = 1; return s.replace( /%s/g, function () { return String( a[ i++ ] ); } ); }
 	var root = document.getElementById( 'app' );
@@ -84,7 +83,7 @@
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
 	}
 	function wordmark() {
-		return ( '<span class="a-brand"><span class="a-wordmark" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '"><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg><span aria-hidden="true">bli</span></span><span class="a-beta">' + __( 'Beta', 'stubli' ) + '</span></span>' );
+		return ( '<span class="a-brand"><span class="a-wordmark" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '"' + ( B.logo ? ' title="' + esc( B.logo.title ) + '"' : '' ) + '><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>' + ( B.logo ? B.logo.dots : '<circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/>' ) + '</svg><span aria-hidden="true">bli</span></span><span class="a-beta">' + __( 'Beta', 'stubli' ) + '</span></span>' );
 	}
 	/* Time of day on the reader's own clock: morning, afternoon, evening, night. */
 	function daypart() {
@@ -155,8 +154,6 @@
 	document.addEventListener( 'visibilitychange', function () { document.documentElement.classList.toggle( 'a-hidden', document.hidden ); } );
 	function greeting() {
 		var part = { morning: __( 'Good morning', 'stubli' ), afternoon: __( 'Good afternoon', 'stubli' ), evening: __( 'Good evening', 'stubli' ), night: __( 'Good evening', 'stubli' ) }[ daypart() ];
-		// New Year's Day, when the little surprises are on.
-		if ( B.season && B.season.key === 'newyear' && new Date().getMonth() === 0 ) { return B.name ? _f( __( 'Happy New Year, %s!', 'stubli' ), B.name ) : __( 'Happy New Year!', 'stubli' ); }
 		// After midnight, a softer hello (the smiling moon stays).
 		if ( new Date().getHours() < 5 ) { return B.name ? _f( __( 'Still up, %s?', 'stubli' ), B.name ) : __( 'Still up?', 'stubli' ); }
 		return part + ( B.name ? ', ' + B.name : '' );
@@ -1432,14 +1429,10 @@
 				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + ( '<strong>' + __( 'That\'s everything for now', 'stubli' ) + '</strong><span class="muted">' + __( 'You\'re all caught up.', 'stubli' ) + ' ' ) + esc( endLine() ) + '</span></div>' : '' );
 		}
 		var sub = feed.stale ? __( 'Offline. Showing your feed from last time.', 'stubli' ) : feed.loaded && feed.newSince ? _f( __( '%s new since your last visit', 'stubli' ), feed.newSince ) : '';
-		if ( ! sub && B.season && B.season.key === 'birthday' ) {
-			/* translators: %s: number of years */
-			sub = _f( _n( 'Your Stubli is %s year old today.', 'Your Stubli is %s years old today.', B.season.years || 1, 'stubli' ), B.season.years || 1 );
-		}
-		root.innerHTML = '<main class="a-main a-has-season" id="main"><div class="a-season" data-season></div><div class="a-top">' + wordmark() + '</div>' +
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
 			'<h1 class="a-greet a-greet-sky">' + sky( 36 ) + '<span>' + esc( greeting() ) + '</span></h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
 			setupCard() + firstDayCard() + body + '</main>' + bar( 'home' );
-		bindFollow(); bindInvite(); bindFirstDay(); playSeason();
+		bindFollow(); bindInvite(); bindFirstDay();
 		var fr = $( '[data-feed-retry]' ); if ( fr ) { fr.addEventListener( 'click', retryFeed ); }
 		$$( '[data-list]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { feed.list = b.dataset.list; loadFeed( true ).then( renderHome ); } ); } );
 		var older = $( '[data-older]' );
@@ -1794,21 +1787,6 @@
 
 	/* ── Your colour and reading mode, any time after setup ── */
 	var lk = { msg: '' };
-	/* ── Little surprises on special days (season.js), once per app visit ── */
-	// Home redraws as the feed arrives, so it starts once the feed is in and
-	// moves to the new box on later redraws until it's finished.
-	var seasonLayer = null, seasonPlayed = false;
-	function playSeason() {
-		var box = $( '[data-season]' );
-		if ( ! box || ! B.season || ! window.StubliSeason ) { return; }
-		if ( seasonPlayed ) {
-			if ( seasonLayer && ! seasonLayer.isConnected && ! seasonLayer.classList.contains( 'ss-fade' ) ) { box.appendChild( seasonLayer ); }
-			return;
-		}
-		if ( ! feed.loaded && ! feed.stale ) { return; }
-		seasonPlayed = true;
-		seasonLayer = window.StubliSeason.play( box, B.season, B.seasonText );
-	}
 	function viewLook() {
 		if ( ! su.d ) {
 			root.innerHTML = arrangeHead( '#more', __( 'Colour and reading mode', 'stubli' ) ) + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
@@ -1825,11 +1803,7 @@
 			'<p class="a-label" id="a-lk-mode" style="margin-top:20px">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-lk-mode">' + [ [ 'auto', __( 'Automatic', 'stubli' ) ], [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ], [ 'dark', __( 'Dark', 'stubli' ) ] ].map( function ( m ) {
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 			} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' ' + __( 'This is how your page opens for visitors. They can still switch with the Aa button.', 'stubli' ) + '</p>' +
-			'<label class="a-check" style="margin-top:26px"><span><strong>' + __( 'Little surprises on special days', 'stubli' ) + '</strong><span class="muted small">' + __( 'Small drawings on your page and in the app: Samichlaus (1 to 6 December), New Year, Easter, and your Stubli\'s birthday, a year after your first post. Visitors see each one once a day, and a tap hides it.', 'stubli' ) + '</span></span><input type="checkbox" data-lk-season' + ( d.seasonal ? ' checked' : '' ) + '></label>' +
-			'<div class="a-season-try"><div class="a-season-stage" data-season-stage aria-hidden="true"></div><p class="a-label" id="a-lk-try">' + __( 'Try one now', 'stubli' ) + '</p><div class="a-chips" role="group" aria-labelledby="a-lk-try">' +
-			[ [ 'samichlaus', __( 'Samichlaus', 'stubli' ) ], [ 'newyear', __( 'New Year', 'stubli' ) ], [ 'easter', __( 'Easter', 'stubli' ) ], [ 'birthday', __( 'Birthday', 'stubli' ) ] ].map( function ( k ) {
-				return '<button type="button" class="a-chip" data-season-try="' + k[ 0 ] + '">' + k[ 1 ] + '</button>';
-			} ).join( '' ) + '</div></div>' +
+			'<label class="a-check" style="margin-top:26px"><span><strong>' + __( 'Little surprises on special days', 'stubli' ) + '</strong><span class="muted small">' + __( 'On a few days a year, the dots on the ü in the Stubli logo dress up: a mandarin and a peanut for Samichlaus, sparkles at New Year, little eggs at Easter, and balloons on your Stubli\'s birthday.', 'stubli' ) + '</span></span><input type="checkbox" data-lk-season' + ( d.seasonal ? ' checked' : '' ) + '></label>' +
 			'<p class="a-help" aria-live="polite" data-lk-msg>' + esc( lk.msg ) + '</p></main>';
 		lk.msg = '';
 		var save = function ( change, focusSel ) {
@@ -1850,20 +1824,12 @@
 				var on = ss.checked;
 				send( 'POST', 'setup', { seasonal: on } ).then( function ( nd ) {
 					su.d = nd;
-					if ( ! on ) { B.season = null; }
+					if ( ! on ) { B.logo = null; }
 					lk.msg = on ? __( 'Little surprises are on.', 'stubli' ) : __( 'Little surprises are off.', 'stubli' );
 					viewLook(); var f = $( '[data-lk-season]' ); if ( f ) { f.focus(); }
 				}, function ( e ) { ss.checked = ! on; toast( e.message ); } );
 			} );
 		}
-		$$( '[data-season-try]' ).forEach( function ( b ) {
-			b.addEventListener( 'click', function () {
-				var st = $( '[data-season-stage]' );
-				if ( ! st || ! window.StubliSeason ) { return; }
-				st.classList.add( 'is-on' );
-				window.StubliSeason.play( st, { key: b.dataset.seasonTry, years: 1, preview: true }, B.seasonText );
-			} );
-		} );
 	}
 	function ikey( s ) { return String( s ).toLowerCase().replace( /[^\p{L}\p{N}]+/gu, '' ); }
 	function initials( n ) { return String( n || '?' ).trim().split( /\s+/ ).slice( 0, 2 ).map( function ( w ) { return w.charAt( 0 ); } ).join( '' ).toUpperCase(); }

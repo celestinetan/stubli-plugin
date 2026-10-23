@@ -188,8 +188,7 @@ class App {
 			'waiting'     => self::waiting(),
 			'setupDone'   => (bool) get_option( 'stubli_setup_done' ),
 			'firstDay'    => self::first_day(),
-			'season'      => Seasonal::current(),
-			'seasonText'  => Seasonal::text(),
+			'logo'        => Seasonal::logo(),
 			'maxUpload'   => (int) wp_max_upload_size(),
 			'sw'          => home_url( '/app/notifications' ),
 			'swScope'     => home_url( '/app/' ),
@@ -257,8 +256,7 @@ class App {
 		// through WordPress's script and style registry.
 		wp_register_style( 'stubli-app', $assets . 'app.css', array(), VERSION );
 		wp_add_inline_style( 'stubli-app', self::fonts() . Setup::accent_css() );
-		wp_register_script( 'stubli-season', Seasonal::script_url(), array(), VERSION, true );
-		wp_register_script( 'stubli-app', $assets . 'app.js', array( 'wp-i18n', 'stubli-season' ), VERSION, true );
+		wp_register_script( 'stubli-app', $assets . 'app.js', array( 'wp-i18n' ), VERSION, true );
 		// The app's words in the site's language: from WordPress.org's language
 		// packs, or from the plugin's own languages folder.
 		wp_set_script_translations( 'stubli-app', 'stubli', STUBLI_PLUGIN_DIR . 'languages' );

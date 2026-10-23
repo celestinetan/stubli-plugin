@@ -709,11 +709,14 @@ label.a-tool { position: relative; }
 .a-te-form { min-width: 0; }
 .a-te-form .a-field { width: 100%; box-sizing: border-box; }
 
-/* Little surprises on special days (season.js draws into these boxes). */
-.a-has-season { position: relative; }
-.a-season { position: absolute; left: 0; right: 0; top: 0; height: 128px; pointer-events: none; overflow: hidden; z-index: 2; }
-.a-season .ss-layer button { pointer-events: auto; }
-.a-season-try { position: relative; margin-top: 18px; }
-.a-season-stage { position: relative; height: 0; border-radius: 16px; background: var(--surface); transition: height .2s ease; overflow: hidden; }
-.a-season-stage.is-on { height: 124px; margin-bottom: 12px; }
-@media (prefers-reduced-motion: reduce) { .a-season-stage { transition: none; } }
+/* Little surprises on special days: the dots of the ü dress up (Seasonal::dots). */
+.st-dots g { transform-box: fill-box; transform-origin: center; }
+.st-dots-newyear > g { animation: st-twinkle 2.2s ease-in-out 3; }
+.st-dots-newyear > g + g { animation-delay: .7s; }
+.st-dots-birthday > g { transform-origin: bottom; animation: st-bob 3s ease-in-out 4; }
+.st-dots-birthday > g + g { animation-delay: 1.4s; }
+.st-dots-easter > g, .st-dots-samichlaus > * { animation: st-nudge 1s ease-in-out .6s 1; }
+@keyframes st-twinkle { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(.72) rotate(25deg); } }
+@keyframes st-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(4deg); } }
+@keyframes st-nudge { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-12deg); } 65% { transform: rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .st-dots g, .st-dots-samichlaus > * { animation: none; } }
