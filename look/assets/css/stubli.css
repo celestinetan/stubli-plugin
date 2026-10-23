@@ -542,7 +542,8 @@ p { margin: 0 0 .75em; }
 .st-gs-try .st-button-quiet { background: var(--st-bg) !important; }
 .st-moved { margin: 0 0 16px; padding: 12px 16px; border-radius: 14px; }
 /* stubli.app: welcome card for visitors, and the questions under Join Stubli. */
-.st-welcome { display: block; margin: 0 0 16px; padding: 16px 18px; border-radius: 16px; }
+.st-welcome { margin: 0 0 14px; padding: 0 2px; font-size: 14px; line-height: 1.45; color: var(--st-muted); }
+.st-welcome strong { color: var(--st-ink); font-weight: 650; }
 .st-welcome-h { margin: 0 0 4px; font-size: 17px; font-weight: 650; color: var(--st-ink); }
 .st-welcome-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .st-faq { margin: 32px 0 0; }

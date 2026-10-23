@@ -9,6 +9,10 @@
 		set: function ( k, v ) { try { localStorage.setItem( k, v ); } catch ( e ) {} }
 	};
 
+	/* Coming back with the browser's Back button, Safari can show the page as it
+	   was before. When you're signed in, reload it so changes from the app show. */
+	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && document.body && document.body.classList.contains( 'logged-in' ) ) { location.reload(); } } );
+
 	/* Reading mode: Auto → Light → Paper → Dark. */
 	var order = [ 'auto', 'light', 'paper', 'dark' ];
 	var dark = window.matchMedia ? matchMedia( '(prefers-color-scheme: dark)' ) : null;

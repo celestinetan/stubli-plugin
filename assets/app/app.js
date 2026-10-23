@@ -54,7 +54,7 @@
 		x: '<path d="M6 6l12 12M18 6 6 18"/>',
 		link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 		video: '<rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/>',
-		rotate: '<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4v4h4"/>',
+		rotate: '<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4v4h-4"/>',
 		zoom: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4M8 11h6M11 8v6"/>',
 		photo: '<rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-4.5 4 3.5 2.5-2 4.5 3.5"/>',
 		lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>',
@@ -658,7 +658,7 @@
 				( ab.cc ? coverEditor() : '<div class="a-cover' + ( ab.d.cover ? '' : ' is-empty' ) + '">' + ( ab.d.cover ? '<img src="' + esc( ab.d.cover ) + '" alt="' + esc( __( 'Your cover photo', 'stubli' ) ) + '">' : '<span>' + icon( 'photo', 22 ) + '</span>' ) + '</div>' ) +
 				'<div class="a-actions"' + ( ab.cc ? ' hidden' : '' ) + '><label class="a-btn quiet" for="a-ab-cover">' + icon( 'photo', 18 ) + ( ab.d.cover ? __( 'Change cover', 'stubli' ) : __( 'Choose a cover photo', 'stubli' ) ) + '</label><input id="a-ab-cover" class="a-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic">' +
 				( ab.d.cover ? '<button type="button" class="a-text-btn" data-ab-cover-off>' + __( 'Remove', 'stubli' ) + '</button>' : '' ) + '</div>' +
-				'<p class="a-help" aria-live="polite" data-ab-cover-msg' + ( ab.cc ? ' hidden' : '' ) + '>' + esc( ab.d.coverMsg || __( 'A wide landscape photo works best, at least 1500 × 500 pixels. JPEG, PNG or WebP. You choose which part shows, and location details are removed.', 'stubli' ) ) + '</p>' : '' ) +
+				( ab.d.coverSeen ? '<p class="a-help"><a href="' + esc( B.home + ( B.home.indexOf( '?' ) > -1 ? '&' : '?' ) + 'fresh=' + ab.d.coverSeen ) + '">' + __( 'See it on your page', 'stubli' ) + '</a></p>' : '' ) + '<p class="a-help" aria-live="polite" data-ab-cover-msg' + ( ab.cc ? ' hidden' : '' ) + '>' + esc( ab.d.coverMsg || __( 'A wide landscape photo works best, at least 1500 × 500 pixels. JPEG, PNG or WebP. You choose which part shows, and location details are removed.', 'stubli' ) ) + '</p>' : '' ) +
 			( ab.d ? '<h2 class="a-label">' + __( 'Profile photo', 'stubli' ) + '</h2><div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? __( 'Your photo', 'stubli' ) : __( 'Your smiley', 'stubli' ) ) + '">' : '' ) + '</label>' +
 				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? __( 'Change photo', 'stubli' ) : __( 'Add a photo', 'stubli' ) ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? __( 'A face, a place, anything that feels like you.', 'stubli' ) : __( 'Or keep your smiley, and make it yours below.', 'stubli' ) ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
 			( '<label class="a-label" for="a-ab-name">' + __( 'Your name', 'stubli' ) + '</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' ) + esc( ab.name ) + '">' +
@@ -1835,8 +1835,8 @@
 			out.width = ow; out.height = Math.round( ow / 3 );
 			coverPaint( c, out, W, H, ow / W );
 			btn.disabled = true; btn.textContent = __( 'Uploading…', 'stubli' );
-			toBlob( out, 0.86 ).then( function ( blob ) { var fd = new FormData(); fd.append( 'cover', blob, 'cover.jpg' ); return send( 'POST', 'setup/cover', fd ); } )
-				.then( function ( r ) { if ( c.img.close ) { c.img.close(); } ab.cc = null; ab.d.cover = r.cover; ab.d.coverMsg = __( 'Lovely. It\'s on your page now.', 'stubli' ); me.p = null; renderAbout(); },
+			toBlob( out, 0.86 ).then( function ( blob ) { var fd = new FormData(); fd.append( 'cover', blob, 'cover-' + Date.now() + '.jpg' ); return send( 'POST', 'setup/cover', fd ); } )
+				.then( function ( r ) { if ( c.img.close ) { c.img.close(); } ab.cc = null; ab.d.cover = r.cover; ab.d.coverSeen = Date.now(); ab.d.coverMsg = __( 'Lovely. It\'s on your page now.', 'stubli' ); me.p = null; renderAbout(); },
 					function ( err ) { btn.disabled = false; btn.textContent = __( 'Use this', 'stubli' ); toast( ( err && err.message ) || __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ) ); } );
 		} );
 	}

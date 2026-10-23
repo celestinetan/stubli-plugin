@@ -142,6 +142,19 @@ add_action(
 );
 
 /**
+ * Signed in, your own pages are never kept by the browser, so what you just
+ * changed in the app (a cover, the order of your tabs) shows at once.
+ */
+add_action(
+	'template_redirect',
+	static function () {
+		if ( is_user_logged_in() && ! headers_sent() ) {
+			nocache_headers();
+		}
+	}
+);
+
+/**
  * Titles for the custom pages.
  */
 add_filter(

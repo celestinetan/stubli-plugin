@@ -320,7 +320,8 @@ class Setup {
 			return '';
 		}
 		$url = wp_get_attachment_image_url( $id, 'full' );
-		return $url ? (string) $url : '';
+		// A new cover always gets a new address, so no browser or cache shows the old one.
+		return $url ? add_query_arg( 'v', $id, (string) $url ) : '';
 	}
 
 	/**
