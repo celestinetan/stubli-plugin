@@ -344,6 +344,11 @@ p { margin: 0 0 .75em; }
 .st-entry-text blockquote { margin: 1em 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--st-accent); color: var(--st-ink); font-style: italic; }
 .st-entry-text blockquote p { margin: 0; }
 .st-entry-text s { color: var(--st-muted); }
+.st-entry-text ul.checklist { list-style: none; padding-left: 0; }
+.st-entry-text ul.checklist > li { position: relative; padding-left: 30px; }
+.st-entry-text ul.checklist > li::before { content: ""; position: absolute; left: 0; top: .3em; width: 18px; height: 18px; box-sizing: border-box; border: 1.8px solid var(--st-muted); border-radius: 50%; }
+.st-entry-text ul.checklist > li[data-checked="true"] { color: var(--st-muted); }
+.st-entry-text ul.checklist > li[data-checked="true"]::before { content: "✓"; border-color: var(--st-accent); background: var(--st-accent); color: var(--st-accent-ink); font: 700 12px/14.4px var(--st-sans); text-align: center; }
 .st-reading { max-width: 640px; margin: 0 auto; width: 100%; padding: 0 8px; }
 .st-read-more { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 14px; }
 .st-video {

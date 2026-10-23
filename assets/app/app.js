@@ -73,6 +73,7 @@
 		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
 		ul: '<path d="M9.5 7h10M9.5 12h10M9.5 17h10"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="5" cy="17" r="1.1" fill="currentColor" stroke="none"/>',
 		ol: '<path d="M10 7h10M10 12h10M10 17h10"/><path d="M4 5.5 5.3 5v4M4 9h2.6" stroke-width="1.4"/><path d="M4 14.3a1.3 1.3 0 0 1 2.5.4c0 .9-2.5 1.7-2.5 3.3h2.6" stroke-width="1.4"/>',
+		checklist: '<circle cx="5.5" cy="7" r="2.2"/><path d="m3.9 16.9 1.2 1.2 2.2-2.4"/><circle cx="5.5" cy="17" r="2.2"/><path d="M10.5 7h9.5M10.5 17h9.5"/>',
 		quote: '<path d="M5 17.5c2.5-1 3.5-3 3.5-5.5V7.5H4.5v4.5h4M14 17.5c2.5-1 3.5-3 3.5-5.5V7.5h-4v4.5h4"/>'
 	};
 	function icon( n, w ) {
@@ -2089,7 +2090,7 @@
 	/* ── Journal: write, edit and delete entries, with simple formatting like Notes ── */
 	var JFIG = /<figure\b[^>]*\bdata-photo="(\d{1,2})"[^>]*>[\s\S]*?<\/figure>/g;
 	var jed = null, jSel = null, jl = { loaded: false, loading: false, items: [], page: 1, more: false, error: '' };
-	function jCollapse( html ) { return String( html || '' ).replace( JFIG, function ( m, n ) { return '<figure data-photo="' + n + '"></figure>'; } ); }
+	function jCollapse( html ) { return String( html || '' ).replace( /\u200b/g, '' ).replace( JFIG, function ( m, n ) { return '<figure data-photo="' + n + '"></figure>'; } ); }
 	function jPhoto( j, n ) { return j.photos.filter( function ( p ) { return p.n === +n; } )[ 0 ]; }
 	function jFig( j, n ) {
 		var ph = jPhoto( j, n );
@@ -2118,18 +2119,29 @@
 		{ k: 'h3', label: __( 'Heading', 'stubli' ), html: '<span class="a-fmt-h" aria-hidden="true">H</span>' },
 		{ k: 'bold', label: __( 'Bold', 'stubli' ), html: '<b aria-hidden="true">B</b>' },
 		{ k: 'italic', label: __( 'Italic', 'stubli' ), html: '<i aria-hidden="true">I</i>' },
+		{ k: 'underline', label: __( 'Underline', 'stubli' ), html: '<u aria-hidden="true">U</u>' },
 		{ k: 'strikeThrough', label: __( 'Strikethrough', 'stubli' ), html: '<s aria-hidden="true">S</s>' },
 		{ k: 'insertUnorderedList', label: __( 'Bulleted list', 'stubli' ), html: icon( 'ul', 20 ) },
 		{ k: 'insertOrderedList', label: __( 'Numbered list', 'stubli' ), html: icon( 'ol', 20 ) },
+		{ k: 'checklist', label: __( 'Checklist', 'stubli' ), html: icon( 'checklist', 20 ) },
 		{ k: 'blockquote', label: __( 'Quote', 'stubli' ), html: icon( 'quote', 20 ) }
 	];
 	function fmtOn( k ) {
 		try {
+			if ( k === 'checklist' ) { return !! jListAt( 'ul.checklist' ); }
+			if ( k === 'insertUnorderedList' && jListAt( 'ul.checklist' ) ) { return false; }
 			if ( k === 'h3' || k === 'blockquote' ) { return String( document.queryCommandValue( 'formatBlock' ) || '' ).toLowerCase().replace( /[<>]/g, '' ) === k; }
 			// Quotes and headings look italic or bold already; don't light those buttons for them.
 			if ( ( k === 'italic' && fmtOn( 'blockquote' ) ) || ( k === 'bold' && fmtOn( 'h3' ) ) ) { return false; }
 			return document.queryCommandState( k );
 		} catch ( e ) { return false; }
+	}
+	function jListAt( sel ) {
+		var s = window.getSelection(), n = s && s.rangeCount ? s.getRangeAt( 0 ).startContainer : null;
+		if ( n && n.nodeType === 3 ) { n = n.parentNode; }
+		var ed = document.getElementById( 'a-jtext' );
+		var hit = n && n.closest ? n.closest( sel ) : null;
+		return hit && ed && ed.contains( hit ) ? hit : null;
 	}
 	function fmtState() {
 		var ed = document.getElementById( 'a-jtext' );
@@ -2254,19 +2266,54 @@
 			count();
 		};
 		count();
+		// Checklists, like Notes: a list whose items you tick off.
+		var toggleChecklist = function () {
+			var on = jListAt( 'ul.checklist' );
+			if ( on ) { on.classList.remove( 'checklist' ); document.execCommand( 'insertUnorderedList', false, null ); return; }
+			var ul = jListAt( 'ul' );
+			if ( ! ul ) { document.execCommand( 'insertUnorderedList', false, null ); tidy(); ul = jListAt( 'ul' ); }
+			if ( ul ) { ul.className = 'checklist'; }
+		};
+		// Turning underline or strikethrough off at the end of the text: some browsers keep
+		// going, so step the caret just outside the styled words first.
+		var inline = function ( k ) {
+			var tag = { underline: 'u', strikeThrough: 's,strike' }[ k ], sel = window.getSelection();
+			if ( tag && sel.rangeCount && sel.isCollapsed ) {
+				var at = sel.anchorNode, el = at && ( at.nodeType === 3 ? at.parentNode : at ).closest( tag );
+				if ( el && ed.contains( el ) ) {
+					var end = document.createRange(); end.selectNodeContents( el ); end.collapse( false );
+					if ( sel.getRangeAt( 0 ).compareBoundaryPoints( Range.END_TO_END, end ) >= 0 || ( at.nodeType === 3 && sel.anchorOffset === at.length && ! at.nextSibling ) ) {
+						var gap = document.createTextNode( '\u200b' ); el.parentNode.insertBefore( gap, el.nextSibling );
+						var r = document.createRange(); r.setStart( gap, 1 ); r.collapse( true ); sel.removeAllRanges(); sel.addRange( r );
+						return;
+					}
+				}
+			}
+			document.execCommand( k, false, null );
+		};
+		var tick = function ( li ) {
+			if ( li.getAttribute( 'data-checked' ) === 'true' ) { li.removeAttribute( 'data-checked' ); } else { li.setAttribute( 'data-checked', 'true' ); }
+			sync();
+		};
+		ed.addEventListener( 'click', function ( e ) {
+			var li = e.target.closest && e.target.closest( 'ul.checklist > li' );
+			if ( li && e.clientX - li.getBoundingClientRect().left < 30 ) { e.preventDefault(); tick( li ); }
+		} );
 		ed.addEventListener( 'input', function ( e ) {
+			// A new line in a checklist starts unticked.
+			if ( e.inputType === 'insertParagraph' ) { var nl = jListAt( 'ul.checklist > li' ); if ( nl && ! ( nl.textContent || '' ).trim() ) { nl.removeAttribute( 'data-checked' ); } }
 			// Like Notes: "- " starts a bulleted list, "1. " a numbered one, "# " a heading, "> " a quote.
 			if ( e.inputType === 'insertText' && e.data === ' ' ) {
 				var s = window.getSelection(), node = s.anchorNode;
 				if ( node && node.nodeType === 3 && ! node.previousSibling ) {
 					var before = node.textContent.slice( 0, s.anchorOffset ).replace( / /g, ' ' ), block = node.parentNode;
 					var inList = block.closest && block.closest( 'li' );
-					var cmd = /^[-*•] $/.test( before ) ? [ 'insertUnorderedList' ] : /^1[.)] $/.test( before ) ? [ 'insertOrderedList' ] : /^# $/.test( before ) ? [ 'formatBlock', '<h3>' ] : /^> $/.test( before ) ? [ 'formatBlock', '<blockquote>' ] : null;
+					var cmd = /^\[ ?\] $/.test( before ) ? [ 'checklist' ] : /^[-*•] $/.test( before ) ? [ 'insertUnorderedList' ] : /^1[.)] $/.test( before ) ? [ 'insertOrderedList' ] : /^# $/.test( before ) ? [ 'formatBlock', '<h3>' ] : /^> $/.test( before ) ? [ 'formatBlock', '<blockquote>' ] : null;
 					if ( cmd && ! inList ) {
 						// Select the typed "- " and delete it the normal way, so the caret stays on this line.
 						var r = document.createRange(); r.setStart( node, 0 ); r.setEnd( node, before.length ); s.removeAllRanges(); s.addRange( r );
 						document.execCommand( 'delete', false, null );
-						document.execCommand( cmd[ 0 ], false, cmd[ 1 ] || null );
+						if ( cmd[ 0 ] === 'checklist' ) { toggleChecklist(); } else { document.execCommand( cmd[ 0 ], false, cmd[ 1 ] || null ); }
 					}
 				}
 			}
@@ -2281,15 +2328,16 @@
 		} );
 		ed.addEventListener( 'keydown', function ( e ) {
 			if ( ( e.metaKey || e.ctrlKey ) && ! e.altKey ) {
-				var k = { b: 'bold', i: 'italic' }[ String( e.key ).toLowerCase() ];
-				if ( k ) { e.preventDefault(); document.execCommand( k, false, null ); sync(); fmtState(); }
+				var k = { b: 'bold', i: 'italic', u: 'underline' }[ String( e.key ).toLowerCase() ];
+				if ( k ) { e.preventDefault(); inline( k ); sync(); fmtState(); }
+				if ( e.key === 'Enter' ) { var cl = jListAt( 'ul.checklist > li' ); if ( cl ) { e.preventDefault(); tick( cl ); } }
 			}
 		} );
 		$$( '[data-fmt]' ).forEach( function ( b ) {
 			var go = function () {
 				jRestore( ed );
 				var k = b.dataset.fmt;
-				if ( k === 'h3' || k === 'blockquote' ) { document.execCommand( 'formatBlock', false, fmtOn( k ) ? '<p>' : '<' + k + '>' ); } else { document.execCommand( k, false, null ); }
+				if ( k === 'checklist' ) { toggleChecklist(); } else if ( k === 'h3' || k === 'blockquote' ) { document.execCommand( 'formatBlock', false, fmtOn( k ) ? '<p>' : '<' + k + '>' ); } else { inline( k ); }
 				var s = window.getSelection(); if ( s.rangeCount ) { jSel = s.getRangeAt( 0 ).cloneRange(); }
 				sync(); fmtState();
 			};

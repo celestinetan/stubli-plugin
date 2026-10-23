@@ -558,6 +558,8 @@ function stubli_entry_html( $post ) {
 		},
 		$html
 	);
+	// Screen readers hear which checklist items are ticked.
+	$html = preg_replace( '#<li data-checked="true">#', '<li data-checked="true"><span class="screen-reader-text">' . esc_html__( 'Done:', 'stubli' ) . ' </span>', $html );
 	return wp_kses_post( $html ) === $html ? $html : stubli_kses_entry( $html );
 }
 

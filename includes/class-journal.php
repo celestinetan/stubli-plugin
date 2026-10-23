@@ -176,7 +176,7 @@ class Journal {
 
 	/**
 	 * Clean HTML from the journal editor: simple formatting only (headings,
-	 * bold, italic, strikethrough, lists, quotes, links), and each photo
+	 * bold, italic, underline, strikethrough, lists, checklists, quotes, links), and each photo
 	 * rebuilt from its upload, never from what the browser sent.
 	 *
 	 * @param string $html   Editor HTML.
@@ -185,7 +185,7 @@ class Journal {
 	 */
 	public static function sanitize_html( $html, array $photos ) {
 		$valid = self::valid_photos( $photos );
-		$html  = Posts::drop_code( (string) $html );
+		$html  = str_replace( "\u{200B}", '', Posts::drop_code( (string) $html ) );
 		// Photos become markers first, so nothing inside them survives.
 		$html = (string) preg_replace( '#<figure\b[^>]*\bdata-photo="(\d{1,2})"[^>]*>.*?</figure>#is', "\n[[stubli-photo:$1]]\n", $html );
 		$html = (string) preg_replace( '#<figure\b[^>]*>.*?</figure>#is', '', $html );
@@ -203,11 +203,12 @@ class Journal {
 				'br'         => array(),
 				'strong'     => array(),
 				'em'         => array(),
+				'u'          => array(),
 				's'          => array(),
 				'h3'         => array(),
-				'ul'         => array(),
+				'ul'         => array( 'class' => true ),
 				'ol'         => array(),
-				'li'         => array(),
+				'li'         => array( 'data-checked' => true ),
 				'blockquote' => array(),
 				'a'          => array( 'href' => true ),
 			),
@@ -221,11 +222,12 @@ class Journal {
 				'br'         => array(),
 				'strong'     => array(),
 				'em'         => array(),
+				'u'          => array(),
 				's'          => array(),
 				'h3'         => array(),
-				'ul'         => array(),
+				'ul'         => array( 'class' => true ),
 				'ol'         => array(),
-				'li'         => array(),
+				'li'         => array( 'data-checked' => true ),
 				'blockquote' => array(),
 				'a'          => array(
 					'href' => true,
@@ -234,6 +236,10 @@ class Journal {
 			),
 			array( 'http', 'https' )
 		);
+		// The only class kept is a checklist's, and a ticked item says so.
+		$html = (string) preg_replace( '#<ul\s+class="(?![^"]*\bchecklist\b)[^"]*"#i', '<ul', $html );
+		$html = (string) preg_replace( '#<ul\s+class="[^"]*"#i', '<ul class="checklist"', $html );
+		$html = (string) preg_replace( '#<li\s+data-checked="(?!true")[^"]*"#i', '<li', $html );
 		// Lists, headings and quotes never sit inside a paragraph.
 		$html = (string) preg_replace( '#<p>\s*(?=<(?:ul|ol|h3|blockquote|p)\b)#i', '', $html );
 		$html = (string) preg_replace( '#(</(?:ul|ol|h3|blockquote|p)>)\s*</p>#i', '$1', $html );
