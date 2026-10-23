@@ -544,8 +544,8 @@ label.a-tool { position: relative; }
 .a-ctabs-row .a-ctabs { flex: 0 1 auto; min-width: 0; }
 .a-ctabs-gap { flex: 1; }
 .a-ctab-icon { padding: 0 12px; justify-content: center; }
-.a-ctab-green { background: #dfe7d9; color: #4f6a4a; }
-[data-mode="dark"] .a-ctab-green { background: #1f2820; color: #a8bf98; }
+.a-ctab-green { background: color-mix(in srgb, var(--accent) 16%, var(--field)); color: var(--accent-text, var(--accent)); }
+[data-mode="dark"] .a-ctab-green { background: color-mix(in srgb, var(--accent) 14%, var(--field)); color: var(--accent); }
 
 /* The small ? beside a heading: opens the matching help answer. */
 .a-helplink { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border-radius: 50%; background: var(--surface); color: var(--muted); font: 600 13px/1 var(--sans, inherit); text-decoration: none; vertical-align: 2px; position: relative; }

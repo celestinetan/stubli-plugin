@@ -143,7 +143,7 @@ function stubli_pill( $url, $label, $variant = 'primary' ) {
  */
 function stubli_profile_cards() {
 	$p      = stubli_profile();
-	$recent = stubli_latest_photos( 3 );
+	$recent = stubli_latest_photos( 6 );
 	$latest = $recent ? $recent[0] : null;
 	?>
 	<?php $prompts = ! empty( $p['prompts'] ) && is_array( $p['prompts'] ) ? $p['prompts'] : array(); ?>
@@ -199,23 +199,31 @@ function stubli_profile_cards() {
 		<?php endif; ?>
 		</div>
 		<?php if ( $latest ) : ?>
-			<?php // On a phone: the newest post in one row. On a wider screen the card has room for the last three. ?>
+			<?php // On a phone: the newest post in one row. On a wider screen: that row, then the next five as small photos. ?>
 			<div class="st-card st-latest<?php echo count( $recent ) > 1 ? ' has-more' : ''; ?>">
 				<p class="st-latest-h"><?php esc_html_e( 'Latest', 'stubli' ); ?></p>
-				<?php foreach ( $recent as $k => $r ) : ?>
-					<?php
-					$ids  = stubli_photo_ids( $r->ID );
-					$coll = stubli_post_collection( $r->ID );
-					?>
-					<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
-						<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-						<span class="st-latest-text">
-							<span class="st-muted"><?php if ( 0 === $k ) : ?><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $r ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $r ) ); ?></span><?php else : ?><?php echo esc_html( stubli_gentle_date( $r ) ); ?><?php endif; ?></span>
-							<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
-						</span>
-						<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</a>
-				<?php endforeach; ?>
+				<?php
+				$first = $recent[0];
+				$ids   = stubli_photo_ids( $first->ID );
+				$coll  = stubli_post_collection( $first->ID );
+				?>
+				<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $first ) ); ?>">
+					<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<span class="st-latest-text">
+						<span class="st-muted"><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $first ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $first ) ); ?></span></span>
+						<span><?php echo esc_html( stubli_post_label( $first ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
+					</span>
+					<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</a>
+				<?php if ( count( $recent ) > 1 ) : ?>
+					<?php // The next five, as small photos. ?>
+					<div class="st-latest-strip">
+						<?php foreach ( array_slice( $recent, 1, 5 ) as $r ) : ?>
+							<?php $rid = stubli_photo_ids( $r->ID ); ?>
+							<a href="<?php echo esc_url( get_permalink( $r ) ); ?>" aria-label="<?php echo esc_attr( stubli_post_label( $r ) . ', ' . stubli_gentle_date( $r ) ); ?>" title="<?php echo esc_attr( stubli_post_label( $r ) ); ?>"><?php echo $rid ? wp_get_attachment_image( $rid[0], 'thumbnail', false, array( 'alt' => '', 'loading' => 'lazy' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -635,7 +643,7 @@ function stubli_view_guestbook() {
 	stubli_tabs( 'guest' );
 	$entries = stubli_has_plugin() ? \Stubli\Guestbook::entries() : array();
 	$count   = count( $entries );
-	echo '<section class="st-panel st-panel-green st-gb">';
+	echo '<section class="st-panel st-gb">';
 	// Heading, how many have signed, and the way to sign.
 	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Guest book', 'stubli' ) . '</h2>';
 	if ( $count ) {
@@ -682,7 +690,8 @@ function stubli_view_links() {
 	echo '<main class="st-main" id="main">';
 	stubli_profile_cards();
 	stubli_tabs( 'links' );
-	echo '<section class="st-panel st-panel-green is-last">';
+	echo '<section class="st-panel st-links is-last">';
+	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Links', 'stubli' ) . '</h2></div></div>';
 	$links = array();
 	foreach ( preg_split( '/\r?\n/', (string) get_option( 'stubli_links', '' ) ) as $line ) {
 		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
@@ -691,14 +700,15 @@ function stubli_view_links() {
 		}
 	}
 	if ( $links ) {
-		echo '<h2 class="st-h3">' . esc_html__( 'My links', 'stubli' ) . '</h2><div class="st-link-list">';
+		echo '<h3 class="st-links-h">' . esc_html__( 'My links', 'stubli' ) . '</h3><div class="st-link-list">';
 		foreach ( $links as $l ) {
 			echo '<a class="st-link-row" href="' . esc_url( $l[1] ) . '" rel="me noopener"><span><strong>' . esc_html( $l[0] ) . '</strong><span class="st-muted">' . esc_html( preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l[1] ) ) ) . '</span></span>' . stubli_icon( 'chev', 18 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 		echo '</div>';
 	}
 	$sites = stubli_has_plugin() ? \Stubli\Follows::public_list() : array();
-	echo '<h2 class="st-h3">' . esc_html__( 'Sites I follow', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '· people I like to visit', 'stubli' ) . '</span></h2>';
+	echo '<h3 class="st-links-h">' . esc_html__( 'Sites I follow', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '· people I like to visit', 'stubli' ) . '</span></h3>';
+	echo '<div class="st-link-list">';
 	if ( ! $sites ) {
 		echo '<p class="st-empty">' . esc_html__( 'Not following anyone yet.', 'stubli' ) . '</p>';
 	}
@@ -711,7 +721,7 @@ function stubli_view_links() {
 		}
 		echo '</span></a>';
 	}
-	echo '</section></main>';
+	echo '</div></section></main>';
 }
 
 /**

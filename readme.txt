@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.31.2
+Stable tag: 0.31.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.31.3 =
+* Your page, wider screens: Latest shows the newest post and the five before it as small photos.
+* Guest book and Links use the same panel, headings and cards as the rest of your page.
 
 = 0.31.2 =
 * Invite page: "How to get started" goes to the start of the welcome page, like every Make your Stubli button.
