@@ -1,8 +1,7 @@
 <?php
 /**
- * Little surprises on special days: the two dots of the ü in the Stubli
- * logo dress up for Samichlaus, New Year, Easter and the Stubli's own
- * birthday. Dates follow the site's time zone.
+ * Little surprises on special days: the smiling ü in the Stubli logo dresses
+ * up for Samichlaus, New Year, Easter and the Stubli's own birthday. Dates follow the site's time zone.
  *
  * On by default; the owner can switch them off in the app (Colour and
  * reading mode).
@@ -193,37 +192,32 @@ class Seasonal {
 	}
 
 	/**
-	 * The two dots of the ü in the logo, dressed for the day (SVG, viewBox
-	 * 0 0 60 80, dots at 19,15 and 41,15). Plain dots on other days.
+	 * What the ü face wears on the day: SVG drawn on top of the logo's ü
+	 * (viewBox 0 0 60 80, eyes at 19,15 and 41,15; drawings reach above 0).
 	 *
 	 * @param string $key Surprise key.
 	 * @return string
 	 */
-	public static function dots( $key ) {
+	public static function wear( $key ) {
+		$cream = '#fffdf8';
 		switch ( $key ) {
 			case 'samichlaus':
-				// A mandarin and a peanut.
-				return '<g class="st-dots st-dots-samichlaus"><circle cx="19" cy="16" r="7" fill="#f08a24"/><path d="M19 9c.6-2.6 2.8-3.8 5-3.2-.8 2-2.6 3-5 3.2z" fill="#5d8a45"/>'
-					. '<path d="M41 6.5c3.4 0 5 2.6 4.4 5.4-.3 1.5-1.4 2.3-1.4 3.6s1.1 2.1 1.4 3.6c.6 2.8-1 5.4-4.4 5.4s-5-2.6-4.4-5.4c.3-1.5 1.4-2.3 1.4-3.6s-1.1-2.1-1.4-3.6c-.6-2.8 1-5.4 4.4-5.4z" fill="#d9b483"/></g>';
+				// A red hood with a white trim and a bobble.
+				return '<g class="st-wear st-wear-samichlaus"><path d="M7 9C9-4 19-15 30-17c9 2 17 8 20 18" fill="#c9362c"/><path d="M50 3c4 1 6 4 6 8" fill="none" stroke="#c9362c" stroke-width="5" stroke-linecap="round"/>'
+					. '<circle cx="56" cy="13" r="3.6" fill="' . $cream . '" stroke="currentColor" stroke-width="1.5"/><path d="M6 7.5h46" stroke="' . $cream . '" stroke-width="5" stroke-linecap="round"/></g>';
 			case 'newyear':
-				// Two sparkles.
-				$star = static function ( $x, $y, $r ) {
-					$k = $r * 0.22;
-					$f = static fn( $n ) => rtrim( rtrim( number_format( $n, 2, '.', '' ), '0' ), '.' );
-					return '<path d="M' . $f( $x ) . ' ' . $f( $y - $r ) . 'Q' . $f( $x + $k ) . ' ' . $f( $y - $k ) . ' ' . $f( $x + $r ) . ' ' . $f( $y )
-						. 'Q' . $f( $x + $k ) . ' ' . $f( $y + $k ) . ' ' . $f( $x ) . ' ' . $f( $y + $r )
-						. 'Q' . $f( $x - $k ) . ' ' . $f( $y + $k ) . ' ' . $f( $x - $r ) . ' ' . $f( $y )
-						. 'Q' . $f( $x - $k ) . ' ' . $f( $y - $k ) . ' ' . $f( $x ) . ' ' . $f( $y - $r ) . 'z"/>';
-				};
-				return '<g class="st-dots st-dots-newyear" fill="currentColor"><g>' . $star( 19, 15, 9 ) . '</g><g>' . $star( 41, 15, 9 ) . '</g></g>';
+				// A party hat, worn at an angle.
+				return '<g class="st-wear st-wear-newyear"><g transform="rotate(16 34 6)"><path d="M22 6L34-24 46 6z" fill="#d9a520"/><path d="M27.3-6.5l11.4 4M30.6-14.8l7.5 2.8" stroke="' . $cream . '" stroke-width="2.2" stroke-linecap="round"/>'
+					. '<path d="M21 6.5h26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="34" cy="-25" r="3.4" fill="#e0785a"/></g></g>';
 			case 'easter':
-				// Two small eggs with a stripe.
-				return '<g class="st-dots st-dots-easter"><g transform="rotate(-10 19 15)"><ellipse cx="19" cy="15" rx="5.6" ry="7.4" fill="currentColor"/><path d="M13.8 15.5h10.4" stroke="#f6cf45" stroke-width="2"/></g>'
-					. '<g transform="rotate(10 41 15)"><ellipse cx="41" cy="15" rx="5.6" ry="7.4" fill="currentColor"/><path d="M35.8 13.5h10.4" stroke="#e8879a" stroke-width="2"/></g></g>';
+				// Bunny ears.
+				return '<g class="st-wear st-wear-easter"><g class="st-ear"><g transform="rotate(-14 21 6)"><ellipse cx="21" cy="-9" rx="5.6" ry="14" fill="currentColor"/><ellipse cx="21" cy="-8" rx="2.4" ry="9.5" fill="#f2a7b5"/></g></g>'
+					. '<g transform="rotate(14 39 6)"><ellipse cx="39" cy="-9" rx="5.6" ry="14" fill="currentColor"/><ellipse cx="39" cy="-8" rx="2.4" ry="9.5" fill="#f2a7b5"/></g></g>';
 			case 'birthday':
-				// Two balloons on strings.
-				return '<g class="st-dots st-dots-birthday"><g><path d="M19 17.5q-1.5 4 0 8" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="19" cy="10" rx="6" ry="7.4" fill="currentColor"/><path d="M17.8 17.2h2.4L19 19z" fill="currentColor"/></g>'
-					. '<g><path d="M41 17.5q1.5 4 0 8" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="41" cy="10" rx="6" ry="7.4" fill="currentColor"/><path d="M39.8 17.2h2.4L41 19z" fill="currentColor"/></g></g>';
+				// One candle on its head.
+				return '<g class="st-wear st-wear-birthday"><rect x="26" y="-11" width="8" height="16" rx="1.5" fill="#7fb2d6"/><path d="M26-6l8-2.8M26 .5l8-2.8" stroke="' . $cream . '" stroke-width="1.6"/>'
+					. '<path d="M30-12v-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><g class="st-flame"><path d="M30-27c3.4 4.4 4.6 7 4.6 9.2a4.6 4.6 0 0 1-9.2 0c0-2.2 1.2-4.8 4.6-9.2z" fill="#f4b740"/>'
+					. '<path d="M30-21c1.4 1.8 1.9 3 1.9 3.9a1.9 1.9 0 0 1-3.8 0c0-.9.5-2.1 1.9-3.9z" fill="#e8652a"/></g></g>';
 		}
 		return '';
 	}
@@ -252,7 +246,7 @@ class Seasonal {
 	/**
 	 * Today's logo, ready for the page and the app: null on ordinary days.
 	 *
-	 * @return array|null { key, dots, title }
+	 * @return array|null { key, wear, title }
 	 */
 	public static function logo() {
 		$s = self::current();
@@ -261,7 +255,7 @@ class Seasonal {
 		}
 		return array(
 			'key'   => $s['key'],
-			'dots'  => self::dots( $s['key'] ),
+			'wear'  => self::wear( $s['key'] ),
 			'title' => self::title( $s ),
 		);
 	}

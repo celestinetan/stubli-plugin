@@ -412,11 +412,11 @@ function stubli_glyph( $wink = false ) {
 function stubli_wordmark( $wink = false ) {
 	$glyph = stubli_glyph( $wink );
 	$title = '';
-	// The logo at the top (the winking one) dresses its dots up on special days.
+	// The logo at the top (the winking one) dresses up on special days.
 	if ( $wink && class_exists( '\\Stubli\\Seasonal' ) ) {
 		$logo = \Stubli\Seasonal::logo();
 		if ( $logo ) {
-			$glyph = '<path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>' . $logo['dots'];
+			$glyph .= $logo['wear'];
 			$title = ' title="' . esc_attr( $logo['title'] ) . '"';
 		}
 	}

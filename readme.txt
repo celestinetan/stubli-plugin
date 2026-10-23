@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.33.1
+Stable tag: 0.33.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.33.2 =
+* Little surprises: the smiling ü in the Stubli logo now dresses up instead, keeping its face: a Samichlaus hood (1 to 6 December), a party hat at New Year, bunny ears at Easter, and a candle on your Stubli's birthday.
 
 = 0.33.1 =
 * Little surprises are now simpler and quieter: on special days, the dots on the ü in the Stubli logo dress up (a mandarin and a peanut for Samichlaus, sparkles at New Year, little eggs at Easter, balloons on your Stubli's birthday). The drawings on the profile card from 0.33.0 are gone. Still on by default; switch it off in the app under Colour and reading mode.
