@@ -417,15 +417,15 @@
 
 	function bar( active ) {
 		var items = [
-			[ 'home', '#home', __( 'Home', 'stubli' ), 'home' ],
-			[ 'discover', '#discover', __( 'Discover', 'stubli' ), 'discover' ],
-			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus' ],
-			[ 'whatsnew', '#whatsnew', __( 'What\'s new', 'stubli' ), 'news' ],
-			[ 'you', '#you', __( 'You', 'stubli' ), 'you' ]
+			[ 'home', '#home', __( 'Home', 'stubli' ), 'home', __( 'Home', 'stubli' ) ],
+			[ 'discover', '#discover', __( 'Discover', 'stubli' ), 'discover', __( 'Discover', 'stubli' ) ],
+			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus', _x( 'New', 'tab', 'stubli' ) ],
+			[ 'whatsnew', '#whatsnew', __( 'What\'s new', 'stubli' ), 'news', __( 'What\'s new', 'stubli' ) ],
+			[ 'you', '#you', __( 'You', 'stubli' ), 'you', __( 'You', 'stubli' ) ]
 		];
 		return '<div class="a-bar"><nav aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '">' + items.map( function ( i ) {
 			var waiting = ( B.waiting || 0 ) + ( B.requests || 0 ), dot = i[ 0 ] === 'whatsnew' && waiting > 0;
-			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '">' + icon( i[ 3 ], 25 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
+			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '">' + icon( i[ 3 ], 24 ) + '<span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span>' + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
 		} ).join( '' ) + '</nav></div>';
 	}
 
