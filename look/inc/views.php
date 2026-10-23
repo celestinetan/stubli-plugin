@@ -181,7 +181,8 @@ function stubli_profile_cards() {
 		<?php foreach ( $prompts as $i => $card ) : ?>
 			<section class="st-card st-prompt" data-st-card aria-label="<?php echo esc_attr( $card['q'] ); ?>">
 				<p class="st-prompt-q"><?php echo esc_html( $card['q'] ); ?></p>
-				<p class="st-prompt-a"><?php echo esc_html( $card['a'] ); ?></p>
+				<?php $len = function_exists( 'mb_strlen' ) ? mb_strlen( (string) $card['a'] ) : strlen( (string) $card['a'] ); ?>
+				<p class="st-prompt-a<?php echo $len <= 28 ? ' is-short' : ( $len <= 80 ? ' is-mid' : '' ); ?>"><?php echo esc_html( $card['a'] ); ?></p>
 				<?php if ( ! stubli_is_owner() && empty( $p['on_break'] ) ) : ?>
 					<a class="st-pill st-pill-quiet st-prompt-reply" href="<?php echo esc_url( add_query_arg( 'p', (int) $i, stubli_remote_url( 'note', home_url( '/' ) ) ) ); ?>"><span><?php esc_html_e( 'Reply to this', 'stubli' ); ?></span></a>
 				<?php endif; ?>

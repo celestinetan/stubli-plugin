@@ -480,7 +480,7 @@
 		i = ( ( i % n ) + n ) % n;
 		var cards = deck.map( function ( c, k ) {
 			var pos = ( k - i + n ) % n, front = pos === 0;
-			var inner = c.bio ? bioHtml : '<p class="a-pcard-q">' + esc( c.q ) + '</p><p class="a-pcard-a">' + esc( c.a ) + '</p>' + ( opts && opts.reply ? opts.reply( k - 1 ) : '' );
+			var inner = c.bio ? bioHtml : '<p class="a-pcard-q">' + esc( c.q ) + '</p><p class="a-pcard-a' + ( String( c.a ).length <= 28 ? ' is-short' : String( c.a ).length <= 80 ? ' is-mid' : '' ) + '">' + esc( c.a ) + '</p>' + ( opts && opts.reply ? opts.reply( k - 1 ) : '' );
 			return '<div class="a-pcard' + ( c.bio ? ' a-pcard-bio' : '' ) + '" data-pos="' + ( pos > 2 ? 'hide' : pos ) + '"' + ( front ? '' : ' aria-hidden="true" inert' ) + '>' + inner + '</div>';
 		} ).join( '' );
 		var nav = n > 1 ? '<div class="a-stack-nav"><button type="button" class="a-stack-btn" data-stack-prev aria-label="' + esc( __( 'Previous card', 'stubli' ) ) + '">' + icon( 'back', 18 ) + '</button><span class="a-stack-dots" aria-hidden="true">' + deck.map( function ( _, k ) { return '<span' + ( k === i ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</span><button type="button" class="a-stack-btn" data-stack-next aria-label="' + esc( __( 'Next card', 'stubli' ) ) + '">' + icon( 'chev', 18 ) + '</button><span class="sr" aria-live="polite" data-stack-status></span></div>' : '';
