@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.31.0
+Stable tag: 0.31.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.31.2 =
+* Invite page: "How to get started" goes to the start of the welcome page, like every Make your Stubli button.
+
+= 0.31.1 =
+* "Your first day" on Home for a new Stubli: post a photo, invite a friend, add to home screen. Ticks itself off; hide any time.
 
 = 0.31.0 =
 * People tab (was Discover): invite a friend, follow by address, your people and friend ticks, then suggestions.

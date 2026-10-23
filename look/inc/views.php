@@ -877,7 +877,7 @@ function stubli_view_invite() {
 					printf( esc_html__( 'Setting one up takes about 15 minutes. Keep this link: during setup, paste it in "Your people" and you\'ll follow each other. It works until %s.', 'stubli' ), esc_html( wp_date( 'j F', \Stubli\Invites::expires( $token ) ) ) );
 					?>
 				</p>
-				<a href="https://stubli.app/get-started/"><?php esc_html_e( 'How to get started', 'stubli' ); ?></a>
+				<a href="https://stubli.app/welcome/#start"><?php esc_html_e( 'How to get started', 'stubli' ); ?></a>
 			</section>
 		<?php else : ?>
 			<section class="st-card-tone st-notfound">

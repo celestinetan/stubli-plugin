@@ -6,7 +6,7 @@ A kinder social network for everyone, on your own WordPress site. Share photos, 
 
 Stubli turns a WordPress site into a calm, familiar place for photos and the people you like. Sites talk to each other directly with RSS and Webmention.
 
-- **Get started:** https://stubli.app/get-started/
+- **Get started:** https://stubli.app/welcome/
 - **Try it in your browser** (temporary, nothing is saved): [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/celestinetan/stubli-plugin/main/blueprint.json)
 - **Feedback:** https://stubli.app/feedback/
 

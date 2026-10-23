@@ -459,6 +459,7 @@ class Move {
 			$j['told'] = ! is_wp_error( $told );
 			update_option( self::IN, $j, false );
 			update_option( 'stubli_setup_done', 1 );
+			update_option( 'stubli_firstday', 'off', false );
 		}
 		return self::in_status();
 	}

@@ -65,6 +65,7 @@ class Invites {
 			'used_by' => '',
 		);
 		update_option( self::OPTION, $all, false );
+		update_option( 'stubli_invited', 1, false );
 		return array(
 			'url'     => add_query_arg( 't', $token, home_url( '/invite/' ) ),
 			'expires' => gmdate( 'c', time() + self::LIFETIME ),

@@ -290,6 +290,18 @@ class Rest {
 			)
 		);
 
+		// Hide the "Your first day" card for good.
+		Rest::register(
+			'/firstday',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => static function () {
+					update_option( 'stubli_firstday', 'off', false );
+					return rest_ensure_response( array( 'hidden' => true ) );
+				},
+				'permission_callback' => array( self::class, 'is_owner' ),
+			)
+		);
 		Rest::register(
 			'/journal/photos',
 			array(

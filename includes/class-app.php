@@ -187,6 +187,7 @@ class App {
 			'today'       => wp_date( 'l, j F' ),
 			'waiting'     => self::waiting(),
 			'setupDone'   => (bool) get_option( 'stubli_setup_done' ),
+			'firstDay'    => self::first_day(),
 			'maxUpload'   => (int) wp_max_upload_size(),
 			'sw'          => home_url( '/app/notifications' ),
 			'swScope'     => home_url( '/app/' ),
@@ -296,5 +297,46 @@ if ( ! $act ) {
 </body>
 </html>
 		<?php
+	}
+
+	/**
+	 * Has the owner posted any photos yet?
+	 *
+	 * @return bool
+	 */
+	public static function has_photos() {
+		$q = new \WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => array( 'publish', 'private' ),
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'terms'    => array( 'post-format-image', 'post-format-gallery' ),
+					),
+				),
+			)
+		);
+		return (bool) $q->posts;
+	}
+
+	/**
+	 * The "Your first day" card: null when it's off, hidden or a month old.
+	 *
+	 * @return array|null
+	 */
+	public static function first_day() {
+		$since = get_option( 'stubli_firstday', false );
+		if ( ! is_numeric( $since ) || time() - (int) $since > 30 * DAY_IN_SECONDS ) {
+			return null;
+		}
+		return array(
+			'photo'   => self::has_photos(),
+			'invited' => (bool) get_option( 'stubli_invited' ),
+		);
 	}
 }

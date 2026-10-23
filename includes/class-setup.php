@@ -277,6 +277,10 @@ class Setup {
 			}
 			update_option( 'stubli_setup_done', 1 );
 			delete_option( 'stubli_setup_step' );
+			// A small "Your first day" card on Home, only for a Stubli that starts empty.
+			if ( false === get_option( 'stubli_firstday', false ) ) {
+				update_option( 'stubli_firstday', App::has_photos() ? 'off' : time(), false );
+			}
 		}
 		return self::state();
 	}

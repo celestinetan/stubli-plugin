@@ -1368,6 +1368,34 @@
 		loadFeed( true ).then( function () { if ( location.hash === '' || location.hash === '#home' ) { renderHome(); } } );
 	}
 	window.addEventListener( 'online', function () { if ( ( feed.error || feed.stale ) && ( location.hash === '' || location.hash === '#home' ) ) { retryFeed(); } } );
+	/* ── Your first day: three small steps, then it goes away ── */
+	var fd = { how: false };
+	if ( isStandalone() ) { store.set( 'stubli-installed', '1' ); }
+	function fdSteps() {
+		var f = B.firstDay || {};
+		return [
+			{ k: 'photo', done: !! f.photo, t: __( 'Post your first photo', 'stubli' ), s: __( 'It goes on your page and to your followers.', 'stubli' ), go: '<a class="a-btn a-fd-go" href="#new">' + __( 'Post', 'stubli' ) + '</a>' },
+			{ k: 'invite', done: !! f.invited, t: __( 'Invite one friend', 'stubli' ), s: __( 'You follow each other once they join.', 'stubli' ), go: '<a class="a-btn a-fd-go" href="#discover">' + __( 'Invite', 'stubli' ) + '</a>' },
+			{ k: 'home', done: isStandalone() || !! store.get( 'stubli-installed' ), t: __( 'Put Stubli on your home screen', 'stubli' ), s: __( 'Opens like an app, one tap away.', 'stubli' ), go: '<button type="button" class="a-btn a-fd-go" data-fd-how aria-expanded="' + fd.how + '">' + __( 'Show me', 'stubli' ) + '</button>' }
+		];
+	}
+	function firstDayCard() {
+		if ( ! B.firstDay ) { return ''; }
+		var steps = fdSteps(), n = steps.filter( function ( x ) { return x.done; } ).length, ios = /iphone|ipad|ipod/i.test( navigator.userAgent );
+		if ( n === steps.length ) {
+			return '<section class="a-card a-fd a-fd-done" aria-live="polite"><p><strong>' + __( 'You\'re all set.', 'stubli' ) + '</strong> ' + __( 'Enjoy your Stubli.', 'stubli' ) + '</p><button type="button" class="a-text-btn" data-fd-hide>' + __( 'Close', 'stubli' ) + '</button></section>';
+		}
+		return '<section class="a-card a-fd" aria-labelledby="a-fd-h"><div class="a-fd-head"><h2 id="a-fd-h">' + __( 'Your first day', 'stubli' ) + '</h2><span class="muted">' + _f( __( '%s of %s', 'stubli' ), n, steps.length ) + '</span></div>' +
+			'<div class="a-fd-bar" aria-hidden="true"><span style="width:' + Math.round( 100 * n / steps.length ) + '%"></span></div><ul class="a-fd-list">' + steps.map( function ( x ) {
+				return '<li class="' + ( x.done ? 'is-done' : '' ) + '"><span class="a-fd-c" aria-hidden="true">' + ( x.done ? icon( 'check', 14 ) : '' ) + '</span><span class="a-fd-t"><span>' + esc( x.t ) + ( x.done ? '<span class="sr"> ' + __( '(done)', 'stubli' ) + '</span>' : '' ) + '</span>' + ( x.done ? '' : '<small>' + esc( x.s ) + '</small>' ) + '</span>' + ( x.done ? '' : x.go ) + '</li>' +
+					( x.k === 'home' && fd.how && ! x.done ? '<li class="a-fd-how"><p>' + ( ios ? _f( __( 'In Safari, tap the Share button, then %s.', 'stubli' ), '<strong>' + __( 'Add to Home Screen', 'stubli' ) + '</strong>' ) : _f( __( 'Open your browser\'s menu, then choose %s.', 'stubli' ), '<strong>' + __( 'Add to Home screen', 'stubli' ) + '</strong>' ) ) + '</p><button type="button" class="a-text-btn" data-fd-did>' + __( 'I\'ve done it', 'stubli' ) + '</button></li>' : '' );
+			} ).join( '' ) + '</ul><button type="button" class="a-text-btn a-fd-hide" data-fd-hide>' + __( 'Hide this', 'stubli' ) + '</button></section>';
+	}
+	function bindFirstDay() {
+		var how = $( '[data-fd-how]' ); if ( how ) { how.addEventListener( 'click', function () { fd.how = ! fd.how; renderHome(); var d = $( '[data-fd-did]' ) || $( '[data-fd-how]' ); if ( d ) { d.focus(); } } ); }
+		var did = $( '[data-fd-did]' ); if ( did ) { did.addEventListener( 'click', function () { store.set( 'stubli-installed', '1' ); fd.how = false; renderHome(); } ); }
+		var hide = $( '[data-fd-hide]' ); if ( hide ) { hide.addEventListener( 'click', function () { B.firstDay = null; renderHome(); send( 'POST', 'firstday', {} ).catch( function () {} ); } ); }
+	}
 	function renderHome() {
 		var body = '';
 		if ( ! feed.loaded ) {
@@ -1391,8 +1419,8 @@
 		var sub = feed.stale ? __( 'Offline. Showing your feed from last time.', 'stubli' ) : feed.loaded && feed.newSince ? _f( __( '%s new since your last visit', 'stubli' ), feed.newSince ) : '';
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
 			'<h1 class="a-greet a-greet-sky">' + sky( 36 ) + '<span>' + esc( greeting() ) + '</span></h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
-			setupCard() + body + '</main>' + bar( 'home' );
-		bindFollow(); bindInvite();
+			setupCard() + firstDayCard() + body + '</main>' + bar( 'home' );
+		bindFollow(); bindInvite(); bindFirstDay();
 		var fr = $( '[data-feed-retry]' ); if ( fr ) { fr.addEventListener( 'click', retryFeed ); }
 		$$( '[data-list]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { feed.list = b.dataset.list; loadFeed( true ).then( renderHome ); } ); } );
 		var older = $( '[data-older]' );
@@ -1462,6 +1490,7 @@
 		b.addEventListener( 'click', function () {
 			b.disabled = true; b.textContent = __( 'Creating…', 'stubli' );
 			send( 'POST', 'invites', {} ).then( function ( r ) {
+				if ( B.firstDay ) { B.firstDay.invited = true; }
 				out.innerHTML = ( '<label class="sr" for="a-inv">' + __( 'Invite link', 'stubli' ) + '</label><input id="a-inv" class="a-field" readonly value="' ) + esc( r.url ) + '">' +
 					'<div class="a-actions" style="margin-top:8px">' + ( navigator.share ? ( '<button type="button" class="a-btn" data-inv-share>' + __( 'Share…', 'stubli' ) + '</button>' ) : '' ) + ( '<button type="button" class="a-btn quiet" data-inv-copy>' + __( 'Copy link', 'stubli' ) + '</button></div><p class="a-help" aria-live="polite" data-inv-msg></p>' );
 				b.hidden = true;
@@ -2250,6 +2279,7 @@
 			var thumb = p.photos[ 0 ].thumb, col = p.addingCollection ? p.newCollection.trim() : p.collection, aud = p.audience;
 			if ( col && B.collections.indexOf( col ) < 0 ) { B.collections.unshift( col ); }
 			post = null;
+			if ( B.firstDay ) { B.firstDay.photo = true; }
 			doneView( __( 'Shared', 'stubli' ), aud === 'friends' ? ( col ? _f( __( 'Your friends see it in their Stubli, in %s. It isn\'t on your public page.', 'stubli' ), col ) : __( 'Your friends see it in their Stubli. It isn\'t on your public page.', 'stubli' ) ) : ( col ? _f( __( 'Your post is on your page in %s.', 'stubli' ), col ) : __( 'Your post is on your page.', 'stubli' ) ), res && res.url, __( 'See your post', 'stubli' ), thumb, '#new', __( 'New post', 'stubli' ) );
 		}, function ( err ) {
 			p.busy = false;
