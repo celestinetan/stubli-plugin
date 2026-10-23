@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.31.3
+Stable tag: 0.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.32.0 =
+* App: edit your guest book (welcome line, pin, remove with undo) and your links (add, change, reorder, remove) right from your You screen.
+* Collections: give each one a short line (hold a tab, tap the pencil); it shows quietly at the top of the collection, on your page and in the app.
+* Guest book: the welcome line is quieter.
+* Your page, wider screens: Latest is a list again, filled with as many of your six newest posts as fit beside your profile card.
 
 = 0.31.3 =
 * Your page, wider screens: Latest shows the newest post and the five before it as small photos.

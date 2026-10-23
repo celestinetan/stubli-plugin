@@ -415,6 +415,8 @@
 		if ( h === 'more' ) { return viewMore(); }
 		if ( h === 'about' ) { return viewAbout(); }
 		if ( h === 'look' ) { return viewLook(); }
+		if ( h === 'guestbook' ) { return viewGuestbook(); }
+		if ( h === 'links' ) { return viewLinks(); }
 		if ( h === 'arrange' ) { return viewArrange(); }
 		if ( /^arrange\/\d+$/.test( h ) ) { return viewPins( +h.split( '/' )[ 1 ] ); }
 		if ( /^note\/\d+$/.test( h ) ) { return viewNote( +h.split( '/' )[ 1 ] ); }
@@ -556,10 +558,10 @@
 				'<a class="a-ctab a-ctab-icon" href="#journals" aria-label="' + esc( __( 'Your journal', 'stubli' ) ) + '" title="' + esc( __( 'Your journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
 				'<span class="a-ctabs-gap"></span>' +
-				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( p.guestbook ) + '" aria-label="' + esc( __( 'Guest book', 'stubli' ) ) + '" title="' + esc( __( 'Guest book', 'stubli' ) ) + '">' + icon( 'pen', 18 ) + '</a>' : '' ) +
-				'<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( B.home + 'links/' ) + '" aria-label="' + esc( __( 'Links', 'stubli' ) ) + '" title="' + esc( __( 'Links', 'stubli' ) ) + '">' + icon( 'mark', 18 ) + '</a></div>' +
+				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="#guestbook" aria-label="' + esc( __( 'Guest book', 'stubli' ) ) + '" title="' + esc( __( 'Guest book', 'stubli' ) ) + '">' + icon( 'pen', 18 ) + '</a>' : '' ) +
+				'<a class="a-ctab a-ctab-icon a-ctab-green" href="#links" aria-label="' + esc( __( 'Links', 'stubli' ) ) + '" title="' + esc( __( 'Links', 'stubli' ) ) + '">' + icon( 'mark', 18 ) + '</a></div>' +
 			( me.edit ? tabEditHtml() : '' ) +
-			'<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>' +
+			'<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>' +
 			( me.sheet ? sheetHtml() : '' ) +
 			'</main>' + bar( 'you' );
 		var redrawStack = function () { var w = $( '[data-you-stack]' ); if ( w ) { w.innerHTML = stackHtml( deckOf( me.p ), me.i, bio, null ); bindStack( function () { return me.i; }, function ( v ) { me.i = v; }, redrawStack ); } };
@@ -573,7 +575,7 @@
 		} ); }
 		bindTabEdit();
 		$$( '[data-coll]' ).forEach( function ( b ) { longPress( b, function () { if ( b.dataset.coll ) { openTabEdit(); } } ); } );
-		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); } ); } );
+		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); } ); } );
 		bindYouGrid();
 	}
 	function bindYouGrid() {
@@ -583,6 +585,14 @@
 		} );
 		var m = $( '[data-mine-more]' );
 		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = __( 'Loading…', 'stubli' ); mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
+	}
+
+	// The short line of the collection you're looking at, as on your page.
+	function youLine() {
+		if ( ! ar.list ) { if ( ! ar.loading ) { ar.loading = true; send( 'GET', 'arrange', null ).then( function ( r ) { ar.list = r.collections; ar.loading = false; var yl = $( '[data-you-line]' ); if ( yl && location.hash === '#you' ) { yl.innerHTML = youLine(); } }, function () { ar.loading = false; } ); } return ''; }
+		var name = me.coll || __( 'Photos', 'stubli' );
+		var c = ar.list.filter( function ( x ) { return x.name === name; } )[ 0 ];
+		return c && c.description ? '<p class="a-you-line">' + esc( c.description ) + '</p>' : '';
 	}
 
 	/* ── Hold to edit, like on a phone's home screen ── */
@@ -608,18 +618,20 @@
 	function tabEditHtml() {
 		var list = ar.list;
 		return '<section class="a-card a-tabedit" aria-labelledby="a-te-h"><div class="a-tabedit-head"><h2 id="a-te-h" tabindex="-1" data-tabedit-title>' + __( 'Your collections', 'stubli' ) + '</h2><button type="button" class="a-btn" data-tabedit-done>' + __( 'Done', 'stubli' ) + '</button></div>' +
-			'<p class="muted">' + __( 'Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one.', 'stubli' ) + '</p>' +
+			'<p class="muted">' + __( 'Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one or give it a short line.', 'stubli' ) + '</p>' +
 			( ! list ? '<p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' : '<ul class="a-tabedit-list" data-te-list>' + list.map( function ( c, i ) {
 				if ( me.renaming === c.id ) {
-					return '<li data-id="' + c.id + '" class="is-renaming"><label class="sr" for="a-te-name">' + _f( __( 'New name for %s', 'stubli' ), esc( c.name ) ) + '</label><input id="a-te-name" class="a-field" maxlength="40" value="' + esc( c.name ) + '"><button type="button" class="a-btn" data-te-save="' + c.id + '">' + __( 'Save', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-te-cancel>' + __( 'Cancel', 'stubli' ) + '</button></li>';
+					return '<li data-id="' + c.id + '" class="is-renaming"><div class="a-te-form"><label class="a-label" for="a-te-name">' + __( 'Name', 'stubli' ) + '</label><input id="a-te-name" class="a-field" maxlength="40" value="' + esc( c.name ) + '">' +
+						'<label class="a-label" for="a-te-desc">' + __( 'A short line about it', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-te-desc" class="a-field" maxlength="200" placeholder="' + esc( __( 'e.g. Mostly at dawn, by the lake.', 'stubli' ) ) + '" value="' + esc( c.description || '' ) + '">' +
+						'<div class="a-actions"><button type="button" class="a-btn" data-te-save="' + c.id + '">' + __( 'Save', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-te-cancel>' + __( 'Cancel', 'stubli' ) + '</button></div></div></li>';
 				}
-				return '<li data-id="' + c.id + '"><span class="a-te-grip" data-te-grip aria-hidden="true">' + icon( 'grip', 18 ) + '</span><span class="a-te-name"><strong>' + esc( c.name ) + '</strong><small class="muted">' + ( c.count === 1 ? __( '1 post', 'stubli' ) : _f( __( '%s posts', 'stubli' ), c.count ) ) + '</small></span>' +
-					'<button type="button" class="a-icon-btn" data-te-ren="' + c.id + '" aria-label="' + esc( _f( __( 'Rename %s', 'stubli' ), c.name ) ) + '">' + icon( 'pen', 17 ) + '</button>' +
+				return '<li data-id="' + c.id + '"><span class="a-te-grip" data-te-grip aria-hidden="true">' + icon( 'grip', 18 ) + '</span><span class="a-te-name"><strong>' + esc( c.name ) + '</strong><small class="muted">' + esc( c.description || ( c.count === 1 ? __( '1 post', 'stubli' ) : _f( __( '%s posts', 'stubli' ), c.count ) ) ) + '</small></span>' +
+					'<button type="button" class="a-icon-btn" data-te-ren="' + c.id + '" aria-label="' + esc( _f( __( 'Edit the name and line of %s', 'stubli' ), c.name ) ) + '">' + icon( 'pen', 17 ) + '</button>' +
 					'<button type="button" class="a-icon-btn" data-te-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), c.name ) ) + '">' + icon( 'up', 18 ) + '</button>' +
 					'<button type="button" class="a-icon-btn" data-te-move="' + i + '" data-dir="1"' + ( i === list.length - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), c.name ) ) + '">' + icon( 'down', 18 ) + '</button></li>';
 			} ).join( '' ) + '</ul>' ) +
 			'<p class="a-help" aria-live="polite" data-te-msg>' + esc( me.editMsg || '' ) + '</p>' +
-			'<p class="a-help">' + __( 'Tip: hold a photo to pin it to the top of its collection.', 'stubli' ) + ' <a href="#arrange">' + __( 'More: lines under tabs and pins', 'stubli' ) + '</a></p></section>';
+			'<p class="a-help">' + __( 'Tip: hold a photo to pin it to the top of its collection.', 'stubli' ) + '</p></section>';
 	}
 	function saveTabOrder( ids ) {
 		var before = ar.list.map( function ( c ) { return c.id; } ).join( ',' );
@@ -641,14 +653,14 @@
 		var sv = $( '[data-te-save]' );
 		if ( sv ) {
 			var go = function () {
-				var id = +sv.dataset.teSave, name = $( '#a-te-name' ).value.trim();
+				var id = +sv.dataset.teSave, name = $( '#a-te-name' ).value.trim(), desc = $( '#a-te-desc' ).value.trim();
 				if ( ! name ) { me.editMsg = __( 'Give the collection a name.', 'stubli' ); viewYou(); return; }
 				sv.disabled = true;
-				send( 'POST', 'arrange/' + id, { name: name } ).then( function () {
+				send( 'POST', 'arrange/' + id, { name: name, description: desc } ).then( function () {
 					return send( 'GET', 'arrange', null );
 				} ).then( function ( r ) {
 					ar.list = r.collections; B.collOrder = r.collections.map( function ( c ) { return c.name; } ); B.collections = r.collections.map( function ( c ) { return c.name; } );
-					me.renaming = 0; me.editMsg = __( 'Renamed. Your page shows the new name.', 'stubli' ); me.coll = ''; mine.loaded = false; me.p = null; viewYou();
+					me.renaming = 0; me.editMsg = __( 'Saved. Your page shows it now.', 'stubli' ); me.coll = ''; mine.loaded = false; me.p = null; viewYou();
 				}, function ( e ) { sv.disabled = false; me.editMsg = e.message; viewYou(); } );
 			};
 			sv.addEventListener( 'click', go );
@@ -1703,6 +1715,76 @@
 			document.documentElement.setAttribute( 'data-mode', m );
 		}
 	}
+	/* ── Your guest book: the welcome line, and each entry to pin or remove ── */
+	var gbk = { loaded: false, entries: [], intro: '', msg: '' };
+	function viewGuestbook() {
+		if ( ! gbk.loaded ) {
+			root.innerHTML = arrangeHead( '#you', __( 'Guest book', 'stubli' ) ) + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
+			Promise.all( [ send( 'GET', 'guestbook', null ), send( 'GET', 'guestbook/intro', null ) ] ).then( function ( r ) { gbk.entries = r[ 0 ] || []; gbk.intro = r[ 1 ].text || ''; gbk.loaded = true; if ( location.hash === '#guestbook' ) { viewGuestbook(); } }, function ( e ) { toast( e.message ); } );
+			return;
+		}
+		root.innerHTML = arrangeHead( '#you', __( 'Guest book', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			'<section class="a-card"><h2>' + __( 'Welcome line', 'stubli' ) + '</h2><p class="muted">' + __( 'A few words at the top of your guest book.', 'stubli' ) + '</p>' +
+			'<label class="sr" for="a-gb-intro">' + __( 'Welcome line', 'stubli' ) + '</label><textarea id="a-gb-intro" class="a-field a-grow" rows="2" maxlength="300">' + esc( gbk.intro ) + '</textarea>' +
+			'<div class="a-actions" style="margin-top:10px"><button type="button" class="a-btn" data-gb-save>' + __( 'Save', 'stubli' ) + '</button><a class="a-text-btn" href="' + esc( me.p && me.p.guestbook || B.home ) + '">' + __( 'See it on your page', 'stubli' ) + '</a></div><p class="a-help" aria-live="polite" data-gb-msg>' + esc( gbk.msg ) + '</p></section>' +
+			'<h2 class="a-caps">' + ( gbk.entries.length === 1 ? __( '1 signature', 'stubli' ) : _f( __( '%s signatures', 'stubli' ), gbk.entries.length ) ) + '</h2>' +
+			( gbk.entries.length ? '<ul class="a-gbl" role="list">' + gbk.entries.map( function ( e ) {
+				return '<li class="a-gbl-item' + ( e.pinned ? ' is-pinned' : '' ) + '">' + ( e.pinned ? '<span class="a-gbl-pin">' + icon( 'pin', 13 ) + __( 'Pinned', 'stubli' ) + '</span>' : '' ) + '<p class="a-gbl-text">' + esc( unent( e.text ) ) + '</p>' +
+					'<div class="a-gbl-sig"><span><strong>' + esc( unent( e.author.name ) ) + '</strong><small class="muted">' + esc( hostOf( e.author.url ) ) + ' · ' + esc( gentle( e.date ) ) + '</small></span>' +
+					'<button type="button" class="a-btn quiet" data-gb-pin="' + e.id + '" data-on="' + ( e.pinned ? 1 : 0 ) + '">' + icon( 'pin', 15 ) + ( e.pinned ? __( 'Unpin', 'stubli' ) : __( 'Pin', 'stubli' ) ) + '</button>' +
+					'<button type="button" class="a-btn quiet" data-gb-rm="' + e.id + '" aria-label="' + esc( _f( __( 'Remove the entry from %s', 'stubli' ), unent( e.author.name ) ) ) + '">' + __( 'Remove', 'stubli' ) + '</button></div></li>';
+			} ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'No signatures yet. When friends sign from their own Stubli, their words appear here.', 'stubli' ) + '</p>' ) +
+			'</main>';
+		gbk.msg = '';
+		var ta = $( '#a-gb-intro' ), fit = function () { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }; fit(); ta.addEventListener( 'input', fit );
+		$( '[data-gb-save]' ).addEventListener( 'click', function ( e ) {
+			var b = e.currentTarget; b.disabled = true;
+			send( 'POST', 'guestbook/intro', { text: ta.value } ).then( function ( r ) { gbk.intro = r.text; gbk.msg = __( 'Saved. Your guest book shows it now.', 'stubli' ); viewGuestbook(); }, function ( er ) { b.disabled = false; $( '[data-gb-msg]' ).textContent = er.message; } );
+		} );
+		$$( '[data-gb-pin]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			b.disabled = true;
+			send( b.dataset.on === '1' ? 'DELETE' : 'POST', 'guestbook/' + b.dataset.gbPin + '/pin', null ).then( function () { gbk.loaded = false; viewGuestbook(); }, function ( er ) { b.disabled = false; toast( er.message ); } );
+		} ); } );
+		$$( '[data-gb-rm]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var id = b.dataset.gbRm; b.disabled = true;
+			send( 'DELETE', 'guestbook/' + id, null ).then( function () {
+				gbk.entries = gbk.entries.filter( function ( x ) { return String( x.id ) !== id; } ); viewGuestbook();
+				toast( __( 'Entry removed from your guest book.', 'stubli' ), function () { send( 'POST', 'guestbook/' + id + '/restore', {} ).then( function () { gbk.loaded = false; if ( location.hash === '#guestbook' ) { viewGuestbook(); } toast( __( 'It\'s back in your guest book.', 'stubli' ) ); }, function ( er ) { toast( er.message ); } ); } );
+			}, function ( er ) { b.disabled = false; toast( er.message ); } );
+		} ); } );
+	}
+
+	/* ── Your links: add, change, reorder, remove ── */
+	var lks = { loaded: false, list: [], msg: '', dirty: false };
+	function viewLinks() {
+		if ( ! lks.loaded ) {
+			root.innerHTML = arrangeHead( '#you', __( 'Links', 'stubli' ) ) + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
+			Promise.all( [ send( 'GET', 'links', null ), pp.loaded ? Promise.resolve( pp.list ) : send( 'GET', 'follows', null ) ] ).then( function ( r ) { lks.list = r[ 0 ] || []; pp.list = Array.isArray( r[ 1 ] ) ? r[ 1 ] : []; pp.loaded = true; lks.loaded = true; if ( ! lks.list.length ) { lks.list = [ { label: '', url: '' } ]; } if ( location.hash === '#links' ) { viewLinks(); } }, function ( e ) { toast( e.message ); } );
+			return;
+		}
+		var n = lks.list.length;
+		root.innerHTML = arrangeHead( '#you', __( 'Links', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			'<section class="a-card"><h2>' + __( 'Your links', 'stubli' ) + '</h2><p class="muted">' + __( 'A shop, a newsletter, another website: they show in the Links tab on your page.', 'stubli' ) + '</p>' +
+			'<ol class="a-lk">' + lks.list.map( function ( l, i ) {
+				return '<li><div class="a-lk-fields"><label class="sr" for="a-lk-l' + i + '">' + _f( __( 'Name of link %s', 'stubli' ), i + 1 ) + '</label><input id="a-lk-l' + i + '" class="a-field" maxlength="60" placeholder="' + esc( __( 'Name, like Shop', 'stubli' ) ) + '" value="' + esc( l.label ) + '" data-lk-label="' + i + '">' +
+					'<label class="sr" for="a-lk-u' + i + '">' + _f( __( 'Address of link %s', 'stubli' ), i + 1 ) + '</label><input id="a-lk-u' + i + '" class="a-field" type="url" inputmode="url" placeholder="shop.example.com" value="' + esc( l.url ) + '" data-lk-url="' + i + '"></div>' +
+					'<div class="a-lk-btns"><button type="button" class="a-icon-btn" data-lk-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move link %s up', 'stubli' ), i + 1 ) ) + '">' + icon( 'up', 18 ) + '</button><button type="button" class="a-icon-btn" data-lk-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move link %s down', 'stubli' ), i + 1 ) ) + '">' + icon( 'down', 18 ) + '</button><button type="button" class="a-icon-btn" data-lk-rm="' + i + '" aria-label="' + esc( _f( __( 'Remove link %s', 'stubli' ), i + 1 ) ) + '">' + icon( 'x', 18 ) + '</button></div></li>';
+			} ).join( '' ) + '</ol>' +
+			'<div class="a-actions"><button type="button" class="a-btn quiet" data-lk-add' + ( n >= 20 ? ' disabled' : '' ) + '>' + icon( 'plus', 18 ) + __( 'Add a link', 'stubli' ) + '</button><button type="button" class="a-btn" data-lk-save>' + __( 'Save', 'stubli' ) + '</button></div><p class="a-help" aria-live="polite" data-lk-msg>' + esc( lks.msg ) + '</p></section>' +
+			'<section class="a-card"><h2>' + __( 'Sites you follow', 'stubli' ) + '</h2><p class="muted">' + __( 'The ones you follow publicly show under your links. Change who you follow in People.', 'stubli' ) + '</p>' +
+			( pp.list.length ? '<ul class="a-lk-sites">' + pp.list.map( function ( f ) { return '<li><strong>' + esc( f.name || hostOf( f.site_url ) ) + '</strong> <span class="muted">' + esc( hostOf( f.site_url ) ) + '</span></li>'; } ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'You don\'t follow anyone yet.', 'stubli' ) + '</p>' ) +
+			'<a class="a-btn quiet" href="#discover">' + __( 'Open People', 'stubli' ) + '</a></section></main>';
+		lks.msg = '';
+		var read = function () { lks.list = lks.list.map( function ( l, i ) { return { label: $( '[data-lk-label="' + i + '"]' ).value, url: $( '[data-lk-url="' + i + '"]' ).value }; } ); };
+		$$( '[data-lk-move]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); var i = +b.dataset.lkMove, j = i + ( +b.dataset.dir ), t = lks.list[ i ]; lks.list[ i ] = lks.list[ j ]; lks.list[ j ] = t; viewLinks(); var f = $( '[data-lk-move="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-lk-move="' + j + '"]' ); if ( f ) { f.focus(); } } ); } );
+		$$( '[data-lk-rm]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); lks.list.splice( +b.dataset.lkRm, 1 ); if ( ! lks.list.length ) { lks.list = [ { label: '', url: '' } ]; } viewLinks(); } ); } );
+		$( '[data-lk-add]' ).addEventListener( 'click', function () { read(); lks.list.push( { label: '', url: '' } ); viewLinks(); var f = $( '[data-lk-label="' + ( lks.list.length - 1 ) + '"]' ); if ( f ) { f.focus(); } } );
+		$( '[data-lk-save]' ).addEventListener( 'click', function ( e ) {
+			read(); var b = e.currentTarget; b.disabled = true;
+			send( 'POST', 'links', { links: lks.list } ).then( function ( r ) { lks.list = r.length ? r : [ { label: '', url: '' } ]; lks.msg = __( 'Saved. Your Links tab shows them now.', 'stubli' ); viewLinks(); }, function ( er ) { b.disabled = false; $( '[data-lk-msg]' ).textContent = er.message; } );
+		} );
+	}
+
 	/* ── Your colour and reading mode, any time after setup ── */
 	var lk = { msg: '' };
 	function viewLook() {

@@ -414,6 +414,10 @@ class Rest {
 				),
 			)
 		);
+		self::route( '/guestbook/intro', WP_REST_Server::READABLE, static fn() => rest_ensure_response( array( 'text' => Guestbook::intro() ) ) );
+		self::route( '/guestbook/intro', WP_REST_Server::CREATABLE, static fn( WP_REST_Request $r ) => self::respond( is_wp_error( $t = Guestbook::set_intro( (string) $r['text'] ) ) ? $t : array( 'text' => $t ) ) );
+		self::route( '/guestbook/(?P<id>\d+)', WP_REST_Server::DELETABLE, static fn( WP_REST_Request $r ) => self::respond( Guestbook::remove( (int) $r['id'] ) ? array( 'removed' => true ) : new \WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) ) ), false, $id );
+		self::route( '/guestbook/(?P<id>\d+)/restore', WP_REST_Server::CREATABLE, static fn( WP_REST_Request $r ) => self::respond( Guestbook::remove( (int) $r['id'], true ) ? array( 'restored' => true ) : new \WP_Error( 'stubli_not_found', __( 'That entry can\'t be brought back.', 'stubli' ), array( 'status' => 404 ) ) ), false, $id );
 		self::route(
 			'/guestbook/(?P<id>\d+)/pin',
 			'POST, DELETE',

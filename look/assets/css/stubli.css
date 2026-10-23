@@ -179,12 +179,7 @@ p { margin: 0 0 .75em; }
 	text-decoration: none; min-height: 64px; border-radius: 15px;
 }
 /* Phones: just the newest post, in one row. */
-.st-latest-when, .st-latest-strip { display: none; }
-.st-latest-strip { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 2px 12px 8px; }
-.st-latest-strip a { display: block; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--st-field); }
-.st-latest-strip img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s ease; }
-.st-latest-strip a:hover img { transform: scale(1.04); }
-.st-latest-strip a:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.st-latest-row:nth-of-type(n+2), .st-latest-when { display: none; }
 .st-latest-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
 .st-latest-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
 .st-latest-text > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -458,10 +453,15 @@ p { margin: 0 0 .75em; }
 	
 	.st-latest.has-more .st-latest-first { display: none; }
 	.st-latest.has-more .st-latest-when { display: inline; }
-	.st-latest.has-more .st-latest-row { min-height: 0; padding: 5px 12px 5px 8px; margin: 0 4px; border-radius: 12px; }
+	.st-latest.has-more .st-latest-row { min-height: 0; padding: 4px 12px 4px 8px; margin: 0 4px 1px; border-radius: 12px; }
 	.st-latest.has-more .st-latest-img { width: 38px; height: 38px; }
 	.st-latest.has-more .st-latest-text { font-size: 13.5px; line-height: 1.3; }
-	.st-latest.has-more .st-latest-strip { display: grid; }
+	.st-latest.has-more .st-latest-row:nth-of-type(n+2) { display: flex; }
+	/* The rows never make the card taller: it matches the profile card, and
+	   rows that don't fit are left out (stubli.js), never cut in half. */
+	.st-latest.has-more { position: relative; min-height: 150px; }
+	.st-latest.has-more .st-latest-rows { position: absolute; left: 0; right: 0; top: 36px; bottom: 6px; overflow: hidden; }
+	.st-latest.has-more .st-latest-row.is-cut { display: none; }
 	.st-latest:not(.has-more) { justify-content: center; }
 	.st-carousel { margin: 0; }
 	.st-carousel-track { border-radius: 10px; }
@@ -717,8 +717,6 @@ html { scroll-behavior: smooth; }
 .st-gb-title { margin: 0; font: 650 22px/1.2 var(--st-sans); }
 .st-gb-count { margin: 2px 0 0; font-size: 14px; }
 .st-gb .st-gb-head .st-pill { margin: 0; }
-.st-gb-intro { margin: 6px 0 20px; padding: 0 0 0 14px; border-left: 3px solid var(--st-accent); max-width: 36em; font: italic 400 17px/1.55 var(--st-serif); color: var(--st-ink); }
-.st-gb-intro p { margin: 0; }
 .st-gb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; align-items: start; }
 .st-gb-card { position: relative; margin: 0; padding: 18px 18px 14px; border-radius: 14px; background: var(--st-bg); box-shadow: 0 1px 0 rgba(0,0,0,.04); }
 .st-gb-card.is-pinned { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--st-accent) 55%, transparent), 0 1px 0 rgba(0,0,0,.04); }
@@ -744,3 +742,4 @@ html { scroll-behavior: smooth; }
 .st-links .st-link-row, .st-links .st-site-row { background: var(--st-bg); border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
 .st-links .st-link-row:hover, .st-links .st-site-row:hover { background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg)); }
 .st-links .st-empty { padding: 14px 16px; border-radius: 14px; background: var(--st-bg); color: var(--st-muted); margin: 0; }
+.st-gb-intro { margin: 4px 0 18px 2px; }

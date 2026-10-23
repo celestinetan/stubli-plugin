@@ -199,31 +199,25 @@ function stubli_profile_cards() {
 		<?php endif; ?>
 		</div>
 		<?php if ( $latest ) : ?>
-			<?php // On a phone: the newest post in one row. On a wider screen: that row, then the next five as small photos. ?>
+			<?php // On a phone: the newest post in one row. On a wider screen: as many of the last six as fill the card beside the profile, whole rows only. ?>
 			<div class="st-card st-latest<?php echo count( $recent ) > 1 ? ' has-more' : ''; ?>">
 				<p class="st-latest-h"><?php esc_html_e( 'Latest', 'stubli' ); ?></p>
-				<?php
-				$first = $recent[0];
-				$ids   = stubli_photo_ids( $first->ID );
-				$coll  = stubli_post_collection( $first->ID );
-				?>
-				<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $first ) ); ?>">
-					<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<span class="st-latest-text">
-						<span class="st-muted"><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $first ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $first ) ); ?></span></span>
-						<span><?php echo esc_html( stubli_post_label( $first ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
-					</span>
-					<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				</a>
-				<?php if ( count( $recent ) > 1 ) : ?>
-					<?php // The next five, as small photos. ?>
-					<div class="st-latest-strip">
-						<?php foreach ( array_slice( $recent, 1, 5 ) as $r ) : ?>
-							<?php $rid = stubli_photo_ids( $r->ID ); ?>
-							<a href="<?php echo esc_url( get_permalink( $r ) ); ?>" aria-label="<?php echo esc_attr( stubli_post_label( $r ) . ', ' . stubli_gentle_date( $r ) ); ?>" title="<?php echo esc_attr( stubli_post_label( $r ) ); ?>"><?php echo $rid ? wp_get_attachment_image( $rid[0], 'thumbnail', false, array( 'alt' => '', 'loading' => 'lazy' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
+				<div class="st-latest-rows" data-st-latest>
+				<?php foreach ( $recent as $k => $r ) : ?>
+					<?php
+					$ids  = stubli_photo_ids( $r->ID );
+					$coll = stubli_post_collection( $r->ID );
+					?>
+					<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
+						<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '', 'loading' => $k ? 'lazy' : 'eager' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span class="st-latest-text">
+							<span class="st-muted"><?php if ( 0 === $k ) : ?><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $r ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $r ) ); ?></span><?php else : ?><?php echo esc_html( stubli_gentle_date( $r ) ); ?><?php endif; ?></span>
+							<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
+						</span>
+						<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</a>
+				<?php endforeach; ?>
+				</div>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -658,7 +652,7 @@ function stubli_view_guestbook() {
 	}
 	echo '</div>';
 	if ( $page instanceof WP_Post && '' !== trim( $page->post_content ) ) {
-		echo '<blockquote class="st-gb-intro">' . wp_kses_post( wpautop( $page->post_content ) ) . '</blockquote>';
+		echo '<p class="st-wall-label st-gb-intro">' . esc_html( trim( html_entity_decode( wp_strip_all_tags( $page->post_content ), ENT_QUOTES ) ) ) . '</p>';
 	}
 	if ( ! $entries ) {
 		echo '<div class="st-gb-empty">' . stubli_icon( 'pen', 22 ) . '<p><strong>' . esc_html__( 'No signatures yet', 'stubli' ) . '</strong><br>' . esc_html( $owner ? __( 'When friends sign from their own Stubli, their words appear here.', 'stubli' ) : __( 'Be the first to say hello.', 'stubli' ) ) . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -77,9 +77,10 @@ class Arrange {
 			);
 			if ( $q->found_posts > 0 ) {
 				$out[] = array(
-					'id'    => (int) $t->term_id,
-					'name'  => self::name( $t ),
-					'count' => (int) $q->found_posts,
+					'id'          => (int) $t->term_id,
+					'name'        => self::name( $t ),
+					'count'       => (int) $q->found_posts,
+					'description' => wp_strip_all_tags( (string) $t->description ),
 				);
 			}
 		}

@@ -120,4 +120,50 @@ class Guestbook {
 		}
 		return true;
 	}
+
+	/**
+	 * The welcome line at the top of the guest book, as plain text.
+	 *
+	 * @return string
+	 */
+	public static function intro() {
+		$id = self::page_id();
+		return $id ? trim( html_entity_decode( wp_strip_all_tags( (string) get_post_field( 'post_content', $id ) ), ENT_QUOTES ) ) : '';
+	}
+
+	/**
+	 * Change the welcome line.
+	 *
+	 * @param string $text Text, up to 300 characters.
+	 * @return string|\WP_Error
+	 */
+	public static function set_intro( $text ) {
+		$id = self::page_id();
+		if ( ! $id ) {
+			return new \WP_Error( 'stubli_no_guestbook', __( 'Your guest book page isn\'t there any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		$text = mb_substr( trim( sanitize_textarea_field( (string) $text ) ), 0, 300 );
+		wp_update_post(
+			array(
+				'ID'           => $id,
+				'post_content' => '' === $text ? '' : '<p>' . esc_html( $text ) . '</p>',
+			)
+		);
+		return self::intro();
+	}
+
+	/**
+	 * Take an entry off the guest book (to the bin, so it can come back).
+	 *
+	 * @param int  $comment_id Comment ID.
+	 * @param bool $restore    Bring it back instead.
+	 * @return bool
+	 */
+	public static function remove( $comment_id, $restore = false ) {
+		$comment = get_comment( $comment_id );
+		if ( ! $comment || (int) $comment->comment_post_ID !== self::page_id() ) {
+			return false;
+		}
+		return (bool) ( $restore ? wp_untrash_comment( $comment->comment_ID ) : wp_trash_comment( $comment->comment_ID ) );
+	}
 }

@@ -299,3 +299,22 @@
 	} );
 }() );
 
+
+
+/* Latest, on wider screens: as many of the newest posts as fill the card
+   beside the profile, whole rows only. */
+( function () {
+	var box = document.querySelector( '[data-st-latest]' );
+	if ( ! box ) { return; }
+	var fit = function () {
+		var rows = box.querySelectorAll( '.st-latest-row' );
+		Array.prototype.forEach.call( rows, function ( r ) { r.classList.remove( 'is-cut' ); } );
+		if ( getComputedStyle( box ).position !== 'absolute' ) { return; }
+		var h = box.clientHeight;
+		Array.prototype.forEach.call( rows, function ( r ) { if ( r.offsetTop + r.offsetHeight > h + 1 ) { r.classList.add( 'is-cut' ); } } );
+	};
+	fit();
+	window.addEventListener( 'resize', fit );
+	window.addEventListener( 'load', fit );
+	if ( window.ResizeObserver ) { new ResizeObserver( fit ).observe( box ); }
+}() );
