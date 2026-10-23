@@ -410,16 +410,15 @@ function stubli_glyph( $wink = false ) {
  * @return string
  */
 function stubli_wordmark( $wink = false ) {
-	$glyph = stubli_glyph( $wink );
-	$title = '';
-	// The logo at the top (the winking one) dresses up on special days.
+	// The logo at the top (the winking one) plays along on special days.
 	if ( $wink && class_exists( '\\Stubli\\Seasonal' ) ) {
 		$logo = \Stubli\Seasonal::logo();
-		if ( $logo ) {
-			$glyph .= $logo['wear'];
-			$title = ' title="' . esc_attr( $logo['title'] ) . '"';
+		if ( $logo && '' !== $logo['html'] ) {
+			return '<span class="st-wordmark stw stw-' . esc_attr( $logo['key'] ) . '" role="img" aria-label="Stubli" title="' . esc_attr( $logo['title'] ) . '">' . $logo['html'] . '</span>'; // Built from fixed parts in Seasonal::letters().
 		}
 	}
+	$glyph = stubli_glyph( $wink );
+	$title = '';
 	return '<span class="st-wordmark" role="img" aria-label="Stubli"' . $title . '><span aria-hidden="true">st</span><svg class="st-wordmark-u" viewBox="0 0 60 80" aria-hidden="true" focusable="false">' . $glyph . '</svg><span aria-hidden="true">bli</span></span>';
 }
 

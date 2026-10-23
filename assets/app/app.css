@@ -709,13 +709,44 @@ label.a-tool { position: relative; }
 .a-te-form { min-width: 0; }
 .a-te-form .a-field { width: 100%; box-sizing: border-box; }
 
-/* Little surprises on special days: the ü face dresses up (Seasonal::wear). */
-.st-wordmark-u, .a-wordmark svg { overflow: visible; }
-.st-wear, .st-wear g { transform-box: fill-box; }
-.st-wear-samichlaus, .st-wear-newyear { transform-origin: 50% 100%; animation: st-tip 1.2s ease-in-out .5s 1; }
-.st-ear { transform-origin: 70% 100%; animation: st-ear 1.6s ease-in-out .6s 2; }
-.st-flame { transform-origin: 50% 100%; animation: st-flicker 1.4s ease-in-out 6; }
-@keyframes st-tip { 0%, 100% { transform: rotate(0); } 35% { transform: rotate(-9deg); } 70% { transform: rotate(5deg); } }
-@keyframes st-ear { 0%, 60%, 100% { transform: rotate(0); } 75% { transform: rotate(-22deg); } }
-@keyframes st-flicker { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(.9, 1.12); } }
-@media (prefers-reduced-motion: reduce) { .st-wear, .st-wear g { animation: none !important; } }
+/* Little surprises on special days: the letters play along (Seasonal::letters).
+   Each one loops for about 5 seconds when the page opens, then rests; hovering the logo loops it again. */
+.stw .stw-l { position: relative; display: inline-block; }
+.stw .stw-hide { color: transparent; }
+.stw .stw-u { overflow: visible; }
+.stw .stw-ov { position: absolute; margin: 0 !important; transform: none; overflow: visible; pointer-events: none; }
+.stw g, .stw .stw-ov, .stw circle, .stw path { transform-box: fill-box; transform-origin: 50% 50%; }
+.stw g[transform] { transform-box: view-box; transform-origin: 0 0; }
+/* New Year: the word dances and confetti keeps falling */
+.stw-newyear .stw-l { transform: rotate(var(--stw-r, 0)) translateY(var(--stw-y, 0)); animation: stw-hop .9s ease-in-out 6; }
+.stw-newyear .stw-l:nth-child(2n) { animation-delay: .45s; }
+.stw-bit { opacity: 0; animation: stw-fall 1.6s linear 3 both; }
+/* Valentine's Day: heart eyes, then back */
+.stw-hearts path { opacity: 0; animation: stw-heart-on 2.4s ease-in-out 2 both; }
+.stw-eyes { animation: stw-eyes-off 2.4s ease-in-out 2 both; }
+/* Halloween: the pumpkin and the ü rock together */
+.stw-halloween, .stw-christmas { isolation: isolate; }
+.stw .stw-behind { z-index: -1; }
+.stw .stw-front { z-index: 2; }
+.stw-christmas { margin-right: .32em; }
+.stw-pumpkin { transform-origin: 50% 100%; animation: stw-wobble 1.8s ease-in-out 3; }
+.stw-halloween .stw-u { transform-origin: 50% 112%; animation: stw-wobble-u 1.8s ease-in-out 3; }
+/* Christmas: the lights glow and twinkle one after another */
+.stw-bulb { animation: stw-twinkle 1.4s ease-in-out 4; }
+.stw-bulb circle { transform-origin: 50% 50%; }
+/* 1 August: the flag waves in the wind */
+.stw-flag { transform-origin: 0 100%; animation: stw-wave 1.3s ease-in-out 4; }
+/* Birthday: the candle flickers */
+.stw-flame { transform-origin: 50% 100%; animation: stw-flicker 1.3s ease-in-out 4; }
+/* Hover or focus the logo: loop again */
+a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { animation-iteration-count: infinite !important; }
+@keyframes stw-hop { 0%, 100% { translate: 0 0; } 50% { translate: 0 -.1em; } }
+@keyframes stw-fall { 0% { opacity: 0; transform: translateY(0); } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(110px); } }
+@keyframes stw-heart-on { 0%, 18% { opacity: 0; transform: scale(.3); } 30%, 70% { opacity: 1; transform: scale(1.15); } 40%, 60% { transform: scale(1); } 82%, 100% { opacity: 0; transform: scale(.3); } }
+@keyframes stw-eyes-off { 0%, 18% { opacity: 1; } 26%, 74% { opacity: 0; } 82%, 100% { opacity: 1; } }
+@keyframes stw-wobble { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 50% { transform: rotate(0) translateY(-2px); } 75% { transform: rotate(4deg); } }
+@keyframes stw-wobble-u { 0%, 100% { transform: translateY(.04em) rotate(0); } 25% { transform: translateY(.04em) rotate(-5deg); } 50% { transform: translateY(.04em) translateY(-2px); } 75% { transform: translateY(.04em) rotate(4deg); } }
+@keyframes stw-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes stw-wave { 0%, 100% { transform: skewY(0) scaleX(1); } 25% { transform: skewY(-9deg) scaleX(.93); } 55% { transform: skewY(6deg) scaleX(.97); } 80% { transform: skewY(-3deg) scaleX(.99); } }
+@keyframes stw-flicker { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(.9, 1.12); } 60% { transform: scale(1.05, .94); } }
+@media (prefers-reduced-motion: reduce) { .stw *, .stw .stw-l { animation: none !important; } .stw-bit, .stw-hearts path { opacity: 0 !important; } }

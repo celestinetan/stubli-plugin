@@ -83,7 +83,10 @@
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
 	}
 	function wordmark() {
-		return ( '<span class="a-brand"><span class="a-wordmark" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '"' + ( B.logo ? ' title="' + esc( B.logo.title ) + '"' : '' ) + '><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/>' + ( B.logo ? B.logo.wear : '' ) + '</svg><span aria-hidden="true">bli</span></span><span class="a-beta">' + __( 'Beta', 'stubli' ) + '</span></span>' );
+		var mark = B.logo && B.logo.html ?
+			'<span class="a-wordmark stw stw-' + esc( B.logo.key ) + '" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '" title="' + esc( B.logo.title ) + '">' + B.logo.html + '</span>' :
+			'<span class="a-wordmark" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '"><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg><span aria-hidden="true">bli</span></span>';
+		return '<span class="a-brand">' + mark + '<span class="a-beta">' + __( 'Beta', 'stubli' ) + '</span></span>';
 	}
 	/* Time of day on the reader's own clock: morning, afternoon, evening, night. */
 	function daypart() {
@@ -1807,7 +1810,7 @@
 			'<p class="a-label" id="a-lk-mode" style="margin-top:20px">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-lk-mode">' + [ [ 'auto', __( 'Automatic', 'stubli' ) ], [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ], [ 'dark', __( 'Dark', 'stubli' ) ] ].map( function ( m ) {
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 			} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' ' + __( 'This is how your page opens for visitors. They can still switch with the Aa button.', 'stubli' ) + '</p>' +
-			'<label class="a-check" style="margin-top:26px"><span><strong>' + __( 'Little surprises on special days', 'stubli' ) + '</strong><span class="muted small">' + __( 'On a few days a year, the smiling ü in the Stubli logo dresses up: a Samichlaus hood, a party hat at New Year, bunny ears at Easter, and a candle on your Stubli\'s birthday.', 'stubli' ) + '</span></span><input type="checkbox" data-lk-season' + ( d.seasonal ? ' checked' : '' ) + '></label>' +
+			'<label class="a-check" style="margin-top:26px"><span><strong>' + __( 'Little surprises on special days', 'stubli' ) + '</strong><span class="muted small">' + __( 'On a few days a year, the Stubli logo joins in: confetti at New Year, heart eyes on Valentine\'s Day, a pumpkin at Halloween, fairy lights at Christmas, a Swiss flag on 1 August (on Swiss Stublis) and a cupcake on your Stubli\'s birthday.', 'stubli' ) + '</span></span><input type="checkbox" data-lk-season' + ( d.seasonal ? ' checked' : '' ) + '></label>' +
 			'<p class="a-help" aria-live="polite" data-lk-msg>' + esc( lk.msg ) + '</p></main>';
 		lk.msg = '';
 		var save = function ( change, focusSel ) {

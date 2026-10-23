@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.33.3
+Stable tag: 0.34.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.34.0 =
+* Little surprises on special days, redrawn: on New Year the letters of the Stubli logo dance under falling confetti; on Valentine's Day the smiley gets heart eyes; at Halloween a pumpkin sits behind it; at Christmas fairy lights drape over the letters; on 1 August a Swiss flag replaces the dot on the i (on Swiss Stublis only); and on your Stubli's birthday the i is a candle in a cupcake. Each moves for about five seconds when the page opens and again on hover, and stays still with reduced motion. Switch it off in the app under Colour and reading mode.
 
 = 0.33.3 =
 * Videos and hosts: if your host doesn't take video files (WordPress.com's Personal plan, for example, keeps them for Premium and above), the app now says so before you start, offers photos only, and the Instagram import brings your photos and tells you how many videos stayed behind. Before, a video failed only at Share, with a message that didn't name the reason.
