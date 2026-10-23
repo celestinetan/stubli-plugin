@@ -209,6 +209,7 @@ class Setup {
 			'digest'    => (string) get_option( 'stubli_digest_time', '08:00' ),
 			'hidden'    => ! get_option( 'blog_public', 1 ) || ! get_option( 'stubli_setup_done' ),
 			'block_ai'  => (bool) get_option( 'stubli_block_ai', 1 ),
+			'seasonal'  => Seasonal::on(),
 			// Asked as a yes/no in setup: null until the owner answers (WordPress.org guideline 10: credits are opt-in).
 			'credit'    => false === get_option( 'stubli_credit', false ) ? null : (bool) get_option( 'stubli_credit' ),
 			'helper'    => Helper::state(),
@@ -256,6 +257,9 @@ class Setup {
 		}
 		if ( array_key_exists( 'credit', $c ) ) {
 			Settings::update( array( 'credit' => $c['credit'] ) );
+		}
+		if ( array_key_exists( 'seasonal', $c ) ) {
+			Seasonal::set( $c['seasonal'] );
 		}
 		if ( array_key_exists( 'block_ai', $c ) ) {
 			Settings::update( array( 'block_ai' => $c['block_ai'] ) );

@@ -37,6 +37,14 @@ add_action(
 		wp_enqueue_style( 'stubli', $uri . '/assets/css/stubli.css', array(), (string) filemtime( $dir . '/assets/css/stubli.css' ) );
 		wp_add_inline_style( 'stubli', stubli_font_faces() );
 		wp_enqueue_script( 'stubli', $uri . '/assets/js/stubli.js', array(), (string) filemtime( $dir . '/assets/js/stubli.js' ), array( 'strategy' => 'defer', 'in_footer' => true ) );
+		// Little surprises on special days (from the plugin; drawn on the profile card).
+		if ( class_exists( '\\Stubli\\Seasonal' ) && ( is_front_page() || is_home() ) ) {
+			$season = \Stubli\Seasonal::current();
+			if ( $season ) {
+				wp_enqueue_script( 'stubli-season', \Stubli\Seasonal::script_url(), array(), defined( 'Stubli\VERSION' ) ? \Stubli\VERSION : null, array( 'strategy' => 'defer', 'in_footer' => true ) );
+				wp_add_inline_script( 'stubli-season', 'window.stubliSeason = ' . wp_json_encode( array( 'season' => $season, 'text' => \Stubli\Seasonal::text() ), JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
+			}
+		}
 		wp_localize_script(
 			'stubli',
 			'stubliText',

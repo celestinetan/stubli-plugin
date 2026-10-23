@@ -708,3 +708,12 @@ label.a-tool { position: relative; }
 .a-tabedit-list li { min-width: 0; }
 .a-te-form { min-width: 0; }
 .a-te-form .a-field { width: 100%; box-sizing: border-box; }
+
+/* Little surprises on special days (season.js draws into these boxes). */
+.a-has-season { position: relative; }
+.a-season { position: absolute; left: 0; right: 0; top: 0; height: 128px; pointer-events: none; overflow: hidden; z-index: 2; }
+.a-season .ss-layer button { pointer-events: auto; }
+.a-season-try { position: relative; margin-top: 18px; }
+.a-season-stage { position: relative; height: 0; border-radius: 16px; background: var(--surface); transition: height .2s ease; overflow: hidden; }
+.a-season-stage.is-on { height: 124px; margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .a-season-stage { transition: none; } }
