@@ -239,6 +239,10 @@
 	var MAX_VIDEO = 60;
 	var LOC_ATOMS = [ '©xyz', 'loci', 'gps ' ];
 	function isVideo( f ) { return /^video\//.test( f.type || '' ) || /\.(mp4|mov|m4v)$/i.test( f.name || '' ); }
+	// Whether this site's host takes this kind of video (WordPress.com Personal takes none).
+	function canVideo( type ) { return ( B.videoTypes || [] ).indexOf( type ) >= 0; }
+	function videoType( f ) { return /^video\//.test( f.type || '' ) ? f.type : ( /\.mov$/i.test( f.name || '' ) ? 'video/quicktime' : 'video/mp4' ); }
+	function pickAccept() { return 'image/*' + ( ( B.videoTypes || [] ).length ? ',' + B.videoTypes.join( ',' ) : '' ); }
 	function fmtDur( s ) { s = Math.round( s ); return Math.floor( s / 60 ) + ':' + ( '0' + ( s % 60 ) ).slice( -2 ); }
 	function fmtMB( b ) { return ( b / 1048576 ).toFixed( b < 10485760 ? 1 : 0 ) + ' MB'; }
 	function readAt( file, off, len ) { return file.slice( off, off + len ).arrayBuffer().then( function ( b ) { return new Uint8Array( b ); } ); }
@@ -2217,7 +2221,9 @@
 			'<button type="button" class="a-btn" data-next' + ( p.photos.length ? '' : ' disabled' ) + ( '>' + __( 'Next', 'stubli' ) + '</button></header>' ) +
 			( '<main class="a-compose" id="main"><h1 class="sr">' + __( 'New photo post', 'stubli' ) + '</h1>' ) +
 			'<div class="a-preview">' + ( p.loading ? ( '<p class="muted" role="status">' + __( 'Opening your video…', 'stubli' ) + '</p>' ) : cur ? ( cur.video && cur.plain ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><img src="' + cur.thumb + '" alt="' + esc( _f( __( 'Video %s, %s', 'stubli' ), p.current + 1, fmtDur( cur.duration ) ) ) + ( '"></div><p class="a-help">' + __( 'This browser can\'t preview this video, but it shares fine.', 'stubli' ) + '</p>' ) : cur.video ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><video src="' + cur.src + '" poster="' + cur.thumb + '" controls playsinline preload="metadata" aria-label="' + esc( _f( __( 'Preview of video %s', 'stubli' ), p.current + 1 ) ) + '"></video></div>' : '<div class="a-preview-frame" style="aspect-ratio:' + RATIOS[ p.ratio ] + '"><img src="' + cur.thumb + '" alt="' + esc( _f( __( 'Preview of photo %s', 'stubli' ), p.current + 1 ) ) + '"></div>' ) :
-				'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos or videos for one post. Videos can be up to a minute.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos or videos', 'stubli' ) + '<input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label></div>' ) ) + '</div>' +
+				( ( B.videoTypes || [] ).length ?
+					'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos or videos for one post. Videos can be up to a minute.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos or videos', 'stubli' ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-files></label></div>' ) :
+					'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos for one post.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos', 'stubli' ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-files></label><p class="a-help" data-novideo>' ) + esc( B.noVideo || '' ) + '</p></div>' ) ) + '</div>' +
 			( p.photos.length ? '<div class="a-ratios" role="group" aria-label="' + esc( __( 'Shape', 'stubli' ) ) + '">' + Object.keys( RATIOS ).map( function ( k ) {
 				return '<button type="button" class="a-chip" data-ratio="' + k + '" aria-pressed="' + ( p.ratio === k ) + '">' + icon( k, 16 ) + ratioLabel[ k ] + '</button>';
 			} ).join( '' ) + '</div>' : '' ) +
@@ -2227,7 +2233,7 @@
 				return '<div style="position:relative"><button type="button" class="a-thumb' + ( i === p.current ? ' is-current' : '' ) + '" data-pick="' + i + '" aria-label="' + esc( ph.video ? _f( __( 'Show video %s', 'stubli' ), i + 1 ) : _f( __( 'Show photo %s', 'stubli' ), i + 1 ) ) + '"><img src="' + ph.thumb + '" alt="">' + ( ph.video ? '<span class="a-vid-dur" aria-hidden="true">' + icon( 'play', 12 ) + fmtDur( ph.duration ) + '</span>' : '' ) + '<span class="a-order" aria-hidden="true">' + ( i + 1 ) + '</span></button>' +
 					'<button type="button" class="a-remove" data-remove="' + i + '" aria-label="' + esc( ph.video ? _f( __( 'Remove video %s', 'stubli' ), i + 1 ) : _f( __( 'Remove photo %s', 'stubli' ), i + 1 ) ) + '">' + icon( 'x', 16 ) + '</button></div>';
 			} ).join( '' ) +
-			( p.photos.length < B.maxPhotos ? '<label class="a-thumb a-add">' + icon( 'plus', 24 ) + '<span>' + ( p.photos.length ? __( 'Add more', 'stubli' ) : _x( 'Choose', 'button', 'stubli' ) ) + '</span><input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label>' : '' ) +
+			( p.photos.length < B.maxPhotos ? '<label class="a-thumb a-add">' + icon( 'plus', 24 ) + '<span>' + ( p.photos.length ? __( 'Add more', 'stubli' ) : _x( 'Choose', 'button', 'stubli' ) ) + '</span><input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-files></label>' : '' ) +
 			'</div>' + ( p.error ? '<div class="a-notice" role="alert"><p>' + esc( p.error ) + '</p></div>' : '' ) +
 			'<p class="a-lock">' + icon( 'lock', 14 ) + ( __( 'Location details are removed from your photos and videos before they\'re shared.', 'stubli' ) + '</p></main>' );
 		p.error = '';
@@ -2248,6 +2254,11 @@
 		var p = post, files = Array.prototype.slice.call( list || [] ), room = B.maxPhotos - p.photos.length;
 		if ( files.length > room ) { p.error = _f( __( 'A post holds up to %s photos, so only the first %s were added.', 'stubli' ), B.maxPhotos, room ); files = files.slice( 0, room ); }
 		var bad = 0, notes = [];
+		// Videos the host can't take are left out before anything is read or written.
+		if ( files.some( function ( f ) { return isVideo( f ) && ! canVideo( videoType( f ) ); } ) ) {
+			files = files.filter( function ( f ) { return ! isVideo( f ) || canVideo( videoType( f ) ); } );
+			notes.push( B.noVideo || '' );
+		}
 		if ( files.some( isVideo ) ) { p.loading = true; viewPick(); }
 		Promise.all( files.map( function ( f ) {
 			if ( isVideo( f ) ) {
@@ -3030,7 +3041,7 @@
 		} else if ( s.state === 'ready' ) {
 			var on = s.posts.filter( function ( p ) { return p.on; } ).length;
 			body = '<p>' + _f( __( 'Found %s from %s to %s.', 'stubli' ), '<strong>' + _f( __( '%s posts', 'stubli' ), s.posts.length ) + '</strong>', esc( when( s.posts[ 0 ].ts ) ), esc( when( s.posts[ s.posts.length - 1 ].ts ) ) ) +
-				( s.videos ? ( ' ' + __( 'Videos up to a minute come along; longer ones stay behind.', 'stubli' ) ) : '' ) + '</p>' +
+				( s.videos ? ' ' + ( ( B.videoTypes || [] ).length ? __( 'Videos up to a minute come along; longer ones stay behind.', 'stubli' ) : esc( B.noVideo || '' ) + ' ' + __( 'So the videos in this download stay behind.', 'stubli' ) ) : '' ) + '</p>' +
 				( '<label class="a-label" for="a-impcol">' + __( 'Put them in this collection', 'stubli' ) + '</label><input id="a-impcol" class="a-field" maxlength="40" value="' ) + esc( s.collection ) + '">' +
 				( '<div class="a-row" style="margin-top:18px"><h2 class="a-label">' + __( 'Choose posts', 'stubli' ) + '</h2><button type="button" class="a-text-btn" data-all>' ) + ( on === s.posts.length ? __( 'Select none', 'stubli' ) : __( 'Select all', 'stubli' ) ) + '</button></div>' +
 				'<div class="a-thumbs a-imp-grid">' + s.posts.map( function ( p, i ) {
@@ -3045,7 +3056,7 @@
 		} else if ( s.state === 'done' ) {
 			var ok = s.ok || 0;
 			body = '<div class="a-done" style="padding-top:12px"><span class="a-tick">' + icon( 'check', 28 ) + '</span><h2>' + ( s.stop ? __( 'Stopped', 'stubli' ) : __( 'Done', 'stubli' ) ) + '</h2><p class="muted">' + ( s.collection && ok ? ( ok === 1 ? _f( __( '1 post imported into %s.', 'stubli' ), esc( s.collection ) ) : _f( __( '%s posts imported into %s.', 'stubli' ), ok, esc( s.collection ) ) ) : ( ok === 1 ? __( '1 post imported.', 'stubli' ) : _f( __( '%s posts imported.', 'stubli' ), ok ) ) ) + ( s.dup ? ' ' + ( s.dup === 1 ? __( '1 was already on your page, so nothing was doubled.', 'stubli' ) : _f( __( '%s were already on your page, so nothing was doubled.', 'stubli' ), s.dup ) ) : '' ) +
-				( s.failed.length ? ' ' + _f( __( '%s couldn\'t be imported; try again to retry them.', 'stubli' ), s.failed.length ) : '' ) + ( s.long ? ' ' + ( s.long === 1 ? __( 'One video was longer than a minute and stayed behind.', 'stubli' ) : _f( __( '%s videos were longer than a minute and stayed behind.', 'stubli' ), s.long ) ) : '' ) + ( s.bad ? ' ' + ( s.bad === 1 ? __( 'One video couldn\'t be read and stayed behind.', 'stubli' ) : _f( __( '%s videos couldn\'t be read and stayed behind.', 'stubli' ), s.bad ) ) : '' ) + ( s.stop && s.queue.length ? ' ' + _f( __( '%s still to go.', 'stubli' ), s.queue.length ) : '' ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a>' ) + ( s.failed.length || s.stop ? ( '<button type="button" class="a-btn quiet" data-retry>' + __( 'Try again', 'stubli' ) + '</button>' ) : '' ) + '</div></div>';
+				( s.failed.length ? ' ' + _f( __( '%s couldn\'t be imported; try again to retry them.', 'stubli' ), s.failed.length ) : '' ) + ( s.long ? ' ' + ( s.long === 1 ? __( 'One video was longer than a minute and stayed behind.', 'stubli' ) : _f( __( '%s videos were longer than a minute and stayed behind.', 'stubli' ), s.long ) ) : '' ) + ( s.bad ? ' ' + ( s.bad === 1 ? __( 'One video couldn\'t be read and stayed behind.', 'stubli' ) : _f( __( '%s videos couldn\'t be read and stayed behind.', 'stubli' ), s.bad ) ) : '' ) + ( s.novid ? ' ' + ( s.novid === 1 ? __( 'One video stayed behind, because your site can\'t take videos.', 'stubli' ) : _f( __( '%s videos stayed behind, because your site can\'t take videos.', 'stubli' ), s.novid ) ) : '' ) + ( s.stop && s.queue.length ? ' ' + _f( __( '%s still to go.', 'stubli' ), s.queue.length ) : '' ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a>' ) + ( s.failed.length || s.stop ? ( '<button type="button" class="a-btn quiet" data-retry>' + __( 'Try again', 'stubli' ) + '</button>' ) : '' ) + '</div></div>';
 		}
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'From Instagram', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main">' ) + body + '</main>';
 		var z = $( '[data-zip]' );
@@ -3084,7 +3095,7 @@
 	function runImport( queue ) {
 		var s = imp, lock = null;
 		thumbUrls.forEach( URL.revokeObjectURL ); thumbUrls = [];
-		s.queue = queue; s.done = 0; s.ok = 0; s.dup = 0; s.long = 0; s.bad = 0; s.failed = []; s.stop = false; s.state = 'running';
+		s.queue = queue; s.done = 0; s.ok = 0; s.dup = 0; s.long = 0; s.bad = 0; s.novid = 0; s.failed = []; s.stop = false; s.state = 'running';
 		if ( navigator.wakeLock ) { navigator.wakeLock.request( 'screen' ).then( function ( l ) { lock = l; }, function () {} ); }
 		viewImport();
 		var next = function () {
@@ -3096,6 +3107,7 @@
 			var p = queue[ s.done ];
 			Promise.all( p.photos.map( function ( n ) {
 				if ( /^video/.test( mime( n ) ) ) {
+					if ( ! canVideo( mime( n ) ) ) { s.novid++; return null; }
 					return zipRead( s.entries[ n ], mime( n ) ).then( function ( blob ) {
 						return videoInfo( blob ).catch( function () { return videoInfoFromFile( blob ); } ).then( function ( v ) {
 							URL.revokeObjectURL( v.url ); URL.revokeObjectURL( v.thumb );

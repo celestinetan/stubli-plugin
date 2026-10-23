@@ -190,6 +190,8 @@ class App {
 			'firstDay'    => self::first_day(),
 			'logo'        => Seasonal::logo(),
 			'maxUpload'   => (int) wp_max_upload_size(),
+			'videoTypes'  => Posts::video_types_allowed(),
+			'noVideo'     => Posts::no_video_message(),
 			'sw'          => home_url( '/app/notifications' ),
 			'swScope'     => home_url( '/app/' ),
 			'maxPost'     => (int) wp_convert_hr_to_bytes( (string) ini_get( 'post_max_size' ) ),

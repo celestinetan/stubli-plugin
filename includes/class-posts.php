@@ -225,6 +225,10 @@ class Posts {
 		$videos  = array();
 		foreach ( array_values( $files ) as $i => $file ) {
 			$check = wp_check_filetype_and_ext( $file['tmp_name'] ?? '', $file['name'] ?? '' );
+			if ( empty( $check['type'] ) && self::looks_like_video( $file ) ) {
+				// The host doesn't accept video files (WordPress.com Personal, for one): say so plainly.
+				return new WP_Error( 'stubli_video_not_allowed', self::no_video_message(), array( 'status' => 400 ) );
+			}
 			if ( in_array( $check['type'], self::VIDEO_TYPES, true ) ) {
 				if ( empty( $posters[ $i ]['tmp_name'] ) ) {
 					return new WP_Error( 'stubli_no_poster', __( 'That video arrived without its cover picture. Try sharing it again.', 'stubli' ), array( 'status' => 400 ) );
@@ -367,6 +371,47 @@ class Posts {
 	public static function video_for( $photo_id ) {
 		$vid = (int) get_post_meta( (int) $photo_id, '_stubli_video', true );
 		return ( $vid && 'attachment' === get_post_type( $vid ) ) ? $vid : 0;
+	}
+
+	/**
+	 * The video types this site accepts, as WordPress and the host allow them.
+	 * Empty when the host takes no video files (WordPress.com's Personal plan,
+	 * for example, keeps video uploads for Premium and above).
+	 *
+	 * @return string[] MIME types from VIDEO_TYPES.
+	 */
+	public static function video_types_allowed() {
+		return array_values( array_intersect( self::VIDEO_TYPES, array_values( get_allowed_mime_types() ) ) );
+	}
+
+	/**
+	 * Whether this site runs on WordPress.com.
+	 *
+	 * @return bool
+	 */
+	public static function on_wpcom() {
+		return ( defined( 'IS_ATOMIC' ) && IS_ATOMIC ) || ( defined( 'IS_WPCOM' ) && IS_WPCOM ) || defined( 'WPCOMSH_VERSION' );
+	}
+
+	/**
+	 * What to tell the owner when their host takes no video files.
+	 *
+	 * @return string
+	 */
+	public static function no_video_message() {
+		return self::on_wpcom()
+			? __( 'Videos need WordPress.com Premium or above. Photos work on your plan.', 'stubli' )
+			: __( 'Your host doesn\'t accept video files, so you can share photos here but not videos.', 'stubli' );
+	}
+
+	/**
+	 * Whether an uploaded file is meant as a video (by its name or the type the phone gave it).
+	 *
+	 * @param array $file Uploaded file.
+	 * @return bool
+	 */
+	private static function looks_like_video( $file ) {
+		return (bool) preg_match( '/\.(mp4|m4v|mov|qt)$/i', (string) ( $file['name'] ?? '' ) ) || 0 === strpos( (string) ( $file['type'] ?? '' ), 'video/' );
 	}
 
 	/**
