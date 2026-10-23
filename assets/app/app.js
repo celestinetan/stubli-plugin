@@ -438,7 +438,7 @@
 		];
 		return '<div class="a-bar"><nav aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '">' + items.map( function ( i ) {
 			var waiting = ( B.waiting || 0 ) + ( B.requests || 0 ), dot = i[ 0 ] === 'whatsnew' && waiting > 0;
-			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '">' + icon( i[ 3 ], 24 ) + '<span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span>' + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
+			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '"><span class="a-bar-i">' + icon( i[ 3 ], 24 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</span><span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span></a>';
 		} ).join( '' ) + '</nav></div>';
 	}
 

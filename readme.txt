@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.30.1
+Stable tag: 0.30.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.30.2 =
+* App: the highlight behind the active tab sits exactly on its icon, clear of the label.
 
 = 0.30.1 =
 * Journal: underline and checklists (tap the circle to tick an item; "[] " starts one).
