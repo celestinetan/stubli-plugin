@@ -191,8 +191,19 @@ function stubli_photos( $cat = 0, $paged = 1 ) {
  * @return WP_Post|null
  */
 function stubli_latest_photo() {
+	$l = stubli_latest_photos( 1 );
+	return $l ? $l[0] : null;
+}
+
+/**
+ * The newest few photo posts, for the Latest card.
+ *
+ * @param int $n How many.
+ * @return WP_Post[]
+ */
+function stubli_latest_photos( $n = 3 ) {
 	$q = stubli_photos( 0, 1 );
-	return $q->posts ? $q->posts[0] : null;
+	return array_slice( $q->posts, 0, (int) $n );
 }
 
 /**

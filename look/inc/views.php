@@ -143,7 +143,8 @@ function stubli_pill( $url, $label, $variant = 'primary' ) {
  */
 function stubli_profile_cards() {
 	$p      = stubli_profile();
-	$latest = stubli_latest_photo();
+	$recent = stubli_latest_photos( 3 );
+	$latest = $recent ? $recent[0] : null;
 	?>
 	<?php $prompts = ! empty( $p['prompts'] ) && is_array( $p['prompts'] ) ? $p['prompts'] : array(); ?>
 	<div class="st-cards">
@@ -197,18 +198,24 @@ function stubli_profile_cards() {
 		<?php endif; ?>
 		</div>
 		<?php if ( $latest ) : ?>
-			<?php
-			$ids  = stubli_photo_ids( $latest->ID );
-			$coll = stubli_post_collection( $latest->ID );
-			?>
-			<a class="st-card st-latest" href="<?php echo esc_url( get_permalink( $latest ) ); ?>">
-				<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<span class="st-latest-text">
-					<span class="st-muted"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $latest ) ) ); ?></span>
-					<span><?php echo esc_html( stubli_post_label( $latest ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
-				</span>
-				<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			</a>
+			<?php // On a phone: the newest post in one row. On a wider screen the card has room for the last three. ?>
+			<div class="st-card st-latest<?php echo count( $recent ) > 1 ? ' has-more' : ''; ?>">
+				<p class="st-latest-h"><?php esc_html_e( 'Latest', 'stubli' ); ?></p>
+				<?php foreach ( $recent as $k => $r ) : ?>
+					<?php
+					$ids  = stubli_photo_ids( $r->ID );
+					$coll = stubli_post_collection( $r->ID );
+					?>
+					<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
+						<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span class="st-latest-text">
+							<span class="st-muted"><?php if ( 0 === $k ) : ?><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $r ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $r ) ); ?></span><?php else : ?><?php echo esc_html( stubli_gentle_date( $r ) ); ?><?php endif; ?></span>
+							<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
+						</span>
+						<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</a>
+				<?php endforeach; ?>
+			</div>
 		<?php endif; ?>
 	</div>
 	<?php

@@ -169,15 +169,19 @@ p { margin: 0 0 .75em; }
 .st-bio { margin: 10px 0 0; max-width: 34em; white-space: pre-line; }
 .st-break { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--st-surface); font-size: 14px; }
 
-.st-latest {
+.st-latest { padding: 0; display: flex; flex-direction: column; }
+.st-latest-h { display: none; margin: 0; padding: 12px 14px 4px; font-size: 13px; font-weight: 600; color: var(--st-muted); }
+.st-latest-row {
 	display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px;
-	text-decoration: none; min-height: 64px;
+	text-decoration: none; min-height: 64px; border-radius: 15px;
 }
+/* Phones: just the newest post, in one row. */
+.st-latest-row:nth-of-type(n+2), .st-latest-when { display: none; }
 .st-latest-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
 .st-latest-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
 .st-latest-text > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-latest .st-muted { font-size: 13px; }
-.st-latest:hover, .st-site-row:hover, .st-link-row:hover { background: var(--st-surface); }
+.st-latest-row:hover, .st-site-row:hover, .st-link-row:hover { background: var(--st-surface); }
 
 /* ── Folder tabs ── */
 .st-tabs { display: flex; align-items: flex-end; gap: 8px; }
@@ -430,6 +434,16 @@ p { margin: 0 0 .75em; }
 	.st-cards:has(.st-stack.is-live) > .st-latest { margin-bottom: 18px; }
 	.st-cards:not(:has(> .st-latest)) { grid-template-columns: minmax(0, 1fr); }
 	.st-latest { align-self: stretch; }
+	/* Wider screens: up to three of the newest posts fill the card. */
+	.st-latest.has-more { justify-content: flex-start; padding-bottom: 6px; }
+	.st-latest.has-more .st-latest-h { display: block; }
+	.st-latest.has-more .st-latest-row:nth-of-type(n+2) { display: flex; }
+	.st-latest.has-more .st-latest-first { display: none; }
+	.st-latest.has-more .st-latest-when { display: inline; }
+	.st-latest.has-more .st-latest-row { min-height: 0; padding: 5px 12px 5px 8px; margin: 0 4px; border-radius: 12px; }
+	.st-latest.has-more .st-latest-img { width: 38px; height: 38px; }
+	.st-latest.has-more .st-latest-text { font-size: 13.5px; line-height: 1.3; }
+	.st-latest:not(.has-more) { justify-content: center; }
 	.st-carousel { margin: 0; }
 	.st-carousel-track { border-radius: 10px; }
 	.st-pill span { height: 36px; }
