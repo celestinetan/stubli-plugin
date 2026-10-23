@@ -13,7 +13,7 @@ Stubli turns a WordPress site into a calm, familiar place for photos and the peo
 ## Install
 
 1. Use a host that lets you upload plugins (on WordPress.com, any paid plan).
-2. Download [stubli.zip](https://github.com/celestinetan/stubli-plugin/raw/download/stubli.zip), then in WordPress: Plugins → Add New Plugin → Upload Plugin.
+2. Download [stubli.zip](https://github.com/celestinetan/stubli-plugin/releases/latest/download/stubli.zip), then in WordPress: Plugins → Add New Plugin → Upload Plugin.
 3. Stubli's setup opens by itself. When you finish, it adds the free Webmention plugin that carries comments between sites.
 
 See `readme.txt` for details, including which outside services Stubli talks to and when.
