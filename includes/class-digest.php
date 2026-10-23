@@ -177,7 +177,7 @@ class Digest {
 			return false;
 		}
 		$body = $msg['body'] . "\n\n" . __( 'Open Stubli:', 'stubli' ) . ' ' . $msg['url'] . "\n\n" .
-			__( 'You get at most one of these a day, and only when something is new. Turn it off in the app: You → Daily summary.', 'stubli' );
+			__( 'You get at most one of these a day, and only when something is new. Turn it off in the app: You → Settings and more → Daily summary.', 'stubli' );
 		return wp_mail( $to, $msg['title'], str_replace( ' · ', "\n", $body ) );
 	}
 

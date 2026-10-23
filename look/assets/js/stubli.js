@@ -282,3 +282,19 @@
 		} );
 	} );
 }() );
+
+
+/* Guest book: the owner pins or unpins an entry right on the page. */
+( function () {
+	var list = document.querySelector( '[data-st-gb]' );
+	if ( ! list ) { return; }
+	list.addEventListener( 'click', function ( e ) {
+		var b = e.target.closest( '[data-st-gb-pin]' );
+		if ( ! b || b.disabled ) { return; }
+		var on = b.getAttribute( 'data-pinned' ) !== '1';
+		b.disabled = true;
+		fetch( list.getAttribute( 'data-api' ) + b.getAttribute( 'data-st-gb-pin' ) + '/pin', { method: on ? 'POST' : 'DELETE', credentials: 'same-origin', headers: { 'X-WP-Nonce': list.getAttribute( 'data-nonce' ) } } )
+			.then( function ( r ) { if ( ! r.ok ) { throw new Error( 'no' ); } location.reload(); } )
+			.catch( function () { b.disabled = false; } );
+	} );
+}() );

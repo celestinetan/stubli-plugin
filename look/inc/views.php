@@ -627,32 +627,49 @@ function stubli_view_journal() {
  * Guest book tab.
  */
 function stubli_view_guestbook() {
-	$page = get_queried_object();
+	$page  = get_queried_object();
+	$owner = stubli_is_owner();
 	stubli_topbar();
 	echo '<main class="st-main" id="main">';
 	stubli_profile_cards();
 	stubli_tabs( 'guest' );
-	echo '<section class="st-panel st-panel-green">';
-	if ( $page instanceof WP_Post && '' !== trim( $page->post_content ) ) {
-		echo '<div class="st-guest-intro">' . wp_kses_post( wpautop( $page->post_content ) ) . '</div>';
+	$entries = stubli_has_plugin() ? \Stubli\Guestbook::entries() : array();
+	$count   = count( $entries );
+	echo '<section class="st-panel st-panel-green st-gb">';
+	// Heading, how many have signed, and the way to sign.
+	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Guest book', 'stubli' ) . '</h2>';
+	if ( $count ) {
+		/* translators: %s: number of entries */
+		echo '<p class="st-muted st-gb-count">' . esc_html( sprintf( _n( '%s signature', '%s signatures', $count, 'stubli' ), number_format_i18n( $count ) ) ) . '</p>';
 	}
+	echo '</div>';
 	if ( stubli_profile()['on_break'] ) {
 		echo '<p class="st-break">' . esc_html__( 'The guest book is paused for now.', 'stubli' ) . '</p>';
-	} elseif ( ! stubli_is_owner() && $page instanceof WP_Post ) {
+	} elseif ( ! $owner && $page instanceof WP_Post ) {
 		echo stubli_pill( stubli_remote_url( 'sign', get_permalink( $page ) ), __( 'Sign the guest book', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
-	$entries = stubli_has_plugin() ? \Stubli\Guestbook::entries() : array();
-	if ( ! $entries ) {
-		echo '<p class="st-empty">' . esc_html__( 'Be the first to say hello.', 'stubli' ) . '</p>';
+	echo '</div>';
+	if ( $page instanceof WP_Post && '' !== trim( $page->post_content ) ) {
+		echo '<blockquote class="st-gb-intro">' . wp_kses_post( wpautop( $page->post_content ) ) . '</blockquote>';
 	}
-	echo '<div class="st-guest-list">';
+	if ( ! $entries ) {
+		echo '<div class="st-gb-empty">' . stubli_icon( 'pen', 22 ) . '<p><strong>' . esc_html__( 'No signatures yet', 'stubli' ) . '</strong><br>' . esc_html( $owner ? __( 'When friends sign from their own Stubli, their words appear here.', 'stubli' ) : __( 'Be the first to say hello.', 'stubli' ) ) . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+	echo '<div class="st-gb-list"' . ( $owner ? ' data-st-gb data-nonce="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '" data-api="' . esc_url( rest_url( 'og/v1/guestbook/' ) ) . '"' : '' ) . '>';
 	foreach ( $entries as $e ) {
-		echo '<article class="st-guest">';
-		echo '<div class="st-guest-head"><img src="' . esc_url( stubli_img_src( $e['author']['avatar'] ), array( 'http', 'https', 'data' ) ) . '" alt="" width="32" height="32" loading="lazy"><div><a href="' . esc_url( $e['author']['url'] ) . '"><strong>' . esc_html( $e['author']['name'] ) . '</strong></a><span class="st-muted">' . esc_html( (string) wp_parse_url( $e['author']['url'], PHP_URL_HOST ) ) . ' · ' . esc_html( wp_date( 'j M', strtotime( $e['date'] ) ) ) . '</span></div>';
+		$host = (string) wp_parse_url( $e['author']['url'], PHP_URL_HOST );
+		echo '<article class="st-gb-card' . ( $e['pinned'] ? ' is-pinned' : '' ) . '">';
 		if ( $e['pinned'] ) {
-			echo '<span class="st-pinned st-muted">' . stubli_icon( 'pin', 14 ) . esc_html__( 'Pinned', 'stubli' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<span class="st-gb-pin">' . stubli_icon( 'pin', 13 ) . esc_html__( 'Pinned', 'stubli' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
-		echo '</div><p>' . esc_html( $e['text'] ) . '</p></article>';
+		echo '<p class="st-gb-text">' . esc_html( $e['text'] ) . '</p>';
+		echo '<footer class="st-gb-sig"><img src="' . esc_url( stubli_img_src( $e['author']['avatar'] ), array( 'http', 'https', 'data' ) ) . '" alt="" width="28" height="28" loading="lazy">';
+		echo '<span><a href="' . esc_url( $e['author']['url'] ) . '">' . esc_html( $e['author']['name'] ) . '</a><span class="st-muted">' . esc_html( $host ) . ' · <time datetime="' . esc_attr( $e['date'] ) . '">' . esc_html( wp_date( 'j M Y', strtotime( $e['date'] ) ) ) . '</time></span></span>';
+		if ( $owner ) {
+			/* translators: %s: name */
+			echo '<button type="button" class="st-gb-pinbtn" data-st-gb-pin="' . (int) $e['id'] . '" data-pinned="' . ( $e['pinned'] ? '1' : '0' ) . '" aria-label="' . esc_attr( sprintf( $e['pinned'] ? __( 'Unpin the entry from %s', 'stubli' ) : __( 'Pin the entry from %s to the top', 'stubli' ), $e['author']['name'] ) ) . '">' . stubli_icon( 'pin', 15 ) . '<span>' . esc_html( $e['pinned'] ? __( 'Unpin', 'stubli' ) : __( 'Pin', 'stubli' ) ) . '</span></button>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		echo '</footer></article>';
 	}
 	echo '</div></section></main>';
 }

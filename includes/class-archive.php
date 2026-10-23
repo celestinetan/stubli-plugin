@@ -249,7 +249,7 @@ class Archive {
 		check_admin_referer( 'stubli_archive_download' );
 		$j = self::job();
 		if ( ! $j || $j['queue'] || ! file_exists( $j['file'] ) ) {
-			wp_die( esc_html__( 'The archive isn\'t ready, or it was removed after a day. Make a new one in the app: You → Yours to keep.', 'stubli' ), '', array( 'response' => 404 ) );
+			wp_die( esc_html__( 'The archive isn\'t ready, or it was removed after a day. Make a new one in the app: You → Settings and more → Yours to keep.', 'stubli' ), '', array( 'response' => 404 ) );
 		}
 		$name = preg_replace( '/-[A-Za-z0-9]{20}\.zip$/', '.zip', wp_basename( $j['file'] ) );
 		nocache_headers();

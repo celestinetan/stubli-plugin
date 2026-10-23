@@ -289,7 +289,7 @@ class HostCheck {
 			<input type="hidden" name="action" value="stubli_host_check">
 			<?php wp_nonce_field( 'stubli_host_check' ); ?>
 			<p>
-				<label for="og-host-name"><?php esc_html_e( 'Which host is this? (optional, e.g. Infomaniak or WordPress.com Business)', 'stubli' ); ?></label><br>
+				<label for="og-host-name"><?php esc_html_e( 'Which host is this? (optional, e.g. Infomaniak or WordPress.com Personal)', 'stubli' ); ?></label><br>
 				<input id="og-host-name" name="host_name" type="text" class="regular-text" maxlength="80">
 			</p>
 			<p>

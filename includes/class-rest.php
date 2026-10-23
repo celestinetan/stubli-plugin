@@ -212,7 +212,7 @@ class Rest {
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => rest_ensure_response( Journal::entries( self::is_owner(), (int) $r['page'] ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => rest_ensure_response( $r['drafts'] && self::is_owner() ? Journal::drafts() : Journal::entries( self::is_owner(), (int) $r['page'] ) ),
 					'permission_callback' => '__return_true',
 					'args'                => array(
 						'page' => array(
@@ -224,7 +224,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'] ) ),
 					'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
 					'args'                => array(
 						'text'       => array_merge( $text, array( 'required' => false ) ),
@@ -255,7 +255,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array() ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), (bool) $r['draft'] ) ),
 					'permission_callback' => array( self::class, 'is_owner' ),
 					'args'                => array(
 						'html'       => array(

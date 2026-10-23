@@ -109,7 +109,7 @@ class Journal {
 	 * @param string $visibility "everyone" or "only_me".
 	 * @return array|WP_Error
 	 */
-	public static function create( $text, $visibility = 'everyone', array $photos = array(), $html = null ) {
+	public static function create( $text, $visibility = 'everyone', array $photos = array(), $html = null, $draft = false ) {
 		$content = null !== $html ? self::sanitize_html( (string) $html, $photos ) : self::content_with_photos( (string) $text, $photos );
 		$check   = self::check( $content );
 		if ( is_wp_error( $check ) ) {
@@ -119,7 +119,7 @@ class Journal {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_status'  => $private ? 'private' : 'publish',
+				'post_status'  => $draft ? 'draft' : ( $private ? 'private' : 'publish' ),
 				'post_title'   => wp_date( get_option( 'date_format' ) ),
 				'post_content' => $content,
 				'post_author'  => get_current_user_id(),
@@ -131,6 +131,10 @@ class Journal {
 		}
 		set_post_format( $post_id, 'status' );
 		self::attach_photos( $post_id, $photos );
+		if ( $draft ) {
+			update_post_meta( $post_id, '_stubli_visibility', $private ? 'only_me' : 'everyone' );
+			return self::get( $post_id );
+		}
 
 		return array(
 			'id'         => $post_id,
@@ -284,7 +288,7 @@ class Journal {
 		if ( ! $post || 'post' !== $post->post_type || ! has_post_format( 'status', $post ) ) {
 			return null;
 		}
-		$ok = $trashed ? array( 'publish', 'private', 'trash' ) : array( 'publish', 'private' );
+		$ok = $trashed ? array( 'publish', 'private', 'draft', 'trash' ) : array( 'publish', 'private', 'draft' );
 		if ( ! in_array( $post->post_status, $ok, true ) || ! current_user_can( 'edit_post', $post->ID ) ) {
 			return null;
 		}
@@ -354,10 +358,12 @@ class Journal {
 			'id'         => (int) $post->ID,
 			'html'       => $html,
 			'photos'     => $photos,
-			'visibility' => 'private' === $post->post_status ? 'only_me' : 'everyone',
-			'date'       => get_post_time( 'c', true, $post ),
+			'visibility' => self::visibility( $post ),
+			'date'       => 'draft' === $post->post_status ? self::iso( $post->post_date ) : get_post_time( 'c', true, $post ),
 			'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
-			'url'        => get_permalink( $post ),
+			'url'        => 'draft' === $post->post_status ? '' : get_permalink( $post ),
+			'draft'      => 'draft' === $post->post_status,
+			'saved'      => self::iso( $post->post_modified ),
 		);
 	}
 
@@ -371,15 +377,54 @@ class Journal {
 	 * @param array  $photos     Attached photos.
 	 * @return array|WP_Error
 	 */
-	public static function update( $id, $html, $visibility, array $photos ) {
+	public static function update( $id, $html, $visibility, array $photos, $draft = false ) {
 		$post = self::own_entry( $id );
 		if ( ! $post ) {
 			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		$was_draft = 'draft' === $post->post_status;
+		if ( $draft && ! $was_draft ) {
+			// A published entry never goes back to being a draft.
+			return new WP_Error( 'stubli_not_draft', __( 'That entry is already published.', 'stubli' ), array( 'status' => 409 ) );
 		}
 		$content = self::sanitize_html( (string) $html, $photos );
 		$check   = self::check( $content );
 		if ( is_wp_error( $check ) ) {
 			return $check;
+		}
+		if ( $draft ) {
+			// Saving a draft as you write: quietly, no "Edited" time.
+			wp_update_post(
+				array(
+					'ID'           => $post->ID,
+					'post_content' => $content,
+				)
+			);
+			update_post_meta( $post->ID, '_stubli_visibility', 'only_me' === $visibility ? 'only_me' : 'everyone' );
+			self::attach_photos( $post->ID, $photos );
+			return self::get( $post->ID );
+		}
+		if ( $was_draft ) {
+			// Publishing a draft: it's dated today, the day it goes out.
+			$now = current_time( 'mysql' );
+			$res = wp_update_post(
+				array(
+					'ID'            => $post->ID,
+					'post_content'  => $content,
+					'post_status'   => 'only_me' === $visibility ? 'private' : 'publish',
+					'post_title'    => wp_date( get_option( 'date_format' ) ),
+					'post_date'     => $now,
+					'post_date_gmt' => get_gmt_from_date( $now ),
+					'edit_date'     => true,
+				),
+				true
+			);
+			if ( is_wp_error( $res ) ) {
+				return new WP_Error( 'stubli_not_saved', __( 'That didn\'t save. Your changes are still here, so try again.', 'stubli' ), array( 'status' => 500 ) );
+			}
+			delete_post_meta( $post->ID, '_stubli_visibility' );
+			self::attach_photos( $post->ID, $photos );
+			return self::get( $post->ID );
 		}
 		$status = 'only_me' === $visibility ? 'private' : 'publish';
 		if ( $content !== $post->post_content || $status !== $post->post_status ) {
@@ -433,6 +478,67 @@ class Journal {
 		wp_untrash_post( $post->ID );
 		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
 		return self::get( $post->ID );
+	}
+
+	/**
+	 * Everyone or Only me (a draft remembers which you picked).
+	 *
+	 * @param \WP_Post $post Entry.
+	 * @return string
+	 */
+	private static function visibility( $post ) {
+		if ( 'draft' === $post->post_status ) {
+			return 'only_me' === get_post_meta( $post->ID, '_stubli_visibility', true ) ? 'only_me' : 'everyone';
+		}
+		return 'private' === $post->post_status ? 'only_me' : 'everyone';
+	}
+
+	/**
+	 * A site-time date as ISO 8601 in UTC (drafts have no UTC dates yet).
+	 *
+	 * @param string $local Site-time MySQL date.
+	 * @return string
+	 */
+	private static function iso( $local ) {
+		return gmdate( 'c', strtotime( get_gmt_from_date( (string) $local ) . ' UTC' ) );
+	}
+
+	/**
+	 * The owner's journal drafts, last saved first.
+	 *
+	 * @return array[]
+	 */
+	public static function drafts() {
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => 'draft',
+				'posts_per_page' => 50,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+				'author'         => get_current_user_id(),
+				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'terms'    => array( 'post-format-status' ),
+					),
+				),
+			)
+		);
+		return array_map(
+			static function ( $post ) {
+				return array(
+					'id'         => $post->ID,
+					'date'       => self::iso( $post->post_date ),
+					'saved'      => self::iso( $post->post_modified ),
+					'visibility' => self::visibility( $post ),
+					'draft'      => true,
+					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
+				);
+			},
+			$query->posts
+		);
 	}
 
 	/**

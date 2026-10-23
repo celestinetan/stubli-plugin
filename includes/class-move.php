@@ -92,7 +92,7 @@ class Move {
 		}
 		$out = (array) get_option( self::OUT, array() );
 		if ( '' === $token || empty( $out['hash'] ) || (int) ( $out['expires'] ?? 0 ) < time() || ! hash_equals( (string) $out['hash'], wp_hash( $token, 'nonce' ) ) ) {
-			return new \WP_Error( 'stubli_move_link', __( 'That move link isn\'t valid any more. Make a new one on your old Stubli: You → Move to another site.', 'stubli' ), array( 'status' => 401 ) );
+			return new \WP_Error( 'stubli_move_link', __( 'That move link isn\'t valid any more. Make a new one on your old Stubli: You → Settings and more → Move to another site.', 'stubli' ), array( 'status' => 401 ) );
 		}
 		return true;
 	}
@@ -168,7 +168,7 @@ class Move {
 			return;
 		}
 		wp_die(
-			esc_html__( 'This is a move link for this Stubli. Open the Stubli app on your new site and paste it under "Moving here from another Stubli?" (in the setup, or under You). Keep it private: it lets the new site copy everything, including entries only you can see.', 'stubli' ),
+			esc_html__( 'This is a move link for this Stubli. Open the Stubli app on your new site and paste it under "Moving here from another Stubli?" (in the setup, or under You → Settings and more → Move to another site). Keep it private: it lets the new site copy your photos, journal, guest book and people, including entries only you can see.', 'stubli' ),
 			esc_html__( 'Move link', 'stubli' ),
 			array( 'response' => 200 )
 		);
@@ -232,7 +232,7 @@ class Move {
 		$code = (int) wp_remote_retrieve_response_code( $res );
 		$data = json_decode( (string) wp_remote_retrieve_body( $res ), true );
 		if ( 401 === $code || 403 === $code ) {
-			return new \WP_Error( 'stubli_move_link', __( 'That move link isn\'t valid any more. Make a new one on your old Stubli: You → Move to another site.', 'stubli' ), array( 'status' => 401 ) );
+			return new \WP_Error( 'stubli_move_link', __( 'That move link isn\'t valid any more. Make a new one on your old Stubli: You → Settings and more → Move to another site.', 'stubli' ), array( 'status' => 401 ) );
 		}
 		if ( 200 !== $code || ! is_array( $data ) ) {
 			return new \WP_Error( 'stubli_move_old', __( 'Your old site didn\'t answer like a Stubli. Update Stubli there to the newest version, then try again.', 'stubli' ), array( 'status' => 502 ) );
@@ -251,7 +251,7 @@ class Move {
 		$parts = wp_parse_url( $link );
 		parse_str( (string) ( $parts['query'] ?? '' ), $q );
 		if ( empty( $parts['host'] ) || empty( $q['stubli_move'] ) ) {
-			return new \WP_Error( 'stubli_move_paste', __( 'That doesn\'t look like a move link. On your old Stubli, open You → Move to another site, then copy the link it shows.', 'stubli' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'stubli_move_paste', __( 'That doesn\'t look like a move link. On your old Stubli, open You → Settings and more → Move to another site, then copy the link it shows.', 'stubli' ), array( 'status' => 400 ) );
 		}
 		$source = ( $parts['scheme'] ?? 'https' ) . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' ) . ( $parts['path'] ?? '/' );
 		if ( Follows::origin( $source ) === Follows::origin( home_url() ) ) {

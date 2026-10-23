@@ -29,6 +29,58 @@ class Replies {
 	public static function init() {
 		add_action( 'init', array( self::class, 'register_post_type' ) );
 		add_action( 'template_redirect', array( self::class, 'render_reply_page' ) );
+		add_action( Install::CRON_HOOK, array( self::class, 'retry' ), 36 );
+	}
+
+	/**
+	 * Comments that didn't reach the other site are sent again in the
+	 * background: for a week when their site didn't answer, and for up to a
+	 * month when they were taking a break. Gentle spacing: after 15 minutes,
+	 * an hour, six hours, then once a day.
+	 */
+	public static function retry() {
+		if ( ! Helper::active() ) {
+			return;
+		}
+		$ids = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => 20,
+				'fields'         => 'ids',
+				'meta_key'       => '_stubli_retry_at', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => time(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_compare'   => '<=',
+				'meta_type'      => 'NUMERIC',
+			)
+		);
+		foreach ( $ids as $id ) {
+			$target = (string) get_post_meta( $id, '_stubli_in_reply_to', true );
+			$result = $target ? send_webmention( get_permalink( $id ), $target ) : null;
+			self::schedule_retry( $id, self::delivered_status( $result ) );
+		}
+	}
+
+	/**
+	 * Remember when to try a comment again, or stop trying.
+	 *
+	 * @param int    $id     Reply page ID.
+	 * @param string $status sent, paused or not_sent.
+	 */
+	private static function schedule_retry( $id, $status ) {
+		$tries = (int) get_post_meta( $id, '_stubli_retries', true );
+		$age   = time() - (int) get_post_time( 'U', true, $id );
+		$limit = 'paused' === $status ? 30 * DAY_IN_SECONDS : WEEK_IN_SECONDS;
+		if ( 'sent' === $status || $age > $limit ) {
+			delete_post_meta( $id, '_stubli_retry_at' );
+			delete_post_meta( $id, '_stubli_retries' );
+			update_post_meta( $id, '_stubli_delivery', 'sent' === $status ? 'sent' : 'gave_up' );
+			return;
+		}
+		$gaps = array( 15 * MINUTE_IN_SECONDS, HOUR_IN_SECONDS, 6 * HOUR_IN_SECONDS );
+		update_post_meta( $id, '_stubli_retries', $tries + 1 );
+		update_post_meta( $id, '_stubli_retry_at', time() + ( $gaps[ $tries ] ?? DAY_IN_SECONDS ) );
+		update_post_meta( $id, '_stubli_delivery', $status );
 	}
 
 	/**
@@ -164,13 +216,17 @@ class Replies {
 		}
 
 		$result = Helper::active() ? send_webmention( get_permalink( $reply_id ), $target ) : null;
+		$status = self::delivered_status( $result );
+		if ( 'sent' !== $status ) {
+			self::schedule_retry( $reply_id, $status );
+		}
 
 		return array(
 			'id'        => $reply_id,
 			'url'       => get_permalink( $reply_id ),
 			'delivered' => self::delivered( $result ),
 			// The other site decides whether it shows now or after their OK.
-			'status'    => self::delivered_status( $result ),
+			'status'    => $status,
 		);
 	}
 

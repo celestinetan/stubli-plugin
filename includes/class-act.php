@@ -97,7 +97,7 @@ class Act {
 						/* translators: %s: site */
 						printf( esc_html__( 'New photos from %s will show in your feed.', 'stubli' ), esc_html( $host ) );
 					} elseif ( 'paused' === $done ) {
-						esc_html_e( 'They\'re taking a break, so it will show once they\'re back.', 'stubli' );
+						esc_html_e( 'They\'re taking a break, so Stubli will keep sending it and it shows once they\'re back.', 'stubli' );
 					} else {
 						esc_html_e( 'If they follow you, it shows right away. Otherwise it waits for their OK.', 'stubli' );
 					}
@@ -151,7 +151,7 @@ class Act {
 					<?php if ( 'follow' !== $do && 'accept' !== $do ) : ?>
 						<p>
 							<label for="og-act-text"><strong><?php echo 'sign' === $do ? esc_html__( 'Your message', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Your note', 'stubli' ) : esc_html__( 'Your comment', 'stubli' ) ); ?></strong></label><br>
-							<textarea id="og-act-text" name="text" rows="5" class="<?php echo $app ? 'a-textarea' : 'large-text'; ?>" maxlength="2200" required></textarea>
+							<textarea id="og-act-text" name="text" rows="5" class="<?php echo $app ? 'a-textarea' : 'large-text'; ?>" maxlength="1000" required></textarea>
 						</p>
 						<?php if ( 'note' !== $do ) : ?>
 						<p class="description"><?php esc_html_e( 'It\'s saved on your own site too, and you can delete it any time.', 'stubli' ); ?></p>

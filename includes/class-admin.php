@@ -127,7 +127,7 @@ class Admin {
 					</tr>
 					<tr>
 						<th scope="row"><label for="og-bio"><?php esc_html_e( 'Bio', 'stubli' ); ?></label></th>
-						<td><textarea id="og-bio" name="bio" rows="3" maxlength="300" class="large-text"><?php echo esc_textarea( (string) get_option( 'stubli_bio', '' ) ); ?></textarea><p class="description"><?php esc_html_e( 'A few lines about you, shown on your profile card. Links go in My links below.', 'stubli' ); ?></p></td>
+						<td><textarea id="og-bio" name="bio" rows="3" maxlength="160" class="large-text"><?php echo esc_textarea( (string) get_option( 'stubli_bio', '' ) ); ?></textarea><p class="description"><?php esc_html_e( 'A few lines about you, shown on your profile card. Links go in My links below.', 'stubli' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="og-links"><?php esc_html_e( 'My links', 'stubli' ); ?></label></th>
@@ -163,7 +163,7 @@ class Admin {
 			$changes['look'] = ! empty( $_POST['look'] );
 		}
 		Settings::update( $changes );
-		update_option( 'stubli_bio', isset( $_POST['bio'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ), 0, 300 ) : '' );
+		update_option( 'stubli_bio', isset( $_POST['bio'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ), 0, 160 ) : '' );
 		$links = array();
 		foreach ( preg_split( '/\r?\n/', isset( $_POST['links'] ) ? sanitize_textarea_field( wp_unslash( $_POST['links'] ) ) : '' ) as $line ) {
 			$parts = array_map( 'trim', explode( '|', $line, 2 ) );
