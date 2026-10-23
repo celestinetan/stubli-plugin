@@ -2,13 +2,14 @@
 /**
  * Plugin Name:       Stubli
  * Description:       Turns a WordPress site into a cosy, familiar photo-sharing home: a public profile with collections, a journal and a guest book, a private reader for the Stubli sites you follow, and comments between sites via Webmention.
- * Version:           0.25.1
+ * Version:           0.26.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Celestine Tan
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       stubli
+ * Domain Path:       /languages
  *
  * Code prefix: namespace Stubli, stubli_ for stored names. Sites before 0.17
  * used "og_"; Install::migrate_prefix() moves that data once.
@@ -20,7 +21,7 @@ namespace Stubli;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION        = '0.25.1';
+const VERSION        = '0.26.0';
 const SCHEMA_VERSION = 5;
 const REST_NS        = 'stubli/v1';
 /** Every route also answers here, and calls to other sites use it, so sites on older versions keep understanding each other. */

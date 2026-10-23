@@ -215,7 +215,7 @@ label.a-tool { position: relative; }
 .a-item-head { display: flex; align-items: center; gap: 10px; padding: 0 20px 10px; font-size: 14px; }
 .a-item-head img, .a-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--field); flex: none; }
 .a-item-head a { text-decoration: none; }
-.a-new { font-size: 13px; font-weight: 650; color: var(--accent); }
+.a-new { font-size: 13px; font-weight: 650; color: var(--accent-text, var(--accent)); }
 .a-photos { position: relative; }
 .a-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background: var(--surface); }
 .a-track::-webkit-scrollbar { display: none; }
@@ -284,7 +284,7 @@ label.a-tool { position: relative; }
 .a-su-av { flex: none; width: 88px; height: 88px; border-radius: 50%; overflow: hidden; background: var(--field); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 28px; font-weight: 650; color: var(--muted); }
 .a-su-av img { width: 100%; height: 100%; object-fit: cover; }
 .a-su-smiley { margin: 14px 0 6px; padding: 4px 0 0; }
-.a-su-smiley > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--accent); list-style: none; }
+.a-su-smiley > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--accent-text, var(--accent)); list-style: none; }
 .a-su-smiley > summary::-webkit-details-marker { display: none; }
 .a-su-smiley > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 200ms ease; }
 .a-su-smiley[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
@@ -524,3 +524,9 @@ label.a-tool { position: relative; }
 .a-bar .a-dot { z-index: 2; }
 @keyframes a-tab-in { from { opacity: 0; transform: scale(.6); } }
 @keyframes a-tab-pop { 0% { transform: scale(.86); } 60% { transform: scale(1.08); } 100% { transform: none; } }
+
+/* Setup, Your people: the small label before each person's interest. */
+.a-su-sel-l { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+/* Home with nothing yet: what to do next. */
+.a-empty-feed { margin: 24px 0; }
+.a-empty-feed .a-actions { margin-top: 12px; }

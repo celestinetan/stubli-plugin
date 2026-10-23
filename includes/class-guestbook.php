@@ -46,7 +46,7 @@ class Guestbook {
 				'post_status'    => 'publish',
 				'post_title'     => __( 'Guest book', 'stubli' ),
 				'post_name'      => 'guest-book',
-				'post_content'   => '<p>' . esc_html__( 'Thanks for stopping by. Say hello, leave a tip, or tell me where you\'re reading from.', 'stubli' ) . '</p>',
+				'post_content'   => '<p>' . esc_html__( 'Thanks for stopping by. Say hello, share a tip, or tell me where you\'re reading from.', 'stubli' ) . '</p>',
 				'comment_status' => 'open',
 				'ping_status'    => 'open',
 			)

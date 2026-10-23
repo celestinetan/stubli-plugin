@@ -159,6 +159,10 @@ add_filter(
 			// stubli.app is found by people searching for Stubli, not for its owner's name.
 			$parts['title'] = 'Stubli';
 		}
+		// Every other stubli.app page ends in "– Stubli", not its owner's name.
+		if ( ! is_front_page() && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+			$parts['site'] = 'Stubli';
+		}
 		return $parts;
 	}
 );

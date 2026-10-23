@@ -56,7 +56,7 @@
 	var gs = document.querySelector( '[data-st-gs]' );
 	if ( gs ) {
 		var steps = gs.querySelectorAll( '[data-gs-step]' ), prog = gs.querySelector( '[data-gs-progress]' );
-		var names = { 1: T.gs1 || 'A home for your site', 2: T.gs2 || 'Install Stubli', 3: T.gs3 || 'Stubli sets itself up' };
+		var names = { 1: T.gs1 || 'A home for your site', 2: T.gs2 || 'Install Stubli', 3: T.gs3 || 'Stubli sets itself up', 4: T.gs4 || 'Invite your people' };
 		gs.classList.add( 'is-live' );
 		var show = function ( focus ) {
 			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || steps[ 0 ];
@@ -64,11 +64,13 @@
 			var n = +cur.getAttribute( 'data-gs-n' );
 			prog.hidden = false;
 			prog.innerHTML = '';
-			prog.appendChild( document.createTextNode( ( T.stepOf || 'Step %1$d of 3' ).replace( '%1$d', n ) + ' · ' + names[ n ] ) );
-			var bar = document.createElement( 'span' ), fill = document.createElement( 'i' ); fill.style.width = ( n / 3 * 100 ) + '%'; bar.appendChild( fill ); prog.appendChild( bar );
+			prog.appendChild( document.createTextNode( ( T.stepOf || 'Step %1$d of 4' ).replace( '%1$d', n ) + ' · ' + names[ n ] ) );
+			var bar = document.createElement( 'span' ), fill = document.createElement( 'i' ); fill.style.width = ( n / 4 * 100 ) + '%'; bar.appendChild( fill ); prog.appendChild( bar );
 			if ( focus ) { var h = cur.querySelector( 'h2' ); h.setAttribute( 'tabindex', '-1' ); h.focus(); window.scrollTo( 0, Math.max( 0, gs.getBoundingClientRect().top + window.scrollY - 80 ) ); }
 		};
 		window.addEventListener( 'hashchange', function () { if ( /^#gs-/.test( location.hash ) || ! location.hash ) { show( true ); } } );
+		// Coming from the welcome page's "Do you have a WordPress site?": skip that question.
+		try { var have = new URLSearchParams( location.search ).get( 'have' ); if ( ! location.hash && ( 'yes' === have || 'no' === have ) ) { history.replaceState( null, '', '#gs-' + ( 'yes' === have ? 'check' : 'host' ) ); } } catch ( e ) {}
 		show( false );
 		// "Type your address" → open that page on the visitor's own WordPress.
 		gs.querySelectorAll( '[data-gs-site]' ).forEach( function ( f ) {

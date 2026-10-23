@@ -912,8 +912,16 @@ function stubli_view_notfound() {
 		<section class="st-card-tone st-notfound">
 			<?php echo stubli_app_icon( 44, true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<h1 class="st-h2"><?php esc_html_e( 'This page has moved or is gone', 'stubli' ); ?></h1>
-			<p><?php /* translators: %s: name */ printf( esc_html__( 'Maybe it was tidied away. %s\'s photos are still here.', 'stubli' ), esc_html( get_bloginfo( 'name' ) ) ); ?></p>
-			<?php echo stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), get_bloginfo( 'name' ) ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php if ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) : ?>
+				<p><?php esc_html_e( 'Maybe it was tidied away. These might help:', 'stubli' ); ?></p>
+				<div class="st-welcome-actions">
+					<?php echo stubli_pill( function_exists( 'stubli_story_url' ) ? stubli_story_url( 'join' ) : home_url( '/get-started/' ), __( 'Make your Stubli', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo stubli_pill( home_url( '/help/' ), __( 'Help', 'stubli' ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</div>
+			<?php else : ?>
+				<p><?php /* translators: %s: name */ printf( esc_html__( 'Maybe it was tidied away. %s\'s photos are still here.', 'stubli' ), esc_html( get_bloginfo( 'name' ) ) ); ?></p>
+				<?php echo stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), get_bloginfo( 'name' ) ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php endif; ?>
 		</section>
 	</main>
 	<?php

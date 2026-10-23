@@ -253,7 +253,10 @@ class App {
 		// through WordPress's script and style registry.
 		wp_register_style( 'stubli-app', $assets . 'app.css', array(), VERSION );
 		wp_add_inline_style( 'stubli-app', self::fonts() . Setup::accent_css() );
-		wp_register_script( 'stubli-app', $assets . 'app.js', array(), VERSION, true );
+		wp_register_script( 'stubli-app', $assets . 'app.js', array( 'wp-i18n' ), VERSION, true );
+		// The app's words in the site's language: from WordPress.org's language
+		// packs, or from the plugin's own languages folder.
+		wp_set_script_translations( 'stubli-app', 'stubli', STUBLI_PLUGIN_DIR . 'languages' );
 		wp_add_inline_script( 'stubli-app', 'window.STUBLI = ' . wp_json_encode( self::boot(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
 		status_header( 200 );
 		header( 'Content-Type: text/html; charset=utf-8' );

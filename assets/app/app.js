@@ -2,6 +2,13 @@
 ( function () {
 	'use strict';
 	var B = window.STUBLI || {};
+	// Translations: the app's words come in English; B.i18n (sent by the
+	// plugin for the site's language) swaps them. _f fills in %s in order.
+	// Translations come through WordPress (wp.i18n), in the site's language.
+	// _f fills in each %s in order, after translating.
+	function __( s, d ) { return window.wp && wp.i18n ? wp.i18n.__( s, d || 'stubli' ) : s; }
+	function _x( s, c, d ) { return window.wp && wp.i18n ? wp.i18n._x( s, c, d || 'stubli' ) : s; }
+	function _f( s ) { var a = arguments, i = 1; return s.replace( /%s/g, function () { return String( a[ i++ ] ); } ); }
 	var root = document.getElementById( 'app' );
 	var store = {
 		get: function ( k ) { try { return localStorage.getItem( k ); } catch ( e ) { return null; } },
@@ -29,7 +36,7 @@
 		}
 	}, true );
 	// A small ? that opens the matching answer on stubli.app/help.
-	function helpLink( path, what ) { return '<a class="a-helplink" href="https://stubli.app/help/' + path + '/" target="_blank" rel="noopener" aria-label="' + esc( 'Help: ' + what ) + '" title="How this works">?</a>'; }
+	function helpLink( path, what ) { return '<a class="a-helplink" href="https://stubli.app/help/' + path + '/" target="_blank" rel="noopener" aria-label="' + esc( _f( __( 'Help: %s', 'stubli' ), what ) ) + '" title="' + esc( __( 'How this works', 'stubli' ) ) + '">?</a>'; }
 	function esc( s ) {
 		return String( s == null ? '' : s ).replace( /[&<>"']/g, function ( c ) {
 			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ];
@@ -64,7 +71,7 @@
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
 	}
 	function wordmark() {
-		return '<span class="a-brand"><span class="a-wordmark" role="img" aria-label="Stubli"><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg><span aria-hidden="true">bli</span></span><span class="a-beta">Beta</span></span>';
+		return ( '<span class="a-brand"><span class="a-wordmark" role="img" aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '"><span aria-hidden="true">st</span><svg viewBox="0 0 60 80" aria-hidden="true"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg><span aria-hidden="true">bli</span></span><span class="a-beta">' + __( 'Beta', 'stubli' ) + '</span></span>' );
 	}
 	/* Time of day on the reader's own clock: morning, afternoon, evening, night. */
 	function daypart() {
@@ -130,11 +137,11 @@
 		return '<svg class="a-sky a-sky-' + d + '" width="' + s + '" height="' + s + '" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + body + house + '</svg>';
 	}
 	function endLine() {
-		return { morning: 'Have a lovely morning.', afternoon: 'Enjoy the rest of your afternoon.', evening: 'Have a calm evening.', night: 'Sleep well.' }[ daypart() ];
+		return { morning: __( 'Have a lovely morning.', 'stubli' ), afternoon: __( 'Enjoy the rest of your afternoon.', 'stubli' ), evening: __( 'Have a calm evening.', 'stubli' ), night: __( 'Sleep well.', 'stubli' ) }[ daypart() ];
 	}
 	document.addEventListener( 'visibilitychange', function () { document.documentElement.classList.toggle( 'a-hidden', document.hidden ); } );
 	function greeting() {
-		var part = { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good evening' }[ daypart() ];
+		var part = { morning: __( 'Good morning', 'stubli' ), afternoon: __( 'Good afternoon', 'stubli' ), evening: __( 'Good evening', 'stubli' ), night: __( 'Good evening', 'stubli' ) }[ daypart() ];
 		return part + ( B.name ? ', ' + B.name : '' );
 	}
 
@@ -158,11 +165,11 @@
 				try { d = JSON.parse( x.responseText ); } catch ( e ) {}
 				if ( x.status >= 200 && x.status < 300 ) { return resolve( d ); }
 				if ( x.status === 403 && d && d.code === 'rest_cookie_invalid_nonce' && ! retried ) {
-					return refreshNonce().then( function () { resolve( send( method, path, body instanceof FormData ? body : JSON.parse( body ), onProgress, true ) ); }, function () { reject( { message: 'Your session ended. Please sign in again and try once more.' } ); } );
+					return refreshNonce().then( function () { resolve( send( method, path, body instanceof FormData ? body : JSON.parse( body ), onProgress, true ) ); }, function () { reject( { message: __( 'Your session ended. Please sign in again and try once more.', 'stubli' ) } ); } );
 				}
-				reject( { message: ( d && d.message ) || 'Something went wrong on the way. Try again in a moment.', code: d && d.code } );
+				reject( { message: ( d && d.message ) || __( 'Something went wrong on the way. Try again in a moment.', 'stubli' ), code: d && d.code } );
 			};
-			x.onerror = function () { reject( { message: 'No connection right now. Try again when you\'re back online.', code: 'offline' } ); };
+			x.onerror = function () { reject( { message: __( 'No connection right now. Try again when you\'re back online.', 'stubli' ), code: 'offline' } ); };
 			x.send( body );
 		} );
 	}
@@ -410,15 +417,15 @@
 
 	function bar( active ) {
 		var items = [
-			[ 'home', '#home', 'Home', 'home' ],
-			[ 'discover', '#discover', 'Discover', 'discover' ],
-			[ 'new', '#new', 'New post', 'plus' ],
-			[ 'whatsnew', '#whatsnew', 'What\'s new', 'news' ],
-			[ 'you', '#you', 'You', 'you' ]
+			[ 'home', '#home', __( 'Home', 'stubli' ), 'home' ],
+			[ 'discover', '#discover', __( 'Discover', 'stubli' ), 'discover' ],
+			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus' ],
+			[ 'whatsnew', '#whatsnew', __( 'What\'s new', 'stubli' ), 'news' ],
+			[ 'you', '#you', __( 'You', 'stubli' ), 'you' ]
 		];
-		return '<div class="a-bar"><nav aria-label="Stubli">' + items.map( function ( i ) {
+		return '<div class="a-bar"><nav aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '">' + items.map( function ( i ) {
 			var waiting = ( B.waiting || 0 ) + ( B.requests || 0 ), dot = i[ 0 ] === 'whatsnew' && waiting > 0;
-			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + waiting + ' waiting for your OK' : '' ) ) + '">' + icon( i[ 3 ], 25 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
+			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '">' + icon( i[ 3 ], 25 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>';
 		} ).join( '' ) + '</nav></div>';
 	}
 
@@ -427,19 +434,19 @@
 	function viewMore() {
 		var ios = /iphone|ipad|ipod/i.test( navigator.userAgent );
 		var host = String( B.home || '' ).replace( /^https?:\/\//, '' ).replace( /\/$/, '' );
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Settings and more</h1><span></span></header><main class="a-main" id="main">' +
-			'<section class="a-card"><h2>Your page</h2><p class="muted">' + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + '">See your page</a><a class="a-btn quiet" href="' + esc( B.settings ) + '">Profile and settings</a></div></section>' +
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Settings and more', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' ) +
+			( '<section class="a-card"><h2>' + __( 'Your page', 'stubli' ) + '</h2><p class="muted">' ) + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a><a class="a-btn quiet" href="' ) + esc( B.settings ) + ( '">' + __( 'Advanced settings', 'stubli' ) + '</a></div><p class="a-help">' + __( 'Your name, photo and bio are under Edit page. Advanced settings open your WordPress dashboard.', 'stubli' ) + '</p></section>' ) +
 			summaryCard() +
-			'<section class="a-card"><h2>Share something</h2><p class="muted">Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.</p>' +
-			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + 'New photo post</a><a class="a-btn quiet" href="#journal">Journal entry</a></div></section>' +
-			'<section class="a-card" data-invite-card><h2>Invite a friend' + helpLink( 'reading-and-following/follow', 'following and invites' ) + '</h2><p class="muted">Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p>' +
-			'<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
+			( '<section class="a-card"><h2>' + __( 'Share something', 'stubli' ) + '</h2><p class="muted">' + __( 'Photos go to your page and your followers\' feeds. Journal entries stay in your Journal tab.', 'stubli' ) + '</p>' ) +
+			'<div class="a-actions"><a class="a-btn" href="#new">' + icon( 'photo', 18 ) + ( __( 'New photo post', 'stubli' ) + '</a><a class="a-btn quiet" href="#journal">' + __( 'Journal entry', 'stubli' ) + '</a></div></section>' ) +
+			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
+			( '<div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			peopleCard() +
-			'<section class="a-card"><h2>Bring your photos from Instagram' + helpLink( 'posting/instagram', 'bringing photos from Instagram' ) + '</h2><p class="muted">Your posts arrive with their original dates and captions.</p><a class="a-btn quiet" href="#import">Start</a></section>' +
+			( '<section class="a-card"><h2>' + __( 'Bring your photos from Instagram', 'stubli' ) ) + helpLink( 'posting/instagram', __( 'bringing photos from Instagram', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Your posts arrive with their original dates and captions.', 'stubli' ) + '</p><a class="a-btn quiet" href="#import">' + __( 'Start', 'stubli' ) + '</a></section>' ) +
 			keepCard() +
-			'<section class="a-card"><h2>Tell us what you think</h2><p class="muted">Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.</p><a class="a-btn quiet" href="#feedback">Send feedback</a></section>' +
-			( isStandalone() ? '' : '<section class="a-card"><h2>Put Stubli on your home screen</h2><p class="muted">' + ( ios ? 'In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.' : 'Open your browser\'s menu, then choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.' ) + ' It opens like an app, without the browser around it.</p></section>' ) +
-			'<p class="a-help a-thanks">Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">leave him a tip</a>. It unlocks nothing; it just keeps Stubli going.</p>' +
+			( '<section class="a-card"><h2>' + __( 'Tell us what you think', 'stubli' ) + '</h2><p class="muted">' + __( 'Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.', 'stubli' ) + '</p><a class="a-btn quiet" href="#feedback">' + __( 'Send feedback', 'stubli' ) + '</a></section>' ) +
+			( isStandalone() ? '' : ( '<section class="a-card"><h2>' + __( 'Put Stubli on your home screen', 'stubli' ) + '</h2><p class="muted">' ) + ( ios ? _f( __( 'In Safari, tap the Share button, then %s.', 'stubli' ), '<strong>' + __( 'Add to Home Screen', 'stubli' ) + '</strong>' ) : _f( __( 'Open your browser\'s menu, then choose %s or %s.', 'stubli' ), '<strong>' + __( 'Add to Home screen', 'stubli' ) + '</strong>', '<strong>' + __( 'Install app', 'stubli' ) + '</strong>' ) ) + ( ' ' + __( 'It opens like an app, without the browser around it.', 'stubli' ) + '</p></section>' ) ) +
+			( '<p class="a-help a-thanks">' + __( 'Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can', 'stubli' ) + ' <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">' + __( 'leave him a tip', 'stubli' ) + '</a>. ' + __( 'It unlocks nothing; it just keeps Stubli going.', 'stubli' ) + '</p>' ) +
 			'</main>' + bar( 'you' );
 		bindInvite(); bindFollow(); bindSummary( redrawSummary ); bindKeep(); bindPeople();
 		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( location.hash === '#more' ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
@@ -468,7 +475,7 @@
 			var inner = c.bio ? bioHtml : '<p class="a-pcard-q">' + esc( c.q ) + '</p><p class="a-pcard-a">' + esc( c.a ) + '</p>' + ( opts && opts.reply ? opts.reply( k - 1 ) : '' );
 			return '<div class="a-pcard' + ( c.bio ? ' a-pcard-bio' : '' ) + '" data-pos="' + ( pos > 2 ? 'hide' : pos ) + '"' + ( front ? '' : ' aria-hidden="true" inert' ) + '>' + inner + '</div>';
 		} ).join( '' );
-		var nav = n > 1 ? '<div class="a-stack-nav"><button type="button" class="a-stack-btn" data-stack-prev aria-label="Previous card">' + icon( 'back', 18 ) + '</button><span class="a-stack-dots" aria-hidden="true">' + deck.map( function ( _, k ) { return '<span' + ( k === i ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</span><button type="button" class="a-stack-btn" data-stack-next aria-label="Next card">' + icon( 'chev', 18 ) + '</button><span class="sr" aria-live="polite" data-stack-status></span></div>' : '';
+		var nav = n > 1 ? '<div class="a-stack-nav"><button type="button" class="a-stack-btn" data-stack-prev aria-label="' + esc( __( 'Previous card', 'stubli' ) ) + '">' + icon( 'back', 18 ) + '</button><span class="a-stack-dots" aria-hidden="true">' + deck.map( function ( _, k ) { return '<span' + ( k === i ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</span><button type="button" class="a-stack-btn" data-stack-next aria-label="' + esc( __( 'Next card', 'stubli' ) ) + '">' + icon( 'chev', 18 ) + '</button><span class="sr" aria-live="polite" data-stack-status></span></div>' : '';
 		return '<div class="a-stack' + ( n > 1 ? ' is-deck' : '' ) + '" data-stack>' + cards + '</div>' + nav;
 	}
 	function bindStack( get, set, redraw ) {
@@ -488,23 +495,23 @@
 	function youGrid() {
 		if ( ! mine.loaded ) { return '<div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div>'; }
 		var list = mine.items.filter( function ( i ) { return ! me.coll || i.coll === me.coll; } );
-		if ( ! list.length ) { return '<div class="a-empty-you">' + smile() + '<p>' + ( me.coll ? 'Nothing in ' + esc( me.coll ) + ' yet.' : 'Your page is waiting for its first photo.' ) + '</p><a class="a-btn quiet" href="#new">Post a photo</a></div>'; }
+		if ( ! list.length ) { return '<div class="a-empty-you">' + smile() + '<p>' + ( me.coll ? _f( __( 'Nothing in %s yet.', 'stubli' ), esc( me.coll ) ) : __( 'Your page is waiting for its first photo.', 'stubli' ) ) + ( '</p><a class="a-btn quiet" href="#new">' + __( 'Post a photo', 'stubli' ) + '</a></div>' ); }
 		var firstMissing = mine.items.filter( function ( i ) { return i.missing; } )[ 0 ];
-		return ( mine.missing && firstMissing && ! me.coll ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? 'One photo has' : mine.missing + ' photos have' ) + ' no description yet. A few words help people who use screen readers.</p><a class="a-btn quiet" href="#edit/' + firstMissing.id + '">Add descriptions</a></div>' : '' ) +
+		return ( mine.missing && firstMissing && ! me.coll ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), mine.missing ) ) + ( '</p><a class="a-btn quiet" href="#edit/' ) + firstMissing.id + ( '">' + __( 'Add descriptions', 'stubli' ) + '</a></div>' ) : '' ) +
 			'<div class="a-mine-grid">' + list.map( function ( i ) {
-				var label = ( i.title || ( i.video ? 'Video post' : 'Photo post' ) ) + ( i.count > 1 ? ', ' + i.count + ' photos' : '' ) + ( i.missing ? ', needs a description' : '' ) + ( i.friends ? ', friends only' : '' );
-				return '<a href="#edit/' + i.id + '" aria-label="Edit: ' + esc( label ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '' ) +
+				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.missing ? __( ', needs a description', 'stubli' ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
+				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '' ) +
 					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) +
-					( i.friends ? '<span class="a-mine-friends" aria-hidden="true">Friends</span>' : '' ) + '</a>';
+					( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
-			( mine.more && ! me.coll ? '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">Show more</button>' : '' );
+			( mine.more && ! me.coll ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' );
 	}
 	function smile() {
 		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
 	}
 	function viewYou() {
 		if ( ! me.p || ! mine.loaded ) {
-			root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="Settings and more">' + icon( 'menu', 22 ) + '</a></div><h1 class="sr">You</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">Loading…</p></main>' + bar( 'you' );
+			root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + ( '</a></div><h1 class="sr">' + __( 'You', 'stubli' ) + '</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' ) + bar( 'you' );
 			var todo = [];
 			if ( ! me.p && ! me.loading ) { todo.push( loadMe() ); }
 			if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; todo.push( loadMine( true ).then( function () { mine.loading = false; }, function () { mine.loading = false; mine.loaded = true; } ) ); }
@@ -515,22 +522,22 @@
 		var name = p ? ( p.name || host ) : '';
 		var bio = p ? ( '<div class="a-you-head">' + ( p.avatar ? '<img src="' + esc( p.avatar ) + '" alt="" width="52" height="52">' : '<span class="a-av a-ini" style="width:52px;height:52px">' + esc( initials( name ) ) + '</span>' ) +
 			'<span><strong>' + esc( unent( name ) ) + '</strong>' + ( p.pronouns ? ' <span class="muted">' + esc( p.pronouns ) + '</span>' : '' ) + '<small class="muted">' + esc( host ) + '</small></span></div>' +
-			( p.bio ? '<p class="a-you-bio">' + esc( unent( p.bio ) ) + '</p>' : '<p class="a-you-bio muted"><a href="#about">Add a line about you</a></p>' ) +
-			( p.prompts && p.prompts.length ? '' : '<a class="a-text-btn a-you-add" href="#about">Add cards about you</a>' ) ) : '';
+			( p.bio ? '<p class="a-you-bio">' + esc( unent( p.bio ) ) + '</p>' : ( '<p class="a-you-bio muted"><a href="#about">' + __( 'Add a line about you', 'stubli' ) + '</a></p>' ) ) +
+			( p.prompts && p.prompts.length ? '' : ( '<a class="a-text-btn a-you-add" href="#about">' + __( 'Add cards about you', 'stubli' ) + '</a>' ) ) ) : '';
 		var latest = mine.loaded && mine.items[ 0 ];
 		var colls = [];
 		mine.items.forEach( function ( i ) { if ( i.coll && colls.indexOf( i.coll ) < 0 ) { colls.push( i.coll ); } } );
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="Settings and more">' + icon( 'menu', 22 ) + '</a></div>' +
-			'<h1 class="sr">You</h1>' +
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a></div>' +
+			( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1>' ) +
 			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
-			'<div class="a-you-btns"><a class="a-btn quiet" href="#about">Edit page</a><button type="button" class="a-btn quiet" data-share>Share</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' + me.inviteOpen + '">Invite</button></div>' +
-			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + '><p class="muted" style="margin-top:0">Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>' +
-			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">Latest · ' + esc( gentle( latest.date ) ) + '</span><span class="a-latest-t">' + esc( latest.title || 'Photo post' ) + ( latest.coll ? ' <span class="muted">in ' + esc( latest.coll ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
-			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="Collections">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || 'All' ) + '</button>'; } ).join( '' ) + '</div>' +
-				'<a class="a-ctab a-ctab-icon" href="' + esc( B.journal ) + '" aria-label="Journal" title="Journal">' + icon( 'book', 18 ) + '</a>' +
+			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
+			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
+			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || __( 'Photo post', 'stubli' ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
+			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'Photos', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
+				'<a class="a-ctab a-ctab-icon" href="' + esc( B.journal ) + '" aria-label="' + esc( __( 'Journal', 'stubli' ) ) + '" title="' + esc( __( 'Journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				'<span class="a-ctabs-gap"></span>' +
-				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( p.guestbook ) + '" aria-label="Guest book" title="Guest book">' + icon( 'pen', 18 ) + '</a>' : '' ) +
-				'<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( B.home + 'links/' ) + '" aria-label="Links" title="Links">' + icon( 'mark', 18 ) + '</a></div>' +
+				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( p.guestbook ) + '" aria-label="' + esc( __( 'Guest book', 'stubli' ) ) + '" title="' + esc( __( 'Guest book', 'stubli' ) ) + '">' + icon( 'pen', 18 ) + '</a>' : '' ) +
+				'<a class="a-ctab a-ctab-icon a-ctab-green" href="' + esc( B.home + 'links/' ) + '" aria-label="' + esc( __( 'Links', 'stubli' ) ) + '" title="' + esc( __( 'Links', 'stubli' ) ) + '">' + icon( 'mark', 18 ) + '</a></div>' +
 			'<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>' +
 			'</main>' + bar( 'you' );
 		var redrawStack = function () { var w = $( '[data-you-stack]' ); if ( w ) { w.innerHTML = stackHtml( deckOf( me.p ), me.i, bio, null ); bindStack( function () { return me.i; }, function ( v ) { me.i = v; }, redrawStack ); } };
@@ -539,7 +546,7 @@
 		var it = $( '[data-invite-toggle]' ); if ( it ) { it.addEventListener( 'click', function () { me.inviteOpen = ! me.inviteOpen; var c = $( '[data-invite-card]' ); c.hidden = ! me.inviteOpen; it.setAttribute( 'aria-expanded', me.inviteOpen ); if ( me.inviteOpen ) { var bb = $( '[data-invite]' ); if ( bb ) { bb.focus(); } } } ); }
 		var sh = $( '[data-share]' ); if ( sh ) { sh.addEventListener( 'click', function () {
 			if ( navigator.share ) { navigator.share( { title: name, url: B.home } ).catch( function () {} ); return; }
-			var ok = function () { toast( 'Link to your page copied.' ); };
+			var ok = function () { toast( __( 'Link to your page copied.', 'stubli' ) ); };
 			if ( navigator.clipboard ) { navigator.clipboard.writeText( B.home ).then( ok, function () { toast( B.home ); } ); } else { toast( B.home ); }
 		} ); }
 		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); } ); } );
@@ -547,7 +554,7 @@
 	}
 	function bindYouGrid() {
 		var m = $( '[data-mine-more]' );
-		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = 'Loading…'; mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
+		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = __( 'Loading…', 'stubli' ); mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
 	}
 
 	/* ── Edit page: your line and your prompt cards ── */
@@ -555,12 +562,12 @@
 	function viewAbout() {
 		if ( ! ab ) {
 			ab = { loaded: false, cards: [], choices: [], max: 3, maxA: 150, bio: '', picking: null, own: '', busy: false, error: '' };
-			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div></main>';
+			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div></main>' );
 			Promise.all( [ send( 'GET', 'prompts', null ), me.p ? Promise.resolve( me.p ) : send( 'GET', 'profile', null ), send( 'GET', 'setup', null ) ] ).then( function ( r ) {
 				ab.cards = ( r[ 0 ].prompts || [] ).slice(); ab.choices = r[ 0 ].choices || []; ab.max = r[ 0 ].max || 3; ab.maxA = r[ 0 ].max_answer || 150;
 				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.d = r[ 2 ]; ab.name = String( r[ 2 ].name || '' ); ab.pronouns = String( r[ 2 ].pronouns || '' ); ab.loaded = true;
 				if ( location.hash === '#about' ) { renderAbout(); }
-			}, function ( e ) { ab = null; root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#you">Back</a></div></main>'; } );
+			}, function ( e ) { ab = null; root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' ) + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#you">' + __( 'Back', 'stubli' ) + '</a></div></main>' ); } );
 			return;
 		}
 		if ( ab.loaded ) { renderAbout(); }
@@ -568,24 +575,24 @@
 	function renderAbout() {
 		var used = ab.cards.map( function ( c ) { return c.q; } );
 		var picker = function ( slot ) {
-			return '<div class="a-picker" role="group" aria-label="Choose a prompt">' + ab.choices.filter( function ( q ) { return used.indexOf( q ) < 0; } ).map( function ( q ) { return '<button type="button" class="a-chip" data-pick-q="' + esc( q ) + '" data-slot="' + slot + '">' + esc( q ) + '</button>'; } ).join( '' ) +
-				'</div><div class="a-inline"><label class="sr" for="a-own-q">Your own prompt</label><input id="a-own-q" class="a-field" maxlength="80" placeholder="Or write your own…" value="' + esc( ab.own ) + '"><button type="button" class="a-btn quiet" data-own-q data-slot="' + slot + '">Use</button></div>' +
-				'<button type="button" class="a-text-btn" data-pick-cancel>Cancel</button>';
+			return '<div class="a-picker" role="group" aria-label="' + esc( __( 'Choose a prompt', 'stubli' ) ) + '">' + ab.choices.filter( function ( q ) { return used.indexOf( q ) < 0; } ).map( function ( q ) { return '<button type="button" class="a-chip" data-pick-q="' + esc( q ) + '" data-slot="' + slot + '">' + esc( q ) + '</button>'; } ).join( '' ) +
+				( '</div><div class="a-inline"><label class="sr" for="a-own-q">' + __( 'Your own prompt', 'stubli' ) + '</label><input id="a-own-q" class="a-field" maxlength="80" placeholder="' + esc( __( 'Or write your own…', 'stubli' ) ) + '" value="' ) + esc( ab.own ) + '"><button type="button" class="a-btn quiet" data-own-q data-slot="' + slot + ( '">' + __( 'Use', 'stubli' ) + '</button></div>' ) +
+				( '<button type="button" class="a-text-btn" data-pick-cancel>' + __( 'Cancel', 'stubli' ) + '</button>' );
 		};
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit page</h1><button type="button" class="a-btn" data-ab-save' + ( ab.busy ? ' disabled' : '' ) + '>' + ( ab.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
+		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><button type="button" class="a-btn" data-ab-save' ) + ( ab.busy ? ' disabled' : '' ) + '>' + ( ab.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' + ( ab.error ? '<div class="a-notice" role="alert"><p>' + esc( ab.error ) + '</p></div>' : '' ) +
-			( ab.d ? '<div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? 'Your photo' : 'Your smiley' ) + '">' : '' ) + '</label>' +
-				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? 'A face, a place, anything that feels like you.' : 'Or keep your smiley, and make it yours below.' ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
-			'<label class="a-label" for="a-ab-name">Your name</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' + esc( ab.name ) + '">' +
-			'<label class="a-label" for="a-ab-bio">One line about you</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
-			'<label class="a-label" for="a-ab-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-ab-pro" class="a-field" type="text" maxlength="30" value="' + esc( ab.pronouns ) + '" placeholder="she/her, they/them…">' +
-			'<h2 class="a-label">Cards about you</h2><p class="muted" style="margin:-4px 0 12px">Up to ' + ab.max + ' cards sit behind your bio on your page. Short answers work best, and people can reply to each one.</p>' +
+			( ab.d ? '<div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? __( 'Your photo', 'stubli' ) : __( 'Your smiley', 'stubli' ) ) + '">' : '' ) + '</label>' +
+				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? __( 'Change photo', 'stubli' ) : __( 'Add a photo', 'stubli' ) ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? __( 'A face, a place, anything that feels like you.', 'stubli' ) : __( 'Or keep your smiley, and make it yours below.', 'stubli' ) ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
+			( '<label class="a-label" for="a-ab-name">' + __( 'Your name', 'stubli' ) + '</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' ) + esc( ab.name ) + '">' +
+			( '<label class="a-label" for="a-ab-bio">' + __( 'One line about you', 'stubli' ) + '</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' ) + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
+			( '<label class="a-label" for="a-ab-pro">' + __( 'Pronouns', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-ab-pro" class="a-field" type="text" maxlength="30" value="' ) + esc( ab.pronouns ) + '" placeholder="' + esc( __( 'she/her, they/them…', 'stubli' ) ) + '">' +
+			( '<h2 class="a-label">' + __( 'Cards about you', 'stubli' ) + '</h2><p class="muted" style="margin:-4px 0 12px">' + _f( __( 'Up to %s cards sit behind your bio on your page. Short answers work best, and people can reply to each one.', 'stubli' ), ab.max ) ) + ( '' + '</p>' ) +
 			ab.cards.map( function ( c, k ) {
 				return '<div class="a-card a-pedit">' + ( ab.picking === k ? picker( k ) :
-					'<div class="a-row"><label class="a-label" style="margin:0" for="a-pa-' + k + '">' + esc( c.q ) + '</label><span><button type="button" class="a-text-btn" data-change="' + k + '">Change</button><button type="button" class="a-text-btn" data-remove="' + k + '" aria-label="Remove ' + esc( c.q ) + '">Remove</button></span></div>' +
+					'<div class="a-row"><label class="a-label" style="margin:0" for="a-pa-' + k + '">' + esc( c.q ) + '</label><span><button type="button" class="a-text-btn" data-change="' + k + ( '">' + __( 'Change', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-remove="' ) + k + '" aria-label="' + esc( _f( __( 'Remove %s', 'stubli' ), c.q ) ) + ( '">' + __( 'Remove', 'stubli' ) + '</button></span></div>' ) +
 					'<textarea id="a-pa-' + k + '" class="a-field a-grow a-pedit-a" rows="2" maxlength="' + ab.maxA + '" data-answer="' + k + '">' + esc( c.a ) + '</textarea><p class="a-count" data-answer-n="' + k + '">' + c.a.length + ' / ' + ab.maxA + '</p>' ) + '</div>';
 			} ).join( '' ) +
-			( ab.cards.length < ab.max ? ( ab.picking === 'new' ? '<div class="a-card a-pedit">' + picker( 'new' ) + '</div>' : '<button type="button" class="a-btn quiet wide" data-add-card>' + icon( 'plus', 18 ) + 'Add a card</button>' ) : '' ) +
+			( ab.cards.length < ab.max ? ( ab.picking === 'new' ? '<div class="a-card a-pedit">' + picker( 'new' ) + '</div>' : '<button type="button" class="a-btn quiet wide" data-add-card>' + icon( 'plus', 18 ) + ( __( 'Add a card', 'stubli' ) + '</button>' ) ) : '' ) +
 			'</main>';
 		var grow = function ( t ) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
 		$( '#a-ab-name' ).addEventListener( 'input', function ( e ) { ab.name = e.target.value; } );
@@ -595,10 +602,10 @@
 			var af = $( '#a-ab-file' );
 			af.addEventListener( 'change', function () {
 				var f = af.files && af.files[ 0 ], m = $( '[data-ab-photo-msg]' ); if ( ! f ) { return; }
-				m.textContent = 'Uploading…';
+				m.textContent = __( 'Uploading…', 'stubli' );
 				squareAvatar( f ).then( function ( blob ) { var fd = new FormData(); fd.append( 'photo', blob, 'profile.jpg' ); return send( 'POST', 'setup/photo', fd ); } )
-					.then( function ( r ) { ab.d.avatar = r.avatar; ab.d.photo = true; ab.d.smileyOpen = false; ab.d.photoMsg = 'Lovely. That\'s your photo now.'; me.p = null; renderAbout(); },
-						function ( e ) { m.textContent = ( e && e.message ) || 'That photo couldn\'t be read. Try another one.'; } );
+					.then( function ( r ) { ab.d.avatar = r.avatar; ab.d.photo = true; ab.d.smileyOpen = false; ab.d.photoMsg = __( 'Lovely. That\'s your photo now.', 'stubli' ); me.p = null; renderAbout(); },
+						function ( e ) { m.textContent = ( e && e.message ) || __( 'That photo couldn\'t be read. Try another one.', 'stubli' ); } );
 			} );
 		}
 		var bio = $( '#a-ab-bio' ); grow( bio );
@@ -618,11 +625,11 @@
 		$$( '[data-remove]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { ab.cards.splice( +b.dataset.remove, 1 ); renderAbout(); } ); } );
 		$( '[data-ab-save]' ).addEventListener( 'click', function () {
 			var empty = ab.cards.filter( function ( c ) { return ! c.a.trim(); } )[ 0 ];
-			if ( empty ) { ab.error = 'Write an answer for "' + empty.q + '", or remove that card.'; renderAbout(); return; }
-			if ( ! ab.name.trim() ) { ab.error = 'Add the name people should see.'; renderAbout(); $( '#a-ab-name' ).focus(); return; }
+			if ( empty ) { ab.error = _f( __( 'Write an answer for "%s", or remove that card.', 'stubli' ), empty.q ); renderAbout(); return; }
+			if ( ! ab.name.trim() ) { ab.error = __( 'Add the name people should see.', 'stubli' ); renderAbout(); $( '#a-ab-name' ).focus(); return; }
 			ab.busy = true; ab.error = ''; renderAbout();
 			Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim() } ) ] ).then( function ( r ) {
-				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( 'Your page is updated.' );
+				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( __( 'Your page is updated.', 'stubli' ) );
 			}, function ( e ) { ab.busy = false; ab.error = e.message; renderAbout(); } );
 		} );
 	}
@@ -634,30 +641,30 @@
 	}
 	function contactLink( c ) {
 		c = String( c || '' ).trim();
-		if ( /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test( c ) ) { return { href: 'mailto:' + c, label: 'Write back by email' }; }
-		if ( /^\+?[\d\s()\-]{7,}$/.test( c ) ) { return { href: 'tel:' + c.replace( /[^\d+]/g, '' ), label: 'Call or text' }; }
+		if ( /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test( c ) ) { return { href: 'mailto:' + c, label: __( 'Write back by email', 'stubli' ) }; }
+		if ( /^\+?[\d\s()\-]{7,}$/.test( c ) ) { return { href: 'tel:' + c.replace( /[^\d+]/g, '' ), label: __( 'Call or text', 'stubli' ) }; }
 		return null;
 	}
 	function noteCard( n, isRequest ) {
 		var d = nt.done[ n.id ];
 		if ( d ) { return '<div class="a-card a-note is-done" data-note-card="' + n.id + '"><p role="status" style="margin:0">' + esc( d ) + '</p></div>'; }
-		var who = n.kind === 'guest' ? 'no Stubli' : hostOf( n.site ), c = n.kind === 'guest' ? contactLink( n.contact ) : null;
+		var who = n.kind === 'guest' ? __( 'no Stubli', 'stubli' ) : hostOf( n.site ), c = n.kind === 'guest' ? contactLink( n.contact ) : null;
 		return '<div class="a-card a-note" data-note-card="' + n.id + '"><div class="a-wait-head">' + face( n.avatar, n.name, 36 ) +
-			'<span><strong>' + esc( unent( n.name ) ) + '</strong> <span class="muted">' + esc( who ) + ( isRequest ? ' · Request' : '' ) + ' · ' + esc( gentle( n.date ) ) + '</span></span></div>' +
-			( n.prompt ? '<p class="muted small a-note-re">Replying to “' + esc( n.prompt.q ) + '”</p>' : '' ) +
+			'<span><strong>' + esc( unent( n.name ) ) + '</strong> <span class="muted">' + esc( who ) + ( isRequest ? ( ' ' + __( '· Request', 'stubli' ) ) : '' ) + ' · ' + esc( gentle( n.date ) ) + '</span></span></div>' +
+			( n.prompt ? '<p class="muted small a-note-re">' + _f( __( 'Replying to “%s”', 'stubli' ), esc( n.prompt.q ) ) + '</p>' : '' ) +
 			'<p class="a-note-text">' + esc( n.text ) + '</p>' +
-			( n.kind === 'guest' ? '<p class="a-note-contact">Reach ' + esc( unent( n.name ) ) + ' at <strong>' + esc( n.contact ) + '</strong></p>' : '' ) +
+			( n.kind === 'guest' ? '<p class="a-note-contact">' + _f( __( 'Reach %s at %s', 'stubli' ), esc( unent( n.name ) ), '<strong>' + esc( n.contact ) + '</strong>' ) + '</p>' : '' ) +
 			'<div class="a-wait-acts">' +
-			( isRequest ? '<button type="button" class="a-btn" data-note="accept" data-id="' + n.id + '">' + ( n.kind === 'guest' ? 'Keep' : 'Accept' ) + '</button>' : '' ) +
-			( ! isRequest && n.kind !== 'guest' ? '<a class="a-btn" href="#note/' + n.id + '">' + ( n.replied ? 'Reply again' : 'Reply' ) + '</a>' : '' ) +
+			( isRequest ? '<button type="button" class="a-btn" data-note="accept" data-id="' + n.id + '">' + ( n.kind === 'guest' ? __( 'Keep', 'stubli' ) : __( 'Accept', 'stubli' ) ) + '</button>' : '' ) +
+			( ! isRequest && n.kind !== 'guest' ? '<a class="a-btn" href="#note/' + n.id + '">' + ( n.replied ? __( 'Reply again', 'stubli' ) : __( 'Reply', 'stubli' ) ) + '</a>' : '' ) +
 			( ! isRequest && c ? '<a class="a-btn" href="' + esc( c.href ) + '">' + esc( c.label ) + '</a>' : '' ) +
-			'<button type="button" class="a-btn quiet" data-note="delete" data-id="' + n.id + '">Delete</button>' +
-			'<button type="button" class="a-text-btn a-block" data-note="block" data-id="' + n.id + '">Block</button></div></div>';
+			'<button type="button" class="a-btn quiet" data-note="delete" data-id="' + n.id + ( '">' + __( 'Delete', 'stubli' ) + '</button>' ) +
+			'<button type="button" class="a-text-btn a-block" data-note="block" data-id="' + n.id + ( '">' + __( 'Block', 'stubli' ) + '</button></div></div>' );
 	}
 	function notesSection() {
 		if ( ! nt.loaded || ( ! nt.inbox.length && ! nt.requests.length ) ) { return ''; }
 		var open = nt.requests.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length + nt.inbox.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length;
-		return '<h2 class="a-label">Notes' + ( open ? ' · ' + open : '' ) + '</h2>' + nt.requests.map( function ( n ) { return noteCard( n, true ); } ).join( '' ) + nt.inbox.slice( 0, 20 ).map( function ( n ) { return noteCard( n, false ); } ).join( '' );
+		return ( '<h2 class="a-label">' + __( 'Notes', 'stubli' ) ) + ( open ? ' · ' + open : '' ) + '</h2>' + nt.requests.map( function ( n ) { return noteCard( n, true ); } ).join( '' ) + nt.inbox.slice( 0, 20 ).map( function ( n ) { return noteCard( n, false ); } ).join( '' );
 	}
 	function bindNotes( redraw ) {
 		$$( '[data-note]' ).forEach( function ( b ) {
@@ -667,7 +674,7 @@
 				send( 'POST', 'notes/' + id, { action: act } ).then( function () {
 					var n = nt.requests.concat( nt.inbox ).filter( function ( x ) { return x.id === id; } )[ 0 ];
 					if ( act === 'accept' && n ) { nt.requests = nt.requests.filter( function ( x ) { return x.id !== id; } ); nt.inbox.unshift( n ); }
-					else { nt.done[ id ] = act === 'block' ? 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.' : 'Deleted.'; }
+					else { nt.done[ id ] = act === 'block' ? __( 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.', 'stubli' ) : __( 'Deleted.', 'stubli' ); }
 					B.requests = nt.requests.filter( function ( x ) { return ! nt.done[ x.id ]; } ).length;
 					redraw();
 				}, function ( e ) { $$( '[data-note][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); toast( e.message ); } );
@@ -678,21 +685,21 @@
 	function viewNote( id ) {
 		var n = nt.inbox.filter( function ( x ) { return x.id === id; } )[ 0 ];
 		if ( ! n ) {
-			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#whatsnew">Close</a><h1>Reply</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span></div></main>';
+			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#whatsnew">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Reply', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span></div></main>' );
 			loadNotes().then( function () { if ( nt.inbox.some( function ( x ) { return x.id === id; } ) ) { viewNote( id ); } else { location.replace( '#whatsnew' ); } } );
 			return;
 		}
 		if ( ! nc || nc.id !== id ) { nc = { id: id, text: '', busy: false, error: '' }; }
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#whatsnew">Close</a><h1>Reply to ' + esc( unent( n.name ) ) + '</h1><button type="button" class="a-btn" data-nc-send' + ( nc.busy || ! nc.text.trim() ? ' disabled' : '' ) + '>' + ( nc.busy ? 'Sending…' : 'Send' ) + '</button></header>' +
+		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#whatsnew">' + __( 'Close', 'stubli' ) + '</a><h1>' + _f( __( 'Reply to %s', 'stubli' ), esc( unent( n.name ) ) ) ) + '</h1><button type="button" class="a-btn" data-nc-send' + ( nc.busy || ! nc.text.trim() ? ' disabled' : '' ) + '>' + ( nc.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main"><div class="a-card a-note"><p class="muted small" style="margin:0 0 4px">' + esc( unent( n.name ) ) + ' wrote</p><p class="a-note-text" style="margin:0">' + esc( n.text ) + '</p></div>' +
 			( nc.error ? '<div class="a-notice" role="alert"><p>' + esc( nc.error ) + '</p></div>' : '' ) +
-			'<label class="a-label" for="a-nc">Your note</label><textarea id="a-nc" class="a-textarea" maxlength="1000">' + esc( nc.text ) + '</textarea>' +
-			'<p class="a-help">Private: only ' + esc( unent( n.name ) ) + ' sees it, in their own Stubli.</p></main>';
+			( '<label class="a-label" for="a-nc">' + __( 'Your note', 'stubli' ) + '</label><textarea id="a-nc" class="a-textarea" maxlength="1000">' ) + esc( nc.text ) + '</textarea>' +
+			( '<p class="a-help">' + _f( __( 'Private: only %s sees it, in their own Stubli.', 'stubli' ), esc( unent( n.name ) ) ) ) + ( '' + '</p></main>' );
 		var t = $( '#a-nc' ), b = $( '[data-nc-send]' );
 		t.addEventListener( 'input', function () { nc.text = t.value; b.disabled = ! nc.text.trim() || nc.busy; } );
 		b.addEventListener( 'click', function () {
-			nc.busy = true; nc.error = ''; b.disabled = true; b.textContent = 'Sending…';
-			send( 'POST', 'notes/send', { to: n.site, text: nc.text, reply: n.id } ).then( function () { n.replied = true; nc = null; location.hash = '#whatsnew'; toast( 'Sent. Only ' + unent( n.name ) + ' sees it.' ); }, function ( e ) { nc.busy = false; nc.error = e.message; viewNote( id ); } );
+			nc.busy = true; nc.error = ''; b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
+			send( 'POST', 'notes/send', { to: n.site, text: nc.text, reply: n.id } ).then( function () { n.replied = true; nc = null; location.hash = '#whatsnew'; toast( _f( __( 'Sent. Only %s sees it.', 'stubli' ), unent( n.name ) ) ); }, function ( e ) { nc.busy = false; nc.error = e.message; viewNote( id ); } );
 		} );
 		t.focus();
 	}
@@ -701,14 +708,14 @@
 	var pp = { loaded: false, loading: false, list: [], open: false, msg: '' };
 	function peopleCard() {
 		var list = pp.list || [], shown = pp.open ? list : list.slice( 0, 6 );
-		return '<section class="a-card" data-people><h2>Your people' + helpLink( 'friends-and-privacy/friends-only', 'friends only posts' ) + '</h2>' +
-			( list.length ? '<p class="muted">Tick your friends. They see your posts marked "Friends", in their own Stubli; nobody else does.</p><ul class="a-people">' + shown.map( function ( f ) {
+		return ( '<section class="a-card" data-people><h2>' + __( 'Your people', 'stubli' ) ) + helpLink( 'friends-and-privacy/friends-only', __( 'friends only posts', 'stubli' ) ) + '</h2>' +
+			( list.length ? ( '<p class="muted">' + __( 'Tick your friends. They see your posts marked "Friends only", in their own Stubli; nobody else does.', 'stubli' ) + '</p><ul class="a-people">' ) + shown.map( function ( f ) {
 				var host = hostOf( f.site_url ), name = f.name || host;
 				return '<li><span class="a-people-who"><strong>' + esc( name ) + '</strong><small class="muted">' + esc( host ) + ( f.list_name ? ' · ' + esc( f.list_name ) : '' ) + '</small></span>' +
-					'<label class="a-friend"><input type="checkbox" data-friend="' + f.id + '"' + ( f.friend ? ' checked' : '' ) + '><span>Friend</span><span class="sr"> – ' + esc( name ) + '</span></label></li>';
-			} ).join( '' ) + '</ul>' + ( list.length > 6 && ! pp.open ? '<button type="button" class="a-btn quiet wide" data-people-all>Show all ' + list.length + '</button>' : '' ) : ( pp.loaded ? '<p class="muted">You don\'t follow anyone yet.</p>' : '' ) ) +
+					'<label class="a-friend"><input type="checkbox" data-friend="' + f.id + '"' + ( f.friend ? ' checked' : '' ) + ( '><span>' + __( 'Friend', 'stubli' ) + '</span><span class="sr"> – ' ) + esc( name ) + '</span></label></li>';
+			} ).join( '' ) + '</ul>' + ( list.length > 6 && ! pp.open ? '<button type="button" class="a-btn quiet wide" data-people-all>' + _f( __( 'Show all %s', 'stubli' ), list.length ) + '</button>' : '' ) : ( pp.loaded ? ( '<p class="muted">' + __( 'You don\'t follow anyone yet.', 'stubli' ) + '</p>' ) : '' ) ) +
 			( pp.msg ? '<p class="a-help" role="status">' + esc( pp.msg ) + '</p>' : '' ) +
-			'<p class="a-label">Follow someone</p><p class="muted" style="margin:0 0 8px">Know someone with a Stubli? Type their address.</p>' + followForm( 'you' ) + '</section>';
+			( '<p class="a-label">' + __( 'Follow someone', 'stubli' ) + '</p><p class="muted" style="margin:0 0 8px">' + __( 'Know someone with a Stubli? Type their address.', 'stubli' ) + '</p>' ) + followForm( 'you' ) + '</section>';
 	}
 	function redrawPeople() { swap( '[data-people]', peopleCard(), function () { bindPeople(); bindFollow(); } ); }
 	function bindPeople() {
@@ -721,7 +728,7 @@
 					if ( f ) { f.friend = r.friend; }
 					B.friends = pp.list.filter( function ( x ) { return x.friend; } ).length;
 					var name = f && ( f.name || hostOf( f.site_url ) );
-					pp.msg = on ? ( r.sent ? name + ' is a friend now.' : name + ' is a friend now. Their Stubli couldn\'t be reached just now, so they\'ll see your friends posts once it can (we keep trying for a week).' ) : name + ' is no longer a friend. Your friends posts leave their feed at its next check.';
+					pp.msg = on ? ( r.sent ? _f( __( '%s is a friend now.', 'stubli' ), name ) : _f( __( '%s is a friend now. Their Stubli couldn\'t be reached just now, so they\'ll see your friends posts once it can (we keep trying for a week).', 'stubli' ), name ) ) : _f( __( '%s is no longer a friend. Your friends posts leave their feed at its next check.', 'stubli' ), name );
 					redrawPeople();
 				}, function ( e ) { cb.checked = ! on; cb.disabled = false; pp.msg = e.message; redrawPeople(); } );
 			} );
@@ -733,13 +740,13 @@
 	function keepCard() {
 		var a = kp.ar || { state: 'none' }, body;
 		if ( a.state === 'packing' ) {
-			body = '<p class="a-ds-status" role="status">Packing your archive… ' + ( a.total ? ( a.done + ' of ' + a.total + ' photos and videos' ) : '' ) + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( a.total ? Math.round( 100 * a.done / a.total ) : 5 ) + '%"></span></div><p class="a-help">You can leave this screen open; it carries on by itself.</p>';
+			body = '<p class="a-ds-status" role="status">' + __( 'Packing your archive…', 'stubli' ) + ' ' + ( a.total ? _f( __( '%s of %s photos and videos', 'stubli' ), a.done, a.total ) : '' ) + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( a.total ? Math.round( 100 * a.done / a.total ) : 5 ) + ( '%"></span></div><p class="a-help">' + __( 'You can leave this screen open; it carries on by itself.', 'stubli' ) + '</p>' );
 		} else if ( a.state === 'ready' ) {
-			body = '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + 'Your archive is ready (' + esc( a.size ) + ')</p><div class="a-actions"><a class="a-btn" href="' + esc( a.download ) + '">Download</a><button type="button" class="a-btn quiet" data-keep-new>Make a new one</button></div><p class="a-help">Kept on your site until ' + esc( a.expires ) + ', then removed.</p>';
+			body = '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + _f( __( 'Your archive is ready (%s)', 'stubli' ), esc( a.size ) ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( a.download ) + ( '">' + __( 'Download', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-keep-new>' + __( 'Make a new one', 'stubli' ) + '</button></div><p class="a-help">' + _f( __( 'Kept on your site until %s, then removed.', 'stubli' ), esc( a.expires ) ) ) + '</p>';
 		} else {
-			body = '<button type="button" class="a-btn quiet" data-keep-start' + ( kp.busy || a.supported === false ? ' disabled' : '' ) + '>' + ( kp.busy ? 'Starting…' : 'Download everything' ) + '</button>' + ( a.supported === false ? '<p class="a-help">This host can\'t make zip files. Ask your host to turn on PHP\'s Zip extension.</p>' : '' );
+			body = '<button type="button" class="a-btn quiet" data-keep-start' + ( kp.busy || a.supported === false ? ' disabled' : '' ) + '>' + ( kp.busy ? __( 'Starting…', 'stubli' ) : __( 'Download everything', 'stubli' ) ) + '</button>' + ( a.supported === false ? ( '<p class="a-help">' + __( 'This host can\'t make zip files. Ask your host to turn on PHP\'s Zip extension.', 'stubli' ) + '</p>' ) : '' );
 		}
-		return '<section class="a-card" data-keep><h2>Yours to keep' + helpLink( 'moving-and-leaving/download', 'downloading everything' ) + '</h2><p class="muted">One zip with your original photos and videos, captions, journal, comments, guest book and the people you follow. It opens offline in any browser.</p>' + body +
+		return ( '<section class="a-card" data-keep><h2>' + __( 'Yours to keep', 'stubli' ) ) + helpLink( 'moving-and-leaving/download', __( 'downloading everything', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'One zip with your original photos and videos, captions, journal, comments, guest book and the people you follow. It opens offline in any browser.', 'stubli' ) + '</p>' ) + body +
 			( kp.msg ? '<div class="a-notice" role="alert"><p>' + esc( kp.msg ) + '</p></div>' : '' ) + '</section>' + moveCard();
 	}
 	/* Move: out (this site is the old one) and in (this site is the new one). */
@@ -747,26 +754,26 @@
 	function moveProgress( st ) {
 		if ( ! st || st.state === 'none' ) { return ''; }
 		if ( st.state === 'moving' ) {
-			return '<p class="a-ds-status" role="status">Copying from ' + esc( hostOf( st.from ) ) + '… ' + st.done + ' of ' + st.total + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( st.total ? Math.round( 100 * st.done / st.total ) : 5 ) + '%"></span></div><p class="a-help">Photos and videos arrive at full size, so this can take a while. Keep this screen open.</p>';
+			return '<p class="a-ds-status" role="status">' + _f( __( 'Copying from %s… %s of %s', 'stubli' ), esc( hostOf( st.from ) ), st.done, st.total ) + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( st.total ? Math.round( 100 * st.done / st.total ) : 5 ) + ( '%"></span></div><p class="a-help">' + __( 'Photos and videos arrive at full size, so this can take a while. Keep this screen open.', 'stubli' ) + '</p>' );
 		}
-		return '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + 'Everything from ' + esc( hostOf( st.from ) ) + ' is here' + ( st.skipped ? ' (' + st.skipped + ' item' + ( st.skipped > 1 ? 's' : '' ) + ' couldn\'t be copied)' : '' ) + '.</p><p class="a-help">' + ( st.told ? 'Your old site now points here, and the people who follow you switch to this address within a few hours.' : 'Your old site couldn\'t be told about the move. Your followers can follow you here by your new address.' ) + '</p>';
+		return '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + ( st.skipped ? ( st.skipped > 1 ? _f( __( 'Everything from %s is here (%s items couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ), st.skipped ) : _f( __( 'Everything from %s is here (one item couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ) ) ) : _f( __( 'Everything from %s is here.', 'stubli' ), esc( hostOf( st.from ) ) ) ) + '</p><p class="a-help">' + ( st.told ? __( 'Your old site now points here, and the people who follow you switch to this address within a few hours.', 'stubli' ) : __( 'Your old site couldn\'t be told about the move. Your followers can follow you here by your new address.', 'stubli' ) ) + '</p>';
 	}
 	function moveCard() {
 		var o = mv.out || {}, out;
 		if ( o.moved_to ) {
-			out = '<p class="a-ds-status">' + icon( 'check', 16 ) + 'This Stubli has moved to ' + esc( hostOf( o.moved_to ) ) + '.</p><p class="a-help">Your followers switch to the new address by themselves. You can keep this site as it is, or close it once they have.</p>';
+			out = '<p class="a-ds-status">' + icon( 'check', 16 ) + _f( __( 'This Stubli has moved to %s.', 'stubli' ), esc( hostOf( o.moved_to ) ) ) + ( '</p><p class="a-help">' + __( 'Your followers switch to the new address by themselves. You can keep this site as it is, or close it once they have.', 'stubli' ) + '</p>' );
 		} else if ( mv.link ) {
-			out = '<label class="a-label" for="a-mv-link">Your move link</label><div class="a-inline" style="margin-top:0"><input id="a-mv-link" class="a-field" type="text" readonly value="' + esc( mv.link ) + '"><button type="button" class="a-btn quiet" data-mv-copy>' + ( mv.copied ? 'Copied' : 'Copy' ) + '</button></div>' +
-				'<p class="a-help">Paste it into your new Stubli, in its setup or under You. It works until ' + esc( mv.expires ) + '. Keep it private: it lets the new site copy everything, including entries only you can see.</p><button type="button" class="a-btn quiet" data-mv-stop>Stop this link</button>';
+			out = ( '<label class="a-label" for="a-mv-link">' + __( 'Your move link', 'stubli' ) + '</label><div class="a-inline" style="margin-top:0"><input id="a-mv-link" class="a-field" type="text" readonly value="' ) + esc( mv.link ) + '"><button type="button" class="a-btn quiet" data-mv-copy>' + ( mv.copied ? __( 'Copied', 'stubli' ) : __( 'Copy', 'stubli' ) ) + '</button></div>' +
+				'<p class="a-help">' + _f( __( 'Paste it into your new Stubli, in its setup or under You. It works until %s. Keep it private: it lets the new site copy everything, including entries only you can see.', 'stubli' ), esc( mv.expires ) ) + ( '</p><button type="button" class="a-btn quiet" data-mv-stop>' + __( 'Stop this link', 'stubli' ) + '</button>' );
 		} else {
-			out = '<p class="muted">Moving to a new WordPress, for example your own server? Make a move link here and paste it into your new Stubli. It copies everything, and your followers come along.</p><button type="button" class="a-btn quiet" data-mv-make' + ( mv.busy ? ' disabled' : '' ) + '>Make a move link</button>' + ( o.has_link ? '<p class="a-help">A move link is already active. Making a new one stops the old one.</p>' : '' );
+			out = ( '<p class="muted">' + __( 'Moving to a new WordPress, for example your own server? Make a move link here and paste it into your new Stubli. It copies everything, and your followers come along.', 'stubli' ) + '</p><button type="button" class="a-btn quiet" data-mv-make' ) + ( mv.busy ? ' disabled' : '' ) + ( '>' + __( 'Make a move link', 'stubli' ) + '</button>' ) + ( o.has_link ? ( '<p class="a-help">' + __( 'A move link is already active. Making a new one stops the old one.', 'stubli' ) + '</p>' ) : '' );
 		}
 		var st = mv.inState, inn = moveProgress( st );
 		if ( ! inn ) {
-			inn = '<form class="a-inline" data-mv-in style="margin-top:0"><label class="sr" for="a-mv-in">Move link from your old Stubli</label><input id="a-mv-in" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="oldsite.com/?stubli_move=…"><button type="submit" class="a-btn quiet"' + ( mv.busy ? ' disabled' : '' ) + '>Start</button></form>';
+			inn = ( '<form class="a-inline" data-mv-in style="margin-top:0"><label class="sr" for="a-mv-in">' + __( 'Move link from your old Stubli', 'stubli' ) + '</label><input id="a-mv-in" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="' + esc( __( 'oldsite.com/?stubli_move=…', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet"' ) + ( mv.busy ? ' disabled' : '' ) + ( '>' + __( 'Start', 'stubli' ) + '</button></form>' );
 		}
-		return '<section class="a-card" data-move><h2>Move to another site' + helpLink( 'moving-and-leaving/move', 'moving to another site' ) + '</h2>' + out +
-			'<p class="a-label" style="margin-top:18px">Moving here from another Stubli?</p>' + inn +
+		return ( '<section class="a-card" data-move><h2>' + __( 'Move to another site', 'stubli' ) ) + helpLink( 'moving-and-leaving/move', __( 'moving to another site', 'stubli' ) ) + '</h2>' + out +
+			( '<p class="a-label" style="margin-top:18px">' + __( 'Moving here from another Stubli?', 'stubli' ) + '</p>' ) + inn +
 			( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) + '</section>';
 	}
 	function redrawMove() { swap( '[data-move]', moveCard(), bindMove ); }
@@ -778,7 +785,7 @@
 				mv.inState = r; onUpdate();
 				if ( r.state === 'moving' ) { return go(); }
 				mv.running = false; feed.loaded = false; mine.loaded = false;
-			}, function ( e ) { mv.running = false; mv.msg = e.message + ' Tap Start again to carry on where it stopped.'; mv.inState = null; onUpdate(); } );
+			}, function ( e ) { mv.running = false; mv.msg = e.message + ( ' ' + __( 'Tap Start again to carry on where it stopped.', 'stubli' ) ); mv.inState = null; onUpdate(); } );
 		};
 		go();
 	}
@@ -828,26 +835,26 @@
 		}, function () { mine.loaded = true; } );
 	}
 	function mineSection() {
-		if ( ! mine.loaded ) { return '<section class="a-card" data-mine><h2>Your posts</h2><div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div></section>'; }
+		if ( ! mine.loaded ) { return ( '<section class="a-card" data-mine><h2>' + __( 'Your posts', 'stubli' ) + '</h2><div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div></section>' ); }
 		if ( ! mine.items.length ) { return '<div data-mine hidden></div>'; }
 		var firstMissing = mine.items.filter( function ( i ) { return i.missing; } )[ 0 ];
-		return '<section class="a-card" data-mine><h2>Your posts</h2><p class="muted">Tap a photo to change its caption, collection or descriptions, or to delete it.</p>' +
-			( mine.missing && firstMissing ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? 'One photo has' : mine.missing + ' photos have' ) + ' no description yet. A few words help people who use screen readers.</p><a class="a-btn quiet" href="#edit/' + firstMissing.id + '">Add descriptions</a></div>' : '' ) +
+		return ( '<section class="a-card" data-mine><h2>' + __( 'Your posts', 'stubli' ) + '</h2><p class="muted">' + __( 'Tap a photo to change its caption, collection or descriptions, or to delete it.', 'stubli' ) + '</p>' ) +
+			( mine.missing && firstMissing ? '<div class="a-notice calm"><p>' + ( mine.missing === 1 ? __( 'One photo has no description yet. A few words help people who use screen readers.', 'stubli' ) : _f( __( '%s photos have no description yet. A few words help people who use screen readers.', 'stubli' ), mine.missing ) ) + ( '</p><a class="a-btn quiet" href="#edit/' ) + firstMissing.id + ( '">' + __( 'Add descriptions', 'stubli' ) + '</a></div>' ) : '' ) +
 			'<div class="a-mine-grid">' + mine.items.map( function ( i ) {
-				var label = ( i.title || ( i.video ? 'Video post' : 'Photo post' ) ) + ( i.video && i.count === 1 ? ', video' : '' ) + ( i.count > 1 ? ', ' + i.count + ' photos' : '' ) + ( i.missing ? ', needs a description' : '' ) + ( i.friends ? ', friends only' : '' );
-				return '<a href="#edit/' + i.id + '" aria-label="Edit: ' + esc( label ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy"' + ( i.note ? ' class="is-noted"' : '' ) + '>' : '' ) +
-					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.missing ? '<span class="a-mine-dot" aria-hidden="true"></span>' : '' ) + ( i.friends ? '<span class="a-mine-friends" aria-hidden="true">Friends</span>' : '' ) + '</a>';
+				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.video && i.count === 1 ? __( ', video', 'stubli' ) : '' ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.missing ? __( ', needs a description', 'stubli' ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
+				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy"' + ( i.note ? ' class="is-noted"' : '' ) + '>' : '' ) +
+					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.missing ? '<span class="a-mine-dot" aria-hidden="true"></span>' : '' ) + ( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
-			( mine.more ? '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">Show more</button>' : '' ) + '</section>';
+			( mine.more ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' ) + '</section>';
 	}
 	function bindMine() {
 		var m = $( '[data-mine-more]' );
-		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = 'Loading…'; mine.page++; loadMine( false ).then( function () { swap( '[data-mine]', mineSection(), bindMine ); } ); } ); }
+		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = __( 'Loading…', 'stubli' ); mine.page++; loadMine( false ).then( function () { swap( '[data-mine]', mineSection(), bindMine ); } ); } ); }
 	}
 	function toast( text, undo ) {
 		var old = document.querySelector( '.a-toast' ); if ( old ) { old.remove(); }
 		var t = document.createElement( 'div' ); t.className = 'a-toast'; t.setAttribute( 'role', 'status' );
-		t.innerHTML = '<span>' + esc( text ) + '</span>' + ( undo ? '<button type="button" class="a-text-btn">Undo</button>' : '' );
+		t.innerHTML = '<span>' + esc( text ) + '</span>' + ( undo ? ( '<button type="button" class="a-text-btn">' + __( 'Undo', 'stubli' ) + '</button>' ) : '' );
 		document.body.appendChild( t );
 		if ( undo ) { t.querySelector( 'button' ).addEventListener( 'click', function () { t.remove(); undo(); } ); }
 		setTimeout( function () { if ( t.isConnected ) { t.remove(); } }, undo ? 10000 : 4000 );
@@ -857,48 +864,48 @@
 	function viewEdit( id ) {
 		if ( ed && ed.id === id && ed.d ) { return renderEdit(); }
 		ed = { id: id, d: null, busy: false, error: '', sure: false, newCol: '', adding: false };
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit post</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div><p class="sr" role="status">Loading…</p></main>';
+		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' );
 		send( 'GET', 'mine/' + id, null ).then( function ( d ) {
 			if ( ! ed || ed.id !== id ) { return; }
 			ed.d = d; ed.noteOn = !! d.note; renderEdit();
 		}, function ( e ) {
-			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit post</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#you">Back to your posts</a></div></main>';
+			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' ) + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#you">' + __( 'Back to your posts', 'stubli' ) + '</a></div></main>' );
 		} );
 	}
 	/* Who can see a post: Everyone or Friends (design Q44). */
 	function audienceChips( on, attr ) {
 		var friends = on === 'friends';
-		return '<h2 class="a-label" id="a-aud-' + attr + '">Who can see it' + helpLink( 'friends-and-privacy/friends-only', 'who can see a post' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-aud-' + attr + '">' +
-			'<button type="button" class="a-chip" role="radio" aria-checked="' + ! friends + '" data-' + attr + '="everyone">' + ( ! friends ? icon( 'check', 16 ) : '' ) + 'Everyone</button>' +
-			'<button type="button" class="a-chip" role="radio" aria-checked="' + friends + '" data-' + attr + '="friends">' + ( friends ? icon( 'check', 16 ) : '' ) + 'Friends</button></div>' +
-			'<p class="a-help">' + ( friends ? ( B.friends ? 'Only the ' + ( B.friends === 1 ? 'friend' : B.friends + ' friends' ) + ' you chose see it, in their own Stubli. It isn\'t on your public page.' : 'You haven\'t chosen any friends yet. Tick them under You → Your people; until then, nobody else sees this post.' ) : 'On your page and in your followers\' feeds.' ) + '</p>';
+		return '<h2 class="a-label" id="a-aud-' + attr + ( '">' + __( 'Who can see it', 'stubli' ) ) + helpLink( 'friends-and-privacy/friends-only', __( 'who can see a post', 'stubli' ) ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-aud-' + attr + '">' +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + ! friends + '" data-' + attr + '="everyone">' + ( ! friends ? icon( 'check', 16 ) : '' ) + ( __( 'Everyone', 'stubli' ) + '</button>' ) +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + friends + '" data-' + attr + '="friends">' + ( friends ? icon( 'check', 16 ) : '' ) + ( __( 'Friends only', 'stubli' ) + '</button></div>' ) +
+			'<p class="a-help">' + ( friends ? ( B.friends ? ( B.friends === 1 ? __( 'Only the friend you chose sees it, in their own Stubli. It isn\'t on your public page.', 'stubli' ) : _f( __( 'Only the %s friends you chose see it, in their own Stubli. It isn\'t on your public page.', 'stubli' ), B.friends ) ) : __( 'You haven\'t chosen any friends yet. Tick them under You → Settings and more → Your people; until then, nobody else sees this post.', 'stubli' ) ) : __( 'On your page and in your followers\' feeds.', 'stubli' ) ) + '</p>';
 	}
 	function renderEdit() {
 		var d = ed.d, cols = ( B.collections || [] ).slice();
 		if ( d.collection && cols.indexOf( d.collection ) < 0 ) { cols.push( d.collection ); }
 		var missing = d.photos.filter( function ( p ) { return ! p.alt.trim(); } ).length;
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">Close</a><h1>Edit post</h1><button type="button" class="a-btn" data-ed-save' + ( ed.busy ? ' disabled' : '' ) + '>' + ( ed.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
+		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><button type="button" class="a-btn" data-ed-save' ) + ( ed.busy ? ' disabled' : '' ) + '>' + ( ed.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' +
-			'<h2 class="a-label" id="a-ed-desc">Descriptions</h2>' + ( missing ? '<p class="a-help" style="margin:-4px 0 10px">' + ( missing === 1 ? 'One photo needs' : missing + ' photos need' ) + ' a few words: what\'s in it, for people who can\'t see it.</p>' : '' ) +
+			( '<h2 class="a-label" id="a-ed-desc">' + __( 'Descriptions', 'stubli' ) + '</h2>' ) + ( missing ? '<p class="a-help" style="margin:-4px 0 10px">' + ( missing === 1 ? __( 'One photo needs a few words: what\'s in it, for people who can\'t see it.', 'stubli' ) : _f( __( '%s photos need a few words: what\'s in it, for people who can\'t see it.', 'stubli' ), missing ) ) + '</p>' : '' ) +
 			d.photos.map( function ( ph, i ) {
-				return '<div class="a-alt"><img src="' + esc( ph.src ) + '" alt=""><label class="sr" for="a-ed-alt-' + i + '">Description of photo ' + ( i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? 'Video ' + ( i + 1 ) + ': what happens in it?' : 'Photo ' + ( i + 1 ) + ': what\'s in it?' ) + '" value="' + esc( ph.alt ) + '"></div>';
+				return '<div class="a-alt"><img src="' + esc( ph.src ) + '" alt=""><label class="sr" for="a-ed-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-ed-alt-' + i + '" class="a-field" data-ed-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '"></div>';
 			} ).join( '' ) +
-			'<label class="a-label" for="a-ed-cap">Caption</label><textarea id="a-ed-cap" class="a-textarea" maxlength="' + B.maxCaption + '">' + esc( d.caption ) + '</textarea>' +
+			( '<label class="a-label" for="a-ed-cap">' + __( 'Caption', 'stubli' ) + '</label><textarea id="a-ed-cap" class="a-textarea" maxlength="' ) + B.maxCaption + '">' + esc( d.caption ) + '</textarea>' +
 			'<p class="a-count" data-ed-count' + ( d.caption.length < B.maxCaption - 200 ? ' hidden' : '' ) + '>' + d.caption.length + ' / ' + B.maxCaption + '</p>' +
-			'<h2 class="a-label" id="a-ed-col">Collection</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-ed-col">' +
+			( '<h2 class="a-label" id="a-ed-col">' + __( 'Collection', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-ed-col">' ) +
 			cols.map( function ( c ) { var on = ! ed.adding && d.collection === c; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-ed-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>'; } ).join( '' ) +
-			'<button type="button" class="a-chip" role="radio" aria-checked="' + ( ! ed.adding && ! d.collection ) + '" data-ed-col="">' + ( ! ed.adding && ! d.collection ? icon( 'check', 16 ) : '' ) + 'None</button>' +
-			'<button type="button" class="a-chip" role="radio" aria-checked="' + ed.adding + '" data-ed-col-new>' + ( ed.adding ? icon( 'check', 16 ) : '' ) + '+ New</button></div>' +
-			( ed.adding ? '<div class="a-inline"><label class="sr" for="a-ed-newcol">New collection name</label><input id="a-ed-newcol" class="a-field" maxlength="40" placeholder="e.g. Mountains" value="' + esc( ed.newCol ) + '"></div>' : '' ) +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + ( ! ed.adding && ! d.collection ) + '" data-ed-col="">' + ( ! ed.adding && ! d.collection ? icon( 'check', 16 ) : '' ) + ( __( 'None', 'stubli' ) + '</button>' ) +
+			'<button type="button" class="a-chip" role="radio" aria-checked="' + ed.adding + '" data-ed-col-new>' + ( ed.adding ? icon( 'check', 16 ) : '' ) + ( __( '+ New', 'stubli' ) + '</button></div>' ) +
+			( ed.adding ? ( '<div class="a-inline"><label class="sr" for="a-ed-newcol">' + __( 'New collection name', 'stubli' ) + '</label><input id="a-ed-newcol" class="a-field" maxlength="40" placeholder="' + esc( __( 'e.g. Mountains', 'stubli' ) ) + '" value="' ) + esc( ed.newCol ) + '"></div>' : '' ) +
 			audienceChips( d.audience, 'ed-aud' ) +
-			'<label class="a-check"><span><strong>Content note</strong><span class="muted small">The photo stays softly blurred until someone chooses to see it.</span></span><input type="checkbox" data-ed-note' + ( ed.noteOn ? ' checked' : '' ) + '></label>' +
-			( ed.noteOn ? '<div class="a-inline"><label class="sr" for="a-ed-notetext">Content note</label><input id="a-ed-notetext" class="a-field" maxlength="' + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( d.note ) + '"></div>' : '' ) +
+			( '<label class="a-check"><span><strong>' + __( 'Content note', 'stubli' ) + '</strong><span class="muted small">' + __( 'The photo stays softly blurred until someone chooses to see it.', 'stubli' ) + '</span></span><input type="checkbox" data-ed-note' ) + ( ed.noteOn ? ' checked' : '' ) + '></label>' +
+			( ed.noteOn ? ( '<div class="a-inline"><label class="sr" for="a-ed-notetext">' + __( 'Content note', 'stubli' ) + '</label><input id="a-ed-notetext" class="a-field" maxlength="' ) + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( d.note ) + '"></div>' : '' ) +
 			( ed.error ? '<div class="a-notice" role="alert"><p>' + esc( ed.error ) + '</p></div>' : '' ) +
-			'<p class="a-help" style="margin-top:16px">Changes reach your followers\' feeds the next time their Stubli checks for news, usually within 15 minutes.</p>' +
-			'<p style="margin:16px 0"><a href="' + esc( d.url ) + '">See the post</a></p>' +
+			( '<p class="a-help" style="margin-top:16px">' + __( 'Changes reach your followers\' feeds the next time their Stubli checks for news, usually within 15 minutes.', 'stubli' ) + '</p>' ) +
+			'<p style="margin:16px 0"><a href="' + esc( d.url ) + ( '">' + __( 'See the post', 'stubli' ) + '</a></p>' ) +
 			'<section class="a-ed-delete">' + ( ed.sure ?
-				'<p><strong>Delete this post?</strong> It leaves your page, and your followers\' feeds the next time they check. You can undo right after.</p><div class="a-actions"><button type="button" class="a-btn a-danger" data-ed-del-yes>Delete post</button><button type="button" class="a-btn quiet" data-ed-del-no>Keep it</button></div>' :
-				'<button type="button" class="a-text-btn a-danger-text" data-ed-del>Delete post…</button>' ) + '</section>' +
+				( '<p><strong>' + __( 'Delete this post?', 'stubli' ) + '</strong> ' + __( 'It leaves your page, and your followers\' feeds the next time they check. You can undo right after.', 'stubli' ) + '</p><div class="a-actions"><button type="button" class="a-btn a-danger" data-ed-del-yes>' + __( 'Delete post', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-ed-del-no>' + __( 'Keep it', 'stubli' ) + '</button></div>' ) :
+				( '<button type="button" class="a-text-btn a-danger-text" data-ed-del>' + __( 'Delete post…', 'stubli' ) + '</button>' ) ) + '</section>' +
 			'</main>';
 		bindEdit();
 	}
@@ -916,12 +923,12 @@
 		$( '[data-ed-save]' ).addEventListener( 'click', function () {
 			var alts = {}; d.photos.forEach( function ( p ) { alts[ p.id ] = p.alt; } );
 			var col = ed.adding ? ed.newCol.trim() : d.collection;
-			if ( ed.adding && ! col ) { ed.error = 'Give the new collection a name, or choose one above.'; renderEdit(); return; }
-			if ( ed.noteOn && ! d.note.trim() ) { ed.error = 'Write a short content note, like "Flashing lights", or turn it off.'; renderEdit(); return; }
+			if ( ed.adding && ! col ) { ed.error = __( 'Give the new collection a name, or choose one above.', 'stubli' ); renderEdit(); return; }
+			if ( ed.noteOn && ! d.note.trim() ) { ed.error = __( 'Write a short content note, like "Flashing lights", or turn it off.', 'stubli' ); renderEdit(); return; }
 			ed.busy = true; ed.error = ''; renderEdit();
 			send( 'POST', 'mine/' + ed.id, { caption: d.caption, collection: col, note: ed.noteOn ? d.note : '', alts: alts, audience: d.audience || 'everyone' } ).then( function ( r ) {
 				if ( col && ( B.collections || [] ).indexOf( col ) < 0 ) { ( B.collections = B.collections || [] ).push( col ); }
-				ed = null; mine.loaded = false; location.hash = '#you'; toast( 'Saved.' );
+				ed = null; mine.loaded = false; location.hash = '#you'; toast( __( 'Saved.', 'stubli' ) );
 			}, function ( e ) { ed.busy = false; ed.error = e.message; renderEdit(); } );
 		} );
 		var del = $( '[data-ed-del]' ); if ( del ) { del.addEventListener( 'click', function () { ed.sure = true; renderEdit(); $( '[data-ed-del-no]' ).focus(); } ); }
@@ -929,11 +936,11 @@
 		var yes = $( '[data-ed-del-yes]' );
 		if ( yes ) {
 			yes.addEventListener( 'click', function () {
-				var id = ed.id; yes.disabled = true; yes.textContent = 'Deleting…';
+				var id = ed.id; yes.disabled = true; yes.textContent = __( 'Deleting…', 'stubli' );
 				send( 'DELETE', 'mine/' + id, null ).then( function () {
 					ed = null; mine.loaded = false; feed.loaded = false; location.hash = '#you';
-					toast( 'Post deleted.', function () {
-						send( 'POST', 'mine/' + id + '/restore', {} ).then( function () { mine.loaded = false; if ( location.hash === '#you' ) { viewYou(); } toast( 'It\'s back on your page.' ); }, function ( e ) { toast( e.message ); } );
+					toast( __( 'Post deleted.', 'stubli' ), function () {
+						send( 'POST', 'mine/' + id + '/restore', {} ).then( function () { mine.loaded = false; if ( location.hash === '#you' ) { viewYou(); } toast( __( 'It\'s back on your page.', 'stubli' ) ); }, function ( e ) { toast( e.message ); } );
 					} );
 				}, function ( e ) { ed.error = e.message; ed.sure = false; renderEdit(); } );
 			} );
@@ -950,9 +957,9 @@
 		return Promise.all( [ send( 'GET', 'push', null ), subP ] ).then( function ( r ) { ds.info = r[ 0 ]; ds.on = !! r[ 1 ]; ds.loaded = true; }, function () { ds.loaded = true; } );
 	}
 	function enablePush() {
-		if ( ! pushSupported() ) { return Promise.reject( { message: 'This browser can\'t show notifications.' } ); }
+		if ( ! pushSupported() ) { return Promise.reject( { message: __( 'This browser can\'t show notifications.', 'stubli' ) } ); }
 		return Notification.requestPermission().then( function ( p ) {
-			if ( p !== 'granted' ) { return Promise.reject( { message: 'Notifications are turned off for Stubli. You can allow them in your phone\'s settings, or use email below.' } ); }
+			if ( p !== 'granted' ) { return Promise.reject( { message: __( 'Notifications are turned off for Stubli. You can allow them in your phone\'s settings, or use email below.', 'stubli' ) } ); }
 			return navigator.serviceWorker.register( B.sw, { scope: B.swScope } );
 		} ).then( function () { return navigator.serviceWorker.ready; } ).then( function ( reg ) {
 			return ( ds.info && ds.info.key ? Promise.resolve( ds.info ) : send( 'GET', 'push', null ) ).then( function ( info ) {
@@ -978,30 +985,30 @@
 		return t.map( function ( x ) { return '<option' + ( x === cur ? ' selected' : '' ) + '>' + x + '</option>'; } ).join( '' );
 	}
 	function summaryCard() {
-		if ( ! ds.loaded || ! ds.info ) { return '<section class="a-card" data-summary><h2>Daily summary</h2><p class="muted">Loading…</p></section>'; }
+		if ( ! ds.loaded || ! ds.info ) { return ( '<section class="a-card" data-summary><h2>' + __( 'Daily summary', 'stubli' ) + '</h2><p class="muted">' + __( 'Loading…', 'stubli' ) + '</p></section>' ); }
 		var i = ds.info, phone;
 		if ( iosNeedsInstall() ) {
-			phone = '<p class="a-help">On iPhone, add Stubli to your Home Screen first (Share, then Add to Home Screen). Open it from there to turn this on.</p>';
+			phone = ( '<p class="a-help">' + __( 'On iPhone, add Stubli to your Home Screen first (Share, then Add to Home Screen). Open it from there to turn this on.', 'stubli' ) + '</p>' );
 		} else if ( ! pushSupported() ) {
-			phone = '<p class="a-help">This browser can\'t show notifications. Email below works everywhere.</p>';
+			phone = ( '<p class="a-help">' + __( 'This browser can\'t show notifications. Email below works everywhere.', 'stubli' ) + '</p>' );
 		} else {
-			phone = '<p class="a-ds-status">' + icon( ds.on ? 'check' : 'news', 16 ) + ( ds.on ? 'On for this phone' : 'Off for this phone' ) + '</p><div class="a-actions">' +
-				( ds.on ? '<button type="button" class="a-btn quiet" data-ds-test' + ( ds.busy ? ' disabled' : '' ) + '>Send a test</button><button type="button" class="a-text-btn" data-ds-off' + ( ds.busy ? ' disabled' : '' ) + '>Turn off</button>' :
-					'<button type="button" class="a-btn" data-ds-on' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? 'Asking your phone…' : 'Send it to this phone' ) + '</button>' ) + '</div>';
+			phone = '<p class="a-ds-status">' + icon( ds.on ? 'check' : 'news', 16 ) + ( ds.on ? __( 'On for this phone', 'stubli' ) : __( 'Off for this phone', 'stubli' ) ) + '</p><div class="a-actions">' +
+				( ds.on ? '<button type="button" class="a-btn quiet" data-ds-test' + ( ds.busy ? ' disabled' : '' ) + ( '>' + __( 'Send a test', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-ds-off' ) + ( ds.busy ? ' disabled' : '' ) + ( '>' + __( 'Turn off', 'stubli' ) + '</button>' ) :
+					'<button type="button" class="a-btn" data-ds-on' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? __( 'Asking your phone…', 'stubli' ) : __( 'Send it to this phone', 'stubli' ) ) + '</button>' ) + '</div>';
 		}
-		return '<section class="a-card" data-summary><h2>Daily summary' + helpLink( 'reading-and-following/daily-summary', 'the daily summary' ) + '</h2><p class="muted">At most one a day, and only when something is new: comments waiting for your OK, new posts from your people. Never one per post.</p>' +
-			'<label class="a-label" for="a-ds-time" style="margin-top:4px">Time</label><select id="a-ds-time" class="a-field a-su-select" data-ds-time>' + timeOptions( i.time ) + '</select>' +
-			'<p class="a-label">On your phone</p>' + phone +
-			'<label class="a-check"><span><strong>Also by email</strong><span class="muted small">To ' + esc( i.address ) + '. Handy if notifications don\'t reach you.</span></span><input type="checkbox" data-ds-email' + ( i.email ? ' checked' : '' ) + '></label>' +
+		return ( '<section class="a-card" data-summary><h2>' + __( 'Daily summary', 'stubli' ) ) + helpLink( 'reading-and-following/daily-summary', __( 'the daily summary', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'At most one a day, and only when something is new: comments waiting for your OK, new posts from your people. Never one per post.', 'stubli' ) + '</p>' ) +
+			( '<label class="a-label" for="a-ds-time" style="margin-top:4px">' + __( 'Time', 'stubli' ) + '</label><select id="a-ds-time" class="a-field a-su-select" data-ds-time>' ) + timeOptions( i.time ) + '</select>' +
+			( '<p class="a-label">' + __( 'On your phone', 'stubli' ) + '</p>' ) + phone +
+			( '<label class="a-check"><span><strong>' + __( 'Also by email', 'stubli' ) + '</strong><span class="muted small">' + _f( __( 'To %s. Handy if notifications don\'t reach you.', 'stubli' ), esc( i.address ) ) ) + '</span></span><input type="checkbox" data-ds-email' + ( i.email ? ' checked' : '' ) + '></label>' +
 			'<p class="a-help" aria-live="polite" data-ds-msg>' + esc( ds.msg ) + '</p></section>';
 	}
 	function bindSummary( rerender ) {
 		var m = function ( t ) { ds.msg = t; var e = $( '[data-ds-msg]' ); if ( e ) { e.textContent = t; } };
-		var tm = $( '[data-ds-time]' ); if ( tm ) { tm.addEventListener( 'change', function () { send( 'POST', 'settings', { digest_time: tm.value } ).then( function () { ds.info.time = tm.value; m( 'Saved. It arrives around ' + tm.value + ' when something is new.' ); }, function ( e ) { m( e.message ); } ); } ); }
-		var em = $( '[data-ds-email]' ); if ( em ) { em.addEventListener( 'change', function () { send( 'POST', 'settings', { digest_email: em.checked } ).then( function () { ds.info.email = em.checked; m( em.checked ? 'Email is on.' : 'Email is off.' ); }, function ( e ) { em.checked = ! em.checked; m( e.message ); } ); } ); }
-		var on = $( '[data-ds-on]' ); if ( on ) { on.addEventListener( 'click', function () { ds.busy = true; ds.msg = ''; rerender(); enablePush().then( function () { ds.busy = false; ds.msg = 'On. Your summary arrives on this phone once a day, when something is new.'; rerender(); }, function ( e ) { ds.busy = false; ds.msg = ( e && e.message ) || 'That didn\'t work. Try again.'; rerender(); } ); } ); }
-		var off = $( '[data-ds-off]' ); if ( off ) { off.addEventListener( 'click', function () { ds.busy = true; rerender(); disablePush().then( function () { ds.busy = false; ds.msg = 'Off for this phone.'; rerender(); }, function () { ds.busy = false; rerender(); } ); } ); }
-		var te = $( '[data-ds-test]' ); if ( te ) { te.addEventListener( 'click', function () { te.disabled = true; send( 'POST', 'push/test', {} ).then( function ( r ) { te.disabled = false; m( r.sent ? 'Sent. It should appear in a moment.' : 'Your phone\'s notification service didn\'t accept it. Turn it off and on again.' ); }, function ( e ) { te.disabled = false; m( e.message ); } ); } ); }
+		var tm = $( '[data-ds-time]' ); if ( tm ) { tm.addEventListener( 'change', function () { send( 'POST', 'settings', { digest_time: tm.value } ).then( function () { ds.info.time = tm.value; m( _f( __( 'Saved. It arrives around %s when something is new.', 'stubli' ), tm.value ) ); }, function ( e ) { m( e.message ); } ); } ); }
+		var em = $( '[data-ds-email]' ); if ( em ) { em.addEventListener( 'change', function () { send( 'POST', 'settings', { digest_email: em.checked } ).then( function () { ds.info.email = em.checked; m( em.checked ? __( 'Email is on.', 'stubli' ) : __( 'Email is off.', 'stubli' ) ); }, function ( e ) { em.checked = ! em.checked; m( e.message ); } ); } ); }
+		var on = $( '[data-ds-on]' ); if ( on ) { on.addEventListener( 'click', function () { ds.busy = true; ds.msg = ''; rerender(); enablePush().then( function () { ds.busy = false; ds.msg = __( 'On. Your summary arrives on this phone once a day, when something is new.', 'stubli' ); rerender(); }, function ( e ) { ds.busy = false; ds.msg = ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ); rerender(); } ); } ); }
+		var off = $( '[data-ds-off]' ); if ( off ) { off.addEventListener( 'click', function () { ds.busy = true; rerender(); disablePush().then( function () { ds.busy = false; ds.msg = __( 'Off for this phone.', 'stubli' ); rerender(); }, function () { ds.busy = false; rerender(); } ); } ); }
+		var te = $( '[data-ds-test]' ); if ( te ) { te.addEventListener( 'click', function () { te.disabled = true; send( 'POST', 'push/test', {} ).then( function ( r ) { te.disabled = false; m( r.sent ? __( 'Sent. It should appear in a moment.', 'stubli' ) : __( 'Your phone\'s notification service didn\'t accept it. Turn it off and on again.', 'stubli' ) ); }, function ( e ) { te.disabled = false; m( e.message ); } ); } ); }
 	}
 
 	// Redraw one section in place, so whatever else is on screen (an invite link just made) stays.
@@ -1013,7 +1020,7 @@
 	}
 	function redrawSummary() { swap( '[data-summary]', summaryCard(), function () { bindSummary( redrawSummary ); } ); }
 	function followForm( where ) {
-		return '<form class="a-inline" data-follow="' + where + '"><label class="sr" for="a-follow-' + where + '">Their Stubli address</label><input id="a-follow-' + where + '" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="theirname.com"><button type="submit" class="a-btn quiet">Follow</button></form><div class="a-help" data-follow-msg aria-live="polite"></div>';
+		return '<form class="a-inline" data-follow="' + where + '"><label class="sr" for="a-follow-' + where + ( '">' + __( 'Their Stubli address', 'stubli' ) + '</label><input id="a-follow-' ) + where + ( '" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="theirname.com"><button type="submit" class="a-btn quiet">' + __( 'Follow', 'stubli' ) + '</button></form><div class="a-help" data-follow-msg aria-live="polite"></div>' );
 	}
 	function bindFollow() {
 		$$( '[data-follow]' ).forEach( function ( f ) {
@@ -1022,14 +1029,14 @@
 				var inp = f.querySelector( 'input' ), m = f.nextElementSibling, btn = f.querySelector( 'button' ), v = inp.value.trim();
 				if ( ! v ) { inp.focus(); return; }
 				if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
-				btn.disabled = true; btn.textContent = 'Following…'; m.textContent = '';
+				btn.disabled = true; btn.textContent = __( 'Following…', 'stubli' ); m.textContent = '';
 				send( 'POST', 'follows', { url: v } ).then( function ( r ) { pp.loaded = false;
-					m.textContent = 'You\'re following ' + ( r && r.name ? r.name : v ) + '. Their photos appear in Home.';
-					inp.value = ''; btn.disabled = false; btn.textContent = 'Follow'; feed.loaded = false;
-					if ( location.hash === '#setup' && su.loaded ) { send( 'GET', 'setup', null ).then( function ( d ) { su.d.follows = d.follows; renderSetup(); var mm = $( '[data-follow-msg]' ); if ( mm ) { mm.textContent = 'You\'re following ' + ( r && r.name ? r.name : v ) + '.'; } }, function () {} ); }
+					m.textContent = _f( __( 'You\'re following %s. Their photos appear in Home.', 'stubli' ), r && r.name ? r.name : v );
+					inp.value = ''; btn.disabled = false; btn.textContent = __( 'Follow', 'stubli' ); feed.loaded = false;
+					if ( location.hash === '#setup' && su.loaded ) { send( 'GET', 'setup', null ).then( function ( d ) { su.d.follows = d.follows; renderSetup(); var mm = $( '[data-follow-msg]' ); if ( mm ) { mm.textContent = ( __( 'You\'re following', 'stubli' ) + ' ' ) + ( r && r.name ? r.name : v ) + '.'; } }, function () {} ); }
 				}, function ( err ) {
-					m.textContent = ( err && err.message ) || 'That didn\'t work. Check the address and try again.';
-					btn.disabled = false; btn.textContent = 'Follow';
+					m.textContent = ( err && err.message ) || __( 'That didn\'t work. Check the address and try again.', 'stubli' );
+					btn.disabled = false; btn.textContent = __( 'Follow', 'stubli' );
 				} );
 			} );
 		} );
@@ -1040,9 +1047,9 @@
 	function gentle( iso ) {
 		var t = Date.parse( iso ), d = Math.floor( ( Date.now() - t ) / 86400000 );
 		if ( ! t ) { return ''; }
-		if ( d < 1 ) { var h = Math.floor( ( Date.now() - t ) / 3600000 ); return h < 1 ? 'just now' : h + ' h ago'; }
-		if ( d === 1 ) { return 'yesterday'; }
-		if ( d < 14 ) { return d + ' days ago'; }
+		if ( d < 1 ) { var h = Math.floor( ( Date.now() - t ) / 3600000 ); return h < 1 ? __( 'just now', 'stubli' ) : _f( __( '%s h ago', 'stubli' ), h ); }
+		if ( d === 1 ) { return __( 'yesterday', 'stubli' ); }
+		if ( d < 14 ) { return _f( __( '%s days ago', 'stubli' ), d ); }
 		return new Date( t ).toLocaleDateString( undefined, { day: 'numeric', month: 'short', year: d > 300 ? 'numeric' : undefined } );
 	}
 	function loadFeed( reset ) {
@@ -1062,7 +1069,7 @@
 				// Show what we had last time, with a quiet note.
 				feed.items = cached; feed.more = false; feed.stale = true; feed.error = '';
 			} else {
-				feed.error = ( e && e.code === 'offline' ) ? 'No connection right now. Your feed comes back when you\'re online.' : 'Your feed didn\'t load this time.';
+				feed.error = ( e && e.code === 'offline' ) ? __( 'No connection right now. Your feed comes back when you\'re online.', 'stubli' ) : __( 'Your feed didn\'t load this time.', 'stubli' );
 			}
 		} );
 	}
@@ -1099,24 +1106,24 @@
 	function renderHome() {
 		var body = '';
 		if ( ! feed.loaded ) {
-			body = '<div class="a-feed-skel" aria-hidden="true"><span></span><span></span></div><p class="sr" role="status">Loading your feed…</p>';
+			body = ( '<div class="a-feed-skel" aria-hidden="true"><span></span><span></span></div><p class="sr" role="status">' + __( 'Loading your feed…', 'stubli' ) + '</p>' );
 		} else if ( feed.error ) {
-			body = '<div class="a-notice" role="alert"><p>' + esc( feed.error ) + '</p><button type="button" class="a-btn quiet" data-feed-retry>Try again</button></div>';
+			body = '<div class="a-notice" role="alert"><p>' + esc( feed.error ) + ( '</p><button type="button" class="a-btn quiet" data-feed-retry>' + __( 'Try again', 'stubli' ) + '</button></div>' );
 		} else if ( ! ( feed.follows || [] ).length ) {
-			body = '<section class="a-card"><h2>Your feed is waiting</h2><p class="muted">Follow someone and their new photos will appear here, newest first. No ads, no suggestions, just the people you chose.</p>' + followForm( 'home' ) + '</section>' +
-				'<section class="a-card"><h2>Or invite a friend</h2><p class="muted">When they\'ve set up their Stubli, you follow each other automatically.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button></section>';
+			body = ( '<section class="a-card"><h2>' + __( 'Your feed is waiting', 'stubli' ) + '</h2><p class="muted">' + __( 'Follow someone and their new photos will appear here, newest first. No ads, no suggestions, just the people you chose.', 'stubli' ) + '</p>' ) + followForm( 'home' ) + '</section>' +
+				( '<section class="a-card"><h2>' + __( 'Or invite a friend', 'stubli' ) + '</h2><p class="muted">' + __( 'When they\'ve set up their Stubli, you follow each other automatically.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' );
 		} else {
 			var pills = '';
 			if ( feed.lists.length ) {
-				pills = '<div class="a-chips a-filter" role="group" aria-label="Show">' + [ '' ].concat( feed.lists ).map( function ( l ) {
-					return '<button type="button" class="a-chip" aria-pressed="' + ( feed.list === l ) + '" data-list="' + esc( l ) + '">' + esc( l || 'All' ) + '</button>';
+				pills = '<div class="a-chips a-filter" role="group" aria-label="' + esc( __( 'Show', 'stubli' ) ) + '">' + [ '' ].concat( feed.lists ).map( function ( l ) {
+					return '<button type="button" class="a-chip" aria-pressed="' + ( feed.list === l ) + '" data-list="' + esc( l ) + '">' + esc( l || __( 'All', 'stubli' ) ) + '</button>';
 				} ).join( '' ) + '</div>';
 			}
-			body = pills + ( feed.items.length ? feed.items.map( item ).join( '' ) : '<p class="muted" style="margin:24px 0">Nothing here yet. New posts arrive every 15 minutes or so.</p>' ) +
-				( feed.more && feed.items.length ? '<button type="button" class="a-btn quiet wide" data-older>Older posts</button>' : '' ) +
-				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + '<strong>That\'s everything for now</strong><span class="muted">You\'re all caught up. ' + esc( endLine() ) + '</span></div>' : '' );
+			body = pills + ( feed.items.length ? feed.items.map( item ).join( '' ) : ( '<div class="a-empty-feed"><p class="muted">' + __( 'Nothing here yet. Follow a few people and their new posts arrive here, every 15 minutes or so.', 'stubli' ) + '</p><div class="a-actions"><a class="a-btn" href="#discover">' + __( 'Find people in Discover', 'stubli' ) + '</a><a class="a-btn quiet" href="#more">' + __( 'Invite a friend', 'stubli' ) + '</a></div></div>' ) ) +
+				( feed.more && feed.items.length ? ( '<button type="button" class="a-btn quiet wide" data-older>' + __( 'Older posts', 'stubli' ) + '</button>' ) : '' ) +
+				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + ( '<strong>' + __( 'That\'s everything for now', 'stubli' ) + '</strong><span class="muted">' + __( 'You\'re all caught up.', 'stubli' ) + ' ' ) + esc( endLine() ) + '</span></div>' : '' );
 		}
-		var sub = feed.stale ? 'Offline. Showing your feed from last time.' : feed.loaded && feed.newSince ? feed.newSince + ' new since your last visit' : '';
+		var sub = feed.stale ? __( 'Offline. Showing your feed from last time.', 'stubli' ) : feed.loaded && feed.newSince ? _f( __( '%s new since your last visit', 'stubli' ), feed.newSince ) : '';
 		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
 			'<h1 class="a-greet a-greet-sky">' + sky( 36 ) + '<span>' + esc( greeting() ) + '</span></h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
 			setupCard() + body + '</main>' + bar( 'home' );
@@ -1124,7 +1131,7 @@
 		var fr = $( '[data-feed-retry]' ); if ( fr ) { fr.addEventListener( 'click', retryFeed ); }
 		$$( '[data-list]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { feed.list = b.dataset.list; loadFeed( true ).then( renderHome ); } ); } );
 		var older = $( '[data-older]' );
-		if ( older ) { older.addEventListener( 'click', function () { older.disabled = true; older.textContent = 'Loading…'; var y = window.scrollY; loadFeed( false ).then( function () { renderHome(); window.scrollTo( 0, y ); } ); } ); }
+		if ( older ) { older.addEventListener( 'click', function () { older.disabled = true; older.textContent = __( 'Loading…', 'stubli' ); var y = window.scrollY; loadFeed( false ).then( function () { renderHome(); window.scrollTo( 0, y ); } ); } ); }
 		bindItems();
 	}
 	function item( it ) {
@@ -1134,18 +1141,18 @@
 		var c = feed.open[ 'c' + it.id ];
 		return '<article class="a-item" data-item="' + it.id + '">' +
 			'<header class="a-item-head">' + face( it.author.avatar, it.author.name, 32 ) +
-			'<span><a href="' + esc( it.author.url ) + '"><strong>' + esc( unent( it.author.name ) ) + '</strong></a> <span class="muted">' + esc( gentle( it.published ) ) + '</span>' + ( it.audience === 'friends' ? ' <span class="a-friends-tag">For friends</span>' : '' ) + ( isNew ? ' <span class="a-new">New</span>' : '' ) + '</span></header>' +
-			( imgs.length ? '<div class="a-photos' + ( note ? ' has-note' : '' ) + '"><div class="a-track" tabindex="0" aria-label="Photos">' + imgs.map( function ( im ) {
+			'<span><a href="' + esc( it.author.url ) + '"><strong>' + esc( unent( it.author.name ) ) + '</strong></a> <span class="muted">' + esc( gentle( it.published ) ) + '</span>' + ( it.audience === 'friends' ? ( ' <span class="a-friends-tag">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + ( isNew ? ( ' <span class="a-new">' + __( 'New', 'stubli' ) + '</span>' ) : '' ) + '</span></header>' +
+			( imgs.length ? '<div class="a-photos' + ( note ? ' has-note' : '' ) + '"><div class="a-track" tabindex="0" aria-label="' + esc( __( 'Photos', 'stubli' ) ) + '">' + imgs.map( function ( im ) {
 					if ( im.video && /^https?:\/\//.test( im.video ) ) {
-						return '<button type="button" class="a-play" data-play="' + esc( im.video ) + '" data-type="' + esc( im.type || 'video/mp4' ) + '" aria-label="' + esc( note ? 'Play video' : ( im.alt ? 'Play video: ' + im.alt : 'Play video' ) ) + '"><img src="' + esc( im.url ) + '" alt="" loading="lazy"><span class="a-play-icon" aria-hidden="true">' + icon( 'play', 28 ) + '</span></button>';
+						return '<button type="button" class="a-play" data-play="' + esc( im.video ) + '" data-type="' + esc( im.type || 'video/mp4' ) + '" aria-label="' + esc( note ? __( 'Play video', 'stubli' ) : ( im.alt ? _f( __( 'Play video: %s', 'stubli' ), im.alt ) : __( 'Play video', 'stubli' ) ) ) + '"><img src="' + esc( im.url ) + '" alt="" loading="lazy"><span class="a-play-icon" aria-hidden="true">' + icon( 'play', 28 ) + '</span></button>';
 					}
 					return '<img src="' + esc( im.url ) + '" alt="' + esc( note ? '' : ( im.alt || '' ) ) + '" loading="lazy">';
 				} ).join( '' ) + '</div>' +
-				( imgs.length > 1 ? '<span class="a-count-pill" aria-hidden="true">1 of ' + imgs.length + '</span>' : '' ) +
-				( note ? '<button type="button" class="a-reveal" data-reveal="' + it.id + '"><strong>' + esc( it.content_note ) + '</strong><span>Show photo</span></button>' : '' ) + '</div>' : '' ) +
+				( imgs.length > 1 ? '<span class="a-count-pill" aria-hidden="true">' + _f( __( '%s of %s', 'stubli' ), 1, imgs.length ) + '</span>' : '' ) +
+				( note ? '<button type="button" class="a-reveal" data-reveal="' + it.id + '"><strong>' + esc( it.content_note ) + ( '</strong><span>' + __( 'Show photo', 'stubli' ) + '</span></button>' ) : '' ) + '</div>' : '' ) +
 			( it.caption_html ? '<div class="a-caption">' + it.caption_html + '</div>' : '' ) +
-			'<div class="a-item-acts"><button type="button" class="a-text-btn" data-comment="' + it.id + '" aria-expanded="' + ( c ? 'true' : 'false' ) + '">Comment</button>' + ( it.my_comments ? '<span class="muted small">You commented</span>' : '' ) + '<a class="a-text-btn muted" href="' + esc( it.permalink ) + '">Open</a></div>' +
-			( c ? '<div class="a-comment-box"><label class="sr" for="a-cm-' + it.id + '">Your comment</label><textarea id="a-cm-' + it.id + '" class="a-textarea" maxlength="2200" placeholder="Say something kind…">' + esc( c.text || '' ) + '</textarea><div class="a-actions" style="margin-top:8px"><button type="button" class="a-btn" data-send-comment="' + it.id + '">Send</button><button type="button" class="a-text-btn" data-comment="' + it.id + '">Cancel</button></div><p class="a-help" data-cm-msg="' + it.id + '" aria-live="polite">' + esc( c.msg || 'It\'s saved on your own site too. It shows on their post right away if they follow you; otherwise after their OK.' ) + '</p></div>' : '' ) +
+			'<div class="a-item-acts"><button type="button" class="a-text-btn" data-comment="' + it.id + '" aria-expanded="' + ( c ? 'true' : 'false' ) + ( '">' + __( 'Comment', 'stubli' ) + '</button>' ) + ( it.my_comments ? ( '<span class="muted small">' + __( 'You commented', 'stubli' ) + '</span>' ) : '' ) + '<a class="a-text-btn muted" href="' + esc( it.permalink ) + ( '">' + __( 'Open', 'stubli' ) + '</a></div>' ) +
+			( c ? '<div class="a-comment-box"><label class="sr" for="a-cm-' + it.id + ( '">' + __( 'Your comment', 'stubli' ) + '</label><textarea id="a-cm-' ) + it.id + '" class="a-textarea" maxlength="2200" placeholder="' + esc( __( 'Say something kind…', 'stubli' ) ) + '">' + esc( c.text || '' ) + '</textarea><div class="a-actions" style="margin-top:8px"><button type="button" class="a-btn" data-send-comment="' + it.id + ( '">' + __( 'Send', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-comment="' ) + it.id + ( '">' + __( 'Cancel', 'stubli' ) + '</button></div><p class="a-help" data-cm-msg="' ) + it.id + '" aria-live="polite">' + esc( c.msg || __( 'It\'s saved on your own site too. It shows on their post right away if they follow you; otherwise after their OK.', 'stubli' ) ) + '</p></div>' : '' ) +
 			'</article>';
 	}
 	function bindItems() {
@@ -1156,14 +1163,14 @@
 			b.addEventListener( 'click', function () {
 				var id = b.dataset.sendComment, k = 'c' + id, t = $( '#a-cm-' + id ), m = $( '[data-cm-msg="' + id + '"]' );
 				if ( ! t.value.trim() ) { t.focus(); return; }
-				b.disabled = true; b.textContent = 'Sending…';
+				b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
 				send( 'POST', 'items/' + id + '/comments', { text: t.value.trim() } ).then( function ( r ) {
 					var it = feed.items.filter( function ( x ) { return String( x.id ) === String( id ); } )[ 0 ];
 					if ( it ) { it.my_comments = ( it.my_comments || 0 ) + 1; }
-					var msg = r && r.status === 'paused' ? 'Saved. They\'re taking a break, so it will show when they\'re back.' : r && r.status === 'not_sent' ? 'Saved on your site, but their site didn\'t answer. It will try again later.' : 'Sent. Thank you.';
+					var msg = r && r.status === 'paused' ? __( 'Saved. They\'re taking a break, so it will show when they\'re back.', 'stubli' ) : r && r.status === 'not_sent' ? __( 'Saved on your site, but their site didn\'t answer. It will try again later.', 'stubli' ) : __( 'Sent. Thank you.', 'stubli' );
 					feed.open[ k ] = null; var y = window.scrollY; renderHome(); window.scrollTo( 0, y );
 					var art = $( '[data-item="' + id + '"] .a-item-acts' ); if ( art ) { art.insertAdjacentHTML( 'afterend', '<p class="a-help" role="status">' + esc( msg ) + '</p>' ); }
-				}, function ( e ) { b.disabled = false; b.textContent = 'Send'; m.textContent = ( e && e.message ) || 'Couldn\'t send that. Try again.'; } );
+				}, function ( e ) { b.disabled = false; b.textContent = __( 'Send', 'stubli' ); m.textContent = ( e && e.message ) || __( 'Couldn\'t send that. Try again.', 'stubli' ); } );
 			} );
 		} );
 		$$( '[data-play]' ).forEach( function ( b ) {
@@ -1180,7 +1187,7 @@
 		$$( '.a-photos .a-track' ).forEach( function ( tr ) {
 			var pill = tr.parentNode.querySelector( '.a-count-pill' ), n = tr.children.length;
 			if ( ! pill ) { return; }
-			tr.addEventListener( 'scroll', function () { var i = Math.round( tr.scrollLeft / Math.max( 1, tr.clientWidth ) ); pill.textContent = ( i + 1 ) + ' of ' + n; }, { passive: true } );
+			tr.addEventListener( 'scroll', function () { var i = Math.round( tr.scrollLeft / Math.max( 1, tr.clientWidth ) ); pill.textContent = _f( __( '%s of %s', 'stubli' ), i + 1, n ); }, { passive: true } );
 		} );
 	}
 
@@ -1188,21 +1195,21 @@
 		var b = $( '[data-invite]' ), out = $( '[data-invite-out]' );
 		if ( ! b ) { return; }
 		b.addEventListener( 'click', function () {
-			b.disabled = true; b.textContent = 'Creating…';
+			b.disabled = true; b.textContent = __( 'Creating…', 'stubli' );
 			send( 'POST', 'invites', {} ).then( function ( r ) {
-				out.innerHTML = '<label class="sr" for="a-inv">Invite link</label><input id="a-inv" class="a-field" readonly value="' + esc( r.url ) + '">' +
-					'<div class="a-actions" style="margin-top:8px">' + ( navigator.share ? '<button type="button" class="a-btn" data-inv-share>Share…</button>' : '' ) + '<button type="button" class="a-btn quiet" data-inv-copy>Copy link</button></div><p class="a-help" aria-live="polite" data-inv-msg></p>';
+				out.innerHTML = ( '<label class="sr" for="a-inv">' + __( 'Invite link', 'stubli' ) + '</label><input id="a-inv" class="a-field" readonly value="' ) + esc( r.url ) + '">' +
+					'<div class="a-actions" style="margin-top:8px">' + ( navigator.share ? ( '<button type="button" class="a-btn" data-inv-share>' + __( 'Share…', 'stubli' ) + '</button>' ) : '' ) + ( '<button type="button" class="a-btn quiet" data-inv-copy>' + __( 'Copy link', 'stubli' ) + '</button></div><p class="a-help" aria-live="polite" data-inv-msg></p>' );
 				b.hidden = true;
 				var f = $( '#a-inv' ), m = $( '[data-inv-msg]' );
 				f.addEventListener( 'focus', function () { f.select(); } );
 				$( '[data-inv-copy]' ).addEventListener( 'click', function () {
-					var ok = function () { m.textContent = 'Copied. Send it to one friend.'; };
-					if ( navigator.clipboard ) { navigator.clipboard.writeText( r.url ).then( ok, function () { f.select(); m.textContent = 'Select the link and copy it.'; } ); } else { f.select(); document.execCommand( 'copy' ); ok(); }
+					var ok = function () { m.textContent = __( 'Copied. Send it to one friend.', 'stubli' ); };
+					if ( navigator.clipboard ) { navigator.clipboard.writeText( r.url ).then( ok, function () { f.select(); m.textContent = __( 'Select the link and copy it.', 'stubli' ); } ); } else { f.select(); document.execCommand( 'copy' ); ok(); }
 				} );
 				var sh = $( '[data-inv-share]' );
-				if ( sh ) { sh.addEventListener( 'click', function () { navigator.share( { title: 'Join me on Stubli', text: 'I made you an invite to Stubli, a calm place for photos.', url: r.url } ).catch( function () {} ); } ); }
+				if ( sh ) { sh.addEventListener( 'click', function () { navigator.share( { title: __( 'Join me on Stubli', 'stubli' ), text: __( 'I made you an invite to Stubli, a calm place for photos.', 'stubli' ), url: r.url } ).catch( function () {} ); } ); }
 			}, function ( e ) {
-				b.disabled = false; b.textContent = 'Create an invite link';
+				b.disabled = false; b.textContent = __( 'Create an invite link', 'stubli' );
 				out.innerHTML = '<div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p></div>';
 			} );
 		} );
@@ -1215,35 +1222,35 @@
 	function viewDiscover() {
 		renderDiscover();
 		disc.error = '';
-		send( 'GET', 'discover', null ).then( function ( l ) { disc.list = Array.isArray( l ) ? l : []; disc.loaded = true; disc.error = ''; }, function ( e ) { disc.loaded = true; disc.error = ( e && e.message ) || 'Couldn\'t load suggestions.'; } ).then( function () { if ( location.hash === '#discover' ) { renderDiscover(); } } );
+		send( 'GET', 'discover', null ).then( function ( l ) { disc.list = Array.isArray( l ) ? l : []; disc.loaded = true; disc.error = ''; }, function ( e ) { disc.loaded = true; disc.error = ( e && e.message ) || __( 'Couldn\'t load suggestions.', 'stubli' ); } ).then( function () { if ( location.hash === '#discover' ) { renderDiscover(); } } );
 	}
-	function viaText( v ) { return v.length > 2 ? v.slice( 0, 2 ).join( ', ' ) + ' and ' + ( v.length - 2 ) + ' more' : v.join( ' and ' ); }
+	function viaText( v ) { return v.length > 2 ? _f( __( '%s and %s more', 'stubli' ), v.slice( 0, 2 ).join( ', ' ), v.length - 2 ) : v.length === 2 ? _f( __( '%s and %s', 'stubli' ), v[ 0 ], v[ 1 ] ) : v.join( '' ); }
 	function renderDiscover() {
 		var body;
 		if ( ! disc.loaded ) {
-			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:220px"></span><span style="height:220px"></span></div><p class="sr" role="status">Loading…</p>';
+			body = ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:220px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' );
 		} else if ( disc.error ) {
-			body = '<div class="a-notice" role="alert"><p>' + esc( disc.error ) + '</p><button type="button" class="a-btn quiet" data-disc-retry>Try again</button></div>';
+			body = '<div class="a-notice" role="alert"><p>' + esc( disc.error ) + ( '</p><button type="button" class="a-btn quiet" data-disc-retry>' + __( 'Try again', 'stubli' ) + '</button></div>' );
 		} else if ( ! disc.list.length ) {
-			body = '<p class="muted">No suggestions yet. They come from the public lists of the people you follow, so they appear once you follow a few people who share theirs.</p>';
+			body = ( '<p class="muted">' + __( 'No suggestions yet. They come from the public lists of the people you follow, so they appear once you follow a few people who share theirs.', 'stubli' ) + '</p>' );
 		} else {
 			var at = Math.min( disc.i, disc.list.length );
-			body = at >= disc.list.length ? '<div class="a-end">' + sky( 28 ) + '<strong>That\'s everyone for now</strong><span class="muted">New suggestions come as the people you follow follow others.</span><button type="button" class="a-text-btn" data-disc-again>See them again</button></div>' : [ disc.list[ at ] ].map( function ( s ) {
+			body = at >= disc.list.length ? '<div class="a-end">' + sky( 28 ) + ( '<strong>' + __( 'That\'s everyone for now', 'stubli' ) + '</strong><span class="muted">' + __( 'New suggestions come as the people you follow follow others.', 'stubli' ) + '</span><button type="button" class="a-text-btn" data-disc-again>' + __( 'See them again', 'stubli' ) + '</button></div>' ) : [ disc.list[ at ] ].map( function ( s ) {
 				var host = hostOf( s.url ), done = disc.followed[ s.url ], pr = s.prompts && s.prompts[ 0 ];
 				return '<article class="a-card a-disc">' +
 					'<div class="a-wait-head">' + ( s.avatar ? '<img src="' + esc( s.avatar ) + '" alt="" width="40" height="40">' : '<span class="a-av"></span>' ) +
-					'<span><a href="' + esc( s.url ) + '"><strong>' + esc( s.name || host ) + '</strong></a> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">Followed by ' + esc( viaText( s.via ) ) + '</span></span>' +
-					'<button type="button" class="a-btn' + ( done ? ' quiet' : '' ) + ' a-disc-follow" data-disc="' + esc( s.url ) + '"' + ( done ? ' disabled' : '' ) + '>' + ( done ? 'Following' : 'Follow' ) + '</button></div>' +
+					'<span><a href="' + esc( s.url ) + '"><strong>' + esc( s.name || host ) + '</strong></a> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">' + _f( __( 'Followed by %s', 'stubli' ), esc( viaText( s.via ) ) ) + '</span></span>' +
+					'<button type="button" class="a-btn' + ( done ? ' quiet' : '' ) + ' a-disc-follow" data-disc="' + esc( s.url ) + '"' + ( done ? ' disabled' : '' ) + '>' + ( done ? __( 'Following', 'stubli' ) : __( 'Follow', 'stubli' ) ) + '</button></div>' +
 					( s.bio ? '<p class="a-disc-bio">' + esc( s.bio ) + '</p>' : '' ) +
-					( pr ? '<div class="a-pcard a-disc-card"><p class="a-pcard-q">' + esc( pr.q ) + '</p><p class="a-pcard-a">' + esc( pr.a ) + '</p><a class="a-text-btn a-pcard-reply" href="' + esc( B.home + 'app/?act=1&do=note&p=0&url=' + encodeURIComponent( s.url ) ) + '">Reply to this</a></div>' : '' ) +
-					( s.recent && s.recent.length ? '<div class="a-wn-thumbs">' + s.recent.map( function ( r ) { return '<a href="' + esc( r.link ) + '"><img src="' + esc( r.url ) + '" alt="' + esc( r.note ? 'Photo with a content note: ' + r.note : r.alt ) + '" loading="lazy"' + ( r.note ? ' class="is-noted"' : '' ) + '></a>'; } ).join( '' ) + '</div>' : '' ) +
+					( pr ? '<div class="a-pcard a-disc-card"><p class="a-pcard-q">' + esc( pr.q ) + '</p><p class="a-pcard-a">' + esc( pr.a ) + '</p><a class="a-text-btn a-pcard-reply" href="' + esc( B.home + 'app/?act=1&do=note&p=0&url=' + encodeURIComponent( s.url ) ) + ( '">' + __( 'Reply to this', 'stubli' ) + '</a></div>' ) : '' ) +
+					( s.recent && s.recent.length ? '<div class="a-wn-thumbs">' + s.recent.map( function ( r ) { return '<a href="' + esc( r.link ) + '"><img src="' + esc( r.url ) + '" alt="' + esc( r.note ? _f( __( 'Photo with a content note: %s', 'stubli' ), r.note ) : r.alt ) + '" loading="lazy"' + ( r.note ? ' class="is-noted"' : '' ) + '></a>'; } ).join( '' ) + '</div>' : '' ) +
 					'<p class="a-help" data-disc-msg="' + esc( s.url ) + '" aria-live="polite"></p>' +
-					'<div class="a-actions"><button type="button" class="a-btn quiet" data-disc-next>' + ( done ? 'Next' : 'Not now' ) + '</button></div></article>' +
-					'<p class="muted small" style="text-align:center">' + ( at + 1 ) + ' of ' + disc.list.length + '</p>';
+					'<div class="a-actions"><button type="button" class="a-btn quiet" data-disc-next>' + ( done ? __( 'Next', 'stubli' ) : __( 'Not now', 'stubli' ) ) + '</button></div></article>' +
+					'<p class="muted small" style="text-align:center">' + _f( __( '%s of %s', 'stubli' ), at + 1, disc.list.length ) + '</p>';
 			} ).join( '' );
 		}
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">Discover</h1>' +
-			'<p class="muted" style="margin:-2px 0 14px">Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.</p>' +
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><h1 class="a-greet">' + __( 'Discover', 'stubli' ) + '</h1>' ) +
+			( '<p class="muted" style="margin:-2px 0 14px">' + __( 'Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.', 'stubli' ) + '</p>' ) +
 			followForm( 'discover' ) + '<div style="height:12px"></div>' + body + '</main>' + bar( 'discover' );
 		var dr = $( '[data-disc-retry]' ); if ( dr ) { dr.addEventListener( 'click', function () { disc.loaded = false; viewDiscover(); } ); }
 		var dn = $( '[data-disc-next]' ); if ( dn ) { dn.addEventListener( 'click', function () { disc.i++; renderDiscover(); var h = $( '.a-disc strong, .a-end strong' ); if ( h ) { h.setAttribute( 'tabindex', '-1' ); h.focus(); } } ); }
@@ -1252,11 +1259,11 @@
 		$$( '[data-disc]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var url = b.dataset.disc, m = $( '[data-disc-msg="' + url + '"]' );
-				b.disabled = true; b.textContent = 'Following…';
+				b.disabled = true; b.textContent = __( 'Following…', 'stubli' );
 				send( 'POST', 'follows', { url: url } ).then( function () {
-					disc.followed[ url ] = true; feed.loaded = false; b.textContent = 'Following'; b.classList.add( 'quiet' );
-					m.textContent = 'Their new photos will appear in Home.';
-				}, function ( e ) { b.disabled = false; b.textContent = 'Follow'; m.textContent = ( e && e.message ) || 'That didn\'t work. Try again.'; } );
+					disc.followed[ url ] = true; feed.loaded = false; b.textContent = __( 'Following', 'stubli' ); b.classList.add( 'quiet' );
+					m.textContent = __( 'Their new photos will appear in Home.', 'stubli' );
+				}, function ( e ) { b.disabled = false; b.textContent = __( 'Follow', 'stubli' ); m.textContent = ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ); } );
 			} );
 		} );
 	}
@@ -1281,45 +1288,46 @@
 	function renderWhatsNew() {
 		var body = '';
 		if ( ! wn.loaded ) {
-			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">Loading…</p>';
+			body = ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' );
 		} else {
 			body += notesSection();
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
 			var open = waiting.filter( function ( c ) { return ! wn.done[ c.id ]; } ).length;
-			body += '<h2 class="a-label">Waiting for your OK' + ( open ? ' · ' + open : '' ) + '</h2>';
+			body += ( '<h2 class="a-label">' + __( 'Waiting for your OK', 'stubli' ) ) + ( open ? ' · ' + open : '' ) + '</h2>';
 			// Many comments from one site: show two, fold the rest.
-			var perHost = {}, folded = {};
+			var perHost = {}, folded = {}, names = {};
 			body += waiting.length ? waiting.map( function ( c ) {
 				var h = hostOf( c.author.url );
+				names[ h ] = names[ h ] || unent( c.author.name || '' ) || h;
 				perHost[ h ] = ( perHost[ h ] || 0 ) + 1;
 				if ( perHost[ h ] > 2 && ! ( wn.expand || {} )[ h ] && ! wn.done[ c.id ] ) { folded[ h ] = ( folded[ h ] || 0 ) + 1; return ''; }
 				return waitCard( c );
 			} ).join( '' ) + Object.keys( folded ).map( function ( h ) {
-				return '<button type="button" class="a-btn quiet wide" data-wn-more="' + esc( h ) + '">' + folded[ h ] + ' more from ' + esc( h ) + '</button>';
-			} ).join( '' ) : '<p class="muted">Nothing is waiting. Comments from people you follow appear on your page straight away.</p>';
+				return '<button type="button" class="a-btn quiet wide" data-wn-more="' + esc( h ) + '">' + _f( __( '%s more from %s', 'stubli' ), folded[ h ], esc( names[ h ] ) ) + '</button>';
+			} ).join( '' ) : ( '<p class="muted">' + __( 'Nothing is waiting. Comments from people you follow appear on your page straight away.', 'stubli' ) + '</p>' );
 			if ( later.length ) {
-				body += '<button type="button" class="a-text-btn" data-later-toggle aria-expanded="' + wn.showLater + '">Set aside · ' + later.length + '</button>' + ( wn.showLater ? later.map( waitCard ).join( '' ) : '' );
+				body += '<button type="button" class="a-text-btn" data-later-toggle aria-expanded="' + wn.showLater + '">' + _f( __( 'Set aside · %s', 'stubli' ), later.length ) + '</button>' + ( wn.showLater ? later.map( waitCard ).join( '' ) : '' );
 			}
 			var fresh = wn.items.filter( function ( i ) { return Date.parse( i.published ) > wn.since; } );
 			var groups = {};
 			fresh.forEach( function ( i ) { var k = i.list || ''; ( groups[ k ] = groups[ k ] || [] ).push( i ); } );
 			var keys = Object.keys( groups ).sort( function ( a, b ) { return ( a === '' ) - ( b === '' ) || a.localeCompare( b ); } );
-			body += '<h2 class="a-label">From people you follow</h2>';
+			body += ( '<h2 class="a-label">' + __( 'From people you follow', 'stubli' ) + '</h2>' );
 			body += keys.length ? keys.map( function ( k ) {
 				var g = groups[ k ], names = [];
 				g.forEach( function ( i ) { var n = String( i.author.name || '' ).split( ' ' )[ 0 ]; if ( names.indexOf( n ) < 0 ) { names.push( n ); } } );
-				var who = names.length > 2 ? names.slice( 0, 2 ).join( ', ' ) + ' and others' : names.join( ' and ' );
-				return '<section class="a-wn-group"><div class="a-row"><h3 class="a-wn-h"><strong>' + esc( k || 'Everyone' ) + '</strong> <span class="muted">' + g.length + ' new from ' + esc( who ) + '</span></h3><a class="a-text-btn" href="#home" data-open-list="' + esc( k ) + '">Open</a></div>' +
+				var who = names.length > 2 ? _f( __( '%s and others', 'stubli' ), names.slice( 0, 2 ).join( ', ' ) ) : names.length === 2 ? _f( __( '%s and %s', 'stubli' ), names[ 0 ], names[ 1 ] ) : names.join( '' );
+				return '<section class="a-wn-group"><div class="a-row"><h3 class="a-wn-h"><strong>' + esc( k || __( 'Everyone', 'stubli' ) ) + '</strong> <span class="muted">' + _f( __( '%s new from %s', 'stubli' ), g.length, esc( who ) ) + '</span></h3><a class="a-text-btn" href="#home" data-open-list="' + esc( k ) + ( '">' + __( 'Open', 'stubli' ) + '</a></div>' ) +
 					'<div class="a-wn-thumbs">' + g.slice( 0, 3 ).map( function ( i ) { var im = ( i.images && i.images[ 0 ] ) || { url: i.image, alt: '' }; return '<a href="' + esc( i.permalink ) + '"><img src="' + esc( im.url ) + '" alt="' + esc( i.content_note ? i.author.name + ': ' + i.content_note : i.author.name + ( im.alt ? ': ' + im.alt : '' ) ) + '" loading="lazy"' + ( i.content_note ? ' class="is-noted"' : '' ) + '></a>'; } ).join( '' ) + '</div></section>';
-			} ).join( '' ) : '<p class="muted">Nothing new since your last look.</p>';
+			} ).join( '' ) : ( '<p class="muted">' + __( 'Nothing new since your last look.', 'stubli' ) + '</p>' );
 			var recent = wn.activity.filter( function ( a ) { return a.status === 'approved' && Date.parse( a.date ) > Date.now() - 14 * 86400000; } ).slice( 0, 12 );
-			body += '<h2 class="a-label">On your page</h2>';
+			body += ( '<h2 class="a-label">' + __( 'On your page', 'stubli' ) + '</h2>' );
 			body += recent.length ? '<ul class="a-wn-list">' + recent.map( function ( a ) {
-				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + ( a.where === 'guestbook' ? 'signed your guest book' : 'commented on <a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || 'your post' ) + '</a>' ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
-			} ).join( '' ) + '</ul>' : '<p class="muted">No new comments or guest book entries in the last two weeks.</p>';
+				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + ( a.where === 'guestbook' ? __( 'signed your guest book', 'stubli' ) : _f( __( 'commented on %s', 'stubli' ), '<a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || __( 'your post', 'stubli' ) ) + '</a>' ) ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
+			} ).join( '' ) + '</ul>' : ( '<p class="muted">' + __( 'No new comments or guest book entries in the last two weeks.', 'stubli' ) + '</p>' );
 		}
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><h1 class="a-greet">What\'s new</h1><p class="muted" style="margin:-2px 0 6px">Since your last look</p>' + body + '</main>' + bar( 'whatsnew' );
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
 		bindNotes( renderWhatsNew );
 		var lt = $( '[data-later-toggle]' );
@@ -1339,51 +1347,51 @@
 					if ( act === 'later' && c ) { c.later = true; }
 					B.waiting = wn.queue.filter( function ( x ) { return ! x.later && ! wn.done[ x.id ]; } ).length;
 					renderWhatsNew();
-				}, function ( e ) { $$( '[data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); alertIn( id, ( e && e.message ) || 'That didn\'t work. Try again.' ); } );
+				}, function ( e ) { $$( '[data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); alertIn( id, ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ) ); } );
 			} );
 		} );
 	}
 	function alertIn( id, text ) { var card = $( '[data-card="' + id + '"]' ); if ( card ) { card.insertAdjacentHTML( 'beforeend', '<p class="a-help" role="alert">' + esc( text ) + '</p>' ); } }
 	function waitCard( c ) {
 		var d = wn.done[ c.id ], host = hostOf( c.author.url );
-		var ctx = ( c.where === 'guestbook' ? 'Guest book' : 'Comment on ' + ( c.post && c.post.title ? unent( c.post.title ) : 'your post' ) ) + ( c.via ? ' · followed by ' + c.via : '' );
+		var ctx = ( c.where === 'guestbook' ? __( 'Guest book', 'stubli' ) : ( c.post && c.post.title ? _f( __( 'Comment on %s', 'stubli' ), unent( c.post.title ) ) : __( 'Comment on your post', 'stubli' ) ) ) + ( c.via ? ' ' + _f( __( '· followed by %s', 'stubli' ), c.via ) : '' );
 		if ( d ) {
-			var msg = d.status === 'show' ? 'Shown on your page.' : d.status === 'later' ? 'Set aside. It stays hidden; you\'ll find it under Set aside.' : 'Blocked quietly. Nothing from ' + host + ' will show here, and they aren\'t told.';
-			return '<div class="a-card a-wait is-done" data-card="' + c.id + '"><p role="status" style="margin:0">' + esc( msg ) + '</p>' + ( d.status === 'block' ? '<button type="button" class="a-text-btn" data-wn="undo" data-id="' + c.id + '">Undo</button>' : '' ) + '</div>';
+			var msg = d.status === 'show' ? __( 'Shown on your page.', 'stubli' ) : d.status === 'later' ? __( 'Set aside. It stays hidden; you\'ll find it under Set aside.', 'stubli' ) : _f( __( 'Blocked quietly. Nothing from %s will show here, and they aren\'t told.', 'stubli' ), host );
+			return '<div class="a-card a-wait is-done" data-card="' + c.id + '"><p role="status" style="margin:0">' + esc( msg ) + '</p>' + ( d.status === 'block' ? '<button type="button" class="a-text-btn" data-wn="undo" data-id="' + c.id + ( '">' + __( 'Undo', 'stubli' ) + '</button>' ) : '' ) + '</div>';
 		}
 		return '<div class="a-card a-wait" data-card="' + c.id + '"><div class="a-wait-head">' + face( c.author.avatar, c.author.name, 36 ) +
 			'<span><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">' + esc( ctx ) + '</span></span></div>' +
 			'<p class="a-wait-text">' + esc( c.text ) + '</p>' +
-			'<div class="a-wait-acts"><button type="button" class="a-btn" data-wn="show" data-id="' + c.id + '">Show it</button>' + ( c.later ? '' : '<button type="button" class="a-btn quiet" data-wn="later" data-id="' + c.id + '">Not now</button>' ) +
-			'<button type="button" class="a-text-btn a-block" data-wn="block" data-id="' + c.id + '">Block this site</button></div></div>';
+			'<div class="a-wait-acts"><button type="button" class="a-btn" data-wn="show" data-id="' + c.id + ( '">' + __( 'Show it', 'stubli' ) + '</button>' ) + ( c.later ? '' : '<button type="button" class="a-btn quiet" data-wn="later" data-id="' + c.id + ( '">' + __( 'Not now', 'stubli' ) + '</button>' ) ) +
+			'<button type="button" class="a-text-btn a-block" data-wn="block" data-id="' + c.id + ( '">' + __( 'Block this site', 'stubli' ) + '</button></div></div>' );
 	}
 
 	/* ── Setup wizard (DESIGN §13): Hello · Interests · Look · Your people · Ready ── */
-	var STEPS = [ 'Hello', 'Interests', 'Look', 'Your people', 'Ready' ];
+	var STEPS = [ __( 'Hello', 'stubli' ), __( 'Interests', 'stubli' ), __( 'Look', 'stubli' ), __( 'Your people', 'stubli' ), __( 'Ready', 'stubli' ) ];
 	var MODE_HINTS = {
-		auto: 'Follows the phone: light by day, dark at night.',
-		light: 'Bright linen and ink, like a fresh page.',
-		paper: 'Warm paper with a book font for reading.',
-		dark: 'A dark, quiet ground that\'s easy on the eyes at night.'
+		auto: __( 'Follows the phone: light by day, dark at night.', 'stubli' ),
+		light: __( 'Bright linen and ink, like a fresh page.', 'stubli' ),
+		paper: __( 'Warm paper with a book font for reading.', 'stubli' ),
+		dark: __( 'A dark, quiet ground that\'s easy on the eyes at night.', 'stubli' )
 	};
 	var su = { loaded: false, d: null, step: 0, busy: false, error: '', picked: [], own: '', sugg: null, ticks: {}, photoBusy: false, photoMsg: '' };
 	function viewSetup() {
 		if ( su.loaded ) { return renderSetup(); }
 		if ( su.loading ) { return; }
 		su.loading = true;
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><div class="a-feed-skel" aria-hidden="true"><span style="height:280px"></span></div><p class="sr" role="status">Loading…</p></main>';
+		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><div class="a-feed-skel" aria-hidden="true"><span style="height:280px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' );
 		send( 'GET', 'setup', null ).then( function ( d ) {
 			su.d = d; su.loaded = true; su.loading = false; su.step = d.done ? 0 : Math.min( 4, d.step || 0 );
 			su.picked = d.interests.map( function ( i ) { return i.name; } );
 			renderSetup();
 		}, function ( e ) {
 			su.loading = false;
-			root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p><a class="a-btn quiet" href="#home">Go to Home</a></div></main>';
+			root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div><div class="a-notice" role="alert"><p>' + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#home">' + __( 'Go to Home', 'stubli' ) + '</a></div></main>' );
 		} );
 	}
 	function accentCss( a ) {
 		if ( ! a || a.key === 'moss' ) { return ''; }
-		return ':root,[data-mode="light"],[data-mode="paper"]{--accent:' + a.hex + ';--accent-ink:' + a.ink + '}[data-mode="dark"]{--accent:' + a.dark + ';--accent-ink:#1c1916}';
+		return ':root,[data-mode="light"],[data-mode="paper"]{--accent:' + a.hex + ';--accent-ink:' + a.ink + ';--accent-text:' + ( a.key === 'gold' ? '#7d5f16' : a.hex ) + '}[data-mode="dark"]{--accent:' + a.dark + ';--accent-ink:#1c1916;--accent-text:' + a.dark + '}';
 	}
 	function accentOf( key ) { return su.d.accents.filter( function ( a ) { return a.key === key; } )[ 0 ] || su.d.accents[ 0 ]; }
 	function applyLook() {
@@ -1399,23 +1407,23 @@
 	function initials( n ) { return String( n || '?' ).trim().split( /\s+/ ).slice( 0, 2 ).map( function ( w ) { return w.charAt( 0 ); } ).join( '' ).toUpperCase(); }
 	function setupHead() {
 		var n = su.step;
-		return '<header class="a-head">' + ( n > 0 ? '<button type="button" class="a-text-btn" data-su-back>' + icon( 'back', 20 ) + 'Back</button>' : '<span></span>' ) +
-			'<h1>Step ' + ( n + 1 ) + ' of 5</h1><button type="button" class="a-text-btn" data-su-later>Finish later</button></header>' +
-			'<div class="a-su-progress" role="progressbar" aria-label="Setup" aria-valuemin="1" aria-valuemax="5" aria-valuenow="' + ( n + 1 ) + '" aria-valuetext="Step ' + ( n + 1 ) + ' of 5: ' + STEPS[ n ] + '">' +
+		return '<header class="a-head">' + ( n > 0 ? '<button type="button" class="a-text-btn" data-su-back>' + icon( 'back', 20 ) + ( __( 'Back', 'stubli' ) + '</button>' ) : '<span></span>' ) +
+			'<h1>' + _f( __( 'Step %s of 5', 'stubli' ), n + 1 ) + ( '</h1><button type="button" class="a-text-btn" data-su-later>' + __( 'Finish later', 'stubli' ) + '</button></header>' ) +
+			'<div class="a-su-progress" role="progressbar" aria-label="' + esc( __( 'Setup', 'stubli' ) ) + '" aria-valuemin="1" aria-valuemax="5" aria-valuenow="' + ( n + 1 ) + '" aria-valuetext="' + esc( _f( __( 'Step %s of 5: %s', 'stubli' ), n + 1, STEPS[ n ] ) ) + '">' +
 			STEPS.map( function ( s, i ) { return '<span' + ( i <= n ? ' class="is-on"' : '' ) + '></span>'; } ).join( '' ) + '</div>';
 	}
 	function setupFoot( label ) {
 		return ( su.error ? '<div class="a-notice" role="alert"><p>' + esc( su.error ) + '</p></div>' : '' ) +
-			'<div class="a-su-foot"><button type="button" class="a-btn wide" data-su-next' + ( su.busy ? ' disabled' : '' ) + '>' + esc( su.busy ? 'Saving…' : label ) + '</button></div>';
+			'<div class="a-su-foot"><button type="button" class="a-btn wide" data-su-next' + ( su.busy ? ' disabled' : '' ) + '>' + esc( su.busy ? __( 'Saving…', 'stubli' ) : label ) + '</button></div>';
 	}
 	function suMove() {
 		var st = mv.inState;
 		if ( st && st.state === 'done' ) {
-			return '<section class="a-su-move">' + moveProgress( st ) + '<button type="button" class="a-btn wide" data-su-move-go>Continue</button></section>';
+			return '<section class="a-su-move">' + moveProgress( st ) + ( '<button type="button" class="a-btn wide" data-su-move-go>' + __( 'Continue', 'stubli' ) + '</button></section>' );
 		}
 		if ( st && st.state === 'moving' ) { return '<section class="a-su-move">' + moveProgress( st ) + '</section>'; }
-		return '<section class="a-su-move"><button type="button" class="a-link" data-su-move-open aria-expanded="' + !! su.moveOpen + '">Moving here from another Stubli?</button>' +
-			( su.moveOpen ? '<p class="muted">On your old Stubli, open You → Move to another site → Make a move link. Paste it here and everything comes along: photos, journal, guest book, people and settings.</p><form class="a-inline" data-su-move style="margin-top:0"><label class="sr" for="a-su-mv">Move link</label><input id="a-su-mv" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="oldsite.com/?stubli_move=…"><button type="submit" class="a-btn quiet"' + ( mv.busy ? ' disabled' : '' ) + '>Start</button></form>' + ( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) : '' ) + '</section>';
+		return '<section class="a-su-move"><button type="button" class="a-link" data-su-move-open aria-expanded="' + !! su.moveOpen + ( '">' + __( 'Moving here from another Stubli?', 'stubli' ) + '</button>' ) +
+			( su.moveOpen ? ( '<p class="muted">' + __( 'On your old Stubli, open You → Move to another site → Make a move link. Paste it here and everything comes along: photos, journal, guest book, people and settings.', 'stubli' ) + '</p><form class="a-inline" data-su-move style="margin-top:0"><label class="sr" for="a-su-mv">' + __( 'Move link', 'stubli' ) + '</label><input id="a-su-mv" class="a-field" type="text" inputmode="url" autocomplete="off" placeholder="' + esc( __( 'oldsite.com/?stubli_move=…', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet"' ) + ( mv.busy ? ' disabled' : '' ) + ( '>' + __( 'Start', 'stubli' ) + '</button></form>' ) + ( mv.msg ? '<div class="a-notice" role="alert"><p>' + esc( mv.msg ) + '</p></div>' : '' ) : '' ) + '</section>';
 	}
 	function bindSuMove() {
 		var redraw = function () { if ( location.hash === '#setup' ) { renderSetup(); } };
@@ -1428,12 +1436,12 @@
 	function smileyPicker( d ) {
 		var sm = d.smiley; if ( ! sm ) { return ''; }
 		var on = ! d.photo;
-		return '<details class="a-su-smiley"' + ( d.smileyOpen ? ' open' : '' ) + '><summary>' + ( on ? 'Change your smiley' : 'Use a smiley instead' ) + '</summary>' +
-			'<p class="a-label" id="a-su-sc">Colour</p><div class="a-su-sc" role="radiogroup" aria-labelledby="a-su-sc">' + sm.colours.map( function ( hex, i ) {
+		return '<details class="a-su-smiley"' + ( d.smileyOpen ? ' open' : '' ) + '><summary>' + ( on ? __( 'Change your smiley', 'stubli' ) : __( 'Use a smiley instead', 'stubli' ) ) + '</summary>' +
+			( '<p class="a-label" id="a-su-sc">' + __( 'Colour', 'stubli' ) + '</p><div class="a-su-sc" role="radiogroup" aria-labelledby="a-su-sc">' ) + sm.colours.map( function ( hex, i ) {
 				var sel = on && i === sm.c;
-				return '<button type="button" role="radio" aria-checked="' + sel + '" aria-label="Colour ' + ( i + 1 ) + '" data-sm-c="' + i + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><span style="background:' + hex + '"></span></button>';
+				return '<button type="button" role="radio" aria-checked="' + sel + '" aria-label="' + esc( _f( __( 'Colour %s', 'stubli' ), i + 1 ) ) + '" data-sm-c="' + i + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><span style="background:' + hex + '"></span></button>';
 			} ).join( '' ) + '</div>' +
-			'<p class="a-label" id="a-su-sx">Something extra</p><div class="a-su-sx" role="radiogroup" aria-labelledby="a-su-sx">' + sm.extras.map( function ( e, i ) {
+			( '<p class="a-label" id="a-su-sx">' + __( 'Something extra', 'stubli' ) + '</p><div class="a-su-sx" role="radiogroup" aria-labelledby="a-su-sx">' ) + sm.extras.map( function ( e, i ) {
 				var sel = on && e.key === sm.x;
 				return '<button type="button" role="radio" aria-checked="' + sel + '" data-sm-x="' + esc( e.key ) + '" tabindex="' + ( ( on ? sel : i === 0 ) ? 0 : -1 ) + '"><img src="' + esc( smileyData( sm, sm.c, e.key ) ) + '" alt="" width="44" height="44"><small>' + esc( e.label ) + '</small></button>';
 			} ).join( '' ) + '</div></details>';
@@ -1441,7 +1449,7 @@
 	function pickSmiley( d, c, x, focusSel, redraw ) {
 		var sm = d.smiley; sm.c = c; sm.x = x; d.avatar = smileyData( sm, c, x ); d.photo = false; d.smileyOpen = true; d.photoMsg = '';
 		redraw(); var f = $( focusSel ); if ( f ) { f.focus(); }
-		send( 'POST', 'setup/smiley', { c: c, x: x } ).then( function ( r ) { d.avatar = r.avatar; }, function () { var m = $( '[data-su-photo-msg]' ); if ( m ) { m.textContent = 'That didn\'t save. Try again in a moment.'; } } );
+		send( 'POST', 'setup/smiley', { c: c, x: x } ).then( function ( r ) { d.avatar = r.avatar; }, function () { var m = $( '[data-su-photo-msg]' ); if ( m ) { m.textContent = __( 'That didn\'t save. Try again in a moment.', 'stubli' ); } } );
 	}
 	function bindSmiley( d, redraw ) {
 		var det = $( '.a-su-smiley' ); if ( ! det ) { return; }
@@ -1463,83 +1471,83 @@
 	function renderSetup() {
 		var d = su.d, n = su.step, body = '';
 		if ( n === 0 ) {
-			body = '<h2 class="a-su-title">Hello! Whose Stubli is this?</h2><p class="muted">This is what people see at the top of your page. You can change it any time.</p>' +
-				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="' + ( d.photo ? 'Your photo' : 'Your smiley' ) + '">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
-				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.photo ? 'Change photo' : 'Add a photo' ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || ( d.photo ? 'A face, a place, anything that feels like you.' : 'Optional. Until then, this smiley is you. Make it yours below.' ) ) + '</p></div></div>' +
+			body = ( '<h2 class="a-su-title">' + __( 'Hello! Whose Stubli is this?', 'stubli' ) + '</h2><p class="muted">' + __( 'This is what people see at the top of your page. You can change it any time.', 'stubli' ) + '</p>' ) +
+				'<div class="a-su-photo"><label class="a-su-av" for="a-su-file">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="' + ( d.photo ? __( 'Your photo', 'stubli' ) : __( 'Your smiley', 'stubli' ) ) + '">' : '<span aria-hidden="true">' + esc( initials( d.name ) ) + '</span>' ) + '</label>' +
+				'<div><label class="a-btn quiet" for="a-su-file">' + icon( 'photo', 18 ) + ( d.photo ? __( 'Change photo', 'stubli' ) : __( 'Add a photo', 'stubli' ) ) + '</label><input id="a-su-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-su-photo-msg>' + esc( su.photoMsg || ( d.photo ? __( 'A face, a place, anything that feels like you.', 'stubli' ) : __( 'Optional. Until then, this smiley is you. Make it yours below.', 'stubli' ) ) ) + '</p></div></div>' +
 				smileyPicker( d ) +
-				'<label class="a-label" for="a-su-name">Your name</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="Ana Keller" value="' + esc( d.name ) + '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">The name people see on your page.</p>' +
-				'<label class="a-label" for="a-su-bio">One line about you</label><textarea id="a-su-bio" class="a-field a-grow" rows="2" maxlength="160" placeholder="Photos from walks around Zurich">' + esc( d.bio ) + '</textarea><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
-				'<label class="a-label" for="a-su-pro">Pronouns <span class="muted" style="font-weight:400">(optional)</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' + esc( d.pronouns ) + '" placeholder="she/her, they/them…">' +
-				setupFoot( 'Next' ) + suMove();
+				( '<label class="a-label" for="a-su-name">' + __( 'Your name', 'stubli' ) + '</label><input id="a-su-name" class="a-field" type="text" maxlength="60" autocomplete="name" placeholder="' + esc( __( 'Ana Keller', 'stubli' ) ) + '" value="' ) + esc( d.name ) + ( '" aria-describedby="a-su-name-h"><p class="a-help" id="a-su-name-h">' + __( 'The name people see on your page.', 'stubli' ) + '</p>' ) +
+				( '<label class="a-label" for="a-su-bio">' + __( 'One line about you', 'stubli' ) + '</label><textarea id="a-su-bio" class="a-field a-grow" rows="2" maxlength="160" placeholder="' + esc( __( 'Photos from walks around Zurich', 'stubli' ) ) + '">' ) + esc( d.bio ) + '</textarea><p class="a-count" data-su-bio-count>' + d.bio.length + ' / 160</p>' +
+				( '<label class="a-label" for="a-su-pro">' + __( 'Pronouns', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-su-pro" class="a-field" type="text" maxlength="30" value="' ) + esc( d.pronouns ) + '" placeholder="' + esc( __( 'she/her, they/them…', 'stubli' ) ) + '">' +
+				setupFoot( __( 'Next', 'stubli' ) ) + suMove();
 		} else if ( n === 1 ) {
 			var used = {}, all = [];
 			d.interests.forEach( function ( i ) { used[ ikey( i.name ) ] = i.count; all.push( i.name ); } );
 			su.picked.concat( d.ideas ).forEach( function ( p ) { if ( all.map( ikey ).indexOf( ikey( p ) ) < 0 ) { all.push( p ); } } );
-			body = '<h2 class="a-su-title">What do you like to photograph?</h2><p class="muted">Each interest becomes a tab on your page and a way to sort the people you follow. Pick up to ' + d.max + '. You can change them later.</p>' +
-				'<div class="a-chips" role="group" aria-label="Interests" style="margin-top:16px">' + all.map( function ( p ) {
+			body = ( '<h2 class="a-su-title">' + __( 'What do you like to photograph?', 'stubli' ) + '</h2><p class="muted">' + _f( __( 'Each interest becomes a tab on your page and a way to sort the people you follow. Pick up to %s. You can change them later.', 'stubli' ), d.max ) ) + '</p>' +
+				'<div class="a-chips" role="group" aria-label="' + esc( __( 'Interests', 'stubli' ) ) + '" style="margin-top:16px">' + all.map( function ( p ) {
 					var on = su.picked.some( function ( x ) { return ikey( x ) === ikey( p ); } ), has = used[ ikey( p ) ] > 0;
 					return '<button type="button" class="a-chip" aria-pressed="' + on + '" data-int="' + esc( p ) + '"' + ( has ? ' aria-describedby="a-su-has"' : '' ) + '>' + ( on ? icon( 'check', 16 ) : '' ) + esc( p ) + '</button>';
 				} ).join( '' ) + '</div>' +
-				( d.interests.some( function ( i ) { return i.count > 0; } ) ? '<p class="a-help" id="a-su-has">Interests that already have photos stay, even if you untick them.</p>' : '' ) +
-				'<form class="a-inline" data-su-own><label class="sr" for="a-su-own">Add your own interest</label><input id="a-su-own" class="a-field" type="text" maxlength="40" placeholder="Add your own"><button type="submit" class="a-btn quiet">Add</button></form>' +
-				'<p class="a-help" aria-live="polite" data-su-int-msg>' + su.picked.length + ' of ' + d.max + ' chosen</p>' +
-				setupFoot( su.picked.length ? 'Next' : 'Skip for now' );
+				( d.interests.some( function ( i ) { return i.count > 0; } ) ? ( '<p class="a-help" id="a-su-has">' + __( 'Interests that already have photos stay, even if you untick them.', 'stubli' ) + '</p>' ) : '' ) +
+				( '<form class="a-inline" data-su-own><label class="sr" for="a-su-own">' + __( 'Add your own interest', 'stubli' ) + '</label><input id="a-su-own" class="a-field" type="text" maxlength="40" placeholder="' + esc( __( 'Add your own', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet">' + __( 'Add', 'stubli' ) + '</button></form>' ) +
+				'<p class="a-help" aria-live="polite" data-su-int-msg>' + _f( __( '%s of %s chosen', 'stubli' ), su.picked.length, d.max ) + '</p>' +
+				setupFoot( su.picked.length ? __( 'Next', 'stubli' ) : __( 'Skip for now', 'stubli' ) );
 		} else if ( n === 2 ) {
 			var a = accentOf( d.accent ), pm = d.mode === 'auto' ? ( matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light' ) : d.mode;
 			var tabs = ( su.picked.length ? su.picked : [ 'Photos' ] ).slice( 0, 3 );
-			body = '<h2 class="a-su-title">Make it look like you</h2><p class="muted">Choose a colour for buttons and tabs, and how your page reads.</p>' +
+			body = ( '<h2 class="a-su-title">' + __( 'Make it look like you', 'stubli' ) + '</h2><p class="muted">' + __( 'Choose a colour for buttons and tabs, and how your page reads.', 'stubli' ) + '</p>' ) +
 				'<div class="a-su-preview" data-mode="' + pm + '" style="--accent:' + ( pm === 'dark' ? a.dark : a.hex ) + ';--accent-ink:' + ( pm === 'dark' ? '#1c1916' : a.ink ) + '" aria-hidden="true">' +
-				'<div class="a-su-pv-head"><span class="a-su-pv-av">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="">' : '' ) + '</span><span><strong>' + esc( d.name ) + '</strong><small>' + esc( d.bio || 'One line about you' ) + '</small></span></div>' +
+				'<div class="a-su-pv-head"><span class="a-su-pv-av">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="">' : '' ) + '</span><span><strong>' + esc( d.name ) + '</strong><small>' + esc( d.bio || __( 'One line about you', 'stubli' ) ) + '</small></span></div>' +
 				'<div class="a-su-pv-tabs">' + tabs.map( function ( t, i ) { return '<span' + ( i === 0 ? ' class="is-on"' : '' ) + '>' + esc( t ) + '</span>'; } ).join( '' ) + '</div>' +
-				'<div class="a-su-pv-grid"><span></span><span></span><span></span></div><span class="a-su-pv-btn">Follow</span></div>' +
-				'<p class="a-label" id="a-su-col">Colour: ' + esc( a.name ) + '</p><div class="a-swatches" role="radiogroup" aria-labelledby="a-su-col">' + d.accents.map( function ( c ) {
+				( '<div class="a-su-pv-grid"><span></span><span></span><span></span></div><span class="a-su-pv-btn">' + __( 'Follow', 'stubli' ) + '</span></div>' ) +
+				'<p class="a-label" id="a-su-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p><div class="a-swatches" role="radiogroup" aria-labelledby="a-su-col">' + d.accents.map( function ( c ) {
 					var on = c.key === d.accent;
-					return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? ', the Stubli green' : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
+					return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
 				} ).join( '' ) + '</div>' +
-				( d.accent === 'gold' && pm !== 'dark' ? '<p class="a-help" role="status">Gold is made for dark pages. On a light page your tabs blend in a little; Dark mode suits it best.</p>' : '' ) +
-				'<p class="a-label" id="a-su-mode">Reading mode</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' + [ [ 'auto', 'Automatic' ], [ 'light', 'Light' ], [ 'paper', 'Paper' ], [ 'dark', 'Dark' ] ].map( function ( m ) {
+				( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is made for dark pages. On a light page your tabs blend in a little; Dark mode suits it best.', 'stubli' ) + '</p>' ) : '' ) +
+				( '<p class="a-label" id="a-su-mode">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' ) + [ [ 'auto', __( 'Automatic', 'stubli' ) ], [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ], [ 'dark', __( 'Dark', 'stubli' ) ] ].map( function ( m ) {
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
-				} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' Visitors can still switch with the Aa button.</p>' +
-				'<p class="a-label" id="a-su-cr" style="margin-top:22px">Help friends find Stubli?</p><p class="a-help" style="margin:-2px 0 10px">Show one small line on your page, “Made with Stubli · Make your own”, so visitors can see how to get their own. You can change it any time in Settings.</p>' +
-				'<div class="a-chips" role="radiogroup" aria-labelledby="a-su-cr">' + [ [ true, 'Yes, show it' ], [ false, 'Not now' ] ].map( function ( c ) {
+				} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ( ' ' + __( 'Visitors can still switch with the Aa button.', 'stubli' ) + '</p>' ) +
+				( '<p class="a-label" id="a-su-cr" style="margin-top:22px">' + __( 'Help friends find Stubli?', 'stubli' ) + '</p><p class="a-help" style="margin:-2px 0 10px">' + __( 'Show one small line on your page, “Made with Stubli · Make your own”, so visitors can see how to get their own. You can change it any time in Settings.', 'stubli' ) + '</p>' ) +
+				'<div class="a-chips" role="radiogroup" aria-labelledby="a-su-cr">' + [ [ true, __( 'Yes, show it', 'stubli' ) ], [ false, __( 'Not now', 'stubli' ) ] ].map( function ( c ) {
 					var on = d.credit === c[ 0 ];
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-credit-pick="' + ( c[ 0 ] ? 1 : 0 ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + c[ 1 ] + '</button>';
 				} ).join( '' ) + '</div>' +
-				setupFoot( 'Next' );
+				setupFoot( __( 'Next', 'stubli' ) );
 		} else if ( n === 3 ) {
 			var opts = [ '' ].concat( su.picked );
-			body = '<h2 class="a-su-title">Your people</h2><p class="muted">Their new photos will be in your Home feed. Nobody is told who else you follow.</p>' +
+			body = ( '<h2 class="a-su-title">' + __( 'Your people', 'stubli' ) + '</h2><p class="muted">' + __( 'Their new photos will be in your Home feed. Nobody is told who else you follow.', 'stubli' ) + '</p>' ) +
 				( d.follows.length ? '<ul class="a-su-people">' + d.follows.map( function ( f ) {
 					return '<li><span class="a-av a-su-ini" aria-hidden="true">' + esc( initials( f.name || hostOf( f.url ) ) ) + '</span><span class="a-su-who"><strong>' + esc( f.name || hostOf( f.url ) ) + '</strong><small class="muted">' + esc( hostOf( f.url ) ) + '</small>' +
-						( su.picked.length ? '<label class="sr" for="a-su-l' + f.id + '">Interest for ' + esc( f.name ) + '</label><select id="a-su-l' + f.id + '" class="a-su-select" data-su-list="' + f.id + '">' + opts.map( function ( o ) { return '<option value="' + esc( o ) + '"' + ( o === f.list ? ' selected' : '' ) + '>' + esc( o || 'No interest' ) + '</option>'; } ).join( '' ) + '</select>' : '' ) +
-						'</span><span class="a-su-following">' + icon( 'check', 16 ) + 'Following</span></li>';
-				} ).join( '' ) + '</ul>' : '<p class="a-su-empty">Nobody yet, and that\'s fine. If a friend sent you an invite link, paste it below and you\'ll follow each other.</p>' ) +
-				'<label class="a-label" for="a-su-inv">Got an invite link?</label><form class="a-inline" data-su-inv style="margin-top:0"><input id="a-su-inv" class="a-field" type="url" inputmode="url" autocomplete="off" placeholder="theirname.com/invite/?t=…"><button type="submit" class="a-btn quiet">Use link</button></form><p class="a-help" aria-live="polite" data-su-inv-msg></p>' +
-				( su.sugg && su.sugg.length ? '<p class="a-label">People they follow</p><ul class="a-su-people">' + su.sugg.map( function ( s ) {
+						( su.picked.length ? '<label class="a-su-sel-l" for="a-su-l' + f.id + '">' + __( 'Show under', 'stubli' ) + '</label><select id="a-su-l' + f.id + '" class="a-su-select" data-su-list="' + f.id + '">' + opts.map( function ( o ) { return '<option value="' + esc( o ) + '"' + ( o === f.list ? ' selected' : '' ) + '>' + esc( o || __( 'Just Home', 'stubli' ) ) + '</option>'; } ).join( '' ) + '</select>' : '' ) +
+						'</span><span class="a-su-following">' + icon( 'check', 16 ) + ( __( 'Following', 'stubli' ) + '</span></li>' );
+				} ).join( '' ) + '</ul>' : ( '<p class="a-su-empty">' + __( 'Nobody yet, and that\'s fine. If a friend sent you an invite link, paste it below and you\'ll follow each other.', 'stubli' ) + '</p>' ) ) +
+				( '<label class="a-label" for="a-su-inv">' + __( 'Got an invite link?', 'stubli' ) + '</label><form class="a-inline" data-su-inv style="margin-top:0"><input id="a-su-inv" class="a-field" type="url" inputmode="url" autocomplete="off" placeholder="' + esc( __( 'theirname.com/invite/?t=…', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet">' + __( 'Use link', 'stubli' ) + '</button></form><p class="a-help" aria-live="polite" data-su-inv-msg></p>' ) +
+				( su.sugg && su.sugg.length ? ( '<p class="a-label">' + __( 'People they follow', 'stubli' ) + '</p><ul class="a-su-people">' ) + su.sugg.map( function ( s ) {
 					var on = !! su.ticks[ s.url ];
 					return '<li><button type="button" class="a-su-row" role="checkbox" aria-checked="' + on + '" data-su-tick="' + esc( s.url ) + '">' + ( s.avatar ? '<img class="a-av" src="' + esc( s.avatar ) + '" alt="">' : '<span class="a-av a-su-ini" aria-hidden="true">' + esc( initials( s.name || hostOf( s.url ) ) ) + '</span>' ) +
-						'<span class="a-su-who"><strong>' + esc( s.name || hostOf( s.url ) ) + '</strong><small class="muted">Followed by ' + esc( viaText( s.via ) ) + '</small></span><span class="a-su-box" aria-hidden="true">' + ( on ? icon( 'check', 18 ) : '' ) + '</span></button></li>';
+						'<span class="a-su-who"><strong>' + esc( s.name || hostOf( s.url ) ) + '</strong><small class="muted">' + _f( __( 'Followed by %s', 'stubli' ), esc( viaText( s.via ) ) ) + '</small></span><span class="a-su-box" aria-hidden="true">' + ( on ? icon( 'check', 18 ) : '' ) + '</span></button></li>';
 				} ).join( '' ) + '</ul>' : '' ) +
-				'<p class="a-label">Follow someone by address</p>' + followForm( 'setup' ) +
-				'<p class="a-label">Invite a friend</p><p class="muted" style="margin:0 0 8px">Send them a link. Once they\'ve set up their Stubli, you follow each other. Each link works once, for 30 days.</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>Create an invite link</button>' +
-				setupFoot( Object.keys( su.ticks ).some( function ( k ) { return su.ticks[ k ]; } ) ? 'Follow and continue' : 'Next' );
+				( '<p class="a-label">' + __( 'Follow someone by address', 'stubli' ) + '</p>' ) + followForm( 'setup' ) +
+				( '<p class="a-label">' + __( 'Invite a friend', 'stubli' ) + '</p><p class="muted" style="margin:0 0 8px">' + __( 'Send them a link. Once they\'ve set up their Stubli, you follow each other. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button>' ) +
+				setupFoot( Object.keys( su.ticks ).some( function ( k ) { return su.ticks[ k ]; } ) ? __( 'Follow and continue', 'stubli' ) : __( 'Next', 'stubli' ) );
 		} else {
 			var ios = /iphone|ipad|ipod/i.test( navigator.userAgent ), times = [];
 			for ( var h = 6; h <= 22; h++ ) { times.push( ( h < 10 ? '0' : '' ) + h + ':00' ); }
 			if ( times.indexOf( d.digest ) < 0 ) { times.push( d.digest ); times.sort(); }
-			body = '<h2 class="a-su-title">You\'re ready</h2><p class="muted">A few last choices, then your feed.</p>' +
-				'<label class="a-label" for="a-su-dig">Your daily summary</label><p class="muted" style="margin:0 0 8px">At most one a day, with new comments and guest book entries. Never one per post.</p>' +
+			body = ( '<h2 class="a-su-title">' + __( 'You\'re ready', 'stubli' ) + '</h2><p class="muted">' + __( 'A few last choices, then your feed.', 'stubli' ) + '</p>' ) +
+				( '<label class="a-label" for="a-su-dig">' + __( 'Your daily summary', 'stubli' ) + '</label><p class="muted" style="margin:0 0 8px">' + __( 'At most one a day, with new comments and guest book entries. Never one per post.', 'stubli' ) + '</p>' ) +
 				'<select id="a-su-dig" class="a-field a-su-select" data-su-dig>' + times.map( function ( t ) { return '<option' + ( t === d.digest ? ' selected' : '' ) + '>' + t + '</option>'; } ).join( '' ) + '</select>' +
-				( pushSupported() && ! iosNeedsInstall() ? '<div class="a-actions" style="margin-top:10px">' + ( ds.on ? '<p class="a-ds-status">' + icon( 'check', 16 ) + 'It will arrive on this phone</p>' : '<button type="button" class="a-btn quiet" data-su-push' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? 'Asking your phone…' : 'Send it to this phone' ) + '</button>' ) + '</div>' : '<p class="a-help">You can turn on phone notifications later in You → Daily summary.</p>' ) +
+				( pushSupported() && ! iosNeedsInstall() ? '<div class="a-actions" style="margin-top:10px">' + ( ds.on ? '<p class="a-ds-status">' + icon( 'check', 16 ) + ( __( 'It will arrive on this phone', 'stubli' ) + '</p>' ) : '<button type="button" class="a-btn quiet" data-su-push' + ( ds.busy ? ' disabled' : '' ) + '>' + ( ds.busy ? __( 'Asking your phone…', 'stubli' ) : __( 'Send it to this phone', 'stubli' ) ) + '</button>' ) + '</div>' : ( '<p class="a-help">' + __( 'You can turn on phone notifications later in You → Daily summary.', 'stubli' ) + '</p>' ) ) +
 				( ds.msg ? '<p class="a-help" role="status">' + esc( ds.msg ) + '</p>' : '' ) +
-				( isStandalone() ? '' : '<p class="a-label">Put Stubli on your home screen</p><div class="a-su-hs"><section' + ( ios ? ' class="is-you"' : '' ) + '><strong>iPhone</strong><p class="muted">In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.</p></section><section' + ( ios ? '' : ' class="is-you"' ) + '><strong>Android</strong><p class="muted">Open the browser menu ⋮, then <strong>Add to Home screen</strong> or <strong>Install app</strong>.</p></section></div><p class="a-help">It opens like an app, without the browser around it.</p>' ) +
-				'<p class="a-label">Your site</p>' +
-				'<label class="a-check"><span><strong>Keep my site out of search engines</strong><span class="muted small">Google and others won\'t list it. Friends still find you through Stubli.</span></span><input type="checkbox" data-su-hidden' + ( d.hidden ? ' checked' : '' ) + '></label>' +
-				'<label class="a-check"><span><strong>Ask AI crawlers to stay away</strong><span class="muted small">A request that respectable bots honour.</span></span><input type="checkbox" data-su-ai' + ( d.block_ai ? ' checked' : '' ) + '></label>' +
-				'<p class="a-help">' + ( d.helper === 'active' ? 'Stubli also turns on comments, so replies from friends\' sites can arrive.' : 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.' ) + ' You can change all of this later in Settings → Stubli.</p>' +
-				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + '">Add Webmention in Plugins</a></p></div>' : '' ) +
-				'<p class="a-su-note">Your first photo can wait. When you\'re ready, tap ' + icon( 'plus', 18 ) + ' at the bottom.</p>' +
-				setupFoot( su.helperFail ? 'Open my feed anyway' : ( su.busy && su.helperBusy ? 'Adding Webmention…' : 'Open my feed' ) );
+				( isStandalone() ? '' : ( '<p class="a-label">' + __( 'Put Stubli on your home screen', 'stubli' ) + '</p><div class="a-su-hs"><section' ) + ( ios ? ' class="is-you"' : '' ) + ( '><strong>iPhone</strong><p class="muted">' + __( 'In Safari, tap the Share button, then', 'stubli' ) + ' <strong>' + __( 'Add to Home Screen', 'stubli' ) + '</strong>.</p></section><section' ) + ( ios ? '' : ' class="is-you"' ) + ( '><strong>' + __( 'Android', 'stubli' ) + '</strong><p class="muted">' + __( 'Open the browser menu ⋮, then', 'stubli' ) + ' <strong>' + __( 'Add to Home screen', 'stubli' ) + '</strong> or <strong>' + __( 'Install app', 'stubli' ) + '</strong>.</p></section></div><p class="a-help">' + __( 'It opens like an app, without the browser around it.', 'stubli' ) + '</p>' ) ) +
+				( '<p class="a-label">' + __( 'Your site', 'stubli' ) + '</p>' ) +
+				( '<label class="a-check"><span><strong>' + __( 'Keep my site out of search engines', 'stubli' ) + '</strong><span class="muted small">' + __( 'Google and others won\'t list it. Friends still find you through Stubli.', 'stubli' ) + '</span></span><input type="checkbox" data-su-hidden' ) + ( d.hidden ? ' checked' : '' ) + '></label>' +
+				( '<label class="a-check"><span><strong>' + __( 'Ask AI crawlers to stay away', 'stubli' ) + '</strong><span class="muted small">' + __( 'A request that respectable bots honour.', 'stubli' ) + '</span></span><input type="checkbox" data-su-ai' ) + ( d.block_ai ? ' checked' : '' ) + '></label>' +
+				'<p class="a-help">' + ( d.helper === 'active' ? __( 'Stubli also turns on comments, so replies from friends\' sites can arrive.', 'stubli' ) : __( 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.', 'stubli' ) ) + ( ' ' + __( 'You can change all of this later in Settings → Stubli.', 'stubli' ) + '</p>' ) +
+				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + ( '">' + __( 'Add Webmention in Plugins', 'stubli' ) + '</a></p></div>' ) : '' ) +
+				'<p class="a-su-note">' + _f( __( 'Your first photo can wait. When you\'re ready, tap %s at the bottom.', 'stubli' ), icon( 'plus', 18 ) ) + '</p>' +
+				setupFoot( su.helperFail ? __( 'Open my feed anyway', 'stubli' ) : ( su.busy && su.helperBusy ? __( 'Adding Webmention…', 'stubli' ) : __( 'Open my feed', 'stubli' ) ) );
 		}
 		root.innerHTML = setupHead() + '<main class="a-compose a-su" id="main">' + body + '</main>';
 		bindSetup();
@@ -1580,15 +1588,15 @@
 			file.addEventListener( 'change', function () {
 				var f = file.files && file.files[ 0 ], m = $( '[data-su-photo-msg]' );
 				if ( ! f ) { return; }
-				m.textContent = 'Uploading…';
+				m.textContent = __( 'Uploading…', 'stubli' );
 				squareAvatar( f ).then( function ( blob ) {
 					var fd = new FormData(); fd.append( 'photo', blob, 'profile.jpg' );
 					return send( 'POST', 'setup/photo', fd );
-				} ).then( function ( r ) { d.avatar = r.avatar; d.photo = true; d.smileyOpen = false; su.photoMsg = 'Lovely. That\'s your photo now.'; renderSetup(); },
-					function ( e ) { m.textContent = ( e && e.message ) || 'That photo couldn\'t be read. Try another one.'; } );
+				} ).then( function ( r ) { d.avatar = r.avatar; d.photo = true; d.smileyOpen = false; su.photoMsg = __( 'Lovely. That\'s your photo now.', 'stubli' ); renderSetup(); },
+					function ( e ) { m.textContent = ( e && e.message ) || __( 'That photo couldn\'t be read. Try another one.', 'stubli' ); } );
 			} );
 			next.addEventListener( 'click', function () {
-				if ( ! d.name.trim() ) { su.error = 'Add the name people should see.'; renderSetup(); $( '#a-su-name' ).focus(); return; }
+				if ( ! d.name.trim() ) { su.error = __( 'Add the name people should see.', 'stubli' ); renderSetup(); $( '#a-su-name' ).focus(); return; }
 				setupSave( { name: d.name, bio: d.bio, pronouns: d.pronouns, step: 1 } ).then( function () { B.name = /^(your|my)\b/i.test( d.name.trim() ) ? '' : d.name.trim().split( /\s+/ )[ 0 ]; setupGo( 1 ); } );
 			} );
 		} else if ( su.step === 1 ) {
@@ -1596,7 +1604,7 @@
 			$$( '[data-int]' ).forEach( function ( b ) {
 				b.addEventListener( 'click', function () {
 					var v = b.dataset.int, i = su.picked.map( ikey ).indexOf( ikey( v ) );
-					if ( i > -1 ) { su.picked.splice( i, 1 ); } else if ( su.picked.length >= d.max ) { msg.textContent = 'That\'s ' + d.max + ' already. Untick one to choose another.'; return; } else { su.picked.push( v ); }
+					if ( i > -1 ) { su.picked.splice( i, 1 ); } else if ( su.picked.length >= d.max ) { msg.textContent = _f( __( 'That\'s %s already. Untick one to choose another.', 'stubli' ), d.max ); return; } else { su.picked.push( v ); }
 					renderSetup(); var again = $( '[data-int="' + v.replace( /"/g, '\\"' ) + '"]' ); if ( again ) { again.focus(); }
 				} );
 			} );
@@ -1604,7 +1612,7 @@
 				e.preventDefault();
 				var inp = $( '#a-su-own' ), v = inp.value.trim().replace( /\s+/g, ' ' );
 				if ( ! v ) { inp.focus(); return; }
-				if ( su.picked.length >= d.max ) { msg.textContent = 'That\'s ' + d.max + ' already. Untick one to add another.'; return; }
+				if ( su.picked.length >= d.max ) { msg.textContent = _f( __( 'That\'s %s already. Untick one to add another.', 'stubli' ), d.max ); return; }
 				if ( ! su.picked.some( function ( x ) { return ikey( x ) === ikey( v ); } ) ) { su.picked.push( v ); }
 				renderSetup(); $( '#a-su-own' ).focus();
 			} );
@@ -1642,13 +1650,13 @@
 				var inp = $( '#a-su-inv' ), m = $( '[data-su-inv-msg]' ), btn = e.target.querySelector( 'button' ), v = inp.value.trim();
 				if ( ! v ) { inp.focus(); return; }
 				if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
-				btn.disabled = true; btn.textContent = 'Using…'; m.textContent = '';
+				btn.disabled = true; btn.textContent = __( 'Using…', 'stubli' ); m.textContent = '';
 				send( 'POST', 'setup/invite', { link: v } ).then( function ( r ) {
 					d.follows = r.follows; feed.loaded = false; su.sugg = null; loadSugg();
-					var who = r.result && r.result.name || 'them';
-					su.invMsg = r.result && r.result.followed_back ? 'You and ' + who + ' now follow each other.' : 'You\'re following ' + who + '. They\'ll follow you back once their site hears from yours.';
+					var who = r.result && r.result.name || __( 'them', 'stubli' );
+					su.invMsg = r.result && r.result.followed_back ? _f( __( 'You and %s now follow each other.', 'stubli' ), who ) : _f( __( 'You\'re following %s. They\'ll follow you back once their site hears from yours.', 'stubli' ), who );
 					renderSetup(); var mm = $( '[data-su-inv-msg]' ); if ( mm ) { mm.textContent = su.invMsg; }
-				}, function ( er ) { btn.disabled = false; btn.textContent = 'Use link'; m.textContent = er.message; } );
+				}, function ( er ) { btn.disabled = false; btn.textContent = __( 'Use link', 'stubli' ); m.textContent = er.message; } );
 			} );
 			next.addEventListener( 'click', function () {
 				var urls = Object.keys( su.ticks ).filter( function ( k ) { return su.ticks[ k ]; } );
@@ -1668,7 +1676,7 @@
 			if ( sp ) {
 				sp.addEventListener( 'click', function () {
 					ds.busy = true; ds.msg = ''; renderSetup();
-					enablePush().then( function () { ds.busy = false; ds.msg = ''; renderSetup(); }, function ( e ) { ds.busy = false; ds.msg = ( e && e.message ) || 'That didn\'t work. You can try again later in You → Daily summary.'; renderSetup(); } );
+					enablePush().then( function () { ds.busy = false; ds.msg = ''; renderSetup(); }, function ( e ) { ds.busy = false; ds.msg = ( e && e.message ) || __( 'That didn\'t work. You can try again later in You → Daily summary.', 'stubli' ); renderSetup(); } );
 				} );
 			}
 			next.addEventListener( 'click', function () {
@@ -1681,7 +1689,7 @@
 				send( 'POST', 'setup/webmention', {} ).then( function ( r ) {
 					su.busy = false; su.helperBusy = false; d.helper = ( r && r.helper ) || 'active'; finish();
 				}, function ( e ) {
-					su.busy = false; su.helperBusy = false; su.helperFail = ( e && e.message ) || 'Webmention couldn\'t be added just now.'; renderSetup();
+					su.busy = false; su.helperBusy = false; su.helperFail = ( e && e.message ) || __( 'Webmention couldn\'t be added just now.', 'stubli' ); renderSetup();
 				} );
 			} );
 		}
@@ -1697,33 +1705,33 @@
 	function setupCard() {
 		if ( B.setupDone ) { return ''; }
 		var n = ( su.d && su.d.step ) || 0;
-		return '<section class="a-card"><h2>Finish setting up</h2><p class="muted">' + ( n ? 'You\'re on step ' + ( n + 1 ) + ' of 5. ' : '' ) + 'Your name, interests, colour and people. About three minutes, whenever suits you.</p><a class="a-btn" href="#setup">Continue setup</a></section>';
+		return ( '<section class="a-card"><h2>' + __( 'Finish setting up', 'stubli' ) + '</h2><p class="muted">' ) + ( n ? _f( __( 'You\'re on step %s of 5.', 'stubli' ), n + 1 ) + ' ' : '' ) + ( __( 'Your name, interests, colour and people. About three minutes, whenever suits you.', 'stubli' ) + '</p><a class="a-btn" href="#setup">' + __( 'Continue setup', 'stubli' ) + '</a></section>' );
 	}
 
 	/* ── Composer step 1: choose and crop ── */
 	function seg( active ) {
-		return '<div class="a-seg" role="group" aria-label="What to post"><button type="button" data-go="#new" aria-pressed="' + ( active === 'photo' ) + '">Photo</button><button type="button" data-go="#journal" aria-pressed="' + ( active === 'journal' ) + '">Journal</button></div>';
+		return '<div class="a-seg" role="group" aria-label="' + esc( __( 'What to post', 'stubli' ) ) + '"><button type="button" data-go="#new" aria-pressed="' + ( active === 'photo' ) + ( '">' + __( 'Photo', 'stubli' ) + '</button><button type="button" data-go="#journal" aria-pressed="' ) + ( active === 'journal' ) + ( '">' + __( 'Journal', 'stubli' ) + '</button></div>' );
 	}
 	function viewPick() {
 		var p = post, cur = p.photos[ p.current ];
-		var ratioLabel = { portrait: 'Portrait', square: 'Square', landscape: 'Landscape' };
-		root.innerHTML = '<header class="a-head"><button type="button" class="a-text-btn" data-cancel>Cancel</button>' + seg( 'photo' ) +
-			'<button type="button" class="a-btn" data-next' + ( p.photos.length ? '' : ' disabled' ) + '>Next</button></header>' +
-			'<main class="a-compose" id="main"><h1 class="sr">New photo post</h1>' +
-			'<div class="a-preview">' + ( p.loading ? '<p class="muted" role="status">Opening your video…</p>' : cur ? ( cur.video && cur.plain ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><img src="' + cur.thumb + '" alt="Video ' + ( p.current + 1 ) + ', ' + fmtDur( cur.duration ) + '"></div><p class="a-help">This browser can\'t preview this video, but it shares fine.</p>' : cur.video ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><video src="' + cur.src + '" poster="' + cur.thumb + '" controls playsinline preload="metadata" aria-label="Preview of video ' + ( p.current + 1 ) + '"></video></div>' : '<div class="a-preview-frame" style="aspect-ratio:' + RATIOS[ p.ratio ] + '"><img src="' + cur.thumb + '" alt="Preview of photo ' + ( p.current + 1 ) + '"></div>' ) :
-				'<div class="a-preview-empty"><p>Choose up to ' + B.maxPhotos + ' photos or videos for one post. Videos can be up to a minute.</p><label class="a-btn">' + icon( 'photo', 18 ) + 'Choose photos or videos<input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label></div>' ) + '</div>' +
-			( p.photos.length ? '<div class="a-ratios" role="group" aria-label="Shape">' + Object.keys( RATIOS ).map( function ( k ) {
+		var ratioLabel = { portrait: __( 'Portrait', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
+		root.innerHTML = ( '<header class="a-head"><button type="button" class="a-text-btn" data-cancel>' + __( 'Cancel', 'stubli' ) + '</button>' ) + seg( 'photo' ) +
+			'<button type="button" class="a-btn" data-next' + ( p.photos.length ? '' : ' disabled' ) + ( '>' + __( 'Next', 'stubli' ) + '</button></header>' ) +
+			( '<main class="a-compose" id="main"><h1 class="sr">' + __( 'New photo post', 'stubli' ) + '</h1>' ) +
+			'<div class="a-preview">' + ( p.loading ? ( '<p class="muted" role="status">' + __( 'Opening your video…', 'stubli' ) + '</p>' ) : cur ? ( cur.video && cur.plain ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><img src="' + cur.thumb + '" alt="' + esc( _f( __( 'Video %s, %s', 'stubli' ), p.current + 1, fmtDur( cur.duration ) ) ) + ( '"></div><p class="a-help">' + __( 'This browser can\'t preview this video, but it shares fine.', 'stubli' ) + '</p>' ) : cur.video ? '<div class="a-preview-frame" style="aspect-ratio:' + ( cur.w / cur.h ) + '"><video src="' + cur.src + '" poster="' + cur.thumb + '" controls playsinline preload="metadata" aria-label="' + esc( _f( __( 'Preview of video %s', 'stubli' ), p.current + 1 ) ) + '"></video></div>' : '<div class="a-preview-frame" style="aspect-ratio:' + RATIOS[ p.ratio ] + '"><img src="' + cur.thumb + '" alt="' + esc( _f( __( 'Preview of photo %s', 'stubli' ), p.current + 1 ) ) + '"></div>' ) :
+				'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos or videos for one post. Videos can be up to a minute.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos or videos', 'stubli' ) + '<input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label></div>' ) ) + '</div>' +
+			( p.photos.length ? '<div class="a-ratios" role="group" aria-label="' + esc( __( 'Shape', 'stubli' ) ) + '">' + Object.keys( RATIOS ).map( function ( k ) {
 				return '<button type="button" class="a-chip" data-ratio="' + k + '" aria-pressed="' + ( p.ratio === k ) + '">' + icon( k, 16 ) + ratioLabel[ k ] + '</button>';
 			} ).join( '' ) + '</div>' : '' ) +
-			( p.photos.some( function ( x ) { return x.video; } ) ? '<p class="a-help" style="margin:-8px 0 12px">The shape applies to photos. Videos keep their own shape.</p>' : '' ) +
-			'<div class="a-row"><h2 class="a-label">Your photos</h2><span class="muted small" aria-live="polite">' + ( p.photos.length ? p.photos.length + ' selected · up to ' + B.maxPhotos : 'up to ' + B.maxPhotos ) + '</span></div>' +
+			( p.photos.some( function ( x ) { return x.video; } ) ? ( '<p class="a-help" style="margin:-8px 0 12px">' + __( 'The shape applies to photos. Videos keep their own shape.', 'stubli' ) + '</p>' ) : '' ) +
+			( '<div class="a-row"><h2 class="a-label">' + __( 'Your photos', 'stubli' ) + '</h2><span class="muted small" aria-live="polite">' ) + ( p.photos.length ? _f( __( '%s selected · up to %s', 'stubli' ), p.photos.length, B.maxPhotos ) : _f( __( 'up to %s', 'stubli' ), B.maxPhotos ) ) + '</span></div>' +
 			'<div class="a-thumbs">' + p.photos.map( function ( ph, i ) {
-				return '<div style="position:relative"><button type="button" class="a-thumb' + ( i === p.current ? ' is-current' : '' ) + '" data-pick="' + i + '" aria-label="Show ' + ( ph.video ? 'video' : 'photo' ) + ' ' + ( i + 1 ) + '"><img src="' + ph.thumb + '" alt="">' + ( ph.video ? '<span class="a-vid-dur" aria-hidden="true">' + icon( 'play', 12 ) + fmtDur( ph.duration ) + '</span>' : '' ) + '<span class="a-order" aria-hidden="true">' + ( i + 1 ) + '</span></button>' +
-					'<button type="button" class="a-remove" data-remove="' + i + '" aria-label="Remove ' + ( ph.video ? 'video' : 'photo' ) + ' ' + ( i + 1 ) + '">' + icon( 'x', 16 ) + '</button></div>';
+				return '<div style="position:relative"><button type="button" class="a-thumb' + ( i === p.current ? ' is-current' : '' ) + '" data-pick="' + i + '" aria-label="' + esc( ph.video ? _f( __( 'Show video %s', 'stubli' ), i + 1 ) : _f( __( 'Show photo %s', 'stubli' ), i + 1 ) ) + '"><img src="' + ph.thumb + '" alt="">' + ( ph.video ? '<span class="a-vid-dur" aria-hidden="true">' + icon( 'play', 12 ) + fmtDur( ph.duration ) + '</span>' : '' ) + '<span class="a-order" aria-hidden="true">' + ( i + 1 ) + '</span></button>' +
+					'<button type="button" class="a-remove" data-remove="' + i + '" aria-label="' + esc( ph.video ? _f( __( 'Remove video %s', 'stubli' ), i + 1 ) : _f( __( 'Remove photo %s', 'stubli' ), i + 1 ) ) + '">' + icon( 'x', 16 ) + '</button></div>';
 			} ).join( '' ) +
-			( p.photos.length < B.maxPhotos ? '<label class="a-thumb a-add">' + icon( 'plus', 24 ) + '<span>' + ( p.photos.length ? 'Add more' : 'Choose' ) + '</span><input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label>' : '' ) +
+			( p.photos.length < B.maxPhotos ? '<label class="a-thumb a-add">' + icon( 'plus', 24 ) + '<span>' + ( p.photos.length ? __( 'Add more', 'stubli' ) : _x( 'Choose', 'button', 'stubli' ) ) + '</span><input class="a-file" type="file" accept="image/*,video/mp4,video/quicktime" multiple data-files></label>' : '' ) +
 			'</div>' + ( p.error ? '<div class="a-notice" role="alert"><p>' + esc( p.error ) + '</p></div>' : '' ) +
-			'<p class="a-lock">' + icon( 'lock', 14 ) + 'Location details are removed from your photos and videos before they\'re shared.</p></main>';
+			'<p class="a-lock">' + icon( 'lock', 14 ) + ( __( 'Location details are removed from your photos and videos before they\'re shared.', 'stubli' ) + '</p></main>' );
 		p.error = '';
 		bindCommon();
 		$$( '[data-files]' ).forEach( function ( inp ) { inp.addEventListener( 'change', function () { addFiles( inp.files ); } ); } );
@@ -1740,22 +1748,22 @@
 	}
 	function addFiles( list ) {
 		var p = post, files = Array.prototype.slice.call( list || [] ), room = B.maxPhotos - p.photos.length;
-		if ( files.length > room ) { p.error = 'A post holds up to ' + B.maxPhotos + ' photos, so only the first ' + room + ' were added.'; files = files.slice( 0, room ); }
+		if ( files.length > room ) { p.error = _f( __( 'A post holds up to %s photos, so only the first %s were added.', 'stubli' ), B.maxPhotos, room ); files = files.slice( 0, room ); }
 		var bad = 0, notes = [];
 		if ( files.some( isVideo ) ) { p.loading = true; viewPick(); }
 		Promise.all( files.map( function ( f ) {
 			if ( isVideo( f ) ) {
-				if ( B.maxUpload && f.size > B.maxUpload ) { notes.push( 'This video is ' + fmtMB( f.size ) + ', and your host accepts up to ' + fmtMB( B.maxUpload ) + ' per file. Try a shorter clip.' ); return null; }
+				if ( B.maxUpload && f.size > B.maxUpload ) { notes.push( _f( __( 'This video is %s, and your host accepts up to %s per file. Try a shorter clip.', 'stubli' ), fmtMB( f.size ), fmtMB( B.maxUpload ) ) ); return null; }
 				return videoInfo( f ).catch( function () { return videoInfoFromFile( f ); } ).then( function ( v ) {
-					if ( v.duration > MAX_VIDEO + 0.5 ) { URL.revokeObjectURL( v.url ); URL.revokeObjectURL( v.thumb ); notes.push( 'This video is ' + fmtDur( v.duration ) + ' long. Videos can be up to a minute; trim it in your phone\'s Photos app, then choose it again.' ); return null; }
+					if ( v.duration > MAX_VIDEO + 0.5 ) { URL.revokeObjectURL( v.url ); URL.revokeObjectURL( v.thumb ); notes.push( _f( __( 'This video is %s long. Videos can be up to a minute; trim it in your phone\'s Photos app, then choose it again.', 'stubli' ), fmtDur( v.duration ) ) ); return null; }
 					return { file: f, thumb: v.thumb, alt: '', video: true, src: v.url, duration: v.duration, poster: v.poster, w: v.w, h: v.h };
-				}, function () { notes.push( 'That video couldn\'t be opened here. Try an MP4 or MOV from your phone\'s camera.' ); return null; } );
+				}, function () { notes.push( __( 'That video couldn\'t be opened here. Try an MP4 or MOV from your phone\'s camera.', 'stubli' ) ); return null; } );
 			}
 			return makeThumb( f ).then( function ( t ) { return { file: f, thumb: t, alt: '' }; }, function () { bad++; return null; } );
 		} ) ).then( function ( got ) {
 			p.loading = false;
 			got.forEach( function ( g ) { if ( g ) { p.photos.push( g ); } } );
-			if ( bad ) { notes.push( ( bad === 1 ? 'One photo' : bad + ' photos' ) + ' couldn\'t be opened. Try a JPEG or PNG, or pick it again.' ); }
+			if ( bad ) { notes.push( ( bad === 1 ? __( 'One photo couldn\'t be opened. Try a JPEG or PNG, or pick it again.', 'stubli' ) : _f( __( '%s photos couldn\'t be opened. Try a JPEG or PNG, or pick it again.', 'stubli' ), bad ) ) ); }
 			if ( notes.length ) { p.error = ( p.error ? p.error + ' ' : '' ) + notes.join( ' ' ); }
 			p.current = Math.max( 0, p.photos.length - 1 );
 			viewPick();
@@ -1766,30 +1774,30 @@
 	function viewDetails() {
 		var p = post, cols = ( B.collections || [] ).slice();
 		if ( p.collection && cols.indexOf( p.collection ) < 0 ) { cols.push( p.collection ); }
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#new" aria-label="Back to photos">' + icon( 'back', 22 ) + '</a><h1>New post</h1>' +
-			'<button type="button" class="a-btn" data-share' + ( p.busy ? ' disabled' : '' ) + '>' + ( p.busy ? 'Sharing…' : 'Share' ) + '</button></header>' +
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#new" aria-label="' + esc( __( 'Back to photos', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'New post', 'stubli' ) + '</h1>' ) +
+			'<button type="button" class="a-btn" data-share' + ( p.busy ? ' disabled' : '' ) + '>' + ( p.busy ? __( 'Sharing…', 'stubli' ) : __( 'Share', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' +
-			'<div class="a-strip">' + p.photos.map( function ( ph, i ) { return '<img src="' + ph.thumb + '" alt="' + ( ph.video ? 'Video ' : 'Photo ' ) + ( i + 1 ) + '" style="aspect-ratio:' + ( ph.video ? ph.w / ph.h : RATIOS[ p.ratio ] ) + ';width:auto;height:80px">'; } ).join( '' ) + '</div>' +
-			'<label class="a-label" for="a-caption">Caption</label>' +
-			'<textarea id="a-caption" class="a-textarea" maxlength="' + B.maxCaption + '" placeholder="Say something about it, or leave it empty.">' + esc( p.caption ) + '</textarea>' +
+			'<div class="a-strip">' + p.photos.map( function ( ph, i ) { return '<img src="' + ph.thumb + '" alt="' + ( ph.video ? ( __( 'Video', 'stubli' ) + ' ' ) : ( __( 'Photo', 'stubli' ) + ' ' ) ) + ( i + 1 ) + '" style="aspect-ratio:' + ( ph.video ? ph.w / ph.h : RATIOS[ p.ratio ] ) + ';width:auto;height:80px">'; } ).join( '' ) + '</div>' +
+			( '<label class="a-label" for="a-caption">' + __( 'Caption', 'stubli' ) + '</label>' ) +
+			'<textarea id="a-caption" class="a-textarea" maxlength="' + B.maxCaption + '" placeholder="' + esc( __( 'Say something about it, or leave it empty.', 'stubli' ) ) + '">' + esc( p.caption ) + '</textarea>' +
 			'<p class="a-count" data-count' + ( p.caption.length < B.maxCaption - 200 ? ' hidden' : '' ) + '>' + p.caption.length + ' / ' + B.maxCaption + '</p>' +
-			( p.linkOpen ? '<div class="a-inline"><label class="sr" for="a-link">Web address</label><input id="a-link" class="a-field" type="url" inputmode="url" placeholder="https://…"><button type="button" class="a-btn quiet" data-link-add>Add</button></div><p class="a-help">It appears at the end of your caption and people can tap it.</p>' :
-				'<button type="button" class="a-chip" data-link style="margin-top:8px">' + icon( 'link', 16 ) + 'Add a link</button>' ) +
-			'<h2 class="a-label" id="a-col-h">Which collection?</h2>' +
+			( p.linkOpen ? ( '<div class="a-inline"><label class="sr" for="a-link">' + __( 'Web address', 'stubli' ) + '</label><input id="a-link" class="a-field" type="url" inputmode="url" placeholder="https://…"><button type="button" class="a-btn quiet" data-link-add>' + __( 'Add', 'stubli' ) + '</button></div><p class="a-help">' + __( 'It appears at the end of your caption and people can tap it.', 'stubli' ) + '</p>' ) :
+				'<button type="button" class="a-chip" data-link style="margin-top:8px">' + icon( 'link', 16 ) + ( __( 'Add a link', 'stubli' ) + '</button>' ) ) +
+			( '<h2 class="a-label" id="a-col-h">' + __( 'Which collection?', 'stubli' ) + '</h2>' ) +
 			'<div class="a-chips" role="radiogroup" aria-labelledby="a-col-h">' + cols.map( function ( c ) {
 				var on = ! p.addingCollection && p.collection === c;
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>';
-			} ).join( '' ) + '<button type="button" class="a-chip" role="radio" aria-checked="' + p.addingCollection + '" data-col-new>' + ( p.addingCollection ? icon( 'check', 16 ) : '' ) + '+ New</button></div>' +
-			( p.addingCollection ? '<div class="a-inline"><label class="sr" for="a-newcol">New collection name</label><input id="a-newcol" class="a-field" maxlength="40" placeholder="e.g. Mountains" value="' + esc( p.newCollection ) + '"></div><p class="a-help">Each collection is a folder tab on your page. An emoji at the start is welcome.</p>' : '' ) +
-			'<h2 class="a-label">Describe ' + ( p.photos.some( function ( x ) { return x.video; } ) ? 'what\'s shown' : 'the photos' ) + ' for people who can\'t see it</h2>' +
+			} ).join( '' ) + '<button type="button" class="a-chip" role="radio" aria-checked="' + p.addingCollection + '" data-col-new>' + ( p.addingCollection ? icon( 'check', 16 ) : '' ) + ( __( '+ New', 'stubli' ) + '</button></div>' ) +
+			( p.addingCollection ? ( '<div class="a-inline"><label class="sr" for="a-newcol">' + __( 'New collection name', 'stubli' ) + '</label><input id="a-newcol" class="a-field" maxlength="40" placeholder="' + esc( __( 'e.g. Mountains', 'stubli' ) ) + '" value="' ) + esc( p.newCollection ) + ( '"></div><p class="a-help">' + __( 'Each collection is a folder tab on your page. An emoji at the start is welcome.', 'stubli' ) + '</p>' ) : '' ) +
+			'<h2 class="a-label">' + ( p.photos.some( function ( x ) { return x.video; } ) ? __( 'Describe what\'s shown for people who can\'t see it', 'stubli' ) : __( 'Describe the photos for people who can\'t see them', 'stubli' ) ) + '</h2>' +
 			p.photos.map( function ( ph, i ) {
-				return '<div class="a-alt"><img src="' + ph.thumb + '" alt=""><label class="sr" for="a-alt-' + i + '">Description of photo ' + ( i + 1 ) + '</label><input id="a-alt-' + i + '" class="a-field" data-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? 'Video ' + ( i + 1 ) + ': what happens in it?' : 'Photo ' + ( i + 1 ) + ': what\'s in it?' ) + '" value="' + esc( ph.alt ) + '"></div>';
+				return '<div class="a-alt"><img src="' + ph.thumb + '" alt=""><label class="sr" for="a-alt-' + i + '">' + _f( __( 'Description of photo %s', 'stubli' ), i + 1 ) + '</label><input id="a-alt-' + i + '" class="a-field" data-alt="' + i + '" maxlength="300" placeholder="' + ( ph.video ? _f( __( 'Video %s: what happens in it?', 'stubli' ), i + 1 ) : _f( __( 'Photo %s: what\'s in it?', 'stubli' ), i + 1 ) ) + '" value="' + esc( ph.alt ) + '"></div>';
 			} ).join( '' ) +
 			audienceChips( p.audience, 'aud' ) +
-			'<label class="a-check"><span><strong>Add a content note</strong><span class="muted small">The photo stays softly blurred until someone chooses to see it.</span></span><input type="checkbox" data-note' + ( p.note ? ' checked' : '' ) + '></label>' +
-			( p.note ? '<div class="a-inline"><label class="sr" for="a-note">Content note</label><input id="a-note" class="a-field" maxlength="' + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( p.noteText ) + '"></div>' : '' ) +
+			( '<label class="a-check"><span><strong>' + __( 'Add a content note', 'stubli' ) + '</strong><span class="muted small">' + __( 'The photo stays softly blurred until someone chooses to see it.', 'stubli' ) + '</span></span><input type="checkbox" data-note' ) + ( p.note ? ' checked' : '' ) + '></label>' +
+			( p.note ? ( '<div class="a-inline"><label class="sr" for="a-note">' + __( 'Content note', 'stubli' ) + '</label><input id="a-note" class="a-field" maxlength="' ) + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( p.noteText ) + '"></div>' : '' ) +
 			'<div data-msg aria-live="polite"></div>' +
-			'<p class="a-lock">' + icon( 'lock', 14 ) + 'Location details are removed from your photos before they\'re shared.</p></main>';
+			'<p class="a-lock">' + icon( 'lock', 14 ) + ( __( 'Location details are removed from your photos before they\'re shared.', 'stubli' ) + '</p></main>' );
 
 		var cap = $( '#a-caption' ), cnt = $( '[data-count]' );
 		cap.addEventListener( 'input', function () {
@@ -1825,24 +1833,24 @@
 		if ( p.busy ) { return; }
 		var missing = p.photos.map( function ( ph, i ) { return ph.alt.trim() ? 0 : i + 1; } ).filter( Boolean );
 		if ( missing.length && ! p.altsChecked ) {
-			msg( '<div class="a-notice calm" role="alert"><p>' + ( missing.length === 1 ? 'Photo ' + missing[ 0 ] + ' has' : 'Photos ' + missing.join( ', ' ) + ' have' ) + ' no description yet. People using a screen reader will only hear "photo".</p><div class="a-actions"><button type="button" class="a-btn quiet" data-fix>Add a description</button><button type="button" class="a-text-btn" data-anyway>Share anyway</button></div></div>' );
+			msg( '<div class="a-notice calm" role="alert"><p>' + ( missing.length === 1 ? _f( __( 'Photo %s has no description yet. People using a screen reader will only hear "photo".', 'stubli' ), missing[ 0 ] ) : _f( __( 'Photos %s have no description yet. People using a screen reader will only hear "photo".', 'stubli' ), missing.join( ', ' ) ) ) + ( '</p><div class="a-actions"><button type="button" class="a-btn quiet" data-fix>' + __( 'Add a description', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-anyway>' + __( 'Share anyway', 'stubli' ) + '</button></div></div>' ) );
 			$( '[data-fix]' ).addEventListener( 'click', function () { var f = $( '#a-alt-' + ( missing[ 0 ] - 1 ) ); f.focus(); f.scrollIntoView( { block: 'center' } ); } );
 			$( '[data-anyway]' ).addEventListener( 'click', function () { p.altsChecked = true; share(); } );
 			return;
 		}
 		if ( p.addingCollection && ! p.newCollection.trim() ) {
-			msg( '<div class="a-notice calm" role="alert"><p>Give the new collection a name, or pick one of your collections.</p></div>' );
+			msg( ( '<div class="a-notice calm" role="alert"><p>' + __( 'Give the new collection a name, or pick one of your collections.', 'stubli' ) + '</p></div>' ) );
 			$( '#a-newcol' ).focus();
 			return;
 		}
 		if ( p.note && ! p.noteText.trim() ) {
-			msg( '<div class="a-notice calm" role="alert"><p>Write a few words for the content note, so people know what to expect.</p></div>' );
+			msg( ( '<div class="a-notice calm" role="alert"><p>' + __( 'Write a few words for the content note, so people know what to expect.', 'stubli' ) + '</p></div>' ) );
 			$( '#a-note' ).focus();
 			return;
 		}
 		p.busy = true;
-		var btn = $( '[data-share]' ); btn.disabled = true; btn.textContent = 'Sharing…';
-		msg( '<div class="a-notice calm"><p>' + ( p.photos.some( function ( x ) { return x.video; } ) ? 'Removing location details and preparing…' : 'Preparing your photos…' ) + '</p><div class="a-progress"><span></span></div></div>' );
+		var btn = $( '[data-share]' ); btn.disabled = true; btn.textContent = __( 'Sharing…', 'stubli' );
+		msg( '<div class="a-notice calm"><p>' + ( p.photos.some( function ( x ) { return x.video; } ) ? __( 'Removing location details and preparing…', 'stubli' ) : __( 'Preparing your photos…', 'stubli' ) ) + '</p><div class="a-progress"><span></span></div></div>' );
 		var bar = function ( f ) { var s = $( '.a-progress span' ); if ( s ) { s.style.width = Math.round( f * 100 ) + '%'; } };
 		var done = 0;
 		var total = 0;
@@ -1850,7 +1858,7 @@
 			var job = ph.video ? stripLocation( ph.file ) : cropped( ph.file, p.ratio );
 			return job.then( function ( b ) { done++; total += b.size + ( ph.video ? ph.poster.size : 0 ); bar( 0.3 * done / p.photos.length ); return b; } );
 		} ) ).then( function ( blobs ) {
-			if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: 'Together these are ' + fmtMB( total ) + ', and your host accepts up to ' + fmtMB( B.maxPost ) + ' at once. Share the videos in separate posts, or choose a shorter clip.' } ); }
+			if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: _f( __( 'Together these are %s, and your host accepts up to %s at once. Share the videos in separate posts, or choose a shorter clip.', 'stubli' ), fmtMB( total ), fmtMB( B.maxPost ) ) } ); }
 			var fd = new FormData();
 			blobs.forEach( function ( b, i ) {
 				var ph = p.photos[ i ];
@@ -1866,17 +1874,17 @@
 			fd.append( 'collection', p.addingCollection ? p.newCollection.trim() : p.collection );
 			if ( p.note ) { fd.append( 'content_note', p.noteText.trim() ); }
 			if ( p.audience === 'friends' ) { fd.append( 'audience', 'friends' ); }
-			var t = $( '.a-notice p' ); if ( t ) { t.textContent = 'Sharing…'; }
+			var t = $( '.a-notice p' ); if ( t ) { t.textContent = __( 'Sharing…', 'stubli' ); }
 			return send( 'POST', 'posts', fd, function ( f ) { bar( 0.3 + 0.7 * f ); } );
 		} ).then( function ( res ) {
 			var thumb = p.photos[ 0 ].thumb, col = p.addingCollection ? p.newCollection.trim() : p.collection, aud = p.audience;
 			if ( col && B.collections.indexOf( col ) < 0 ) { B.collections.unshift( col ); }
 			post = null;
-			doneView( 'Shared', aud === 'friends' ? 'Your friends see it in their Stubli' + ( col ? ', in ' + col : '' ) + '. It isn\'t on your public page.' : 'Your post is on your page' + ( col ? ' in ' + col : '' ) + '.', res && res.url, 'See your post', thumb, '#new', 'New post' );
+			doneView( __( 'Shared', 'stubli' ), aud === 'friends' ? ( col ? _f( __( 'Your friends see it in their Stubli, in %s. It isn\'t on your public page.', 'stubli' ), col ) : __( 'Your friends see it in their Stubli. It isn\'t on your public page.', 'stubli' ) ) : ( col ? _f( __( 'Your post is on your page in %s.', 'stubli' ), col ) : __( 'Your post is on your page.', 'stubli' ) ), res && res.url, __( 'See your post', 'stubli' ), thumb, '#new', __( 'New post', 'stubli' ) );
 		}, function ( err ) {
 			p.busy = false;
 			viewDetails();
-			msg( '<div class="a-notice" role="alert"><p>' + esc( err && err.message || 'Something went wrong. Nothing was shared.' ) + '</p><p class="small muted">Your photos and words are still here.</p></div>' );
+			msg( '<div class="a-notice" role="alert"><p>' + esc( err && err.message || __( 'Something went wrong. Nothing was shared.', 'stubli' ) ) + ( '</p><p class="small muted">' + __( 'Your photos and words are still here.', 'stubli' ) + '</p></div>' ) );
 		} );
 	}
 
@@ -1890,33 +1898,33 @@
 	/* ── Journal ── */
 	function viewJournal() {
 		var j = journal, max = B.maxJournal;
-		root.innerHTML = '<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>Close</button>' + seg( 'journal' ) +
-			'<button type="button" class="a-btn" data-save' + ( j.text.trim() && ! j.busy ? '' : ' disabled' ) + '>' + ( j.busy ? 'Saving…' : 'Save' ) + '</button></header>' +
-			'<main class="a-compose" id="main"><h1 class="sr">New journal entry</h1><p class="a-date">' + esc( B.today ) + '</p>' +
-			'<label class="sr" for="a-jtext">Journal entry</label><textarea id="a-jtext" class="a-journal-text" maxlength="' + max + '" placeholder="What happened today?">' + esc( j.text ) + '</textarea>' +
-			( j.tool ? '<div class="a-inline"><label class="sr" for="a-jlink">' + ( j.tool === 'video' ? 'YouTube or Vimeo address' : 'Web address' ) + '</label><input id="a-jlink" class="a-field" type="url" inputmode="url" placeholder="' + ( j.tool === 'video' ? 'A YouTube or Vimeo link' : 'https://…' ) + '"><button type="button" class="a-btn quiet" data-jadd>Add</button></div>' +
-				( j.tool === 'video' ? '<p class="a-help">It shows as a cover with a play button. Nothing loads from the video site until someone presses play.</p>' : '' ) : '' ) +
-			'<div class="a-tools"><label class="a-tool" aria-label="Add a photo" title="Add a photo">' + icon( 'photo', 20 ) + '<input class="a-file" type="file" accept="image/*" multiple data-jphoto></label><button type="button" class="a-tool" data-tool="video" aria-label="Add a video link">' + icon( 'video', 20 ) + '</button><button type="button" class="a-tool" data-tool="link" aria-label="Add a link">' + icon( 'link', 20 ) + '</button>' +
-			'<span class="a-count" data-jcount>' + ( j.text.trim() ? 'Draft saved · ' : '' ) + j.text.length + ' / ' + max + '</span></div>' +
-			( j.uploading ? '<div class="a-notice calm" aria-live="polite"><p>Adding ' + ( j.uploading === 1 ? 'a photo' : j.uploading + ' photos' ) + '…</p></div>' : '' ) +
-			( j.photos.length ? '<h2 class="a-caps">Photos in this entry</h2><p class="a-help" style="margin:-4px 0 10px">Each one appears where its [Photo] line is in your text. Move the line to move the photo.</p>' + j.photos.map( function ( ph ) {
-				return '<div class="a-jphoto"><img src="' + esc( ph.url ) + '" alt=""><div class="a-jphoto-fields"><strong>Photo ' + ph.n + '</strong>' +
-					'<label class="a-label a-jlabel" for="a-jcap-' + ph.n + '">Caption <span class="muted" style="font-weight:400">(shown under the photo)</span></label><input id="a-jcap-' + ph.n + '" class="a-field" maxlength="300" data-jcap="' + ph.n + '" value="' + esc( ph.caption ) + '">' +
-					'<label class="a-label a-jlabel" for="a-jalt-' + ph.n + '">Description <span class="muted" style="font-weight:400">(for people who can\'t see it)</span></label><input id="a-jalt-' + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" value="' + esc( ph.alt ) + '">' +
-					'<button type="button" class="a-text-btn a-jremove" data-jremove="' + ph.n + '">Remove photo ' + ph.n + '</button></div></div>';
+		root.innerHTML = ( '<header class="a-head"><button type="button" class="a-text-btn" data-cancel-j>' + __( 'Close', 'stubli' ) + '</button>' ) + seg( 'journal' ) +
+			'<button type="button" class="a-btn" data-save' + ( j.text.trim() && ! j.busy ? '' : ' disabled' ) + '>' + ( j.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
+			( '<main class="a-compose" id="main"><h1 class="sr">' + __( 'New journal entry', 'stubli' ) + '</h1><p class="a-date">' ) + esc( B.today ) + '</p>' +
+			( '<label class="sr" for="a-jtext">' + __( 'Journal entry', 'stubli' ) + '</label><textarea id="a-jtext" class="a-journal-text" maxlength="' ) + max + '" placeholder="' + esc( __( 'What happened today?', 'stubli' ) ) + '">' + esc( j.text ) + '</textarea>' +
+			( j.tool ? '<div class="a-inline"><label class="sr" for="a-jlink">' + ( j.tool === 'video' ? __( 'YouTube or Vimeo address', 'stubli' ) : __( 'Web address', 'stubli' ) ) + '</label><input id="a-jlink" class="a-field" type="url" inputmode="url" placeholder="' + ( j.tool === 'video' ? __( 'A YouTube or Vimeo link', 'stubli' ) : 'https://…' ) + ( '"><button type="button" class="a-btn quiet" data-jadd>' + __( 'Add', 'stubli' ) + '</button></div>' ) +
+				( j.tool === 'video' ? ( '<p class="a-help">' + __( 'It shows as a cover with a play button. Nothing loads from the video site until someone presses play.', 'stubli' ) + '</p>' ) : '' ) : '' ) +
+			'<div class="a-tools"><label class="a-tool" aria-label="' + esc( __( 'Add a photo', 'stubli' ) ) + '" title="' + esc( __( 'Add a photo', 'stubli' ) ) + '">' + icon( 'photo', 20 ) + '<input class="a-file" type="file" accept="image/*" multiple data-jphoto></label><button type="button" class="a-tool" data-tool="video" aria-label="' + esc( __( 'Add a video link', 'stubli' ) ) + '">' + icon( 'video', 20 ) + '</button><button type="button" class="a-tool" data-tool="link" aria-label="' + esc( __( 'Add a link', 'stubli' ) ) + '">' + icon( 'link', 20 ) + '</button>' +
+			'<span class="a-count" data-jcount>' + ( j.text.trim() ? ( __( 'Draft saved ·', 'stubli' ) + ' ' ) : '' ) + j.text.length + ' / ' + max + '</span></div>' +
+			( j.uploading ? '<div class="a-notice calm" aria-live="polite"><p>' + ( j.uploading === 1 ? __( 'Adding a photo…', 'stubli' ) : _f( __( 'Adding %s photos…', 'stubli' ), j.uploading ) ) + '</p></div>' : '' ) +
+			( j.photos.length ? ( '<h2 class="a-caps">' + __( 'Photos in this entry', 'stubli' ) + '</h2><p class="a-help" style="margin:-4px 0 10px">' + __( 'Each one appears where its [Photo] line is in your text. Move the line to move the photo.', 'stubli' ) + '</p>' ) + j.photos.map( function ( ph ) {
+				return '<div class="a-jphoto"><img src="' + esc( ph.url ) + '" alt=""><div class="a-jphoto-fields"><strong>' + _f( __( 'Photo %s', 'stubli' ), ph.n ) + '</strong>' +
+					'<label class="a-label a-jlabel" for="a-jcap-' + ph.n + ( '">' + __( 'Caption', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(shown under the photo)', 'stubli' ) + '</span></label><input id="a-jcap-' ) + ph.n + '" class="a-field" maxlength="300" data-jcap="' + ph.n + '" value="' + esc( ph.caption ) + '">' +
+					'<label class="a-label a-jlabel" for="a-jalt-' + ph.n + ( '">' + __( 'Description', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(for people who can\'t see it)', 'stubli' ) + '</span></label><input id="a-jalt-' ) + ph.n + '" class="a-field" maxlength="300" data-jalt="' + ph.n + '" value="' + esc( ph.alt ) + '">' +
+					'<button type="button" class="a-text-btn a-jremove" data-jremove="' + ph.n + '">' + _f( __( 'Remove photo %s', 'stubli' ), ph.n ) + '</button></div></div>';
 			} ).join( '' ) : '' ) +
-			'<h2 class="a-caps" id="a-vis-h">Who can see this</h2><div class="a-vis" role="radiogroup" aria-labelledby="a-vis-h">' +
-			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'everyone' ) + '" data-vis="everyone"><strong>' + ( j.visibility === 'everyone' ? '✓ ' : '' ) + 'Everyone</strong><span>In your Journal tab</span></button>' +
-			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'only_me' ) + '" data-vis="only_me"><strong>' + ( j.visibility === 'only_me' ? '✓ ' : '' ) + 'Only me</strong><span>A private note</span></button></div>' +
+			( '<h2 class="a-caps" id="a-vis-h">' + __( 'Who can see this', 'stubli' ) + '</h2><div class="a-vis" role="radiogroup" aria-labelledby="a-vis-h">' ) +
+			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'everyone' ) + '" data-vis="everyone"><strong>' + ( j.visibility === 'everyone' ? '✓ ' : '' ) + ( __( 'Everyone', 'stubli' ) + '</strong><span>' + __( 'In your Journal tab', 'stubli' ) + '</span></button>' ) +
+			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'only_me' ) + '" data-vis="only_me"><strong>' + ( j.visibility === 'only_me' ? '✓ ' : '' ) + ( __( 'Only me', 'stubli' ) + '</strong><span>' + __( 'A private note', 'stubli' ) + '</span></button></div>' ) +
 			'<div data-msg aria-live="polite">' + ( j.error ? '<div class="a-notice" role="alert"><p>' + esc( j.error ) + '</p></div>' : '' ) + '</div>' +
-			( j.visibility === 'only_me' && j.photos.length ? '<p class="a-help" style="margin-top:14px">Photos in an Only-me entry aren\'t shown anywhere, but anyone who has a photo\'s exact web address could open it.</p>' : '' ) +
-			'<p class="a-help" style="margin-top:14px">Journal entries never appear in anyone\'s feed. Visitors find them in your Journal tab. Your draft is saved as you type.</p></main>';
+			( j.visibility === 'only_me' && j.photos.length ? ( '<p class="a-help" style="margin-top:14px">' + __( 'Photos in an Only-me entry aren\'t shown anywhere, but anyone who has a photo\'s exact web address could open it.', 'stubli' ) + '</p>' ) : '' ) +
+			( '<p class="a-help" style="margin-top:14px">' + __( 'Journal entries never appear in anyone\'s feed. Visitors find them in your Journal tab. Your draft is saved as you type.', 'stubli' ) + '</p></main>' );
 		j.error = '';
 		bindCommon();
 		var t = $( '#a-jtext' ), c = $( '[data-jcount]' ), save = $( '[data-save]' );
 		var grow = function () { t.style.height = 'auto'; t.style.height = Math.max( t.scrollHeight, window.innerHeight * 0.4 ) + 'px'; };
 		t.addEventListener( 'input', function () {
-			j.text = t.value; saveJournalDraft(); c.textContent = ( j.text.trim() ? 'Draft saved · ' : '' ) + j.text.length + ' / ' + max; save.disabled = ! j.text.trim() || j.uploading > 0; grow();
+			j.text = t.value; saveJournalDraft(); c.textContent = ( j.text.trim() ? ( __( 'Draft saved ·', 'stubli' ) + ' ' ) : '' ) + j.text.length + ' / ' + max; save.disabled = ! j.text.trim() || j.uploading > 0; grow();
 		} );
 		grow();
 		if ( j.uploading ) { save.disabled = true; }
@@ -1936,7 +1944,7 @@
 						var before = j.text.slice( 0, at ).replace( /[ \t]+$/, '' ), after = j.text.slice( at ).replace( /^[ \t]+/, '' );
 						var ins = ( before && ! /\n$/.test( before ) ? '\n' : '' ) + '[Photo ' + n + ']' + ( after && ! /^\n/.test( after ) ? '\n' : '' ) + ( after ? '' : '\n' );
 						j.text = before + ins + after; at = ( before + ins ).length;
-					}, function ( e ) { j.error = ( e && e.message ) || 'A photo couldn\'t be added. Try again.'; } ).then( function () { j.uploading--; saveJournalDraft(); viewJournal(); } );
+					}, function ( e ) { j.error = ( e && e.message ) || __( 'A photo couldn\'t be added. Try again.', 'stubli' ); } ).then( function () { j.uploading--; saveJournalDraft(); viewJournal(); } );
 				} );
 			}, Promise.resolve() );
 		} );
@@ -1963,13 +1971,13 @@
 		$$( '[data-vis]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.visibility = b.dataset.vis; store.set( 'stubli-journal-vis', j.visibility ); viewJournal(); } ); } );
 		save.addEventListener( 'click', function () {
 			if ( ! j.text.trim() || j.busy ) { return; }
-			j.busy = true; save.disabled = true; save.textContent = 'Saving…';
+			j.busy = true; save.disabled = true; save.textContent = __( 'Saving…', 'stubli' );
 			send( 'POST', 'journal', { text: j.text.trim(), visibility: j.visibility, photos: j.photos.map( function ( p ) { return { n: p.n, id: p.id, caption: p.caption.trim(), alt: p.alt.trim() }; } ) } ).then( function ( res ) {
 				var priv = j.visibility === 'only_me';
 				j.text = ''; j.photos = []; j.busy = false; store.del( 'stubli-journal-draft' ); store.del( 'stubli-journal-photos' );
-				doneView( 'Saved', priv ? 'Only you can see this entry.' : 'Your entry is in your Journal tab.', B.journal, 'See your journal', '', '#journal', 'New entry' );
+				doneView( __( 'Saved', 'stubli' ), priv ? __( 'Only you can see this entry.', 'stubli' ) : __( 'Your entry is in your Journal tab.', 'stubli' ), B.journal, __( 'See your journal', 'stubli' ), '', '#journal', __( 'New entry', 'stubli' ) );
 			}, function ( err ) {
-				j.busy = false; j.error = ( err && err.message ) || 'Something went wrong. Your entry is still here.'; viewJournal();
+				j.busy = false; j.error = ( err && err.message ) || __( 'Something went wrong. Your entry is still here.', 'stubli' ); viewJournal();
 			} );
 		} );
 	}
@@ -1979,9 +1987,9 @@
 	/* ── Send feedback ── */
 	var fb = { kind: 'idea', text: '', address: true, shot: null, busy: false, sent: false, error: '' };
 	var FB = {
-		idea: { label: 'An idea', q: 'What would make Stubli better?', ph: 'I wish I could…' },
-		broken: { label: 'Something\'s not working', q: 'What happened?', ph: 'I tried to … and then …' },
-		love: { label: 'Kind words', q: 'What do you like?', ph: 'I love that…' }
+		idea: { label: __( 'An idea', 'stubli' ), q: __( 'What would make Stubli better?', 'stubli' ), ph: __( 'I wish I could…', 'stubli' ) },
+		broken: { label: __( 'Something\'s not working', 'stubli' ), q: __( 'What happened?', 'stubli' ), ph: __( 'I tried to … and then …', 'stubli' ) },
+		love: { label: __( 'Kind words', 'stubli' ), q: __( 'What do you like?', 'stubli' ), ph: __( 'I love that…', 'stubli' ) }
 	};
 	function device() {
 		var ua = navigator.userAgent, os = /iPhone/.test( ua ) ? 'iPhone' : /iPad/.test( ua ) ? 'iPad' : /Android/.test( ua ) ? 'Android' : /Mac OS X/.test( ua ) ? 'Mac' : /Windows/.test( ua ) ? 'Windows' : /Linux/.test( ua ) ? 'Linux' : 'Other';
@@ -1991,27 +1999,27 @@
 	function viewFeedback() {
 		var host = String( B.home || '' ).replace( /^https?:\/\//, '' ).replace( /\/$/, '' );
 		if ( fb.sent ) {
-			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header><main class="a-compose" id="main"><div class="a-done"><span class="a-tick">' + icon( 'check', 28 ) + '</span>' +
-				'<h2 tabindex="-1">Thank you' + ( B.name ? ', ' + esc( B.name ) : '' ) + '</h2><p class="muted">Your note is with the Stubli team.' + ( fb.address ? ' If you asked a question, Celestine will reply.' : '' ) + '</p>' +
-				'<div class="a-actions"><button type="button" class="a-btn quiet" data-again>Write another</button><a class="a-btn quiet" href="#home">Done</a></div></div></main>';
+			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Send feedback', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-done"><span class="a-tick">' ) + icon( 'check', 28 ) + '</span>' +
+				( '<h2 tabindex="-1">' + __( 'Thank you', 'stubli' ) ) + ( B.name ? ', ' + esc( B.name ) : '' ) + ( '</h2><p class="muted">' + __( 'Your note is with the Stubli team.', 'stubli' ) ) + ( fb.address ? ( ' ' + __( 'If you asked a question, Celestine will reply.', 'stubli' ) ) : '' ) + '</p>' +
+				( '<div class="a-actions"><button type="button" class="a-btn quiet" data-again>' + __( 'Write another', 'stubli' ) + '</button><a class="a-btn quiet" href="#home">' + __( 'Done', 'stubli' ) + '</a></div></div></main>' );
 			$( '.a-done h2' ).focus();
 			$( '[data-again]' ).addEventListener( 'click', function () { fb.sent = false; fb.text = ''; fb.shot = null; viewFeedback(); } );
 			return;
 		}
 		var k = FB[ fb.kind ];
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>Send feedback</h1><span></span></header>' +
-			'<main class="a-compose" id="main"><p>This goes to the people who make Stubli, not to anyone you follow. Every message is read.</p>' +
-			'<div class="a-chips" role="radiogroup" aria-label="What is it about?">' + Object.keys( FB ).map( function ( key ) {
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Send feedback', 'stubli' ) + '</h1><span></span></header>' ) +
+			( '<main class="a-compose" id="main"><p>' + __( 'This goes to the people who make Stubli, not to anyone you follow. Every message is read.', 'stubli' ) + '</p>' ) +
+			'<div class="a-chips" role="radiogroup" aria-label="' + esc( __( 'What is it about?', 'stubli' ) ) + '">' + Object.keys( FB ).map( function ( key ) {
 				var on = fb.kind === key;
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-kind="' + key + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( FB[ key ].label ) + '</button>';
 			} ).join( '' ) + '</div>' +
 			'<label class="a-label" for="a-fb">' + esc( k.q ) + '</label><textarea id="a-fb" class="a-textarea" style="min-height:160px" maxlength="4000" placeholder="' + esc( k.ph ) + '">' + esc( fb.text ) + '</textarea>' +
-			'<label class="a-check" style="margin-top:14px"><span>Include my address (' + esc( host ) + ') so you can reply</span><input type="checkbox" data-addr' + ( fb.address ? ' checked' : '' ) + '></label>' +
-			'<div style="margin-top:14px">' + ( fb.shot ? '<div class="a-alt"><img src="' + fb.shot.url + '" alt="Your screenshot"><span>Screenshot added · <button type="button" class="a-text-btn" data-noshot style="min-height:auto;padding:0;text-decoration:underline">Remove</button></span></div>' :
-				'<label class="a-chip">' + icon( 'photo', 16 ) + 'Add a screenshot<input class="a-file" type="file" accept="image/png,image/jpeg,image/webp" data-shot></label>' ) + '</div>' +
-			'<p class="a-help" style="margin-top:14px">We also send your Stubli version and phone type, to help fix problems. Nothing else.</p>' +
+			( '<label class="a-check" style="margin-top:14px"><span>' + __( 'Include my address (', 'stubli' ) ) + esc( host ) + ( __( ') so you can reply', 'stubli' ) + '</span><input type="checkbox" data-addr' ) + ( fb.address ? ' checked' : '' ) + '></label>' +
+			'<div style="margin-top:14px">' + ( fb.shot ? '<div class="a-alt"><img src="' + fb.shot.url + ( '" alt="' + esc( __( 'Your screenshot', 'stubli' ) ) + '"><span>' + __( 'Screenshot added ·', 'stubli' ) + ' <button type="button" class="a-text-btn" data-noshot style="min-height:auto;padding:0;text-decoration:underline">' + __( 'Remove', 'stubli' ) + '</button></span></div>' ) :
+				'<label class="a-chip">' + icon( 'photo', 16 ) + ( __( 'Add a screenshot', 'stubli' ) + '<input class="a-file" type="file" accept="image/png,image/jpeg,image/webp" data-shot></label>' ) ) + '</div>' +
+			( '<p class="a-help" style="margin-top:14px">' + __( 'We also send your Stubli version and phone type, to help fix problems. Nothing else.', 'stubli' ) + '</p>' ) +
 			'<div data-msg aria-live="polite">' + ( fb.error ? '<div class="a-notice" role="alert"><p>' + esc( fb.error ) + '</p></div>' : '' ) + '</div>' +
-			'<button type="button" class="a-btn wide" style="margin-top:14px" data-send' + ( fb.busy ? ' disabled' : '' ) + '>' + ( fb.busy ? 'Sending…' : 'Send feedback' ) + '</button></main>';
+			'<button type="button" class="a-btn wide" style="margin-top:14px" data-send' + ( fb.busy ? ' disabled' : '' ) + '>' + ( fb.busy ? __( 'Sending…', 'stubli' ) : __( 'Send feedback', 'stubli' ) ) + '</button></main>';
 		fb.error = '';
 		$$( '[data-kind]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { fb.kind = b.dataset.kind; viewFeedback(); } ); } );
 		var t = $( '#a-fb' );
@@ -2022,20 +2030,20 @@
 			sh.addEventListener( 'change', function () {
 				var f = sh.files && sh.files[ 0 ];
 				if ( ! f ) { return; }
-				resized( f ).then( function ( b ) { fb.shot = { blob: b, url: URL.createObjectURL( b ) }; viewFeedback(); }, function () { fb.error = 'That image couldn\'t be opened. Try a PNG or JPEG.'; viewFeedback(); } );
+				resized( f ).then( function ( b ) { fb.shot = { blob: b, url: URL.createObjectURL( b ) }; viewFeedback(); }, function () { fb.error = __( 'That image couldn\'t be opened. Try a PNG or JPEG.', 'stubli' ); viewFeedback(); } );
 			} );
 		}
 		var ns = $( '[data-noshot]' );
 		if ( ns ) { ns.addEventListener( 'click', function () { URL.revokeObjectURL( fb.shot.url ); fb.shot = null; viewFeedback(); } ); }
 		$( '[data-send]' ).addEventListener( 'click', function () {
-			if ( ! fb.text.trim() ) { msg( '<div class="a-notice calm" role="alert"><p>Write a few words first.</p></div>' ); t.focus(); return; }
+			if ( ! fb.text.trim() ) { msg( ( '<div class="a-notice calm" role="alert"><p>' + __( 'Write a few words first.', 'stubli' ) + '</p></div>' ) ); t.focus(); return; }
 			fb.busy = true; viewFeedback();
 			var fd = new FormData();
 			fd.append( 'kind', fb.kind ); fd.append( 'message', fb.text.trim() ); fd.append( 'include_address', fb.address ? '1' : '0' ); fd.append( 'device', device() );
 			if ( fb.shot ) { fd.append( 'screenshot', fb.shot.blob, 'screenshot.jpg' ); }
 			send( 'POST', 'feedback/send', fd ).then( function () {
 				fb.busy = false; fb.sent = true; if ( fb.shot ) { URL.revokeObjectURL( fb.shot.url ); } viewFeedback();
-			}, function ( e ) { fb.busy = false; fb.error = ( e && e.message ) || 'The note didn\'t go through. Try again in a moment.'; viewFeedback(); } );
+			}, function ( e ) { fb.busy = false; fb.error = ( e && e.message ) || __( 'The note didn\'t go through. Try again in a moment.', 'stubli' ); viewFeedback(); } );
 		} );
 	}
 
@@ -2114,7 +2122,7 @@
 
 	var imp = null;
 	function scanImport( files ) {
-		imp = { state: 'scanning', posts: [], videos: 0, missing: 0, collection: 'From Instagram', done: 0, failed: [], stop: false };
+		imp = { state: 'scanning', posts: [], videos: 0, missing: 0, collection: __( 'From Instagram', 'stubli' ), done: 0, failed: [], stop: false };
 		viewImport();
 		var entries = {};
 		Promise.all( Array.prototype.map.call( files, function ( f ) {
@@ -2158,10 +2166,10 @@
 			} );
 		} ).catch( function ( e ) {
 			imp.state = 'error';
-			imp.error = e.message === 'html' ? 'This download is the HTML version. Ask Instagram for a new download and choose JSON as the format.' :
-				e.message === 'notzip' ? 'That file isn\'t a zip file. Choose the file Instagram sent you, without unpacking it.' :
-				e.message === 'noposts' ? 'There are no posts in this download. When you request it, tick Posts (or Content).' :
-				'This download couldn\'t be read here. Try it on a computer with a current browser.';
+			imp.error = e.message === 'html' ? __( 'This download is the HTML version. Ask Instagram for a new download and choose JSON as the format.', 'stubli' ) :
+				e.message === 'notzip' ? __( 'That file isn\'t a zip file. Choose the file Instagram sent you, without unpacking it.', 'stubli' ) :
+				e.message === 'noposts' ? __( 'There are no posts in this download. When you request it, tick Posts (or Content).', 'stubli' ) :
+				__( 'This download couldn\'t be read here. Try it on a computer with a current browser.', 'stubli' );
 			viewImport();
 		} );
 	}
@@ -2169,36 +2177,36 @@
 	function viewImport() {
 		var s = imp, body = '';
 		if ( ! s || s.state === 'error' ) {
-			body = '<p class="muted">Instagram lets you download everything you\'ve posted. Stubli reads that download on this device and brings your photos over, with their original dates and captions.</p>' +
-				'<h2 class="a-label">1. Ask Instagram for your download</h2><ol class="a-steps"><li>In Instagram, open your profile, the menu, then <strong>Accounts Centre</strong>.</li><li>Choose <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li><li>Pick <strong>Some of your information</strong> → <strong>Posts</strong>, then <strong>Download to device</strong>.</li><li>Set <strong>Date range: All time</strong>, <strong>Format: JSON</strong> and <strong>Media quality: High</strong>.</li></ol>' +
-				'<p class="a-help">Instagram emails you when it\'s ready, which can take a few hours. Big accounts may get several zip files: choose them all.</p>' +
-				'<h2 class="a-label">2. Choose the zip file</h2><label class="a-btn">' + icon( 'plus', 18 ) + 'Choose zip files<input class="a-file" type="file" accept=".zip,application/zip" multiple data-zip></label>' +
+			body = ( '<p class="muted">' + __( 'Instagram lets you download everything you\'ve posted. Stubli reads that download on this device and brings your photos over, with their original dates and captions.', 'stubli' ) + '</p>' ) +
+				( '<h2 class="a-label">' + __( '1. Ask Instagram for your download', 'stubli' ) + '</h2><ol class="a-steps"><li>' + __( 'In Instagram, open your profile, the menu, then', 'stubli' ) + ' <strong>' + __( 'Accounts Centre', 'stubli' ) + '</strong>.</li><li>' + __( 'Choose', 'stubli' ) + ' <strong>' + __( 'Your information and permissions', 'stubli' ) + '</strong> → <strong>' + __( 'Download your information', 'stubli' ) + '</strong>.</li><li>' + __( 'Pick', 'stubli' ) + ' <strong>' + __( 'Some of your information', 'stubli' ) + '</strong> → <strong>' + __( 'Posts', 'stubli' ) + '</strong>' + __( ', then', 'stubli' ) + ' <strong>' + __( 'Download to device', 'stubli' ) + '</strong>.</li><li>' + __( 'Set', 'stubli' ) + ' <strong>' + __( 'Date range: All time', 'stubli' ) + '</strong>, <strong>' + __( 'Format: JSON', 'stubli' ) + '</strong> ' + __( 'and', 'stubli' ) + ' <strong>' + __( 'Media quality: High', 'stubli' ) + '</strong>.</li></ol>' ) +
+				( '<p class="a-help">' + __( 'Instagram emails you when it\'s ready, which can take a few hours. Big accounts may get several zip files: choose them all.', 'stubli' ) + '</p>' ) +
+				( '<h2 class="a-label">' + __( '2. Choose the zip file', 'stubli' ) + '</h2><label class="a-btn">' ) + icon( 'plus', 18 ) + ( __( 'Choose zip files', 'stubli' ) + '<input class="a-file" type="file" accept=".zip,application/zip" multiple data-zip></label>' ) +
 				( s && s.error ? '<div class="a-notice" role="alert"><p>' + esc( s.error ) + '</p></div>' : '' );
 		} else if ( s.state === 'scanning' ) {
-			body = '<div class="a-notice calm" aria-live="polite"><p>Reading your download…</p></div>';
+			body = ( '<div class="a-notice calm" aria-live="polite"><p>' + __( 'Reading your download…', 'stubli' ) + '</p></div>' );
 		} else if ( s.state === 'empty' ) {
-			body = '<div class="a-notice calm"><p>No photo or video posts found in this download.</p></div>';
+			body = ( '<div class="a-notice calm"><p>' + __( 'No photo or video posts found in this download.', 'stubli' ) + '</p></div>' );
 		} else if ( s.state === 'ready' ) {
 			var on = s.posts.filter( function ( p ) { return p.on; } ).length;
-			body = '<p>Found <strong>' + s.posts.length + ' posts</strong> from ' + esc( when( s.posts[ 0 ].ts ) ) + ' to ' + esc( when( s.posts[ s.posts.length - 1 ].ts ) ) + '.' +
-				( s.videos ? ' Videos up to a minute come along; longer ones stay behind.' : '' ) + '</p>' +
-				'<label class="a-label" for="a-impcol">Put them in this collection</label><input id="a-impcol" class="a-field" maxlength="40" value="' + esc( s.collection ) + '">' +
-				'<div class="a-row" style="margin-top:18px"><h2 class="a-label">Choose posts</h2><button type="button" class="a-text-btn" data-all>' + ( on === s.posts.length ? 'Select none' : 'Select all' ) + '</button></div>' +
+			body = '<p>' + _f( __( 'Found %s from %s to %s.', 'stubli' ), '<strong>' + _f( __( '%s posts', 'stubli' ), s.posts.length ) + '</strong>', esc( when( s.posts[ 0 ].ts ) ), esc( when( s.posts[ s.posts.length - 1 ].ts ) ) ) +
+				( s.videos ? ( ' ' + __( 'Videos up to a minute come along; longer ones stay behind.', 'stubli' ) ) : '' ) + '</p>' +
+				( '<label class="a-label" for="a-impcol">' + __( 'Put them in this collection', 'stubli' ) + '</label><input id="a-impcol" class="a-field" maxlength="40" value="' ) + esc( s.collection ) + '">' +
+				( '<div class="a-row" style="margin-top:18px"><h2 class="a-label">' + __( 'Choose posts', 'stubli' ) + '</h2><button type="button" class="a-text-btn" data-all>' ) + ( on === s.posts.length ? __( 'Select none', 'stubli' ) : __( 'Select all', 'stubli' ) ) + '</button></div>' +
 				'<div class="a-thumbs a-imp-grid">' + s.posts.map( function ( p, i ) {
-					return '<button type="button" class="a-thumb a-imp' + ( p.on ? ' is-on' : '' ) + '" data-tog="' + i + '" aria-pressed="' + p.on + '" aria-label="' + esc( when( p.ts ) + ( p.caption ? ': ' + p.caption.slice( 0, 60 ) : '' ) ) + '"><img alt="" data-src="' + i + '">' + ( p.photos.length > 1 ? '<span class="a-order">' + p.photos.length + '</span>' : '' ) + ( ! p.cover ? '<span class="a-vid-dur" aria-hidden="true">' + icon( 'play', 12 ) + 'Video</span>' : '' ) + '<span class="a-imp-check" aria-hidden="true">' + icon( 'check', 16 ) + '</span></button>';
+					return '<button type="button" class="a-thumb a-imp' + ( p.on ? ' is-on' : '' ) + '" data-tog="' + i + '" aria-pressed="' + p.on + '" aria-label="' + esc( when( p.ts ) + ( p.caption ? ': ' + p.caption.slice( 0, 60 ) : '' ) ) + '"><img alt="" data-src="' + i + '">' + ( p.photos.length > 1 ? '<span class="a-order">' + p.photos.length + '</span>' : '' ) + ( ! p.cover ? '<span class="a-vid-dur" aria-hidden="true">' + icon( 'play', 12 ) + ( __( 'Video', 'stubli' ) + '</span>' ) : '' ) + '<span class="a-imp-check" aria-hidden="true">' + icon( 'check', 16 ) + '</span></button>';
 				} ).join( '' ) + '</div>' +
-				'<p class="a-help" style="margin-top:14px">Captions and dates come along. Comments and likes stay on Instagram. Location details are removed. Keep this screen open while it works.</p>' +
-				'<button type="button" class="a-btn wide" style="margin-top:12px" data-go-import' + ( on ? '' : ' disabled' ) + '>Import ' + on + ' post' + ( on === 1 ? '' : 's' ) + '</button>';
+				( '<p class="a-help" style="margin-top:14px">' + __( 'Captions and dates come along. Comments and likes stay on Instagram. Location details are removed. Keep this screen open while it works.', 'stubli' ) + '</p>' ) +
+				'<button type="button" class="a-btn wide" style="margin-top:12px" data-go-import' + ( on ? '' : ' disabled' ) + '>' + ( on === 1 ? __( 'Import 1 post', 'stubli' ) : _f( __( 'Import %s posts', 'stubli' ), on ) ) + '</button>';
 		} else if ( s.state === 'running' ) {
 			var total = s.queue.length;
-			body = '<div class="a-notice calm" aria-live="polite"><p>Importing ' + Math.min( s.done + 1, total ) + ' of ' + total + '…</p><div class="a-progress"><span style="width:' + Math.round( 100 * s.done / total ) + '%"></span></div></div>' +
-				'<p class="a-help">You can keep using your phone, but leave this screen open. If it stops, start again: posts already imported are skipped.</p><button type="button" class="a-btn quiet" data-stop style="margin-top:8px">Stop</button>';
+			body = '<div class="a-notice calm" aria-live="polite"><p>' + _f( __( 'Importing %s of %s…', 'stubli' ), Math.min( s.done + 1, total ), total ) + '</p><div class="a-progress"><span style="width:' + Math.round( 100 * s.done / total ) + '%"></span></div></div>' +
+				( '<p class="a-help">' + __( 'You can keep using your phone, but leave this screen open. If it stops, start again: posts already imported are skipped.', 'stubli' ) + '</p><button type="button" class="a-btn quiet" data-stop style="margin-top:8px">' + __( 'Stop', 'stubli' ) + '</button>' );
 		} else if ( s.state === 'done' ) {
 			var ok = s.ok || 0;
-			body = '<div class="a-done" style="padding-top:12px"><span class="a-tick">' + icon( 'check', 28 ) + '</span><h2>' + ( s.stop ? 'Stopped' : 'Done' ) + '</h2><p class="muted">' + ok + ' post' + ( ok === 1 ? '' : 's' ) + ' imported' + ( s.collection && ok ? ' into ' + esc( s.collection ) : '' ) + '.' + ( s.dup ? ' ' + s.dup + ' ' + ( s.dup === 1 ? 'was' : 'were' ) + ' already on your page, so nothing was doubled.' : '' ) +
-				( s.failed.length ? ' ' + s.failed.length + ' couldn\'t be imported; try again to retry them.' : '' ) + ( s.long ? ' ' + ( s.long === 1 ? 'One video was' : s.long + ' videos were' ) + ' longer than a minute and stayed behind.' : '' ) + ( s.bad ? ' ' + ( s.bad === 1 ? 'One video' : s.bad + ' videos' ) + ' couldn\'t be read and stayed behind.' : '' ) + ( s.stop && s.queue.length ? ' ' + s.queue.length + ' still to go.' : '' ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + '">See your page</a>' + ( s.failed.length || s.stop ? '<button type="button" class="a-btn quiet" data-retry>Try again</button>' : '' ) + '</div></div>';
+			body = '<div class="a-done" style="padding-top:12px"><span class="a-tick">' + icon( 'check', 28 ) + '</span><h2>' + ( s.stop ? __( 'Stopped', 'stubli' ) : __( 'Done', 'stubli' ) ) + '</h2><p class="muted">' + ( s.collection && ok ? ( ok === 1 ? _f( __( '1 post imported into %s.', 'stubli' ), esc( s.collection ) ) : _f( __( '%s posts imported into %s.', 'stubli' ), ok, esc( s.collection ) ) ) : ( ok === 1 ? __( '1 post imported.', 'stubli' ) : _f( __( '%s posts imported.', 'stubli' ), ok ) ) ) + ( s.dup ? ' ' + ( s.dup === 1 ? __( '1 was already on your page, so nothing was doubled.', 'stubli' ) : _f( __( '%s were already on your page, so nothing was doubled.', 'stubli' ), s.dup ) ) : '' ) +
+				( s.failed.length ? ' ' + _f( __( '%s couldn\'t be imported; try again to retry them.', 'stubli' ), s.failed.length ) : '' ) + ( s.long ? ' ' + ( s.long === 1 ? __( 'One video was longer than a minute and stayed behind.', 'stubli' ) : _f( __( '%s videos were longer than a minute and stayed behind.', 'stubli' ), s.long ) ) : '' ) + ( s.bad ? ' ' + ( s.bad === 1 ? __( 'One video couldn\'t be read and stayed behind.', 'stubli' ) : _f( __( '%s videos couldn\'t be read and stayed behind.', 'stubli' ), s.bad ) ) : '' ) + ( s.stop && s.queue.length ? ' ' + _f( __( '%s still to go.', 'stubli' ), s.queue.length ) : '' ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a>' ) + ( s.failed.length || s.stop ? ( '<button type="button" class="a-btn quiet" data-retry>' + __( 'Try again', 'stubli' ) + '</button>' ) : '' ) + '</div></div>';
 		}
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="Back">' + icon( 'back', 22 ) + '</a><h1>From Instagram</h1><span></span></header><main class="a-compose" id="main">' + body + '</main>';
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + cameFrom + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'From Instagram', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main">' ) + body + '</main>';
 		var z = $( '[data-zip]' );
 		if ( z ) { z.addEventListener( 'change', function () { if ( z.files.length ) { scanImport( z.files ); } } ); }
 		var col = $( '#a-impcol' );
@@ -2209,14 +2217,14 @@
 		var go = $( '[data-go-import]' );
 		if ( go ) { go.addEventListener( 'click', function () { runImport( s.posts.filter( function ( p ) { return p.on; } ) ); } ); }
 		var st = $( '[data-stop]' );
-		if ( st ) { st.addEventListener( 'click', function () { s.stop = true; st.disabled = true; st.textContent = 'Stopping after this post…'; } ); }
+		if ( st ) { st.addEventListener( 'click', function () { s.stop = true; st.disabled = true; st.textContent = __( 'Stopping after this post…', 'stubli' ); } ); }
 		var rt = $( '[data-retry]' );
 		if ( rt ) { rt.addEventListener( 'click', function () { runImport( s.queue ); } ); }
 		lazyThumbs();
 	}
 	function updateCount() {
 		var on = imp.posts.filter( function ( p ) { return p.on; } ).length, go = $( '[data-go-import]' );
-		go.disabled = ! on; go.textContent = 'Import ' + on + ' post' + ( on === 1 ? '' : 's' );
+		go.disabled = ! on; go.textContent = on === 1 ? __( 'Import 1 post', 'stubli' ) : _f( __( 'Import %s posts', 'stubli' ), on );
 	}
 	var thumbUrls = [];
 	function lazyThumbs() {
@@ -2273,7 +2281,7 @@
 			} ).then( function ( r ) { if ( r && r.skipped ) { return; } if ( r && r.duplicate ) { s.dup++; } else { s.ok++; } }, function () { s.failed.push( p ); } ).then( function () {
 				s.done++;
 				var t = $( '.a-notice p' ), bar = $( '.a-progress span' );
-				if ( t ) { t.textContent = 'Importing ' + Math.min( s.done + 1, queue.length ) + ' of ' + queue.length + '…'; }
+				if ( t ) { t.textContent = _f( __( 'Importing %s of %s…', 'stubli' ), Math.min( s.done + 1, queue.length ), queue.length ); }
 				if ( bar ) { bar.style.width = Math.round( 100 * s.done / queue.length ) + '%'; }
 				next();
 			} );
@@ -2288,8 +2296,8 @@
 		if ( c ) {
 			c.addEventListener( 'click', function () {
 				if ( post && post.photos.length && ! c.dataset.sure ) {
-					c.dataset.sure = '1'; c.textContent = 'Discard?'; c.setAttribute( 'aria-label', 'Discard this post. Press again to confirm.' );
-					setTimeout( function () { if ( c.isConnected ) { delete c.dataset.sure; c.textContent = 'Cancel'; c.removeAttribute( 'aria-label' ); } }, 3000 );
+					c.dataset.sure = '1'; c.textContent = __( 'Discard?', 'stubli' ); c.setAttribute( 'aria-label', __( 'Discard this post. Press again to confirm.', 'stubli' ) );
+					setTimeout( function () { if ( c.isConnected ) { delete c.dataset.sure; c.textContent = __( 'Cancel', 'stubli' ); c.removeAttribute( 'aria-label' ); } }, 3000 );
 					return;
 				}
 				if ( post ) { post.photos.forEach( function ( ph ) { URL.revokeObjectURL( ph.thumb ); } ); }
