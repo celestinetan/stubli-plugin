@@ -196,6 +196,7 @@ class Setup {
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
 			'avatar'    => Avatar::current(),
 			'photo'     => (bool) get_site_icon_url( 256 ),
+			'cover'     => self::cover_url(),
 			'smiley'    => Avatar::look() + Avatar::choices(),
 			'interests' => self::interests(),
 			'ideas'     => self::IDEAS,
@@ -309,6 +310,75 @@ class Setup {
 	}
 
 	/**
+	 * The cover photo across the top of the profile card, if there is one.
+	 *
+	 * @return string
+	 */
+	public static function cover_url() {
+		$id = (int) get_option( 'stubli_cover', 0 );
+		if ( ! $id ) {
+			return '';
+		}
+		$url = wp_get_attachment_image_url( $id, 'full' );
+		return $url ? (string) $url : '';
+	}
+
+	/**
+	 * Save a new cover photo. The app sends it already cropped to 3:1 and
+	 * re-drawn (so location details are gone); this keeps it no bigger than
+	 * 1800 × 600 either way.
+	 *
+	 * @return array|\WP_Error
+	 */
+	public static function cover() {
+		if ( empty( $_FILES['cover'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST checks the nonce.
+			return new \WP_Error( 'stubli_no_photo', __( 'Choose a photo first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		$file = $_FILES['cover']; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput -- handed to WordPress's upload checks.
+		$type = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+		if ( empty( $type['type'] ) || 0 !== strpos( (string) $type['type'], 'image/' ) ) {
+			return new \WP_Error( 'stubli_not_photo', __( 'That file isn\'t a photo. Try a JPEG or PNG.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$id = media_handle_upload( 'cover', 0, array( 'post_title' => __( 'Cover photo', 'stubli' ) ) );
+		if ( is_wp_error( $id ) ) {
+			return new \WP_Error( 'stubli_upload', __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$path = get_attached_file( $id );
+		$ed   = $path ? wp_get_image_editor( $path ) : null;
+		if ( $ed && ! is_wp_error( $ed ) ) {
+			$size = $ed->get_size();
+			if ( $size['width'] > 1800 || $size['height'] > 600 ) {
+				$ed->resize( 1800, 600, true );
+				$ed->save( $path );
+				wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $path ) );
+			}
+		}
+		$old = (int) get_option( 'stubli_cover', 0 );
+		update_option( 'stubli_cover', (int) $id );
+		if ( $old && $old !== (int) $id ) {
+			wp_delete_attachment( $old, true );
+		}
+		return array( 'cover' => self::cover_url() );
+	}
+
+	/**
+	 * Take the cover photo away.
+	 *
+	 * @return array
+	 */
+	public static function cover_remove() {
+		$old = (int) get_option( 'stubli_cover', 0 );
+		delete_option( 'stubli_cover' );
+		if ( $old ) {
+			wp_delete_attachment( $old, true );
+		}
+		return array( 'cover' => '' );
+	}
+
+	/**
 	 * Use an invite link pasted in the wizard ("Got an invite link?").
 	 *
 	 * @param string $link Like https://ana.ch/invite/?t=abc.
@@ -380,6 +450,24 @@ class Setup {
 					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
 				},
 				'permission_callback' => $owner,
+			)
+		);
+		Rest::register(
+			'/setup/cover',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => static function () {
+						$res = self::cover();
+						return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+					},
+					'permission_callback' => $owner,
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => static fn() => rest_ensure_response( self::cover_remove() ),
+					'permission_callback' => $owner,
+				),
 			)
 		);
 		Rest::register(

@@ -76,6 +76,7 @@ class Posts {
 			'guestbook'   => Guestbook::url(),
 			'on_break'    => Settings::on_break(),
 			'avatar'      => (string) $avatar,
+			'cover'       => Setup::cover_url(),
 			'bio'         => '' !== (string) get_option( 'stubli_bio', '' ) ? (string) get_option( 'stubli_bio', '' ) : get_bloginfo( 'description' ),
 			'recent'      => self::recent_photos( 3 ),
 			'prompts'     => Prompts::get(),

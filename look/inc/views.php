@@ -149,7 +149,11 @@ function stubli_profile_cards() {
 	<div class="st-cards">
 		<div class="st-stack-wrap">
 		<div class="st-stack<?php echo $prompts ? ' has-cards' : ''; ?>" data-st-stack aria-roledescription="<?php esc_attr_e( 'cards', 'stubli' ); ?>">
-		<section class="st-card st-profile is-front" data-st-card aria-label="<?php esc_attr_e( 'About', 'stubli' ); ?>">
+		<?php $cover = (string) ( $p['cover'] ?? '' ); ?>
+		<section class="st-card st-profile is-front<?php echo '' !== $cover ? ' has-cover' : ''; ?>" data-st-card aria-label="<?php esc_attr_e( 'About', 'stubli' ); ?>">
+			<?php if ( '' !== $cover ) : ?>
+				<div class="st-cover"><img src="<?php echo esc_url( $cover ); ?>" alt="" width="1800" height="600" decoding="async" fetchpriority="high"></div>
+			<?php endif; ?>
 			<div class="st-profile-head">
 				<?php if ( ! empty( $p['avatar'] ) ) : ?>
 					<img class="st-avatar" src="<?php echo esc_url( stubli_img_src( $p['avatar'] ), array( 'http', 'https', 'data' ) ); ?>" alt="" width="44" height="44">
@@ -339,22 +343,24 @@ function stubli_footer() {
 	if ( 'stubli.app' === (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) {
 		// The project site: who made Stubli, and that the code is free to use.
 		?>
-	<footer class="st-footer">
-		<span>&copy; <?php echo (int) $now; ?> Celestine Tan</span>
-		<?php $help = get_page_by_path( 'help' ); ?>
-		<?php if ( $help && 'publish' === $help->post_status ) : ?>
-			<span aria-hidden="true">·</span>
-			<a href="<?php echo esc_url( get_permalink( $help ) ); ?>"><?php esc_html_e( 'Help', 'stubli' ); ?></a>
-		<?php endif; ?>
-		<?php $how = get_page_by_path( 'how-it-works' ); ?>
-		<?php if ( $how && 'publish' === $how->post_status ) : ?>
-			<span aria-hidden="true">·</span>
-			<a href="<?php echo esc_url( get_permalink( $how ) ); ?>"><?php esc_html_e( 'How it works', 'stubli' ); ?></a>
-		<?php endif; ?>
-		<span aria-hidden="true">·</span>
-		<a href="https://buymeacoffee.com/celestinetan"><?php esc_html_e( 'Support Stubli', 'stubli' ); ?></a>
-		<span aria-hidden="true">·</span>
-		<a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>"><?php esc_html_e( 'Privacy', 'stubli' ); ?></a>
+	<footer class="st-footer st-footer-hub">
+		<nav class="st-footer-links" aria-label="<?php esc_attr_e( 'More about Stubli', 'stubli' ); ?>">
+			<?php
+			$links = array();
+			$help  = get_page_by_path( 'help' );
+			if ( $help && 'publish' === $help->post_status ) {
+				$links[] = '<a href="' . esc_url( get_permalink( $help ) ) . '">' . esc_html__( 'Help', 'stubli' ) . '</a>';
+			}
+			$how = get_page_by_path( 'how-it-works' );
+			if ( $how && 'publish' === $how->post_status ) {
+				$links[] = '<a href="' . esc_url( get_permalink( $how ) ) . '">' . esc_html__( 'How it works', 'stubli' ) . '</a>';
+			}
+			$links[] = '<a href="https://buymeacoffee.com/celestinetan">' . esc_html__( 'Support Stubli', 'stubli' ) . '</a>';
+			$links[] = '<a href="' . esc_url( home_url( '/privacy/' ) ) . '">' . esc_html__( 'Privacy', 'stubli' ) . '</a>';
+			echo implode( '<span aria-hidden="true">·</span>', $links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			?>
+		</nav>
+		<p class="st-footer-copy">&copy; <?php echo (int) $now; ?> Celestine Tan</p>
 	</footer>
 		<?php
 		return;

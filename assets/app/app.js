@@ -581,7 +581,12 @@
 		};
 		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><button type="button" class="a-btn" data-ab-save' ) + ( ab.busy ? ' disabled' : '' ) + '>' + ( ab.busy ? __( 'Saving…', 'stubli' ) : __( 'Save', 'stubli' ) ) + '</button></header>' +
 			'<main class="a-compose" id="main">' + ( ab.error ? '<div class="a-notice" role="alert"><p>' + esc( ab.error ) + '</p></div>' : '' ) +
-			( ab.d ? '<div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? __( 'Your photo', 'stubli' ) : __( 'Your smiley', 'stubli' ) ) + '">' : '' ) + '</label>' +
+			( ab.d ? '<h2 class="a-label">' + __( 'Cover photo', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></h2>' +
+				'<div class="a-cover' + ( ab.d.cover ? '' : ' is-empty' ) + '">' + ( ab.d.cover ? '<img src="' + esc( ab.d.cover ) + '" alt="' + esc( __( 'Your cover photo', 'stubli' ) ) + '">' : '<span>' + icon( 'photo', 22 ) + '</span>' ) + '</div>' +
+				'<div class="a-actions"><label class="a-btn quiet" for="a-ab-cover">' + icon( 'photo', 18 ) + ( ab.d.cover ? __( 'Change cover', 'stubli' ) : __( 'Choose a cover photo', 'stubli' ) ) + '</label><input id="a-ab-cover" class="a-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic">' +
+				( ab.d.cover ? '<button type="button" class="a-text-btn" data-ab-cover-off>' + __( 'Remove', 'stubli' ) + '</button>' : '' ) + '</div>' +
+				'<p class="a-help" aria-live="polite" data-ab-cover-msg>' + esc( ab.d.coverMsg || __( 'A wide landscape photo works best, at least 1500 × 500 pixels. JPEG, PNG or WebP. Stubli crops it to fit and removes location details.', 'stubli' ) ) + '</p>' : '' ) +
+			( ab.d ? '<h2 class="a-label">' + __( 'Profile photo', 'stubli' ) + '</h2><div class="a-su-photo" style="margin-top:4px"><label class="a-su-av" for="a-ab-file">' + ( ab.d.avatar ? '<img src="' + esc( ab.d.avatar ) + '" alt="' + ( ab.d.photo ? __( 'Your photo', 'stubli' ) : __( 'Your smiley', 'stubli' ) ) + '">' : '' ) + '</label>' +
 				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? __( 'Change photo', 'stubli' ) : __( 'Add a photo', 'stubli' ) ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? __( 'A face, a place, anything that feels like you.', 'stubli' ) : __( 'Or keep your smiley, and make it yours below.', 'stubli' ) ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
 			( '<label class="a-label" for="a-ab-name">' + __( 'Your name', 'stubli' ) + '</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' ) + esc( ab.name ) + '">' +
 			( '<label class="a-label" for="a-ab-bio">' + __( 'One line about you', 'stubli' ) + '</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' ) + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
@@ -599,6 +604,16 @@
 		$( '#a-ab-pro' ).addEventListener( 'input', function ( e ) { ab.pronouns = e.target.value; } );
 		if ( ab.d ) {
 			bindSmiley( ab.d, renderAbout );
+			var cf = $( '#a-ab-cover' );
+			cf.addEventListener( 'change', function () {
+				var f = cf.files && cf.files[ 0 ], m = $( '[data-ab-cover-msg]' ); if ( ! f ) { return; }
+				m.textContent = __( 'Uploading…', 'stubli' );
+				wideCover( f ).then( function ( blob ) { var fd = new FormData(); fd.append( 'cover', blob, 'cover.jpg' ); return send( 'POST', 'setup/cover', fd ); } )
+					.then( function ( r ) { ab.d.cover = r.cover; ab.d.coverMsg = __( 'Lovely. It\'s on your page now.', 'stubli' ); me.p = null; renderAbout(); },
+						function ( e ) { m.textContent = ( e && e.message ) || __( 'That photo couldn\'t be read. Try another one.', 'stubli' ); } );
+			} );
+			var co = $( '[data-ab-cover-off]' );
+			if ( co ) { co.addEventListener( 'click', function () { send( 'DELETE', 'setup/cover', null ).then( function () { ab.d.cover = ''; ab.d.coverMsg = __( 'Cover removed.', 'stubli' ); me.p = null; renderAbout(); }, function ( e ) { toast( e.message ); } ); } ); }
 			var af = $( '#a-ab-file' );
 			af.addEventListener( 'change', function () {
 				var f = af.files && af.files[ 0 ], m = $( '[data-ab-photo-msg]' ); if ( ! f ) { return; }
@@ -1693,6 +1708,18 @@
 				} );
 			} );
 		}
+	}
+	// Cover photo: the middle of the picture at 3:1, at most 1800 × 600, re-drawn
+	// so nothing but the pixels travels (no location details).
+	function wideCover( file ) {
+		return loadImage( file ).then( function ( img ) {
+			var dm = dims( img ), w = dm.w, h = Math.round( dm.w / 3 );
+			if ( h > dm.h ) { h = dm.h; w = Math.round( dm.h * 3 ); }
+			var ow = Math.min( 1800, w ), oh = Math.round( ow / 3 );
+			var c = draw( img, ( dm.w - w ) / 2, ( dm.h - h ) / 2, w, h, ow, oh );
+			if ( img.close ) { img.close(); }
+			return toBlob( c, 0.86 );
+		} );
 	}
 	function squareAvatar( file ) {
 		return loadImage( file ).then( function ( img ) {
