@@ -160,7 +160,7 @@ function stubli_profile_cards() {
 				</div>
 				<?php
 				if ( stubli_is_owner() ) {
-					echo stubli_pill( home_url( '/app/' ), __( 'Open the app', 'stubli' ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo stubli_pill( home_url( '/app/' ), __( 'Open the app', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				} else {
 					echo stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
@@ -345,6 +345,11 @@ function stubli_footer() {
 		<?php if ( $help && 'publish' === $help->post_status ) : ?>
 			<span aria-hidden="true">·</span>
 			<a href="<?php echo esc_url( get_permalink( $help ) ); ?>"><?php esc_html_e( 'Help', 'stubli' ); ?></a>
+		<?php endif; ?>
+		<?php $how = get_page_by_path( 'how-it-works' ); ?>
+		<?php if ( $how && 'publish' === $how->post_status ) : ?>
+			<span aria-hidden="true">·</span>
+			<a href="<?php echo esc_url( get_permalink( $how ) ); ?>"><?php esc_html_e( 'How it works', 'stubli' ); ?></a>
 		<?php endif; ?>
 		<span aria-hidden="true">·</span>
 		<a href="https://buymeacoffee.com/celestinetan"><?php esc_html_e( 'Support Stubli', 'stubli' ); ?></a>

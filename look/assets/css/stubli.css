@@ -614,11 +614,23 @@ html { scroll-behavior: smooth; }
 	.st-top-brand .st-mode-label { display: none; }
 }
 @media (max-width: 400px) { .st-top-brand .st-top-pages a:not(.st-top-join) { padding: 0 6px; font-size: 14px; } }
-/* On phones Help becomes a round "?" (its name stays for screen readers), and
-   Aa keeps its spot. Below 420px "How it works" waits in the footer and on the
-   welcome card, so the bar stays one row: logo, Make your Stubli, ?, Aa. */
+/* On phones the bar is one row: logo, Make your Stubli, a round "?" for Help
+   (its name stays for screen readers) and Aa. "How it works" waits in the
+   footer and on the welcome card. */
 @media (max-width: 560px) {
 	.st-top-brand .st-top-pages a.st-top-help { font-size: 0; width: 36px; min-width: 36px; padding: 0; justify-content: center; position: relative; text-decoration: none; }
 	.st-top-brand .st-top-pages a.st-top-help::after { content: "?"; font: 700 16px/1 var(--st-sans); width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--on-brand); display: inline-flex; align-items: center; justify-content: center; }
 }
-@media (max-width: 420px) { .st-top-brand .st-top-pages a:not(.st-top-join):not(.st-top-help) { display: none; } .st-top-brand .st-top-logo { margin-right: auto; } }
+@media (max-width: 560px) { .st-top-brand .st-top-pages a:not(.st-top-join):not(.st-top-help) { display: none; } .st-top-brand .st-top-logo { margin-right: 46px; } }
+
+/* Small phones: keep room for the Beta badge next to the logo. */
+@media (max-width: 400px) {
+	.st-top-brand .st-top-pages a.st-top-join { padding: 0 12px; font-size: 14px; }
+	.st-top-brand .st-top-pages + .st-mode { margin-left: 0; }
+}
+@media (max-width: 340px) { .st-top-brand .st-beta { display: none; } .st-top-brand .st-top-logo { margin-right: 8px; } }
+@media (max-width: 560px) {
+	.st-top-brand { flex-wrap: nowrap; }
+	.st-top-brand .st-top-pages { flex: none; }
+	.st-top-brand .st-mode { padding: 0 8px; flex: none; }
+}
