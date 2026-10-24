@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.35.0
+Stable tag: 0.35.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.35.1 =
+* On bigger screens, a post whose cover photo is landscape now shows the photo across the full width of the page, with the caption and comments underneath, so wide photos are seen large.
 
 = 0.35.0 =
 * Edit post can now add, remove and replace photos, not only reorder them. A replaced photo keeps its place, a post keeps at least one photo, and new photos are cropped to the post's shape unless you pick another. Photos you take out are deleted from your site a few minutes after you save, so Undo can still bring them back. A post whose photos changed shows a quiet "Edited" next to its date.

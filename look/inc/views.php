@@ -474,13 +474,15 @@ function stubli_view_single() {
 	$note = (string) get_post_meta( $post->ID, '_stubli_content_note', true );
 	$name = get_bloginfo( 'name' );
 	stubli_topbar( $coll ? get_category_link( $coll ) : home_url( '/' ), $name );
-	echo '<main class="st-main st-post" id="main"><article class="st-post-grid">';
+	// A landscape cover gets the full width on bigger screens, with the words underneath.
+	$wide = stubli_is_landscape( $ids ? $ids[0] : 0 );
+	echo '<main class="st-main st-post" id="main"><article class="st-post-grid' . ( $wide ? ' is-wide' : '' ) . '">';
 	echo '<h1 class="screen-reader-text">' . esc_html( stubli_post_label( $post ) ) . '</h1>';
 
 	echo '<div class="st-carousel' . ( $note ? ' has-note' : '' ) . '" data-st-carousel>';
 	echo '<div class="st-carousel-track" tabindex="0" aria-label="' . esc_attr__( 'Photos', 'stubli' ) . '">';
 	foreach ( $ids as $i => $id ) {
-		$img = wp_get_attachment_image( $id, 'stubli-large', false, array( 'loading' => 0 === $i ? 'eager' : 'lazy', 'sizes' => '(min-width: 1024px) 600px, 100vw' ) );
+		$img = wp_get_attachment_image( $id, 'stubli-large', false, array( 'loading' => 0 === $i ? 'eager' : 'lazy', 'sizes' => $wide ? '(min-width: 1024px) 980px, 100vw' : '(min-width: 1024px) 600px, 100vw' ) );
 		$vid = stubli_video_for( $id );
 		if ( $vid ) {
 			// Tap to play, with sound (nothing loads until then).
@@ -525,6 +527,17 @@ function stubli_view_single() {
 		echo '<span><span class="st-muted">' . esc_html( $coll ? sprintf( __( 'Next in %s', 'stubli' ), stubli_collection_name( $coll ) ) : __( 'Next', 'stubli' ) ) . '</span><span>' . esc_html( stubli_post_label( $next ) ) . '</span></span>' . stubli_icon( 'chev', 20 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 	echo '</div></article></main>';
+}
+
+/**
+ * Whether a photo is landscape (clearly wider than tall, like 3:2).
+ *
+ * @param int $id Attachment ID.
+ * @return bool
+ */
+function stubli_is_landscape( $id ) {
+	$meta = $id ? wp_get_attachment_metadata( $id ) : array();
+	return ! empty( $meta['width'] ) && ! empty( $meta['height'] ) && $meta['width'] / $meta['height'] > 1.2;
 }
 
 /**
