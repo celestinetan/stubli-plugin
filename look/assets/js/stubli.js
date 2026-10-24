@@ -66,10 +66,20 @@
 			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || steps[ 0 ];
 			steps.forEach( function ( s ) { s.hidden = s !== cur; } );
 			var n = +cur.getAttribute( 'data-gs-n' );
+			// A short checklist of the four steps, not a slideshow bar: people swiped
+			// sideways on phones when it looked like stories.
 			prog.hidden = false;
 			prog.innerHTML = '';
-			prog.appendChild( document.createTextNode( ( T.stepOf || 'Step %1$d of 4' ).replace( '%1$d', n ) + ' · ' + names[ n ] ) );
-			var bar = document.createElement( 'span' ), fill = document.createElement( 'i' ); fill.style.width = ( n / 4 * 100 ) + '%'; bar.appendChild( fill ); prog.appendChild( bar );
+			var list = document.createElement( 'ol' ); list.className = 'st-gs-list';
+			[ 1, 2, 3, 4 ].forEach( function ( k ) {
+				var li = document.createElement( 'li' );
+				li.className = k < n ? 'is-done' : ( k === n ? 'is-now' : '' );
+				if ( k === n ) { li.setAttribute( 'aria-current', 'step' ); }
+				var mark = document.createElement( 'span' ); mark.className = 'st-gs-mark'; mark.setAttribute( 'aria-hidden', 'true' ); mark.textContent = k < n ? '✓' : String( k );
+				li.appendChild( mark ); li.appendChild( document.createTextNode( names[ k ] ) );
+				list.appendChild( li );
+			} );
+			prog.appendChild( list );
 			if ( focus ) { var h = cur.querySelector( 'h2' ); h.setAttribute( 'tabindex', '-1' ); h.focus(); window.scrollTo( 0, Math.max( 0, gs.getBoundingClientRect().top + window.scrollY - 80 ) ); }
 		};
 		window.addEventListener( 'hashchange', function () { if ( /^#gs-/.test( location.hash ) || ! location.hash ) { show( true ); } } );
