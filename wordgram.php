@@ -65,6 +65,7 @@ require_once STUBLI_PLUGIN_DIR . 'includes/class-avatar.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-arrange.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-links.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-seasonal.php';
+require_once STUBLI_PLUGIN_DIR . 'includes/class-demo.php';
 
 register_activation_hook( __FILE__, array( Install::class, 'activate' ) );
 register_deactivation_hook( __FILE__, array( Install::class, 'deactivate' ) );
@@ -100,6 +101,7 @@ add_action(
 		Avatar::init();
 		Arrange::init();
 		Links::init();
+		Demo::init();
 	}
 );
 

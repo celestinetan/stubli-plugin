@@ -170,6 +170,14 @@
 			document.body.appendChild( bar );
 		}, function () {} );
 	}
+	// The Playground demo says so on every screen, with the way to a real Stubli.
+	if ( B.demo && B.demo.text ) {
+		var demoBar = document.createElement( 'div' );
+		demoBar.className = 'a-demo'; demoBar.setAttribute( 'role', 'note' );
+		demoBar.innerHTML = '<span>' + esc( B.demo.text ) + '</span><a href="' + esc( B.demo.url ) + '" target="_blank" rel="noopener">' + esc( B.demo.link ) + ' →</a>';
+		document.body.insertBefore( demoBar, document.body.firstChild );
+		document.documentElement.classList.add( 'a-has-demo' );
+	}
 	document.addEventListener( 'visibilitychange', checkVersion );
 	window.addEventListener( 'focus', checkVersion );
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted ) { verChecked = 0; checkVersion(); } } );

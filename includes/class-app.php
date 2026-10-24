@@ -171,6 +171,7 @@ class App {
 			'rest'        => esc_url_raw( rest_url( REST_NS . '/' ) ),
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'version'     => VERSION,
+			'demo'        => Demo::on() ? Demo::words() : null,
 			'ajax'        => admin_url( 'admin-ajax.php' ),
 			'home'        => home_url( '/' ),
 			'journal'     => home_url( '/journal/' ),

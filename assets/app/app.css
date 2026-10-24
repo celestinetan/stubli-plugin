@@ -766,3 +766,7 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 	box-shadow: 0 0 0 1px var(--field);
 }
 .a-update .a-text-btn { font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+/* The Playground demo's bar (Demo · nothing is saved · Make your own Stubli). */
+.a-demo { position: sticky; top: 0; z-index: 40; height: 36px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 12px; white-space: nowrap; overflow: hidden; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500; }
+.a-demo a { color: inherit; font-weight: 650; text-underline-offset: 3px; }
+.a-has-demo .a-head, .a-has-demo .a-fmt { top: 36px; }
