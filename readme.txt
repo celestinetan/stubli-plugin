@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.37.1
+Stable tag: 0.38.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.38.0 =
+* The demo in WordPress Playground now opens on a ready-made Stubli (Ana, made up, with drawings, a journal and a guest book) and says on every page and app screen that it's a demo, with a link to make your own. Real Stublis never show this.
 
 = 0.37.1 =
 * The app notices when your site has a newer Stubli (for example when it stayed open on your phone through an update) and offers "Stubli has been updated. Reload". Nothing reloads by itself.

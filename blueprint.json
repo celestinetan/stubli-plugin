@@ -1,11 +1,11 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
   "meta": {
-    "title": "Try Stubli",
+    "title": "Stubli demo",
     "author": "celestinetan",
-    "description": "A temporary Stubli in your browser. Opens in the setup. Nothing is saved."
+    "description": "A demo Stubli in your browser: Ana's page, journal, guest book and app. Everyone in it is made up. Nothing is saved."
   },
-  "landingPage": "/app/#setup",
+  "landingPage": "/",
   "preferredVersions": {
     "php": "8.3",
     "wp": "latest"
@@ -20,7 +20,7 @@
     {
       "step": "setSiteOptions",
       "options": {
-        "blogname": "",
+        "blogname": "Ana Keller",
         "permalink_structure": "/%postname%/"
       }
     },
@@ -38,9 +38,84 @@
       }
     },
     {
+      "step": "mkdir",
+      "path": "/wordpress/wp-content/stubli-demo"
+    },
+    {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/mu-plugins/stubli-demo.php",
-      "data": "<?php\n// Playground demo: say plainly that nothing here is kept.\nadd_action( 'admin_notices', static function () { echo '<div class=\"notice notice-info\"><p>This is a Stubli demo in your browser. Nothing is saved or shared. To get your own Stubli: <a href=\"https://stubli.app/get-started/\">stubli.app/get-started</a></p></div>'; } );\n"
+      "path": "/wordpress/wp-content/stubli-demo/setup.php",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/setup.php"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/tram-rain.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/tram-rain.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/coffee.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/coffee.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/lake-dawn.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/lake-dawn.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/old-town.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/old-town.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/peaks.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/peaks.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/food.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/food.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/forest-fog.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/forest-fog.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/city-night.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/city-night.jpg"
+      }
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require '/wordpress/wp-content/stubli-demo/setup.php';"
     }
   ]
 }

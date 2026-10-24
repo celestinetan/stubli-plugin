@@ -614,7 +614,7 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-end p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .st-gs-progress span i { transition: none; } }
 
-.st-gs-try { margin: 16px 0 4px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
+.st-gs-try { margin: 28px 0 4px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
 .st-gs-try p { margin: 0; }
 .st-gs-try .st-muted { font-size: 14px; max-width: 38em; }
 .st-gs-try-h { font-weight: 650; }
