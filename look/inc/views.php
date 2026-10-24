@@ -489,7 +489,11 @@ function stubli_view_single() {
 			$alt = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
 			echo '<figure class="st-slide st-slide-video"><button type="button" class="st-play" data-st-video="' . esc_url( wp_get_attachment_url( $vid ) ) . '" data-type="' . esc_attr( get_post_mime_type( $vid ) ) . '" data-label="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( $alt ? sprintf( /* translators: %s: video description */ __( 'Play video: %s', 'stubli' ), $alt ) : __( 'Play video', 'stubli' ) ) . '">' . $img . '<span class="st-play-icon">' . stubli_icon( 'play', 30 ) . '</span></button></figure>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		} else {
-			echo '<figure class="st-slide">' . $img . '</figure>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			// Tap or click to see it full screen, at full size (stubli.js).
+			$alt   = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
+			/* translators: %d: photo number */
+			$label = sprintf( __( 'See photo %d full screen', 'stubli' ), $i + 1 );
+			echo '<figure class="st-slide"><button type="button" class="st-zoom" data-st-zoom="' . esc_url( wp_get_attachment_url( $id ) ) . '" data-alt="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( '' !== $alt ? $alt . ' · ' . $label : $label ) . '">' . $img . '<span class="st-zoom-icon">' . stubli_icon( 'expand', 18 ) . '</span></button></figure>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 	echo '</div>';

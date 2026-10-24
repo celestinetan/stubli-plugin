@@ -50,6 +50,11 @@ add_action(
 				'readingMode' => __( 'Reading mode', 'stubli' ),
 				/* translators: 1: current photo, 2: number of photos */
 				'of'          => __( '%1$d of %2$d', 'stubli' ),
+				'close'       => __( 'Close', 'stubli' ),
+				'prevPhoto'   => __( 'Previous photo', 'stubli' ),
+				'nextPhoto'   => __( 'Next photo', 'stubli' ),
+				/* translators: 1: current photo, 2: number of photos */
+				'photoOf'     => __( 'Photo %1$d of %2$d', 'stubli' ),
 				'badAddress'  => __( 'That doesn\'t look like a website address. Try something like yourname.com.', 'stubli' ),
 			)
 		);

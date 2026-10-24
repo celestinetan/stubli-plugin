@@ -376,6 +376,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'pin'     => '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		'play'    => '<path d="M8 5v14l11-7z" fill="currentColor"/>',
 		'eye'     => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+		'expand'  => '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
