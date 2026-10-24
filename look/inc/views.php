@@ -379,6 +379,7 @@ function stubli_footer() {
 			if ( $how && 'publish' === $how->post_status ) {
 				$links[] = '<a href="' . esc_url( get_permalink( $how ) ) . '">' . esc_html__( 'How it works', 'stubli' ) . '</a>';
 			}
+			$links[] = '<a href="https://github.com/celestinetan/stubli-plugin">' . esc_html__( 'See the code', 'stubli' ) . '</a>';
 			$links[] = '<a href="https://buymeacoffee.com/celestinetan">' . esc_html__( 'Support Stubli', 'stubli' ) . '</a>';
 			$links[] = '<a href="' . esc_url( home_url( '/privacy/' ) ) . '">' . esc_html__( 'Privacy', 'stubli' ) . '</a>';
 			echo implode( '<span aria-hidden="true">·</span>', $links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
@@ -460,7 +461,13 @@ function stubli_view_single() {
 	if ( has_post_format( 'status', $post ) ) {
 		stubli_topbar( home_url( '/journal/' ), __( 'Journal', 'stubli' ) );
 		echo '<main class="st-main st-reading" id="main"><article class="st-entry is-full">';
-		echo '<h1 class="st-entry-date">' . esc_html( get_the_date( 'l, j F Y', $post ) ) . '</h1>';
+		$title = stubli_entry_title( $post );
+		if ( '' !== $title ) {
+			echo '<p class="st-entry-date">' . esc_html( get_the_date( 'l, j F Y', $post ) ) . '</p>';
+			echo '<h1 class="st-entry-title">' . esc_html( $title ) . '</h1>';
+		} else {
+			echo '<h1 class="st-entry-date">' . esc_html( get_the_date( 'l, j F Y', $post ) ) . '</h1>';
+		}
 		echo stubli_entry_meta( $post ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo '<div class="st-entry-text">' . stubli_entry_html( $post ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</article>';
@@ -616,6 +623,11 @@ function stubli_view_journal() {
 	stubli_profile_cards();
 	stubli_tabs( 'journal' );
 	echo '<section class="st-panel st-journal">';
+	if ( 'all' === get_query_var( 'stubli_journal' ) ) {
+		stubli_journal_contents();
+		echo '</section></main>';
+		return;
+	}
 	$entries = new WP_Query(
 		array(
 			'post_type'      => 'post',
@@ -633,11 +645,21 @@ function stubli_view_journal() {
 	);
 	if ( ! $entries->have_posts() ) {
 		echo stubli_empty( 'journal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+	} else {
+		// A quiet way to every entry, at the top and again at the bottom (no count, like everywhere in Stubli).
+		echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a></p>';
 	}
 	foreach ( $entries->posts as $entry ) {
-		$long = mb_strlen( wp_strip_all_tags( $entry->post_content ) ) > 600;
+		$long  = mb_strlen( wp_strip_all_tags( $entry->post_content ) ) > 600;
+		$title = stubli_entry_title( $entry );
 		echo '<article class="st-entry' . ( $long ? ' is-long' : '' ) . '">';
-		echo '<h2 class="st-entry-date"><time datetime="' . esc_attr( get_post_time( 'c', true, $entry ) ) . '">' . esc_html( get_the_date( 'l, j F', $entry ) ) . '</time></h2>';
+		$when = '<time datetime="' . esc_attr( get_post_time( 'c', true, $entry ) ) . '">' . esc_html( get_the_date( 'l, j F', $entry ) ) . '</time>';
+		if ( '' !== $title ) {
+			echo '<p class="st-entry-date">' . $when . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			echo '<h2 class="st-entry-title"><a href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html( $title ) . '</a></h2>';
+		} else {
+			echo '<h2 class="st-entry-date">' . $when . '</h2>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		}
 		echo stubli_entry_meta( $entry ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo '<div class="st-entry-text">' . stubli_entry_html( $entry ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		if ( $long ) {
@@ -645,7 +667,55 @@ function stubli_view_journal() {
 		}
 		echo '</article>';
 	}
+	if ( $entries->have_posts() ) {
+		$page  = max( 1, (int) get_query_var( 'paged' ) );
+		$links = array();
+		if ( $page < (int) $entries->max_num_pages ) {
+			$links[] = '<a href="' . esc_url( home_url( '/journal/page/' . ( $page + 1 ) . '/' ) ) . '">' . esc_html__( 'Older entries', 'stubli' ) . '</a>';
+		}
+		if ( $page > 1 ) {
+			$links[] = '<a href="' . esc_url( 2 === $page ? home_url( '/journal/' ) : home_url( '/journal/page/' . ( $page - 1 ) . '/' ) ) . '">' . esc_html__( 'Newer entries', 'stubli' ) . '</a>';
+		}
+		$links[] = '<a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a>';
+		echo '<p class="st-more st-journal-more">' . implode( '<span aria-hidden="true">·</span>', $links ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+	}
 	echo '</section></main>';
+}
+
+/**
+ * The title the owner gave a journal entry, or '' when it has none.
+ *
+ * @param WP_Post $post Entry.
+ * @return string
+ */
+function stubli_entry_title( $post ) {
+	return (string) get_post_meta( $post->ID, '_stubli_title', true );
+}
+
+/**
+ * "All entries": every public journal entry, grouped by month, newest
+ * first. One line each: the day and the title, or the first few words.
+ */
+function stubli_journal_contents() {
+	echo '<div class="st-contents">';
+	echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/' ) ) . '">' . stubli_icon( 'back', 16 ) . esc_html__( 'Journal', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- icon is fixed markup.
+	echo '<h2 class="st-contents-h">' . esc_html__( 'All entries', 'stubli' ) . '</h2>';
+	$items = stubli_has_plugin() ? \Stubli\Journal::contents( false ) : array();
+	if ( ! $items ) {
+		echo stubli_empty( 'journal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		echo '</div>';
+		return;
+	}
+	$month = '';
+	foreach ( $items as $it ) {
+		$m = wp_date( 'F Y', $it['time'] );
+		if ( $m !== $month ) {
+			echo ( '' !== $month ? '</ul></section>' : '' ) . '<section class="st-contents-month"><h3>' . esc_html( $m ) . '</h3><ul role="list">';
+			$month = $m;
+		}
+		echo '<li><a href="' . esc_url( $it['url'] ) . '"><time datetime="' . esc_attr( gmdate( 'c', $it['time'] ) ) . '">' . esc_html( wp_date( 'D j', $it['time'] ) ) . '</time><span' . ( '' === $it['title'] ? ' class="is-words"' : '' ) . '>' . esc_html( $it['label'] ) . '</span></a></li>';
+	}
+	echo '</ul></section></div>';
 }
 
 /**

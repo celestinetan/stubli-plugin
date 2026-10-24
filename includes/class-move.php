@@ -594,6 +594,9 @@ class Move {
 				return $new;
 			}
 			set_post_format( $new, 'journal' === $p['type'] ? 'status' : false );
+			if ( 'journal' === $p['type'] && '' !== Journal::clean_title( $p['own_title'] ?? '' ) ) {
+				update_post_meta( $new, '_stubli_title', Journal::clean_title( $p['own_title'] ) );
+			}
 			$html = (string) $p['html'];
 			foreach ( (array) $p['photos'] as $ph ) {
 				$aid = self::fetch( (string) $ph['url'], $new, (string) $ph['name'] );

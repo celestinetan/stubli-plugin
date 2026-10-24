@@ -224,7 +224,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'] ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'], (string) $r['title'] ) ),
 					'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
 					'args'                => array(
 						'text'       => array_merge( $text, array( 'required' => false ) ),
@@ -255,7 +255,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), (bool) $r['draft'] ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), (bool) $r['draft'], null !== $r['title'] ? (string) $r['title'] : null ) ),
 					'permission_callback' => array( self::class, 'is_owner' ),
 					'args'                => array(
 						'html'       => array(

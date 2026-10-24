@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.36.1
+Stable tag: 0.37.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,11 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.37.0 =
+* Journal titles: an entry can have a title of its own (optional; the date stays). The title shows above the entry, names its page, and moves with your Stubli.
+* All entries: a list of every journal entry, by month, linked from the top and bottom of the Journal tab.
+* The Journal tab now has Older entries and Newer entries links, so entries older than the newest ten can be reached.
 
 = 0.36.1 =
 * Full screen: the close and arrow buttons stay easy to see on light photos.

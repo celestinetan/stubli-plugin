@@ -335,6 +335,26 @@ p { margin: 0 0 .75em; }
 .st-entry.is-full { margin-top: 12px; }
 .st-entry.is-full .st-entry-date { font-size: 13px; }
 .st-entry-date + .st-entry-meta { margin: -4px 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font: 400 13px/1.4 var(--st-sans); color: var(--st-muted); }
+.st-entry-title { font: 600 20px/1.3 var(--st-sans); color: var(--st-ink); margin: -4px 0 10px; letter-spacing: -.01em; }
+.st-entry-title a { color: inherit; text-decoration: none; }
+.st-entry-title a:hover { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.st-entry.is-full .st-entry-title { font-size: 26px; line-height: 1.2; margin: -2px 0 12px; }
+.st-entry-title + .st-entry-meta { margin: -4px 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font: 400 13px/1.4 var(--st-sans); color: var(--st-muted); }
+/* "All entries": a quiet link at the top and bottom of the Journal tab, and the contents page. */
+.st-journal-nav { max-width: 640px; margin: -6px auto 10px; display: flex; justify-content: flex-end; }
+.st-journal-nav a, .st-journal-more a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font: 600 14px/1.3 var(--st-sans); color: var(--st-ink); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.st-journal-more { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 12px; color: var(--st-muted); }
+.st-contents { max-width: 640px; margin: 0 auto; }
+.st-contents .st-journal-nav { justify-content: flex-start; margin: -10px 0 4px; }
+.st-contents .st-journal-nav a { text-decoration: none; margin-left: -4px; }
+.st-contents-h { font: 600 22px/1.25 var(--st-sans); letter-spacing: -.01em; margin: 0 0 6px; }
+.st-contents-month h3 { font: 600 14px/1.4 var(--st-sans); color: var(--st-muted); margin: 22px 0 4px; }
+.st-contents-month ul { list-style: none; margin: 0; padding: 0; }
+.st-contents-month a { display: flex; align-items: baseline; gap: 14px; padding: 11px 10px; margin: 0 -10px; border-radius: 10px; color: var(--st-ink); text-decoration: none; }
+.st-contents-month a:hover { background: var(--st-surface); }
+.st-contents-month time { flex: 0 0 4.4em; font: 500 14px/1.4 var(--st-sans); color: var(--st-muted); font-variant-numeric: tabular-nums; }
+.st-contents-month a > span { font: 500 16px/1.4 var(--st-sans); min-width: 0; overflow-wrap: anywhere; }
+.st-contents-month a > span.is-words { font-weight: 400; }
 .st-entry-edit { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; color: var(--st-accent-text, var(--st-accent)); font-weight: 600; text-decoration: none; }
 /* Simple formatting from the journal editor. */
 .st-entry-text h3 { margin: 1.3em 0 .4em; font: 650 19px/1.3 var(--st-sans); }

@@ -165,7 +165,9 @@ add_action(
 add_filter(
 	'document_title_parts',
 	static function ( $parts ) {
-		if ( get_query_var( 'stubli_journal' ) ) {
+		if ( 'all' === get_query_var( 'stubli_journal' ) ) {
+			$parts['title'] = __( 'All entries', 'stubli' );
+		} elseif ( get_query_var( 'stubli_journal' ) ) {
 			$parts['title'] = __( 'Journal', 'stubli' );
 		} elseif ( get_query_var( 'stubli_links' ) ) {
 			$parts['title'] = __( 'Links', 'stubli' );

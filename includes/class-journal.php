@@ -20,6 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Journal {
 
 	const MAX_LENGTH = 5000;
+	const MAX_TITLE  = 120;
 	const QUERY_VAR  = 'stubli_journal';
 
 	/**
@@ -38,6 +39,7 @@ class Journal {
 	public static function rewrite() {
 		add_rewrite_rule( '^journal/?$', 'index.php?' . self::QUERY_VAR . '=1', 'top' );
 		add_rewrite_rule( '^journal/page/([0-9]+)/?$', 'index.php?' . self::QUERY_VAR . '=1&paged=$matches[1]', 'top' );
+		add_rewrite_rule( '^journal/all/?$', 'index.php?' . self::QUERY_VAR . '=all', 'top' );
 	}
 
 	/**
@@ -55,6 +57,9 @@ class Journal {
 		$base = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
 		if ( '' !== $base && 0 === strpos( $uri, $base ) ) {
 			$uri = substr( $uri, strlen( $base ) );
+		}
+		if ( 'journal/all' === trim( $uri, '/' ) ) {
+			return array( self::QUERY_VAR => 'all' );
 		}
 		if ( preg_match( '#^journal(?:/page/(\d+))?/?$#', trim( $uri, '/' ), $m ) ) {
 			$out = array( self::QUERY_VAR => '1' );
@@ -107,9 +112,13 @@ class Journal {
 	 *
 	 * @param string $text       Entry text; links and video addresses allowed.
 	 * @param string $visibility "everyone" or "only_me".
+	 * @param array  $photos     Attached photos.
+	 * @param string $html       Editor HTML (instead of plain text).
+	 * @param bool   $draft      Save as a draft.
+	 * @param string $title      Optional title.
 	 * @return array|WP_Error
 	 */
-	public static function create( $text, $visibility = 'everyone', array $photos = array(), $html = null, $draft = false ) {
+	public static function create( $text, $visibility = 'everyone', array $photos = array(), $html = null, $draft = false, $title = '' ) {
 		$content = null !== $html ? self::sanitize_html( (string) $html, $photos ) : self::content_with_photos( (string) $text, $photos );
 		$check   = self::check( $content );
 		if ( is_wp_error( $check ) ) {
@@ -120,7 +129,7 @@ class Journal {
 		$post_id = wp_insert_post(
 			array(
 				'post_status'  => $draft ? 'draft' : ( $private ? 'private' : 'publish' ),
-				'post_title'   => wp_date( get_option( 'date_format' ) ),
+				'post_title'   => '' !== self::clean_title( $title ) ? self::clean_title( $title ) : wp_date( get_option( 'date_format' ) ),
 				'post_content' => $content,
 				'post_author'  => get_current_user_id(),
 			),
@@ -130,6 +139,7 @@ class Journal {
 			return $post_id;
 		}
 		set_post_format( $post_id, 'status' );
+		self::store_title( $post_id, $title );
 		self::attach_photos( $post_id, $photos );
 		if ( $draft ) {
 			update_post_meta( $post_id, '_stubli_visibility', $private ? 'only_me' : 'everyone' );
@@ -142,6 +152,92 @@ class Journal {
 			'type'       => 'journal',
 			'visibility' => $private ? 'only_me' : 'everyone',
 		);
+	}
+
+	/**
+	 * A title as the owner typed it: one plain line, up to MAX_TITLE characters.
+	 *
+	 * @param string|null $title Title.
+	 * @return string
+	 */
+	public static function clean_title( $title ) {
+		return trim( mb_substr( sanitize_text_field( (string) $title ), 0, self::MAX_TITLE ) );
+	}
+
+	/**
+	 * Keep the owner's own title (or note that there is none).
+	 *
+	 * @param int    $post_id Entry.
+	 * @param string $title   Title.
+	 */
+	private static function store_title( $post_id, $title ) {
+		$title = self::clean_title( $title );
+		if ( '' === $title ) {
+			delete_post_meta( $post_id, '_stubli_title' );
+		} else {
+			update_post_meta( $post_id, '_stubli_title', $title );
+		}
+	}
+
+	/**
+	 * The title the owner gave an entry, or '' (entries without one are
+	 * known by their date and first words).
+	 *
+	 * @param int $id Entry.
+	 * @return string
+	 */
+	public static function title( $id ) {
+		return (string) get_post_meta( (int) $id, '_stubli_title', true );
+	}
+
+	/**
+	 * The first few words of an entry, for lists.
+	 *
+	 * @param \WP_Post $post  Entry.
+	 * @param int      $words How many words.
+	 * @return string
+	 */
+	public static function first_words( $post, $words = 8 ) {
+		$text = trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', (string) $post->post_content ) ), ENT_QUOTES, 'UTF-8' ) ) );
+		return wp_trim_words( $text, $words, '…' );
+	}
+
+	/**
+	 * Every published entry, newest first, for the "All entries" page:
+	 * date, title (or first words) and address. Visitors get public entries.
+	 *
+	 * @param bool $include_private Include "Only me" entries (owner).
+	 * @return array[]
+	 */
+	public static function contents( $include_private = false ) {
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => $include_private ? array( 'publish', 'private' ) : array( 'publish' ),
+				'posts_per_page' => 2000,
+				'no_found_rows'  => true,
+				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'terms'    => array( 'post-format-status' ),
+					),
+				),
+			)
+		);
+		$out = array();
+		foreach ( $query->posts as $post ) {
+			$title = self::title( $post->ID );
+			$out[] = array(
+				'id'      => (int) $post->ID,
+				'time'    => (int) get_post_time( 'U', true, $post ),
+				'title'   => $title,
+				'label'   => '' !== $title ? $title : self::first_words( $post ),
+				'url'     => (string) get_permalink( $post ),
+				'private' => 'private' === $post->post_status,
+			);
+		}
+		return $out;
 	}
 
 	/**
@@ -356,6 +452,7 @@ class Journal {
 		);
 		return array(
 			'id'         => (int) $post->ID,
+			'title'      => self::title( $post->ID ),
 			'html'       => $html,
 			'photos'     => $photos,
 			'visibility' => self::visibility( $post ),
@@ -374,10 +471,12 @@ class Journal {
 	 * @param int    $id         Post ID.
 	 * @param string $html       Editor HTML.
 	 * @param string $visibility "everyone" or "only_me".
-	 * @param array  $photos     Attached photos.
+	 * @param array       $photos     Attached photos.
+	 * @param bool        $draft      Saving a draft as you write.
+	 * @param string|null $title      New title ('' removes it), or null to keep it.
 	 * @return array|WP_Error
 	 */
-	public static function update( $id, $html, $visibility, array $photos, $draft = false ) {
+	public static function update( $id, $html, $visibility, array $photos, $draft = false, $title = null ) {
 		$post = self::own_entry( $id );
 		if ( ! $post ) {
 			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
@@ -392,14 +491,20 @@ class Journal {
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
+		$old_title = self::title( $post->ID );
+		$new_title = null === $title ? $old_title : self::clean_title( $title );
+		// Without a title of its own, an entry is called by its date (the page title search engines see).
+		$date_title = wp_date( get_option( 'date_format' ), (int) get_post_time( 'U', true, $post ) );
 		if ( $draft ) {
 			// Saving a draft as you write: quietly, no "Edited" time.
 			wp_update_post(
 				array(
 					'ID'           => $post->ID,
 					'post_content' => $content,
+					'post_title'   => '' !== $new_title ? $new_title : wp_date( get_option( 'date_format' ) ),
 				)
 			);
+			self::store_title( $post->ID, $new_title );
 			update_post_meta( $post->ID, '_stubli_visibility', 'only_me' === $visibility ? 'only_me' : 'everyone' );
 			self::attach_photos( $post->ID, $photos );
 			return self::get( $post->ID );
@@ -412,7 +517,7 @@ class Journal {
 					'ID'            => $post->ID,
 					'post_content'  => $content,
 					'post_status'   => 'only_me' === $visibility ? 'private' : 'publish',
-					'post_title'    => wp_date( get_option( 'date_format' ) ),
+					'post_title'    => '' !== $new_title ? $new_title : wp_date( get_option( 'date_format' ) ),
 					'post_date'     => $now,
 					'post_date_gmt' => get_gmt_from_date( $now ),
 					'edit_date'     => true,
@@ -423,19 +528,22 @@ class Journal {
 				return new WP_Error( 'stubli_not_saved', __( 'That didn\'t save. Your changes are still here, so try again.', 'stubli' ), array( 'status' => 500 ) );
 			}
 			delete_post_meta( $post->ID, '_stubli_visibility' );
+			self::store_title( $post->ID, $new_title );
 			self::attach_photos( $post->ID, $photos );
 			return self::get( $post->ID );
 		}
 		$status = 'only_me' === $visibility ? 'private' : 'publish';
-		if ( $content !== $post->post_content || $status !== $post->post_status ) {
+		if ( $content !== $post->post_content || $status !== $post->post_status || $new_title !== $old_title ) {
 			$res = wp_update_post(
 				array(
 					'ID'           => $post->ID,
 					'post_content' => $content,
 					'post_status'  => $status,
+					'post_title'   => '' !== $new_title ? $new_title : $date_title,
 				),
 				true
 			);
+			self::store_title( $post->ID, $new_title );
 			if ( is_wp_error( $res ) ) {
 				return new WP_Error( 'stubli_not_saved', __( 'That didn\'t save. Your changes are still here, so try again.', 'stubli' ), array( 'status' => 500 ) );
 			}
@@ -534,6 +642,7 @@ class Journal {
 					'saved'      => self::iso( $post->post_modified ),
 					'visibility' => self::visibility( $post ),
 					'draft'      => true,
+					'title'      => self::title( $post->ID ),
 					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
 				);
 			},
@@ -574,6 +683,7 @@ class Journal {
 					'visibility' => 'private' === $post->post_status ? 'only_me' : 'everyone',
 					'url'        => get_permalink( $post ),
 					'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
+					'title'      => self::title( $post->ID ),
 					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
 				);
 			},

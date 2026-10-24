@@ -183,6 +183,7 @@ class Bundle {
 			'status'     => $post->post_status,
 			'audience'   => Friends::audience( $post ),
 			'title'      => $post->post_title,
+			'own_title'  => 'journal' === $type ? Journal::title( $post->ID ) : '',
 			'url'        => (string) get_permalink( $post ),
 			'collection' => '',
 			'note'       => (string) get_post_meta( $post->ID, '_stubli_content_note', true ),
