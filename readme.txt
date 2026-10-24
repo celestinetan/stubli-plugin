@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.36.0
+Stable tag: 0.36.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.36.1 =
+* Full screen: the close and arrow buttons stay easy to see on light photos.
 
 = 0.36.0 =
 * Full screen for visitors: tap or click any photo in a post to see it as large as the screen allows, in full size. Turn a phone sideways and a landscape photo fills the screen. Swipe or use the arrow keys between the photos of a post; close with the cross, Esc, the Back button or a swipe down. Pinch to zoom works as usual. A photo behind a content note opens only after "Show photo".

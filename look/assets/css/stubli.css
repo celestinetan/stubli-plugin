@@ -504,16 +504,16 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-lb-track img { width: 100%; height: 100%; object-fit: contain; }
 .st-lb-close, .st-lb-nav {
 	position: absolute; width: 44px; height: 44px; border: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-	background: rgba(255, 255, 255, .14); color: #fff; cursor: pointer;
+	background: rgba(13, 12, 11, .62); color: #fff; cursor: pointer; box-shadow: 0 0 0 1px rgba(255, 255, 255, .18);
 }
 .st-lb-close { top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
 .st-lb-nav { top: 50%; transform: translateY(-50%); }
 .st-lb-prev { left: max(12px, env(safe-area-inset-left)); }
 .st-lb-next { right: max(12px, env(safe-area-inset-right)); }
 .st-lb-nav:disabled { opacity: 0; pointer-events: none; }
-.st-lb-close:hover, .st-lb-nav:hover { background: rgba(255, 255, 255, .26); }
+.st-lb-close:hover, .st-lb-nav:hover { background: rgba(13, 12, 11, .8); }
 .st-lb-close:focus-visible, .st-lb-nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.st-lb-count { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); margin: 0; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .14); font-size: 13px; font-weight: 600; }
+.st-lb-count { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); margin: 0; padding: 3px 10px; border-radius: 999px; background: rgba(13, 12, 11, .62); font-size: 13px; font-weight: 600; }
 @media (hover: none) { .st-lb-nav { display: none; } }
 
 /* ── Motion ── */
