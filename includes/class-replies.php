@@ -215,7 +215,8 @@ class Replies {
 			return $reply_id;
 		}
 
-		$result = Helper::active() ? send_webmention( get_permalink( $reply_id ), $target ) : null;
+		// The demo's friends are made up: nothing to send to, so it counts as sent.
+		$result = Demo::person( $target ) ? array( 'response' => array( 'code' => 202 ) ) : ( Helper::active() ? send_webmention( get_permalink( $reply_id ), $target ) : null );
 		$status = self::delivered_status( $result );
 		if ( 'sent' !== $status ) {
 			self::schedule_retry( $reply_id, $status );

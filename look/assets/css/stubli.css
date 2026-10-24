@@ -590,8 +590,13 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-step + .st-gs-step { margin-top: 12px; background: none; }
 .st-gs.is-live .st-gs-step { padding-top: 4px; }
 .st-gs-progress { margin: 14px 0 0; font-size: 14px; font-weight: 600; color: var(--st-muted); }
-.st-gs-progress span { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--st-surface); overflow: hidden; }
-.st-gs-progress span i { display: block; height: 100%; background: var(--st-accent); transition: width .2s; }
+.st-gs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.st-gs-list li { display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--st-muted); }
+.st-gs-list li.is-now { color: var(--st-ink); font-weight: 650; }
+.st-gs-list li.is-done { color: var(--st-ink); }
+.st-gs-mark { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font: 650 12px/1 var(--st-sans); background: var(--st-surface); color: var(--st-muted); }
+.st-gs-list li.is-now .st-gs-mark { background: var(--st-ink); color: var(--st-bg); }
+.st-gs-list li.is-done .st-gs-mark { background: var(--st-accent); color: var(--st-accent-ink); }
 .st-gs-choices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 .st-gs .st-button { text-decoration: none; }
 .st-button-quiet { background: var(--st-surface) !important; color: var(--st-ink) !important; }
@@ -612,9 +617,9 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-more summary { cursor: pointer; font-weight: 600; min-height: 28px; }
 .st-gs-end { margin-top: 20px; }
 .st-gs-end p { margin: 0; }
-@media (prefers-reduced-motion: reduce) { .st-gs-progress span i { transition: none; } }
 
-.st-gs-try { margin: 16px 0 4px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
+
+.st-gs-try { margin: 28px 0 4px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
 .st-gs-try p { margin: 0; }
 .st-gs-try .st-muted { font-size: 14px; max-width: 38em; }
 .st-gs-try-h { font-weight: 650; }

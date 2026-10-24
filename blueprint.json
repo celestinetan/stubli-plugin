@@ -3,7 +3,7 @@
   "meta": {
     "title": "Stubli demo",
     "author": "celestinetan",
-    "description": "A demo Stubli in your browser: Ana's page, journal, guest book and app. Everyone in it is made up. Nothing is saved."
+    "description": "A demo Stubli in your browser: Ana's page, journal and guest book, her made-up friends, and the app. Everyone in it is made up, and it runs only in your browser."
   },
   "landingPage": "/",
   "preferredVersions": {
@@ -46,15 +46,95 @@
       "path": "/wordpress/wp-content/stubli-demo/setup.php",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/setup.php"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/setup.php"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/tram-rain.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/alps-sq.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/tram-rain.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/alps-sq.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/alps.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/alps.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/art.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/art.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/books-sq.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/books-sq.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/books.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/books.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/bridge.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/bridge.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/cable-car.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/cable-car.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/cake.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/cake.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/chalet.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/chalet.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/city.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/city.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/coffee-sq.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/coffee-sq.jpg"
       }
     },
     {
@@ -62,39 +142,47 @@
       "path": "/wordpress/wp-content/stubli-demo/coffee.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/coffee.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/coffee.jpg"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/lake-dawn.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/cow.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/lake-dawn.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/cow.jpg"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/old-town.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/edelweiss-sq.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/old-town.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/edelweiss-sq.jpg"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/peaks.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/edelweiss.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/peaks.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/edelweiss.jpg"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/food.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/family.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/food.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/family.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/fondue.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/fondue.jpg"
       }
     },
     {
@@ -102,15 +190,183 @@
       "path": "/wordpress/wp-content/stubli-demo/forest-fog.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/forest-fog.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/forest-fog.jpg"
       }
     },
     {
       "step": "writeFile",
-      "path": "/wordpress/wp-content/stubli-demo/city-night.jpg",
+      "path": "/wordpress/wp-content/stubli-demo/friends.jpg",
       "data": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/demo/city-night.jpg"
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/friends.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/gorge-bridge.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/gorge-bridge.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/hut-stars.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/hut-stars.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/jet-deau.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/jet-deau.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/lavaux.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/lavaux.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/lugano.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/lugano.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/market.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/market.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/marroni.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/marroni.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/music.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/music.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/oldtown.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/oldtown.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/pets.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/pets.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/rhine-ferry.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/rhine-ferry.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/river-night.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/river-night.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/signpost.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/signpost.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/soup.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/soup.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/sourdough.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/sourdough.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/steamer.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/steamer.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/summit.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/summit.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/tram-rain.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/tram-rain.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/viaduct-sq.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/viaduct-sq.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/viaduct.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/viaduct.jpg"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/stubli-demo/zopf.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/celestinetan/stubli-plugin/preview/demo/zopf.jpg"
       }
     },
     {

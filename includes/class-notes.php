@@ -223,7 +223,10 @@ class Notes {
 		if ( is_wp_error( $id ) ) {
 			return $id;
 		}
-		$res  = Rest::remote(
+		$res  = Demo::person( $to ) ? array(
+			'response' => array( 'code' => 200 ),
+			'body'     => '{"ok":true}',
+		) : Rest::remote(
 			$to,
 			'/notes/in',
 			array(

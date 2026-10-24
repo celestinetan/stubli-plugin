@@ -177,6 +177,11 @@
 		demoBar.innerHTML = '<span>' + esc( B.demo.text ) + '</span><a href="' + esc( B.demo.url ) + '" target="_blank" rel="noopener">' + esc( B.demo.link ) + ' →</a>';
 		document.body.insertBefore( demoBar, document.body.firstChild );
 		document.documentElement.classList.add( 'a-has-demo' );
+		// Ana's friends are made up: their sites don't exist, so say so instead of opening an error page.
+		document.addEventListener( 'click', function ( e ) {
+			var a = e.target.closest && e.target.closest( 'a[href]' );
+			if ( a && /\.example$/.test( a.hostname ) ) { e.preventDefault(); toast( B.demo.friends ); }
+		}, true );
 	}
 	document.addEventListener( 'visibilitychange', checkVersion );
 	window.addEventListener( 'focus', checkVersion );
