@@ -155,6 +155,24 @@
 		return { morning: __( 'Have a lovely morning.', 'stubli' ), afternoon: __( 'Enjoy the rest of your afternoon.', 'stubli' ), evening: __( 'Have a calm evening.', 'stubli' ), night: __( 'Sleep well.', 'stubli' ) }[ daypart() ];
 	}
 	document.addEventListener( 'visibilitychange', function () { document.documentElement.classList.toggle( 'a-hidden', document.hidden ); } );
+	// A phone can keep the app open for days. When you come back to it and the
+	// site has a newer Stubli, offer a reload (never forced: you may be mid-post).
+	var verChecked = Date.now();
+	function checkVersion() {
+		if ( document.hidden || ! B.version || Date.now() - verChecked < 10 * 60 * 1000 || document.querySelector( '.a-update' ) ) { return; }
+		verChecked = Date.now();
+		send( 'GET', 'app-version', null ).then( function ( r ) {
+			if ( ! r || ! r.version || r.version === B.version || document.querySelector( '.a-update' ) ) { return; }
+			var bar = document.createElement( 'div' );
+			bar.className = 'a-update'; bar.setAttribute( 'role', 'status' );
+			bar.innerHTML = '<span>' + esc( __( 'Stubli has been updated.', 'stubli' ) ) + '</span><button type="button" class="a-text-btn">' + esc( __( 'Reload', 'stubli' ) ) + '</button>';
+			bar.querySelector( 'button' ).addEventListener( 'click', function () { location.reload(); } );
+			document.body.appendChild( bar );
+		}, function () {} );
+	}
+	document.addEventListener( 'visibilitychange', checkVersion );
+	window.addEventListener( 'focus', checkVersion );
+	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted ) { verChecked = 0; checkVersion(); } } );
 	function greeting() {
 		var part = { morning: __( 'Good morning', 'stubli' ), afternoon: __( 'Good afternoon', 'stubli' ), evening: __( 'Good evening', 'stubli' ), night: __( 'Good evening', 'stubli' ) }[ daypart() ];
 		// After midnight, a softer hello (the smiling moon stays).

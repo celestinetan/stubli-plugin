@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stubli 0.37.0\n"
+"Project-Id-Version: Stubli 0.37.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stubli\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T15:24:45+00:00\n"
+"POT-Creation-Date: 2026-10-24T16:04:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: stubli\n"
@@ -19,10 +19,10 @@ msgstr ""
 #: includes/class-admin.php:34
 #: includes/class-admin.php:68
 #: includes/class-app.php:96
-#: includes/class-app.php:282
+#: includes/class-app.php:283
 #: assets/app/app.js:87
 #: assets/app/app.js:88
-#: assets/app/app.js:456
+#: assets/app/app.js:474
 msgid "Stubli"
 msgstr ""
 
@@ -116,7 +116,7 @@ msgstr ""
 
 #. translators: %s: site
 #: includes/class-act.php:124
-#: assets/app/app.js:1731
+#: assets/app/app.js:1749
 msgid "Comment on %s"
 msgstr ""
 
@@ -135,12 +135,12 @@ msgstr ""
 
 #: includes/class-act.php:153
 #: look/inc/views.php:906
-#: assets/app/app.js:970
+#: assets/app/app.js:988
 msgid "Your note"
 msgstr ""
 
 #: includes/class-act.php:153
-#: assets/app/app.js:1522
+#: assets/app/app.js:1540
 msgid "Your comment"
 msgstr ""
 
@@ -154,12 +154,12 @@ msgstr ""
 
 #: includes/class-act.php:160
 #: look/inc/views.php:170
-#: assets/app/app.js:1362
-#: assets/app/app.js:1374
-#: assets/app/app.js:1378
-#: assets/app/app.js:1611
-#: assets/app/app.js:1640
-#: assets/app/app.js:1992
+#: assets/app/app.js:1380
+#: assets/app/app.js:1392
+#: assets/app/app.js:1396
+#: assets/app/app.js:1629
+#: assets/app/app.js:1658
+#: assets/app/app.js:2010
 msgid "Follow"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgid "Settings"
 msgstr ""
 
 #: includes/class-admin.php:70
-#: assets/app/app.js:1268
+#: assets/app/app.js:1286
 msgid "Saved."
 msgstr ""
 
@@ -226,7 +226,7 @@ msgid "Add Webmention"
 msgstr ""
 
 #: includes/class-admin.php:93
-#: assets/app/app.js:1744
+#: assets/app/app.js:1762
 msgid "Look"
 msgstr ""
 
@@ -301,8 +301,8 @@ msgid "Your profile"
 msgstr ""
 
 #: includes/class-admin.php:125
-#: assets/app/app.js:852
-#: assets/app/app.js:1970
+#: assets/app/app.js:870
+#: assets/app/app.js:1988
 msgid "Pronouns"
 msgstr ""
 
@@ -350,30 +350,30 @@ msgstr ""
 #: includes/class-posts.php:375
 #: look/inc/helpers.php:171
 #: look/inc/views.php:490
-#: assets/app/app.js:564
-#: assets/app/app.js:600
-#: assets/app/app.js:722
-#: assets/app/app.js:1163
-#: assets/app/app.js:1512
+#: assets/app/app.js:582
+#: assets/app/app.js:618
+#: assets/app/app.js:740
+#: assets/app/app.js:1181
+#: assets/app/app.js:1530
 msgid "Photos"
 msgstr ""
 
-#: includes/class-app.php:291
+#: includes/class-app.php:292
 #: look/inc/setup.php:53
-#: assets/app/app.js:824
-#: assets/app/app.js:829
-#: assets/app/app.js:841
-#: assets/app/app.js:962
-#: assets/app/app.js:967
-#: assets/app/app.js:1141
-#: assets/app/app.js:1146
-#: assets/app/app.js:1161
-#: assets/app/app.js:1460
-#: assets/app/app.js:2640
+#: assets/app/app.js:842
+#: assets/app/app.js:847
+#: assets/app/app.js:859
+#: assets/app/app.js:980
+#: assets/app/app.js:985
+#: assets/app/app.js:1159
+#: assets/app/app.js:1164
+#: assets/app/app.js:1179
+#: assets/app/app.js:1478
+#: assets/app/app.js:2658
 msgid "Close"
 msgstr ""
 
-#: includes/class-app.php:293
+#: includes/class-app.php:294
 msgid "The Stubli app needs JavaScript."
 msgstr ""
 
@@ -411,7 +411,7 @@ msgstr ""
 #: look/inc/views.php:236
 #: look/inc/views.php:462
 #: look/inc/views.php:701
-#: assets/app/app.js:2273
+#: assets/app/app.js:2291
 msgid "Journal"
 msgstr ""
 
@@ -420,17 +420,17 @@ msgstr ""
 #: includes/class-guestbook.php:47
 #: look/inc/views.php:237
 #: look/inc/views.php:735
-#: assets/app/app.js:568
-#: assets/app/app.js:1731
-#: assets/app/app.js:1784
-#: assets/app/app.js:1788
+#: assets/app/app.js:586
+#: assets/app/app.js:1749
+#: assets/app/app.js:1802
+#: assets/app/app.js:1806
 msgid "Guest book"
 msgstr ""
 
 #: includes/class-archive.php:314
 #: includes/class-archive.php:386
-#: assets/app/app.js:451
-#: assets/app/app.js:1621
+#: assets/app/app.js:469
+#: assets/app/app.js:1639
 msgid "People"
 msgstr ""
 
@@ -446,19 +446,19 @@ msgstr ""
 
 #. translators: %s: content note
 #: includes/class-archive.php:352
-#: assets/app/app.js:531
-#: assets/app/app.js:1120
-#: assets/app/app.js:1154
-#: assets/app/app.js:1511
+#: assets/app/app.js:549
+#: assets/app/app.js:1138
+#: assets/app/app.js:1172
+#: assets/app/app.js:1529
 msgid "Friends only"
 msgstr ""
 
 #. translators: %s: content note
 #: includes/class-archive.php:352
 #: includes/class-archive.php:369
-#: assets/app/app.js:2606
-#: assets/app/app.js:2611
-#: assets/app/app.js:2671
+#: assets/app/app.js:2624
+#: assets/app/app.js:2629
+#: assets/app/app.js:2689
 msgid "Only me"
 msgstr ""
 
@@ -511,8 +511,8 @@ msgid "That collection isn't here any more."
 msgstr ""
 
 #: includes/class-arrange.php:263
-#: assets/app/app.js:664
-#: assets/app/app.js:803
+#: assets/app/app.js:682
+#: assets/app/app.js:821
 msgid "Give the collection a name."
 msgstr ""
 
@@ -610,7 +610,7 @@ msgid "Stubli couldn't reach the Stubli team just now. Your note is still here; 
 msgstr ""
 
 #: includes/class-feedback.php:246
-#: assets/app/app.js:2972
+#: assets/app/app.js:2990
 msgid "The note didn't go through. Try again in a moment."
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 #: includes/class-journal.php:251
 #: includes/class-notes.php:452
 #: includes/class-replies.php:192
-#: assets/app/app.js:2965
+#: assets/app/app.js:2983
 msgid "Write a few words first."
 msgstr ""
 
@@ -636,7 +636,7 @@ msgstr ""
 
 #: includes/class-feedback.php:298
 #: look/inc/views.php:1048
-#: assets/app/app.js:2918
+#: assets/app/app.js:2936
 msgid "Kind words"
 msgstr ""
 
@@ -666,8 +666,8 @@ msgid "Received"
 msgstr ""
 
 #: includes/class-feedback.php:369
-#: assets/app/app.js:1521
-#: assets/app/app.js:1695
+#: assets/app/app.js:1539
+#: assets/app/app.js:1713
 msgid "Open"
 msgstr ""
 
@@ -957,7 +957,7 @@ msgstr ""
 #: includes/class-journal.php:414
 #: includes/class-journal.php:482
 #: includes/class-journal.php:565
-#: includes/class-rest.php:419
+#: includes/class-rest.php:421
 msgid "That entry isn't here any more."
 msgstr ""
 
@@ -971,7 +971,7 @@ msgid "That didn't save. Your changes are still here, so try again."
 msgstr ""
 
 #: includes/class-journal.php:583
-#: includes/class-rest.php:420
+#: includes/class-rest.php:422
 msgid "That entry can't be brought back."
 msgstr ""
 
@@ -994,7 +994,7 @@ msgid "Each link needs a name and a web address, like Shop and shop.example.com.
 msgstr ""
 
 #: includes/class-mine.php:290
-#: includes/class-rest.php:518
+#: includes/class-rest.php:520
 msgid "You can't upload photos here."
 msgstr ""
 
@@ -1081,7 +1081,7 @@ msgid "This is a move link for this Stubli. Open the Stubli app on your new site
 msgstr ""
 
 #: includes/class-move.php:172
-#: assets/app/app.js:1916
+#: assets/app/app.js:1934
 msgid "Move link"
 msgstr ""
 
@@ -1120,13 +1120,13 @@ msgstr ""
 
 #: includes/class-notes.php:116
 #: includes/class-notes.php:174
-#: assets/app/app.js:941
+#: assets/app/app.js:959
 msgid "Notes"
 msgstr ""
 
 #: includes/class-notes.php:120
-#: assets/app/app.js:631
-#: assets/app/app.js:788
+#: assets/app/app.js:649
+#: assets/app/app.js:806
 msgid "Name"
 msgstr ""
 
@@ -1289,15 +1289,15 @@ msgstr ""
 msgid "That comment is already gone."
 msgstr ""
 
-#: includes/class-rest.php:164
+#: includes/class-rest.php:166
 msgid "Post not found."
 msgstr ""
 
-#: includes/class-rest.php:181
+#: includes/class-rest.php:183
 msgid "Too many tries. Please wait a little."
 msgstr ""
 
-#: includes/class-rest.php:343
+#: includes/class-rest.php:345
 msgid "You don't follow that site."
 msgstr ""
 
@@ -1322,8 +1322,8 @@ msgid "Happy Swiss National Day"
 msgstr ""
 
 #: includes/class-setup.php:239
-#: assets/app/app.js:903
-#: assets/app/app.js:2089
+#: assets/app/app.js:921
+#: assets/app/app.js:2107
 msgid "Add the name people should see."
 msgstr ""
 
@@ -1334,12 +1334,12 @@ msgstr ""
 
 #: includes/class-setup.php:312
 #: includes/class-setup.php:358
-#: assets/app/app.js:2242
+#: assets/app/app.js:2260
 msgid "That didn't upload. Try again when you're ready."
 msgstr ""
 
 #: includes/class-setup.php:356
-#: assets/app/app.js:843
+#: assets/app/app.js:861
 msgid "Cover photo"
 msgstr ""
 
@@ -1352,7 +1352,7 @@ msgid "today"
 msgstr ""
 
 #: look/inc/helpers.php:317
-#: assets/app/app.js:1390
+#: assets/app/app.js:1408
 msgid "yesterday"
 msgstr ""
 
@@ -1419,7 +1419,7 @@ msgid "This spot is saved for %s's next favourite photo."
 msgstr ""
 
 #: look/inc/helpers.php:496
-#: assets/app/app.js:523
+#: assets/app/app.js:541
 msgid "Post a photo"
 msgstr ""
 
@@ -1438,27 +1438,27 @@ msgid "Auto"
 msgstr ""
 
 #: look/inc/setup.php:46
-#: assets/app/app.js:1865
-#: assets/app/app.js:1998
+#: assets/app/app.js:1883
+#: assets/app/app.js:2016
 msgid "Light"
 msgstr ""
 
 #: look/inc/setup.php:47
-#: assets/app/app.js:1865
-#: assets/app/app.js:1998
+#: assets/app/app.js:1883
+#: assets/app/app.js:2016
 msgid "Paper"
 msgstr ""
 
 #: look/inc/setup.php:48
-#: assets/app/app.js:1865
-#: assets/app/app.js:1998
+#: assets/app/app.js:1883
+#: assets/app/app.js:2016
 msgid "Dark"
 msgstr ""
 
 #: look/inc/setup.php:50
 #: look/inc/views.php:124
-#: assets/app/app.js:1865
-#: assets/app/app.js:1998
+#: assets/app/app.js:1883
+#: assets/app/app.js:2016
 msgid "Reading mode"
 msgstr ""
 
@@ -1495,9 +1495,9 @@ msgstr ""
 #: look/inc/setup.php:173
 #: look/inc/views.php:238
 #: look/inc/views.php:781
-#: assets/app/app.js:569
-#: assets/app/app.js:1823
-#: assets/app/app.js:1828
+#: assets/app/app.js:587
+#: assets/app/app.js:1841
+#: assets/app/app.js:1846
 msgid "Links"
 msgstr ""
 
@@ -1554,12 +1554,12 @@ msgid "%s is taking a break from comments."
 msgstr ""
 
 #: look/inc/views.php:187
-#: assets/app/app.js:1613
+#: assets/app/app.js:1631
 msgid "Reply to this"
 msgstr ""
 
 #: look/inc/views.php:194
-#: assets/app/app.js:503
+#: assets/app/app.js:521
 msgid "Previous card"
 msgstr ""
 
@@ -1574,13 +1574,13 @@ msgstr ""
 
 #. translators: %s: when
 #: look/inc/views.php:214
-#: assets/app/app.js:563
+#: assets/app/app.js:581
 msgid "Latest · %s"
 msgstr ""
 
 #. translators: %s: collection
 #: look/inc/views.php:215
-#: assets/app/app.js:563
+#: assets/app/app.js:581
 msgid "in %s"
 msgstr ""
 
@@ -1598,14 +1598,14 @@ msgid "Photos:"
 msgstr ""
 
 #: look/inc/views.php:310
-#: assets/app/app.js:2354
-#: assets/app/app.js:3122
+#: assets/app/app.js:2372
+#: assets/app/app.js:3140
 msgid "Video"
 msgstr ""
 
 #: look/inc/views.php:316
 #: look/inc/views.php:758
-#: assets/app/app.js:1794
+#: assets/app/app.js:1812
 msgid "Pinned"
 msgstr ""
 
@@ -1648,20 +1648,20 @@ msgstr ""
 
 #. translators: %s: new address
 #: look/inc/views.php:435
-#: assets/app/app.js:1038
+#: assets/app/app.js:1056
 msgid "This Stubli has moved to %s."
 msgstr ""
 
 #. translators: %s: video description
 #: look/inc/views.php:497
-#: assets/app/app.js:1514
+#: assets/app/app.js:1532
 msgid "Play video: %s"
 msgstr ""
 
 #. translators: %s: video description
 #: look/inc/views.php:497
 #: look/inc/views.php:589
-#: assets/app/app.js:1514
+#: assets/app/app.js:1532
 msgid "Play video"
 msgstr ""
 
@@ -1671,15 +1671,15 @@ msgid "See photo %d full screen"
 msgstr ""
 
 #: look/inc/views.php:513
-#: assets/app/app.js:1519
+#: assets/app/app.js:1537
 msgid "Show photo"
 msgstr ""
 
 #. translators: %s: date and time
 #: look/inc/views.php:523
 #: look/inc/views.php:566
-#: assets/app/app.js:2612
-#: assets/app/app.js:2653
+#: assets/app/app.js:2630
+#: assets/app/app.js:2671
 msgid "Edited %s"
 msgstr ""
 
@@ -1695,17 +1695,17 @@ msgstr ""
 
 #. translators: %s: collection
 #: look/inc/views.php:538
-#: assets/app/app.js:1616
-#: assets/app/app.js:1971
-#: assets/app/app.js:1984
-#: assets/app/app.js:2006
-#: assets/app/app.js:2023
-#: assets/app/app.js:2279
+#: assets/app/app.js:1634
+#: assets/app/app.js:1989
+#: assets/app/app.js:2002
+#: assets/app/app.js:2024
+#: assets/app/app.js:2041
+#: assets/app/app.js:2297
 msgid "Next"
 msgstr ""
 
 #: look/inc/views.php:569
-#: assets/app/app.js:758
+#: assets/app/app.js:776
 msgid "Edit"
 msgstr ""
 
@@ -1765,13 +1765,13 @@ msgstr ""
 
 #. translators: %s: name
 #: look/inc/views.php:765
-#: assets/app/app.js:1796
+#: assets/app/app.js:1814
 msgid "Unpin"
 msgstr ""
 
 #. translators: %s: name
 #: look/inc/views.php:765
-#: assets/app/app.js:1796
+#: assets/app/app.js:1814
 msgid "Pin"
 msgstr ""
 
@@ -1795,7 +1795,7 @@ msgstr ""
 #. translators: %s: name
 #: look/inc/views.php:832
 #: look/inc/views.php:893
-#: assets/app/app.js:967
+#: assets/app/app.js:985
 msgid "Reply to %s"
 msgstr ""
 
@@ -1821,7 +1821,7 @@ msgstr ""
 
 #: look/inc/views.php:858
 #: look/inc/views.php:967
-#: assets/app/app.js:1912
+#: assets/app/app.js:1930
 msgid "Continue"
 msgstr ""
 
@@ -1856,8 +1856,8 @@ msgid "I have a Stubli"
 msgstr ""
 
 #: look/inc/views.php:908
-#: assets/app/app.js:850
-#: assets/app/app.js:1968
+#: assets/app/app.js:868
+#: assets/app/app.js:1986
 msgid "Your name"
 msgstr ""
 
@@ -1959,47 +1959,47 @@ msgid "Go to %s's page"
 msgstr ""
 
 #: look/inc/views.php:1046
-#: assets/app/app.js:2916
+#: assets/app/app.js:2934
 msgid "An idea"
 msgstr ""
 
 #: look/inc/views.php:1046
-#: assets/app/app.js:2916
+#: assets/app/app.js:2934
 msgid "What would make Stubli better?"
 msgstr ""
 
 #: look/inc/views.php:1046
-#: assets/app/app.js:2916
+#: assets/app/app.js:2934
 msgid "I wish I could…"
 msgstr ""
 
 #: look/inc/views.php:1047
-#: assets/app/app.js:2917
+#: assets/app/app.js:2935
 msgid "Something's not working"
 msgstr ""
 
 #: look/inc/views.php:1047
-#: assets/app/app.js:2917
+#: assets/app/app.js:2935
 msgid "What happened?"
 msgstr ""
 
 #: look/inc/views.php:1047
-#: assets/app/app.js:2917
+#: assets/app/app.js:2935
 msgid "I tried to … and then …"
 msgstr ""
 
 #: look/inc/views.php:1048
-#: assets/app/app.js:2918
+#: assets/app/app.js:2936
 msgid "What do you like?"
 msgstr ""
 
 #: look/inc/views.php:1048
-#: assets/app/app.js:2918
+#: assets/app/app.js:2936
 msgid "I love that…"
 msgstr ""
 
 #: look/inc/views.php:1052
-#: assets/app/app.js:2938
+#: assets/app/app.js:2956
 msgid "What is it about?"
 msgstr ""
 
@@ -2016,13 +2016,13 @@ msgid "A screenshot"
 msgstr ""
 
 #: look/inc/views.php:1062
-#: assets/app/app.js:632
-#: assets/app/app.js:789
-#: assets/app/app.js:843
-#: assets/app/app.js:852
-#: assets/app/app.js:1970
-#: assets/app/app.js:2366
-#: assets/app/app.js:2367
+#: assets/app/app.js:650
+#: assets/app/app.js:807
+#: assets/app/app.js:861
+#: assets/app/app.js:870
+#: assets/app/app.js:1988
+#: assets/app/app.js:2384
+#: assets/app/app.js:2385
 msgid "(optional)"
 msgstr ""
 
@@ -2031,15 +2031,15 @@ msgid "We also keep the type of phone or computer you use, to help fix problems.
 msgstr ""
 
 #: look/inc/views.php:1067
-#: assets/app/app.js:473
-#: assets/app/app.js:2928
-#: assets/app/app.js:2936
-#: assets/app/app.js:2948
+#: assets/app/app.js:491
+#: assets/app/app.js:2946
+#: assets/app/app.js:2954
+#: assets/app/app.js:2966
 msgid "Send feedback"
 msgstr ""
 
 #: look/inc/views.php:1070
-#: assets/app/app.js:2929
+#: assets/app/app.js:2947
 msgid "Thank you"
 msgstr ""
 
@@ -2088,2982 +2088,2990 @@ msgstr ""
 msgid "Sleep well."
 msgstr ""
 
-#: assets/app/app.js:159
+#: assets/app/app.js:168
+msgid "Stubli has been updated."
+msgstr ""
+
+#: assets/app/app.js:168
+msgid "Reload"
+msgstr ""
+
+#: assets/app/app.js:177
 msgid "Good morning"
 msgstr ""
 
-#: assets/app/app.js:159
+#: assets/app/app.js:177
 msgid "Good afternoon"
 msgstr ""
 
-#: assets/app/app.js:159
+#: assets/app/app.js:177
 msgid "Good evening"
 msgstr ""
 
-#: assets/app/app.js:161
+#: assets/app/app.js:179
 msgid "Still up, %s?"
 msgstr ""
 
-#: assets/app/app.js:161
+#: assets/app/app.js:179
 msgid "Still up?"
 msgstr ""
 
-#: assets/app/app.js:185
+#: assets/app/app.js:203
 msgid "Your session ended. Please sign in again and try once more."
 msgstr ""
 
-#: assets/app/app.js:187
+#: assets/app/app.js:205
 msgid "Something went wrong on the way. Try again in a moment."
 msgstr ""
 
-#: assets/app/app.js:189
+#: assets/app/app.js:207
 msgid "No connection right now. Try again when you're back online."
 msgstr ""
 
-#: assets/app/app.js:450
+#: assets/app/app.js:468
 msgid "Home"
 msgstr ""
 
-#: assets/app/app.js:452
-#: assets/app/app.js:2351
-#: assets/app/app.js:2454
+#: assets/app/app.js:470
+#: assets/app/app.js:2369
+#: assets/app/app.js:2472
 msgid "New post"
 msgstr ""
 
-#: assets/app/app.js:452
+#: assets/app/app.js:470
 msgctxt "tab"
 msgid "New"
 msgstr ""
 
-#: assets/app/app.js:453
-#: assets/app/app.js:1704
+#: assets/app/app.js:471
+#: assets/app/app.js:1722
 msgid "What's new"
 msgstr ""
 
-#: assets/app/app.js:454
-#: assets/app/app.js:540
-#: assets/app/app.js:559
+#: assets/app/app.js:472
+#: assets/app/app.js:558
+#: assets/app/app.js:577
 msgid "You"
 msgstr ""
 
-#: assets/app/app.js:458
+#: assets/app/app.js:476
 msgid "%s waiting for your OK"
 msgstr ""
 
-#: assets/app/app.js:467
-#: assets/app/app.js:745
-#: assets/app/app.js:829
-#: assets/app/app.js:1900
-#: assets/app/app.js:2615
-#: assets/app/app.js:2639
-#: assets/app/app.js:2928
-#: assets/app/app.js:2936
-#: assets/app/app.js:3135
+#: assets/app/app.js:485
+#: assets/app/app.js:763
+#: assets/app/app.js:847
+#: assets/app/app.js:1918
+#: assets/app/app.js:2633
+#: assets/app/app.js:2657
+#: assets/app/app.js:2946
+#: assets/app/app.js:2954
+#: assets/app/app.js:3153
 msgid "Back"
 msgstr ""
 
-#: assets/app/app.js:467
-#: assets/app/app.js:540
+#: assets/app/app.js:485
 #: assets/app/app.js:558
+#: assets/app/app.js:576
 msgid "Settings and more"
 msgstr ""
 
-#: assets/app/app.js:468
+#: assets/app/app.js:486
 msgid "Your page"
 msgstr ""
 
-#: assets/app/app.js:468
-#: assets/app/app.js:3133
+#: assets/app/app.js:486
+#: assets/app/app.js:3151
 msgid "See your page"
 msgstr ""
 
-#: assets/app/app.js:468
+#: assets/app/app.js:486
 msgid "Advanced settings"
 msgstr ""
 
-#: assets/app/app.js:468
+#: assets/app/app.js:486
 msgid "Your name, photo and bio are under Edit page. Advanced settings open your WordPress dashboard."
 msgstr ""
 
-#: assets/app/app.js:470
-#: assets/app/app.js:1854
-#: assets/app/app.js:1859
+#: assets/app/app.js:488
+#: assets/app/app.js:1872
+#: assets/app/app.js:1877
 msgid "Colour and reading mode"
 msgstr ""
 
-#: assets/app/app.js:470
+#: assets/app/app.js:488
 msgid "The colour of your page and how it opens for visitors: Automatic, Light, Paper or Dark."
 msgstr ""
 
-#: assets/app/app.js:470
-#: assets/app/app.js:856
+#: assets/app/app.js:488
+#: assets/app/app.js:874
 msgid "Change"
 msgstr ""
 
-#: assets/app/app.js:471
+#: assets/app/app.js:489
 msgid "Bring your photos from Instagram"
 msgstr ""
 
-#: assets/app/app.js:471
+#: assets/app/app.js:489
 msgid "bringing photos from Instagram"
 msgstr ""
 
-#: assets/app/app.js:471
+#: assets/app/app.js:489
 msgid "Your posts arrive with their original dates and captions."
 msgstr ""
 
-#: assets/app/app.js:471
-#: assets/app/app.js:1047
-#: assets/app/app.js:1916
+#: assets/app/app.js:489
+#: assets/app/app.js:1065
+#: assets/app/app.js:1934
 msgid "Start"
 msgstr ""
 
-#: assets/app/app.js:473
+#: assets/app/app.js:491
 msgid "Tell us what you think"
 msgstr ""
 
-#: assets/app/app.js:473
+#: assets/app/app.js:491
 msgid "Ideas, things that don't work, kind words: every note goes to the people who make Stubli."
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:1453
-#: assets/app/app.js:2033
+#: assets/app/app.js:492
+#: assets/app/app.js:1471
+#: assets/app/app.js:2051
 msgid "Put Stubli on your home screen"
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:1465
+#: assets/app/app.js:492
+#: assets/app/app.js:1483
 msgid "In Safari, tap the Share button, then %s."
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:1465
-#: assets/app/app.js:2033
+#: assets/app/app.js:492
+#: assets/app/app.js:1483
+#: assets/app/app.js:2051
 msgid "Add to Home Screen"
 msgstr ""
 
-#: assets/app/app.js:474
+#: assets/app/app.js:492
 msgid "Open your browser's menu, then choose %s or %s."
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:1465
-#: assets/app/app.js:2033
+#: assets/app/app.js:492
+#: assets/app/app.js:1483
+#: assets/app/app.js:2051
 msgid "Add to Home screen"
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:2033
+#: assets/app/app.js:492
+#: assets/app/app.js:2051
 msgid "Install app"
 msgstr ""
 
-#: assets/app/app.js:474
-#: assets/app/app.js:2033
+#: assets/app/app.js:492
+#: assets/app/app.js:2051
 msgid "It opens like an app, without the browser around it."
 msgstr ""
 
-#: assets/app/app.js:475
+#: assets/app/app.js:493
 msgid "Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can"
 msgstr ""
 
-#: assets/app/app.js:475
+#: assets/app/app.js:493
 msgid "leave him a tip"
 msgstr ""
 
-#: assets/app/app.js:475
+#: assets/app/app.js:493
 msgid "It unlocks nothing; it just keeps Stubli going."
 msgstr ""
 
-#: assets/app/app.js:503
+#: assets/app/app.js:521
 msgid "Next card"
 msgstr ""
 
-#: assets/app/app.js:523
+#: assets/app/app.js:541
 msgid "Nothing in %s yet."
 msgstr ""
 
-#: assets/app/app.js:523
+#: assets/app/app.js:541
 msgid "Your page is waiting for its first photo."
 msgstr ""
 
-#: assets/app/app.js:528
-#: assets/app/app.js:1118
+#: assets/app/app.js:546
+#: assets/app/app.js:1136
 msgid "Video post"
 msgstr ""
 
-#: assets/app/app.js:528
-#: assets/app/app.js:563
-#: assets/app/app.js:795
-#: assets/app/app.js:1118
+#: assets/app/app.js:546
+#: assets/app/app.js:581
+#: assets/app/app.js:813
+#: assets/app/app.js:1136
 msgid "Photo post"
 msgstr ""
 
-#: assets/app/app.js:528
-#: assets/app/app.js:1118
+#: assets/app/app.js:546
+#: assets/app/app.js:1136
 msgid ", %s photos"
 msgstr ""
 
-#: assets/app/app.js:528
-#: assets/app/app.js:1118
+#: assets/app/app.js:546
+#: assets/app/app.js:1136
 msgid ", friends only"
 msgstr ""
 
-#: assets/app/app.js:529
-#: assets/app/app.js:1119
+#: assets/app/app.js:547
+#: assets/app/app.js:1137
 msgid "Edit: %s"
 msgstr ""
 
-#: assets/app/app.js:533
-#: assets/app/app.js:1122
-#: assets/app/app.js:2613
+#: assets/app/app.js:551
+#: assets/app/app.js:1140
+#: assets/app/app.js:2631
 msgid "Show more"
 msgstr ""
 
-#: assets/app/app.js:540
-#: assets/app/app.js:594
-#: assets/app/app.js:629
-#: assets/app/app.js:736
-#: assets/app/app.js:1126
-#: assets/app/app.js:1141
-#: assets/app/app.js:1327
-#: assets/app/app.js:1501
-#: assets/app/app.js:1599
-#: assets/app/app.js:1665
-#: assets/app/app.js:1756
-#: assets/app/app.js:1784
-#: assets/app/app.js:1823
-#: assets/app/app.js:1854
-#: assets/app/app.js:2618
+#: assets/app/app.js:558
+#: assets/app/app.js:612
+#: assets/app/app.js:647
+#: assets/app/app.js:754
+#: assets/app/app.js:1144
+#: assets/app/app.js:1159
+#: assets/app/app.js:1345
+#: assets/app/app.js:1519
+#: assets/app/app.js:1617
+#: assets/app/app.js:1683
+#: assets/app/app.js:1774
+#: assets/app/app.js:1802
+#: assets/app/app.js:1841
+#: assets/app/app.js:1872
+#: assets/app/app.js:2636
 msgid "Loading…"
 msgstr ""
 
-#: assets/app/app.js:551
+#: assets/app/app.js:569
 msgid "Add a line about you"
 msgstr ""
 
-#: assets/app/app.js:552
+#: assets/app/app.js:570
 msgid "Add cards about you"
 msgstr ""
 
-#: assets/app/app.js:561
-#: assets/app/app.js:824
-#: assets/app/app.js:829
-#: assets/app/app.js:841
+#: assets/app/app.js:579
+#: assets/app/app.js:842
+#: assets/app/app.js:847
+#: assets/app/app.js:859
 msgid "Edit page"
 msgstr ""
 
-#: assets/app/app.js:561
-#: assets/app/app.js:2352
+#: assets/app/app.js:579
+#: assets/app/app.js:2370
 msgid "Share"
 msgstr ""
 
-#: assets/app/app.js:561
-#: assets/app/app.js:1452
+#: assets/app/app.js:579
+#: assets/app/app.js:1470
 msgid "Invite"
 msgstr ""
 
-#: assets/app/app.js:562
+#: assets/app/app.js:580
 msgid "Send a friend a link. Once they've set up their own Stubli, you follow each other automatically. Each link works once, for 30 days."
 msgstr ""
 
-#: assets/app/app.js:562
-#: assets/app/app.js:1481
-#: assets/app/app.js:1580
-#: assets/app/app.js:1623
-#: assets/app/app.js:2022
+#: assets/app/app.js:580
+#: assets/app/app.js:1499
+#: assets/app/app.js:1598
+#: assets/app/app.js:1641
+#: assets/app/app.js:2040
 msgid "Create an invite link"
 msgstr ""
 
-#: assets/app/app.js:564
+#: assets/app/app.js:582
 msgid "Collections"
 msgstr ""
 
-#: assets/app/app.js:565
-#: assets/app/app.js:2615
+#: assets/app/app.js:583
+#: assets/app/app.js:2633
 msgid "Your journal"
 msgstr ""
 
-#: assets/app/app.js:566
+#: assets/app/app.js:584
 msgid "Arrange and rename collections"
 msgstr ""
 
-#: assets/app/app.js:580
+#: assets/app/app.js:598
 msgid "Link to your page copied."
 msgstr ""
 
-#: assets/app/app.js:627
+#: assets/app/app.js:645
 msgid "Your collections"
 msgstr ""
 
-#: assets/app/app.js:627
-#: assets/app/app.js:2930
-#: assets/app/app.js:3132
+#: assets/app/app.js:645
+#: assets/app/app.js:2948
+#: assets/app/app.js:3150
 msgid "Done"
 msgstr ""
 
-#: assets/app/app.js:628
+#: assets/app/app.js:646
 msgid "Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one or give it a short line."
 msgstr ""
 
-#: assets/app/app.js:632
+#: assets/app/app.js:650
 msgid "A short line about it"
 msgstr ""
 
-#: assets/app/app.js:632
-#: assets/app/app.js:789
+#: assets/app/app.js:650
+#: assets/app/app.js:807
 msgid "e.g. Mostly at dawn, by the lake."
 msgstr ""
 
-#: assets/app/app.js:633
-#: assets/app/app.js:790
-#: assets/app/app.js:841
-#: assets/app/app.js:1161
-#: assets/app/app.js:1791
-#: assets/app/app.js:1835
-#: assets/app/app.js:2651
+#: assets/app/app.js:651
+#: assets/app/app.js:808
+#: assets/app/app.js:859
+#: assets/app/app.js:1179
+#: assets/app/app.js:1809
+#: assets/app/app.js:1853
+#: assets/app/app.js:2669
 msgid "Save"
 msgstr ""
 
-#: assets/app/app.js:633
-#: assets/app/app.js:739
-#: assets/app/app.js:839
-#: assets/app/app.js:1522
-#: assets/app/app.js:2196
-#: assets/app/app.js:2278
-#: assets/app/app.js:3227
+#: assets/app/app.js:651
+#: assets/app/app.js:757
+#: assets/app/app.js:857
+#: assets/app/app.js:1540
+#: assets/app/app.js:2214
+#: assets/app/app.js:2296
+#: assets/app/app.js:3245
 msgid "Cancel"
 msgstr ""
 
-#: assets/app/app.js:635
-#: assets/app/app.js:757
+#: assets/app/app.js:653
+#: assets/app/app.js:775
 msgid "1 post"
 msgstr ""
 
-#: assets/app/app.js:635
-#: assets/app/app.js:757
-#: assets/app/app.js:3117
+#: assets/app/app.js:653
+#: assets/app/app.js:775
+#: assets/app/app.js:3135
 msgid "%s posts"
 msgstr ""
 
-#: assets/app/app.js:636
+#: assets/app/app.js:654
 msgid "Edit the name and line of %s"
 msgstr ""
 
-#: assets/app/app.js:637
-#: assets/app/app.js:759
+#: assets/app/app.js:655
+#: assets/app/app.js:777
 msgid "Move %s up"
 msgstr ""
 
-#: assets/app/app.js:638
-#: assets/app/app.js:760
+#: assets/app/app.js:656
+#: assets/app/app.js:778
 msgid "Move %s down"
 msgstr ""
 
-#: assets/app/app.js:641
+#: assets/app/app.js:659
 msgid "Tip: hold a photo to pin it to the top of its collection."
 msgstr ""
 
-#: assets/app/app.js:648
-#: assets/app/app.js:770
-#: assets/app/app.js:804
-#: assets/app/app.js:812
-#: assets/app/app.js:841
-#: assets/app/app.js:1161
-#: assets/app/app.js:1907
-#: assets/app/app.js:2651
-#: assets/app/app.js:2892
+#: assets/app/app.js:666
+#: assets/app/app.js:788
+#: assets/app/app.js:822
+#: assets/app/app.js:830
+#: assets/app/app.js:859
+#: assets/app/app.js:1179
+#: assets/app/app.js:1925
+#: assets/app/app.js:2669
+#: assets/app/app.js:2910
 msgid "Saving…"
 msgstr ""
 
-#: assets/app/app.js:649
+#: assets/app/app.js:667
 msgid "Saved. Your page uses this order now."
 msgstr ""
 
-#: assets/app/app.js:670
+#: assets/app/app.js:688
 msgid "Saved. Your page shows it now."
 msgstr ""
 
-#: assets/app/app.js:710
+#: assets/app/app.js:728
 msgid "Unpinned from %s."
 msgstr ""
 
-#: assets/app/app.js:710
+#: assets/app/app.js:728
 msgid "Pinned to the top of %s on your page."
 msgstr ""
 
-#: assets/app/app.js:735
+#: assets/app/app.js:753
 msgid "Photo options"
 msgstr ""
 
-#: assets/app/app.js:736
+#: assets/app/app.js:754
 msgid "Unpin from %s"
 msgstr ""
 
-#: assets/app/app.js:736
+#: assets/app/app.js:754
 msgid "Pin to the top of %s"
 msgstr ""
 
-#: assets/app/app.js:736
+#: assets/app/app.js:754
 msgid "Put this post in a collection to pin it."
 msgstr ""
 
-#: assets/app/app.js:738
-#: assets/app/app.js:1141
-#: assets/app/app.js:1146
-#: assets/app/app.js:1161
+#: assets/app/app.js:756
+#: assets/app/app.js:1159
+#: assets/app/app.js:1164
+#: assets/app/app.js:1179
 msgid "Edit post"
 msgstr ""
 
-#: assets/app/app.js:749
-#: assets/app/app.js:754
+#: assets/app/app.js:767
+#: assets/app/app.js:772
 msgid "Arrange your page"
 msgstr ""
 
-#: assets/app/app.js:755
+#: assets/app/app.js:773
 msgid "Tab order"
 msgstr ""
 
-#: assets/app/app.js:755
+#: assets/app/app.js:773
 msgid "The first tab is the one people see when they open your page."
 msgstr ""
 
-#: assets/app/app.js:757
+#: assets/app/app.js:775
 msgid "1 pinned"
 msgstr ""
 
-#: assets/app/app.js:757
+#: assets/app/app.js:775
 msgid "%s pinned"
 msgstr ""
 
-#: assets/app/app.js:758
+#: assets/app/app.js:776
 msgid "Edit %s"
 msgstr ""
 
-#: assets/app/app.js:761
+#: assets/app/app.js:779
 msgid "Your collections appear here once you've posted."
 msgstr ""
 
-#: assets/app/app.js:763
+#: assets/app/app.js:781
 msgid "Only your own page changes. Your followers still see your posts newest first in their Home."
 msgstr ""
 
-#: assets/app/app.js:772
+#: assets/app/app.js:790
 msgid "Saved. Your page shows the new order."
 msgstr ""
 
-#: assets/app/app.js:778
+#: assets/app/app.js:796
 msgid "Pin posts"
 msgstr ""
 
-#: assets/app/app.js:787
+#: assets/app/app.js:805
 msgid "Name and words"
 msgstr ""
 
-#: assets/app/app.js:789
+#: assets/app/app.js:807
 msgid "A line under the tab"
 msgstr ""
 
-#: assets/app/app.js:791
+#: assets/app/app.js:809
 msgid "Pin to the top"
 msgstr ""
 
-#: assets/app/app.js:792
+#: assets/app/app.js:810
 msgid "Tap up to %s posts to pin them to the top of this collection, in the order you tap them. Tap again to unpin. Everything else stays newest first."
 msgstr ""
 
-#: assets/app/app.js:795
+#: assets/app/app.js:813
 msgid "pinned %s"
 msgstr ""
 
-#: assets/app/app.js:805
+#: assets/app/app.js:823
 msgid "Saved. Your page shows the new name."
 msgstr ""
 
-#: assets/app/app.js:811
+#: assets/app/app.js:829
 msgid "That's %s pinned already. Tap one to unpin it first."
 msgstr ""
 
-#: assets/app/app.js:814
+#: assets/app/app.js:832
 msgid "Saved. Pinned posts lead this collection on your page."
 msgstr ""
 
-#: assets/app/app.js:814
+#: assets/app/app.js:832
 msgid "Saved. Nothing pinned here now."
 msgstr ""
 
-#: assets/app/app.js:837
+#: assets/app/app.js:855
 msgid "Choose a prompt"
 msgstr ""
 
-#: assets/app/app.js:838
+#: assets/app/app.js:856
 msgid "Your own prompt"
 msgstr ""
 
-#: assets/app/app.js:838
+#: assets/app/app.js:856
 msgid "Or write your own…"
 msgstr ""
 
-#: assets/app/app.js:838
+#: assets/app/app.js:856
 msgid "Use"
 msgstr ""
 
-#: assets/app/app.js:844
+#: assets/app/app.js:862
 msgid "Your cover photo"
 msgstr ""
 
-#: assets/app/app.js:845
+#: assets/app/app.js:863
 msgid "Change cover"
 msgstr ""
 
-#: assets/app/app.js:845
+#: assets/app/app.js:863
 msgid "Choose a cover photo"
 msgstr ""
 
-#: assets/app/app.js:846
-#: assets/app/app.js:856
-#: assets/app/app.js:1172
-#: assets/app/app.js:1797
-#: assets/app/app.js:2944
+#: assets/app/app.js:864
+#: assets/app/app.js:874
+#: assets/app/app.js:1190
+#: assets/app/app.js:1815
+#: assets/app/app.js:2962
 msgid "Remove"
 msgstr ""
 
-#: assets/app/app.js:847
-#: assets/app/app.js:1791
+#: assets/app/app.js:865
+#: assets/app/app.js:1809
 msgid "See it on your page"
 msgstr ""
 
-#: assets/app/app.js:847
+#: assets/app/app.js:865
 msgid "A wide landscape photo works best, at least 1500 × 500 pixels. JPEG, PNG or WebP. You choose which part shows, and location details are removed."
 msgstr ""
 
-#: assets/app/app.js:848
+#: assets/app/app.js:866
 msgid "Profile photo"
 msgstr ""
 
-#: assets/app/app.js:848
-#: assets/app/app.js:1965
+#: assets/app/app.js:866
+#: assets/app/app.js:1983
 msgid "Your photo"
 msgstr ""
 
-#: assets/app/app.js:848
-#: assets/app/app.js:1965
+#: assets/app/app.js:866
+#: assets/app/app.js:1983
 msgid "Your smiley"
 msgstr ""
 
-#: assets/app/app.js:849
-#: assets/app/app.js:1966
+#: assets/app/app.js:867
+#: assets/app/app.js:1984
 msgid "Change photo"
 msgstr ""
 
-#: assets/app/app.js:849
-#: assets/app/app.js:1966
-#: assets/app/app.js:2660
+#: assets/app/app.js:867
+#: assets/app/app.js:1984
+#: assets/app/app.js:2678
 msgid "Add a photo"
 msgstr ""
 
-#: assets/app/app.js:849
-#: assets/app/app.js:1966
+#: assets/app/app.js:867
+#: assets/app/app.js:1984
 msgid "A face, a place, anything that feels like you."
 msgstr ""
 
-#: assets/app/app.js:849
+#: assets/app/app.js:867
 msgid "Or keep your smiley, and make it yours below."
 msgstr ""
 
-#: assets/app/app.js:851
-#: assets/app/app.js:1969
-#: assets/app/app.js:1990
+#: assets/app/app.js:869
+#: assets/app/app.js:1987
+#: assets/app/app.js:2008
 msgid "One line about you"
 msgstr ""
 
-#: assets/app/app.js:852
-#: assets/app/app.js:1970
+#: assets/app/app.js:870
+#: assets/app/app.js:1988
 msgid "she/her, they/them…"
 msgstr ""
 
-#: assets/app/app.js:853
+#: assets/app/app.js:871
 msgid "Cards about you"
 msgstr ""
 
-#: assets/app/app.js:853
+#: assets/app/app.js:871
 msgid "Up to %s cards sit behind your bio on your page. Short answers work best, and people can reply to each one."
 msgstr ""
 
-#: assets/app/app.js:856
+#: assets/app/app.js:874
 msgid "Remove %s"
 msgstr ""
 
-#: assets/app/app.js:859
+#: assets/app/app.js:877
 msgid "Add a card"
 msgstr ""
 
-#: assets/app/app.js:869
+#: assets/app/app.js:887
 msgid "Opening your photo…"
 msgstr ""
 
-#: assets/app/app.js:871
-#: assets/app/app.js:882
-#: assets/app/app.js:2086
+#: assets/app/app.js:889
+#: assets/app/app.js:900
+#: assets/app/app.js:2104
 msgid "That photo couldn't be read. Try another one."
 msgstr ""
 
-#: assets/app/app.js:875
+#: assets/app/app.js:893
 msgid "Cover removed."
 msgstr ""
 
-#: assets/app/app.js:879
-#: assets/app/app.js:2081
-#: assets/app/app.js:2239
+#: assets/app/app.js:897
+#: assets/app/app.js:2099
+#: assets/app/app.js:2257
 msgid "Uploading…"
 msgstr ""
 
-#: assets/app/app.js:881
-#: assets/app/app.js:2085
+#: assets/app/app.js:899
+#: assets/app/app.js:2103
 msgid "Lovely. That's your photo now."
 msgstr ""
 
-#: assets/app/app.js:902
+#: assets/app/app.js:920
 msgid "Write an answer for \"%s\", or remove that card."
 msgstr ""
 
-#: assets/app/app.js:906
+#: assets/app/app.js:924
 msgid "Your page is updated."
 msgstr ""
 
-#: assets/app/app.js:918
+#: assets/app/app.js:936
 msgid "Write back by email"
 msgstr ""
 
-#: assets/app/app.js:919
+#: assets/app/app.js:937
 msgid "Call or text"
 msgstr ""
 
-#: assets/app/app.js:925
+#: assets/app/app.js:943
 msgid "no Stubli"
 msgstr ""
 
-#: assets/app/app.js:927
+#: assets/app/app.js:945
 msgid "· Request"
 msgstr ""
 
-#: assets/app/app.js:928
+#: assets/app/app.js:946
 msgid "Replying to “%s”"
 msgstr ""
 
-#: assets/app/app.js:930
+#: assets/app/app.js:948
 msgid "Reach %s at %s"
 msgstr ""
 
-#: assets/app/app.js:932
+#: assets/app/app.js:950
 msgid "Keep"
 msgstr ""
 
-#: assets/app/app.js:932
+#: assets/app/app.js:950
 msgid "Accept"
 msgstr ""
 
-#: assets/app/app.js:933
+#: assets/app/app.js:951
 msgid "Reply again"
 msgstr ""
 
-#: assets/app/app.js:933
-#: assets/app/app.js:962
+#: assets/app/app.js:951
+#: assets/app/app.js:980
 msgid "Reply"
 msgstr ""
 
-#: assets/app/app.js:935
+#: assets/app/app.js:953
 msgid "Delete"
 msgstr ""
 
-#: assets/app/app.js:936
+#: assets/app/app.js:954
 msgid "Block"
 msgstr ""
 
-#: assets/app/app.js:951
+#: assets/app/app.js:969
 msgid "Blocked quietly. Nothing more from them will arrive, and they aren't told."
 msgstr ""
 
-#: assets/app/app.js:951
+#: assets/app/app.js:969
 msgid "Deleted."
 msgstr ""
 
-#: assets/app/app.js:967
-#: assets/app/app.js:975
-#: assets/app/app.js:1533
-#: assets/app/app.js:2948
+#: assets/app/app.js:985
+#: assets/app/app.js:993
+#: assets/app/app.js:1551
+#: assets/app/app.js:2966
 msgid "Sending…"
 msgstr ""
 
-#: assets/app/app.js:967
-#: assets/app/app.js:1522
+#: assets/app/app.js:985
 #: assets/app/app.js:1540
+#: assets/app/app.js:1558
 msgid "Send"
 msgstr ""
 
-#: assets/app/app.js:971
+#: assets/app/app.js:989
 msgid "Private: only %s sees it, in their own Stubli."
 msgstr ""
 
-#: assets/app/app.js:976
+#: assets/app/app.js:994
 msgid "Sent. Only %s sees it."
 msgstr ""
 
-#: assets/app/app.js:985
-#: assets/app/app.js:1744
-#: assets/app/app.js:2009
+#: assets/app/app.js:1003
+#: assets/app/app.js:1762
+#: assets/app/app.js:2027
 msgid "Your people"
 msgstr ""
 
-#: assets/app/app.js:985
+#: assets/app/app.js:1003
 msgid "friends only posts"
 msgstr ""
 
-#: assets/app/app.js:986
+#: assets/app/app.js:1004
 msgid "Tick your friends. They see your posts marked \"Friends only\", in their own Stubli; nobody else does."
 msgstr ""
 
-#: assets/app/app.js:989
+#: assets/app/app.js:1007
 msgid "Friend"
 msgstr ""
 
-#: assets/app/app.js:990
+#: assets/app/app.js:1008
 msgid "Show all %s"
 msgstr ""
 
-#: assets/app/app.js:990
-#: assets/app/app.js:1837
+#: assets/app/app.js:1008
+#: assets/app/app.js:1855
 msgid "You don't follow anyone yet."
 msgstr ""
 
-#: assets/app/app.js:992
+#: assets/app/app.js:1010
 msgid "Follow someone"
 msgstr ""
 
-#: assets/app/app.js:992
+#: assets/app/app.js:1010
 msgid "Know someone with a Stubli? Type their address."
 msgstr ""
 
-#: assets/app/app.js:1005
+#: assets/app/app.js:1023
 msgid "%s is a friend now."
 msgstr ""
 
-#: assets/app/app.js:1005
+#: assets/app/app.js:1023
 msgid "%s is a friend now. Their Stubli couldn't be reached just now, so they'll see your friends only posts once it can (we keep trying for a week)."
 msgstr ""
 
-#: assets/app/app.js:1005
+#: assets/app/app.js:1023
 msgid "%s is no longer a friend. Your friends posts leave their feed at its next check."
 msgstr ""
 
-#: assets/app/app.js:1017
+#: assets/app/app.js:1035
 msgid "Packing your archive…"
 msgstr ""
 
-#: assets/app/app.js:1017
+#: assets/app/app.js:1035
 msgid "%s of %s photos and videos"
 msgstr ""
 
-#: assets/app/app.js:1017
+#: assets/app/app.js:1035
 msgid "Keep this screen open until it's ready. It can take a few minutes."
 msgstr ""
 
-#: assets/app/app.js:1019
+#: assets/app/app.js:1037
 msgid "Your archive is ready (%s)"
 msgstr ""
 
-#: assets/app/app.js:1019
+#: assets/app/app.js:1037
 msgid "Download"
 msgstr ""
 
-#: assets/app/app.js:1019
+#: assets/app/app.js:1037
 msgid "Make a new one"
 msgstr ""
 
-#: assets/app/app.js:1019
+#: assets/app/app.js:1037
 msgid "Kept on your site until %s, then removed."
 msgstr ""
 
-#: assets/app/app.js:1021
+#: assets/app/app.js:1039
 msgid "Starting…"
 msgstr ""
 
-#: assets/app/app.js:1021
+#: assets/app/app.js:1039
 msgid "Download everything"
 msgstr ""
 
-#: assets/app/app.js:1021
+#: assets/app/app.js:1039
 msgid "This host can't make zip files. Ask your host to turn on PHP's Zip extension."
 msgstr ""
 
-#: assets/app/app.js:1023
+#: assets/app/app.js:1041
 msgid "Yours to keep"
 msgstr ""
 
-#: assets/app/app.js:1023
+#: assets/app/app.js:1041
 msgid "downloading everything"
 msgstr ""
 
-#: assets/app/app.js:1023
+#: assets/app/app.js:1041
 msgid "One zip with your photos and videos as they are on your site, your captions, journal, comments, guest book and the people you follow. It opens offline in any browser."
 msgstr ""
 
-#: assets/app/app.js:1031
+#: assets/app/app.js:1049
 msgid "Copying from %s… %s of %s"
 msgstr ""
 
-#: assets/app/app.js:1031
+#: assets/app/app.js:1049
 msgid "Photos and videos arrive at full size, so this can take a while. Keep this screen open."
 msgstr ""
 
-#: assets/app/app.js:1033
+#: assets/app/app.js:1051
 msgid "Everything from %s is here (%s items couldn't be copied)."
 msgstr ""
 
-#: assets/app/app.js:1033
+#: assets/app/app.js:1051
 msgid "Everything from %s is here (one item couldn't be copied)."
 msgstr ""
 
-#: assets/app/app.js:1033
+#: assets/app/app.js:1051
 msgid "Everything from %s is here."
 msgstr ""
 
-#: assets/app/app.js:1033
+#: assets/app/app.js:1051
 msgid "Your old site now points here, and the people who follow you switch to this address within a few hours."
 msgstr ""
 
-#: assets/app/app.js:1033
+#: assets/app/app.js:1051
 msgid "Your old site couldn't be told about the move. Your followers can follow you here by your new address."
 msgstr ""
 
-#: assets/app/app.js:1038
+#: assets/app/app.js:1056
 msgid "Your followers switch to the new address by themselves. You can keep this site as it is, or close it once they have."
 msgstr ""
 
-#: assets/app/app.js:1040
+#: assets/app/app.js:1058
 msgid "Your move link"
 msgstr ""
 
-#: assets/app/app.js:1040
+#: assets/app/app.js:1058
 msgid "Copied"
 msgstr ""
 
-#: assets/app/app.js:1040
+#: assets/app/app.js:1058
 msgid "Copy"
 msgstr ""
 
-#: assets/app/app.js:1041
+#: assets/app/app.js:1059
 msgid "Paste it into your new Stubli, in its setup or under You → Settings and more → Move to another site. It works until %s. Keep it private: it lets the new site copy your photos, journal, guest book and people, including entries only you can see."
 msgstr ""
 
-#: assets/app/app.js:1041
+#: assets/app/app.js:1059
 msgid "Stop this link"
 msgstr ""
 
-#: assets/app/app.js:1043
+#: assets/app/app.js:1061
 msgid "Moving to a new WordPress, for example your own server? Make a move link here and paste it into your new Stubli. It copies everything, and your followers come along."
 msgstr ""
 
-#: assets/app/app.js:1043
+#: assets/app/app.js:1061
 msgid "Make a move link"
 msgstr ""
 
-#: assets/app/app.js:1043
+#: assets/app/app.js:1061
 msgid "A move link is already active. Making a new one stops the old one."
 msgstr ""
 
-#: assets/app/app.js:1047
+#: assets/app/app.js:1065
 msgid "Move link from your old Stubli"
 msgstr ""
 
-#: assets/app/app.js:1047
-#: assets/app/app.js:1916
+#: assets/app/app.js:1065
+#: assets/app/app.js:1934
 msgid "oldsite.com/?stubli_move=…"
 msgstr ""
 
-#: assets/app/app.js:1049
+#: assets/app/app.js:1067
 msgid "Move to another site"
 msgstr ""
 
-#: assets/app/app.js:1049
+#: assets/app/app.js:1067
 msgid "moving to another site"
 msgstr ""
 
-#: assets/app/app.js:1050
-#: assets/app/app.js:1915
+#: assets/app/app.js:1068
+#: assets/app/app.js:1933
 msgid "Moving here from another Stubli?"
 msgstr ""
 
-#: assets/app/app.js:1062
+#: assets/app/app.js:1080
 msgid "Tap Start again to carry on where it stopped."
 msgstr ""
 
-#: assets/app/app.js:1112
-#: assets/app/app.js:1115
+#: assets/app/app.js:1130
+#: assets/app/app.js:1133
 msgid "Your posts"
 msgstr ""
 
-#: assets/app/app.js:1115
+#: assets/app/app.js:1133
 msgid "Tap a photo to change its caption, collection or descriptions, or to delete it."
 msgstr ""
 
-#: assets/app/app.js:1118
+#: assets/app/app.js:1136
 msgid ", video"
 msgstr ""
 
-#: assets/app/app.js:1131
-#: assets/app/app.js:1734
+#: assets/app/app.js:1149
+#: assets/app/app.js:1752
 msgid "Undo"
 msgstr ""
 
-#: assets/app/app.js:1146
+#: assets/app/app.js:1164
 msgid "Back to your posts"
 msgstr ""
 
-#: assets/app/app.js:1152
+#: assets/app/app.js:1170
 msgid "Who can see it"
 msgstr ""
 
-#: assets/app/app.js:1152
+#: assets/app/app.js:1170
 msgid "who can see a post"
 msgstr ""
 
-#: assets/app/app.js:1153
-#: assets/app/app.js:1695
-#: assets/app/app.js:2670
+#: assets/app/app.js:1171
+#: assets/app/app.js:1713
+#: assets/app/app.js:2688
 msgid "Everyone"
 msgstr ""
 
-#: assets/app/app.js:1155
+#: assets/app/app.js:1173
 msgid "Only the friend you chose sees it, in their own Stubli. It isn't on your public page."
 msgstr ""
 
-#: assets/app/app.js:1155
+#: assets/app/app.js:1173
 msgid "Only the %s friends you chose see it, in their own Stubli. It isn't on your public page."
 msgstr ""
 
-#: assets/app/app.js:1155
+#: assets/app/app.js:1173
 msgid "You haven't chosen any friends yet. Tick them under You → Settings and more → Your people; until then, nobody else sees this post."
 msgstr ""
 
-#: assets/app/app.js:1155
+#: assets/app/app.js:1173
 msgid "On your page and in your followers' feeds."
 msgstr ""
 
-#: assets/app/app.js:1163
-#: assets/app/app.js:2273
-#: assets/app/app.js:2354
+#: assets/app/app.js:1181
+#: assets/app/app.js:2291
+#: assets/app/app.js:2372
 msgid "Photo"
 msgstr ""
 
-#: assets/app/app.js:1164
+#: assets/app/app.js:1182
 msgid "The first photo is the cover: it shows on your page and in your followers' feeds. Change the order with the arrows. Descriptions are optional."
 msgstr ""
 
-#: assets/app/app.js:1167
+#: assets/app/app.js:1185
 msgid "Cover"
 msgstr ""
 
-#: assets/app/app.js:1167
+#: assets/app/app.js:1185
 msgctxt "photo"
 msgid "New"
 msgstr ""
 
-#: assets/app/app.js:1168
-#: assets/app/app.js:2369
+#: assets/app/app.js:1186
+#: assets/app/app.js:2387
 msgid "Description of photo %s"
 msgstr ""
 
-#: assets/app/app.js:1168
-#: assets/app/app.js:2369
+#: assets/app/app.js:1186
+#: assets/app/app.js:2387
 msgid "Video %s: what happens in it?"
 msgstr ""
 
-#: assets/app/app.js:1168
-#: assets/app/app.js:2369
+#: assets/app/app.js:1186
+#: assets/app/app.js:2387
 msgid "Photo %s: what's in it?"
 msgstr ""
 
-#: assets/app/app.js:1170
+#: assets/app/app.js:1188
 msgid "Make cover"
 msgstr ""
 
-#: assets/app/app.js:1171
+#: assets/app/app.js:1189
 msgid "Replace"
 msgstr ""
 
-#: assets/app/app.js:1171
+#: assets/app/app.js:1189
 msgid "Replace video %s"
 msgstr ""
 
-#: assets/app/app.js:1171
+#: assets/app/app.js:1189
 msgid "Replace photo %s"
 msgstr ""
 
-#: assets/app/app.js:1172
-#: assets/app/app.js:2292
+#: assets/app/app.js:1190
+#: assets/app/app.js:2310
 msgid "Remove video %s"
 msgstr ""
 
-#: assets/app/app.js:1172
-#: assets/app/app.js:2292
-#: assets/app/app.js:2667
+#: assets/app/app.js:1190
+#: assets/app/app.js:2310
+#: assets/app/app.js:2685
 msgid "Remove photo %s"
 msgstr ""
 
-#: assets/app/app.js:1174
+#: assets/app/app.js:1192
 msgid "Move photo %s earlier"
 msgstr ""
 
-#: assets/app/app.js:1175
+#: assets/app/app.js:1193
 msgid "Move photo %s later"
 msgstr ""
 
-#: assets/app/app.js:1178
+#: assets/app/app.js:1196
 msgid "Add photos or videos"
 msgstr ""
 
-#: assets/app/app.js:1178
+#: assets/app/app.js:1196
 msgid "Add photos"
 msgstr ""
 
-#: assets/app/app.js:1179
-#: assets/app/app.js:2281
+#: assets/app/app.js:1197
+#: assets/app/app.js:2299
 msgid "Opening your video…"
 msgstr ""
 
-#: assets/app/app.js:1180
+#: assets/app/app.js:1198
 msgid "Shape for new photos"
 msgstr ""
 
-#: assets/app/app.js:1181
-#: assets/app/app.js:2277
+#: assets/app/app.js:1199
+#: assets/app/app.js:2295
 msgid "Portrait"
 msgstr ""
 
-#: assets/app/app.js:1181
-#: assets/app/app.js:2277
+#: assets/app/app.js:1199
+#: assets/app/app.js:2295
 msgid "Square"
 msgstr ""
 
-#: assets/app/app.js:1181
-#: assets/app/app.js:2277
+#: assets/app/app.js:1199
+#: assets/app/app.js:2295
 msgid "Landscape"
 msgstr ""
 
-#: assets/app/app.js:1183
+#: assets/app/app.js:1201
 msgid "New photos are cropped to this shape, from the middle. The photos already in the post stay as they are."
 msgstr ""
 
-#: assets/app/app.js:1184
+#: assets/app/app.js:1202
 msgid "Photos you take out are deleted from your site when you tap Save. You can undo straight after."
 msgstr ""
 
-#: assets/app/app.js:1186
-#: assets/app/app.js:2355
-#: assets/app/app.js:2665
+#: assets/app/app.js:1204
+#: assets/app/app.js:2373
+#: assets/app/app.js:2683
 msgid "Caption"
 msgstr ""
 
-#: assets/app/app.js:1188
+#: assets/app/app.js:1206
 msgid "Collection"
 msgstr ""
 
-#: assets/app/app.js:1190
+#: assets/app/app.js:1208
 msgid "None"
 msgstr ""
 
-#: assets/app/app.js:1191
-#: assets/app/app.js:2364
+#: assets/app/app.js:1209
+#: assets/app/app.js:2382
 msgid "+ New"
 msgstr ""
 
-#: assets/app/app.js:1192
-#: assets/app/app.js:2365
+#: assets/app/app.js:1210
+#: assets/app/app.js:2383
 msgid "New collection name"
 msgstr ""
 
-#: assets/app/app.js:1192
-#: assets/app/app.js:2365
+#: assets/app/app.js:1210
+#: assets/app/app.js:2383
 msgid "e.g. Mountains"
 msgstr ""
 
-#: assets/app/app.js:1194
-#: assets/app/app.js:1195
-#: assets/app/app.js:2373
+#: assets/app/app.js:1212
+#: assets/app/app.js:1213
+#: assets/app/app.js:2391
 msgid "Content note"
 msgstr ""
 
-#: assets/app/app.js:1194
-#: assets/app/app.js:2372
+#: assets/app/app.js:1212
+#: assets/app/app.js:2390
 msgid "The photo stays softly blurred until someone chooses to see it."
 msgstr ""
 
-#: assets/app/app.js:1197
+#: assets/app/app.js:1215
 msgid "Changes reach your followers' feeds the next time their Stubli checks for news, usually within 15 minutes."
 msgstr ""
 
-#: assets/app/app.js:1198
+#: assets/app/app.js:1216
 msgid "See the post"
 msgstr ""
 
-#: assets/app/app.js:1200
+#: assets/app/app.js:1218
 msgid "Delete this post?"
 msgstr ""
 
-#: assets/app/app.js:1200
+#: assets/app/app.js:1218
 msgid "It leaves your page, and your followers' feeds the next time they check. You can undo right after."
 msgstr ""
 
-#: assets/app/app.js:1200
+#: assets/app/app.js:1218
 msgid "Delete post"
 msgstr ""
 
-#: assets/app/app.js:1200
-#: assets/app/app.js:2677
+#: assets/app/app.js:1218
+#: assets/app/app.js:2695
 msgid "Keep it"
 msgstr ""
 
-#: assets/app/app.js:1201
+#: assets/app/app.js:1219
 msgid "Delete post…"
 msgstr ""
 
-#: assets/app/app.js:1212
-#: assets/app/app.js:2337
+#: assets/app/app.js:1230
+#: assets/app/app.js:2355
 msgid "A post holds up to %s photos, so only the first %s were added."
 msgstr ""
 
-#: assets/app/app.js:1219
+#: assets/app/app.js:1237
 msgid "Added. Tap Save to keep it."
 msgstr ""
 
-#: assets/app/app.js:1219
+#: assets/app/app.js:1237
 msgid "Replaced. Tap Save to keep it."
 msgstr ""
 
-#: assets/app/app.js:1224
+#: assets/app/app.js:1242
 msgid "Taken out. Tap Save to keep the change."
 msgstr ""
 
-#: assets/app/app.js:1226
+#: assets/app/app.js:1244
 msgid "That's the cover now. Tap Save to keep it."
 msgstr ""
 
-#: assets/app/app.js:1238
+#: assets/app/app.js:1256
 msgid "Give the new collection a name, or choose one above."
 msgstr ""
 
-#: assets/app/app.js:1239
+#: assets/app/app.js:1257
 msgid "Write a short content note, like \"Flashing lights\", or turn it off."
 msgstr ""
 
-#: assets/app/app.js:1247
+#: assets/app/app.js:1265
 msgid "Together these are %s, and your host accepts up to %s at once. Add the videos one at a time, or choose a shorter clip."
 msgstr ""
 
-#: assets/app/app.js:1269
+#: assets/app/app.js:1287
 msgid "The photos are back as they were."
 msgstr ""
 
-#: assets/app/app.js:1278
-#: assets/app/app.js:2876
+#: assets/app/app.js:1296
+#: assets/app/app.js:2894
 msgid "Deleting…"
 msgstr ""
 
-#: assets/app/app.js:1281
+#: assets/app/app.js:1299
 msgid "Post deleted."
 msgstr ""
 
-#: assets/app/app.js:1282
+#: assets/app/app.js:1300
 msgid "It's back on your page."
 msgstr ""
 
-#: assets/app/app.js:1299
+#: assets/app/app.js:1317
 msgid "This browser can't show notifications."
 msgstr ""
 
-#: assets/app/app.js:1301
+#: assets/app/app.js:1319
 msgid "Notifications are turned off for Stubli. You can allow them in your phone's settings, or use email below."
 msgstr ""
 
-#: assets/app/app.js:1327
-#: assets/app/app.js:1338
+#: assets/app/app.js:1345
+#: assets/app/app.js:1356
 msgid "Daily summary"
 msgstr ""
 
-#: assets/app/app.js:1330
+#: assets/app/app.js:1348
 msgid "On iPhone, add Stubli to your Home Screen first (Share, then Add to Home Screen). Open it from there to turn this on."
 msgstr ""
 
-#: assets/app/app.js:1332
+#: assets/app/app.js:1350
 msgid "This browser can't show notifications. Email below works everywhere."
 msgstr ""
 
-#: assets/app/app.js:1334
+#: assets/app/app.js:1352
 msgid "On for this phone"
 msgstr ""
 
-#: assets/app/app.js:1334
+#: assets/app/app.js:1352
 msgid "Off for this phone"
 msgstr ""
 
-#: assets/app/app.js:1335
+#: assets/app/app.js:1353
 msgid "Send a test"
 msgstr ""
 
-#: assets/app/app.js:1335
+#: assets/app/app.js:1353
 msgid "Turn off"
 msgstr ""
 
-#: assets/app/app.js:1336
-#: assets/app/app.js:2031
+#: assets/app/app.js:1354
+#: assets/app/app.js:2049
 msgid "Asking your phone…"
 msgstr ""
 
-#: assets/app/app.js:1336
-#: assets/app/app.js:2031
+#: assets/app/app.js:1354
+#: assets/app/app.js:2049
 msgid "Send it to this phone"
 msgstr ""
 
-#: assets/app/app.js:1338
+#: assets/app/app.js:1356
 msgid "the daily summary"
 msgstr ""
 
-#: assets/app/app.js:1338
-#: assets/app/app.js:2029
+#: assets/app/app.js:1356
+#: assets/app/app.js:2047
 msgid "At most one a day, and only when something is new: comments, guest book entries and new posts from your people. Never one per post."
 msgstr ""
 
-#: assets/app/app.js:1339
+#: assets/app/app.js:1357
 msgid "Time"
 msgstr ""
 
-#: assets/app/app.js:1340
+#: assets/app/app.js:1358
 msgid "On your phone"
 msgstr ""
 
-#: assets/app/app.js:1341
+#: assets/app/app.js:1359
 msgid "Also by email"
 msgstr ""
 
-#: assets/app/app.js:1341
+#: assets/app/app.js:1359
 msgid "To %s. Handy if notifications don't reach you."
 msgstr ""
 
-#: assets/app/app.js:1346
+#: assets/app/app.js:1364
 msgid "Saved. It arrives around %s when something is new."
 msgstr ""
 
-#: assets/app/app.js:1347
+#: assets/app/app.js:1365
 msgid "Email is on."
 msgstr ""
 
-#: assets/app/app.js:1347
+#: assets/app/app.js:1365
 msgid "Email is off."
 msgstr ""
 
-#: assets/app/app.js:1348
+#: assets/app/app.js:1366
 msgid "On. Your summary arrives on this phone once a day, when something is new."
 msgstr ""
 
-#: assets/app/app.js:1348
-#: assets/app/app.js:1640
-#: assets/app/app.js:1724
+#: assets/app/app.js:1366
+#: assets/app/app.js:1658
+#: assets/app/app.js:1742
 msgid "That didn't work. Try again."
 msgstr ""
 
-#: assets/app/app.js:1349
+#: assets/app/app.js:1367
 msgid "Off for this phone."
 msgstr ""
 
-#: assets/app/app.js:1350
+#: assets/app/app.js:1368
 msgid "Sent. It should appear in a moment."
 msgstr ""
 
-#: assets/app/app.js:1350
+#: assets/app/app.js:1368
 msgid "Your phone's notification service didn't accept it. Turn it off and on again."
 msgstr ""
 
-#: assets/app/app.js:1362
+#: assets/app/app.js:1380
 msgid "Their Stubli address"
 msgstr ""
 
-#: assets/app/app.js:1371
-#: assets/app/app.js:1636
+#: assets/app/app.js:1389
+#: assets/app/app.js:1654
 msgid "Following…"
 msgstr ""
 
-#: assets/app/app.js:1373
+#: assets/app/app.js:1391
 msgid "You're following %s. Their photos appear in Home."
 msgstr ""
 
-#: assets/app/app.js:1375
+#: assets/app/app.js:1393
 msgid "You're following"
 msgstr ""
 
-#: assets/app/app.js:1377
+#: assets/app/app.js:1395
 msgid "That didn't work. Check the address and try again."
 msgstr ""
 
-#: assets/app/app.js:1389
+#: assets/app/app.js:1407
 msgid "just now"
 msgstr ""
 
-#: assets/app/app.js:1389
+#: assets/app/app.js:1407
 msgid "%s h ago"
 msgstr ""
 
-#: assets/app/app.js:1391
+#: assets/app/app.js:1409
 msgid "%s days ago"
 msgstr ""
 
-#: assets/app/app.js:1411
+#: assets/app/app.js:1429
 msgid "No connection right now. Your feed comes back when you're online."
 msgstr ""
 
-#: assets/app/app.js:1411
+#: assets/app/app.js:1429
 msgid "Your feed didn't load this time."
 msgstr ""
 
-#: assets/app/app.js:1451
+#: assets/app/app.js:1469
 msgid "Post your first photo"
 msgstr ""
 
-#: assets/app/app.js:1451
+#: assets/app/app.js:1469
 msgid "It goes on your page and to your followers."
 msgstr ""
 
-#: assets/app/app.js:1451
+#: assets/app/app.js:1469
 msgid "Post"
 msgstr ""
 
-#: assets/app/app.js:1452
+#: assets/app/app.js:1470
 msgid "Invite one friend"
 msgstr ""
 
-#: assets/app/app.js:1452
+#: assets/app/app.js:1470
 msgid "You follow each other once they join."
 msgstr ""
 
-#: assets/app/app.js:1453
+#: assets/app/app.js:1471
 msgid "Opens like an app, one tap away."
 msgstr ""
 
-#: assets/app/app.js:1453
+#: assets/app/app.js:1471
 msgid "Show me"
 msgstr ""
 
-#: assets/app/app.js:1460
+#: assets/app/app.js:1478
 msgid "You're all set."
 msgstr ""
 
-#: assets/app/app.js:1460
+#: assets/app/app.js:1478
 msgid "Enjoy your Stubli."
 msgstr ""
 
-#: assets/app/app.js:1462
+#: assets/app/app.js:1480
 msgid "Your first day"
 msgstr ""
 
-#: assets/app/app.js:1462
-#: assets/app/app.js:1518
-#: assets/app/app.js:1557
-#: assets/app/app.js:1617
+#: assets/app/app.js:1480
+#: assets/app/app.js:1536
+#: assets/app/app.js:1575
+#: assets/app/app.js:1635
 msgid "%s of %s"
 msgstr ""
 
-#: assets/app/app.js:1464
+#: assets/app/app.js:1482
 msgid "(done)"
 msgstr ""
 
-#: assets/app/app.js:1465
+#: assets/app/app.js:1483
 msgid "Open your browser's menu, then choose %s."
 msgstr ""
 
-#: assets/app/app.js:1465
+#: assets/app/app.js:1483
 msgid "I've done it"
 msgstr ""
 
-#: assets/app/app.js:1466
+#: assets/app/app.js:1484
 msgid "Hide this"
 msgstr ""
 
-#: assets/app/app.js:1476
+#: assets/app/app.js:1494
 msgid "Loading your feed…"
 msgstr ""
 
-#: assets/app/app.js:1478
-#: assets/app/app.js:1601
-#: assets/app/app.js:3133
+#: assets/app/app.js:1496
+#: assets/app/app.js:1619
+#: assets/app/app.js:3151
 msgid "Try again"
 msgstr ""
 
-#: assets/app/app.js:1480
+#: assets/app/app.js:1498
 msgid "Your feed is waiting"
 msgstr ""
 
-#: assets/app/app.js:1480
+#: assets/app/app.js:1498
 msgid "Follow someone and their new photos will appear here, newest first. No ads, no suggestions, just the people you chose."
 msgstr ""
 
-#: assets/app/app.js:1481
+#: assets/app/app.js:1499
 msgid "Or invite a friend"
 msgstr ""
 
-#: assets/app/app.js:1481
+#: assets/app/app.js:1499
 msgid "When they've set up their Stubli, you follow each other automatically."
 msgstr ""
 
-#: assets/app/app.js:1485
+#: assets/app/app.js:1503
 msgid "Show"
 msgstr ""
 
-#: assets/app/app.js:1486
+#: assets/app/app.js:1504
 msgid "All"
 msgstr ""
 
-#: assets/app/app.js:1489
+#: assets/app/app.js:1507
 msgid "Nothing here yet. Follow a few people and their new posts arrive here, every 15 minutes or so."
 msgstr ""
 
-#: assets/app/app.js:1489
+#: assets/app/app.js:1507
 msgid "Find people in Discover"
 msgstr ""
 
-#: assets/app/app.js:1489
-#: assets/app/app.js:1622
-#: assets/app/app.js:2022
+#: assets/app/app.js:1507
+#: assets/app/app.js:1640
+#: assets/app/app.js:2040
 msgid "Invite a friend"
 msgstr ""
 
-#: assets/app/app.js:1490
+#: assets/app/app.js:1508
 msgid "Older posts"
 msgstr ""
 
-#: assets/app/app.js:1491
+#: assets/app/app.js:1509
 msgid "That's everything for now"
 msgstr ""
 
-#: assets/app/app.js:1491
+#: assets/app/app.js:1509
 msgid "You're all caught up."
 msgstr ""
 
-#: assets/app/app.js:1493
+#: assets/app/app.js:1511
 msgid "Offline. Showing your feed from last time."
 msgstr ""
 
-#: assets/app/app.js:1493
+#: assets/app/app.js:1511
 msgid "%s new since your last visit"
 msgstr ""
 
-#: assets/app/app.js:1511
+#: assets/app/app.js:1529
 msgid "New"
 msgstr ""
 
-#: assets/app/app.js:1521
+#: assets/app/app.js:1539
 msgid "Comment"
 msgstr ""
 
-#: assets/app/app.js:1521
+#: assets/app/app.js:1539
 msgid "You commented"
 msgstr ""
 
-#: assets/app/app.js:1522
+#: assets/app/app.js:1540
 msgid "Say something kind…"
 msgstr ""
 
-#: assets/app/app.js:1522
+#: assets/app/app.js:1540
 msgid "It's saved on your own site too. It shows on their post right away if they follow you; otherwise after their OK."
 msgstr ""
 
-#: assets/app/app.js:1537
+#: assets/app/app.js:1555
 msgid "Saved. They're taking a break, so Stubli will keep sending it and it shows once they're back."
 msgstr ""
 
-#: assets/app/app.js:1537
+#: assets/app/app.js:1555
 msgid "Saved on your site. Their site didn't answer, so Stubli will keep trying for a week."
 msgstr ""
 
-#: assets/app/app.js:1537
+#: assets/app/app.js:1555
 msgid "Sent. Thank you."
 msgstr ""
 
-#: assets/app/app.js:1540
+#: assets/app/app.js:1558
 msgid "Couldn't send that. Try again."
 msgstr ""
 
-#: assets/app/app.js:1565
+#: assets/app/app.js:1583
 msgid "Creating…"
 msgstr ""
 
-#: assets/app/app.js:1568
+#: assets/app/app.js:1586
 msgid "Invite link"
 msgstr ""
 
-#: assets/app/app.js:1569
+#: assets/app/app.js:1587
 msgid "Share…"
 msgstr ""
 
-#: assets/app/app.js:1569
+#: assets/app/app.js:1587
 msgid "Copy link"
 msgstr ""
 
-#: assets/app/app.js:1574
+#: assets/app/app.js:1592
 msgid "Copied. Send it to one friend."
 msgstr ""
 
-#: assets/app/app.js:1575
+#: assets/app/app.js:1593
 msgid "Select the link and copy it."
 msgstr ""
 
-#: assets/app/app.js:1578
+#: assets/app/app.js:1596
 msgid "Join me on Stubli"
 msgstr ""
 
-#: assets/app/app.js:1578
+#: assets/app/app.js:1596
 msgid "I made you an invite to Stubli, a calm place for photos."
 msgstr ""
 
-#: assets/app/app.js:1593
+#: assets/app/app.js:1611
 msgid "Couldn't load suggestions."
 msgstr ""
 
-#: assets/app/app.js:1595
+#: assets/app/app.js:1613
 msgid "%s and %s more"
 msgstr ""
 
-#: assets/app/app.js:1595
-#: assets/app/app.js:1694
+#: assets/app/app.js:1613
+#: assets/app/app.js:1712
 msgid "%s and %s"
 msgstr ""
 
-#: assets/app/app.js:1603
+#: assets/app/app.js:1621
 msgid "No suggestions yet. They come from the public lists of the people you follow, so they appear once you follow a few people who share theirs."
 msgstr ""
 
-#: assets/app/app.js:1606
+#: assets/app/app.js:1624
 msgid "That's everyone for now"
 msgstr ""
 
-#: assets/app/app.js:1606
+#: assets/app/app.js:1624
 msgid "New suggestions come as the people you follow follow others."
 msgstr ""
 
-#: assets/app/app.js:1606
+#: assets/app/app.js:1624
 msgid "See them again"
 msgstr ""
 
-#: assets/app/app.js:1610
-#: assets/app/app.js:2019
+#: assets/app/app.js:1628
+#: assets/app/app.js:2037
 msgid "Followed by %s"
 msgstr ""
 
-#: assets/app/app.js:1611
-#: assets/app/app.js:1638
-#: assets/app/app.js:2013
+#: assets/app/app.js:1629
+#: assets/app/app.js:1656
+#: assets/app/app.js:2031
 msgid "Following"
 msgstr ""
 
-#: assets/app/app.js:1614
+#: assets/app/app.js:1632
 msgid "Photo with a content note: %s"
 msgstr ""
 
-#: assets/app/app.js:1616
-#: assets/app/app.js:1739
-#: assets/app/app.js:2002
+#: assets/app/app.js:1634
+#: assets/app/app.js:1757
+#: assets/app/app.js:2020
 msgid "Not now"
 msgstr ""
 
-#: assets/app/app.js:1622
+#: assets/app/app.js:1640
 msgid "following and invites"
 msgstr ""
 
-#: assets/app/app.js:1622
+#: assets/app/app.js:1640
 msgid "Send them a link. Once they've set up their own Stubli, you follow each other. Each link works once, for 30 days."
 msgstr ""
 
-#: assets/app/app.js:1625
+#: assets/app/app.js:1643
 msgid "Discover"
 msgstr ""
 
-#: assets/app/app.js:1625
+#: assets/app/app.js:1643
 msgid "Sites followed by people you follow. No rankings, no algorithm: the newest photos come first."
 msgstr ""
 
-#: assets/app/app.js:1639
+#: assets/app/app.js:1657
 msgid "Their new photos will appear in Home."
 msgstr ""
 
-#: assets/app/app.js:1671
+#: assets/app/app.js:1689
 msgid "Waiting for your OK"
 msgstr ""
 
-#: assets/app/app.js:1681
+#: assets/app/app.js:1699
 msgid "%s more from %s"
 msgstr ""
 
-#: assets/app/app.js:1682
+#: assets/app/app.js:1700
 msgid "Nothing is waiting. Comments from people you follow appear on your page straight away."
 msgstr ""
 
-#: assets/app/app.js:1684
+#: assets/app/app.js:1702
 msgid "Set aside · %s"
 msgstr ""
 
-#: assets/app/app.js:1690
+#: assets/app/app.js:1708
 msgid "From people you follow"
 msgstr ""
 
-#: assets/app/app.js:1694
+#: assets/app/app.js:1712
 msgid "%s and others"
 msgstr ""
 
-#: assets/app/app.js:1695
+#: assets/app/app.js:1713
 msgid "%s new from %s"
 msgstr ""
 
-#: assets/app/app.js:1697
+#: assets/app/app.js:1715
 msgid "Nothing new since your last look."
 msgstr ""
 
-#: assets/app/app.js:1699
+#: assets/app/app.js:1717
 msgid "On your page"
 msgstr ""
 
-#: assets/app/app.js:1701
+#: assets/app/app.js:1719
 msgid "signed your guest book"
 msgstr ""
 
-#: assets/app/app.js:1701
+#: assets/app/app.js:1719
 msgid "commented on %s"
 msgstr ""
 
-#: assets/app/app.js:1701
+#: assets/app/app.js:1719
 msgid "your post"
 msgstr ""
 
-#: assets/app/app.js:1702
+#: assets/app/app.js:1720
 msgid "No new comments or guest book entries in the last two weeks."
 msgstr ""
 
-#: assets/app/app.js:1704
+#: assets/app/app.js:1722
 msgid "Since your last look"
 msgstr ""
 
-#: assets/app/app.js:1731
+#: assets/app/app.js:1749
 msgid "Comment on your post"
 msgstr ""
 
-#: assets/app/app.js:1731
+#: assets/app/app.js:1749
 msgid "· followed by %s"
 msgstr ""
 
-#: assets/app/app.js:1733
+#: assets/app/app.js:1751
 msgid "Shown on your page."
 msgstr ""
 
-#: assets/app/app.js:1733
+#: assets/app/app.js:1751
 msgid "Set aside. It stays hidden; you'll find it under Set aside."
 msgstr ""
 
-#: assets/app/app.js:1733
+#: assets/app/app.js:1751
 msgid "Blocked quietly. Nothing from %s will show here, and they aren't told."
 msgstr ""
 
-#: assets/app/app.js:1739
+#: assets/app/app.js:1757
 msgid "Show it"
 msgstr ""
 
-#: assets/app/app.js:1740
+#: assets/app/app.js:1758
 msgid "Block this site"
 msgstr ""
 
-#: assets/app/app.js:1744
+#: assets/app/app.js:1762
 msgid "Hello"
 msgstr ""
 
-#: assets/app/app.js:1744
-#: assets/app/app.js:1977
+#: assets/app/app.js:1762
+#: assets/app/app.js:1995
 msgid "Interests"
 msgstr ""
 
-#: assets/app/app.js:1744
+#: assets/app/app.js:1762
 msgid "Ready"
 msgstr ""
 
-#: assets/app/app.js:1746
+#: assets/app/app.js:1764
 msgid "Follows the phone: light by day, dark at night."
 msgstr ""
 
-#: assets/app/app.js:1747
+#: assets/app/app.js:1765
 msgid "Bright linen and ink, like a fresh page."
 msgstr ""
 
-#: assets/app/app.js:1748
+#: assets/app/app.js:1766
 msgid "Warm paper with a book font for reading."
 msgstr ""
 
-#: assets/app/app.js:1749
+#: assets/app/app.js:1767
 msgid "A dark, quiet ground that's easy on the eyes at night."
 msgstr ""
 
-#: assets/app/app.js:1763
+#: assets/app/app.js:1781
 msgid "Go to Home"
 msgstr ""
 
-#: assets/app/app.js:1789
-#: assets/app/app.js:1790
+#: assets/app/app.js:1807
+#: assets/app/app.js:1808
 msgid "Welcome line"
 msgstr ""
 
-#: assets/app/app.js:1789
+#: assets/app/app.js:1807
 msgid "A few words at the top of your guest book."
 msgstr ""
 
-#: assets/app/app.js:1792
+#: assets/app/app.js:1810
 msgid "1 signature"
 msgstr ""
 
-#: assets/app/app.js:1792
+#: assets/app/app.js:1810
 msgid "%s signatures"
 msgstr ""
 
-#: assets/app/app.js:1797
+#: assets/app/app.js:1815
 msgid "Remove the entry from %s"
 msgstr ""
 
-#: assets/app/app.js:1798
+#: assets/app/app.js:1816
 msgid "No signatures yet. When friends sign from their own Stubli, their words appear here."
 msgstr ""
 
-#: assets/app/app.js:1804
+#: assets/app/app.js:1822
 msgid "Saved. Your guest book shows it now."
 msgstr ""
 
-#: assets/app/app.js:1814
+#: assets/app/app.js:1832
 msgid "Entry removed from your guest book."
 msgstr ""
 
-#: assets/app/app.js:1814
+#: assets/app/app.js:1832
 msgid "It's back in your guest book."
 msgstr ""
 
-#: assets/app/app.js:1829
+#: assets/app/app.js:1847
 msgid "Your links"
 msgstr ""
 
-#: assets/app/app.js:1829
+#: assets/app/app.js:1847
 msgid "A shop, a newsletter, another website: they show in the Links tab on your page."
 msgstr ""
 
-#: assets/app/app.js:1831
+#: assets/app/app.js:1849
 msgid "Name of link %s"
 msgstr ""
 
-#: assets/app/app.js:1831
+#: assets/app/app.js:1849
 msgid "Name, like Shop"
 msgstr ""
 
-#: assets/app/app.js:1832
+#: assets/app/app.js:1850
 msgid "Address of link %s"
 msgstr ""
 
-#: assets/app/app.js:1833
+#: assets/app/app.js:1851
 msgid "Move link %s up"
 msgstr ""
 
-#: assets/app/app.js:1833
+#: assets/app/app.js:1851
 msgid "Move link %s down"
 msgstr ""
 
-#: assets/app/app.js:1833
+#: assets/app/app.js:1851
 msgid "Remove link %s"
 msgstr ""
 
-#: assets/app/app.js:1835
-#: assets/app/app.js:2359
-#: assets/app/app.js:2660
+#: assets/app/app.js:1853
+#: assets/app/app.js:2377
+#: assets/app/app.js:2678
 msgid "Add a link"
 msgstr ""
 
-#: assets/app/app.js:1836
+#: assets/app/app.js:1854
 msgid "Sites you follow"
 msgstr ""
 
-#: assets/app/app.js:1836
+#: assets/app/app.js:1854
 msgid "The ones you follow publicly show under your links. Change who you follow in People."
 msgstr ""
 
-#: assets/app/app.js:1838
+#: assets/app/app.js:1856
 msgid "Open People"
 msgstr ""
 
-#: assets/app/app.js:1846
+#: assets/app/app.js:1864
 msgid "Saved. Your Links tab shows them now."
 msgstr ""
 
-#: assets/app/app.js:1860
-#: assets/app/app.js:1993
+#: assets/app/app.js:1878
+#: assets/app/app.js:2011
 msgid "Colour: %s"
 msgstr ""
 
-#: assets/app/app.js:1862
-#: assets/app/app.js:1995
+#: assets/app/app.js:1880
+#: assets/app/app.js:2013
 msgid ", the Stubli green"
 msgstr ""
 
-#: assets/app/app.js:1864
-#: assets/app/app.js:1997
+#: assets/app/app.js:1882
+#: assets/app/app.js:2015
 msgid "Gold is made for dark pages. On a light page your tabs blend in a little; Dark mode suits it best."
 msgstr ""
 
-#: assets/app/app.js:1865
-#: assets/app/app.js:1998
+#: assets/app/app.js:1883
+#: assets/app/app.js:2016
 msgid "Automatic"
 msgstr ""
 
-#: assets/app/app.js:1867
+#: assets/app/app.js:1885
 msgid "This is how your page opens for visitors. They can still switch with the Aa button."
 msgstr ""
 
-#: assets/app/app.js:1868
+#: assets/app/app.js:1886
 msgid "Little surprises on special days"
 msgstr ""
 
-#: assets/app/app.js:1868
+#: assets/app/app.js:1886
 msgid "On a few days a year, the Stubli logo joins in: confetti at New Year, heart eyes on Valentine's Day, a pumpkin at Halloween, fairy lights at Christmas, a Swiss flag on 1 August (on Swiss Stublis) and a cupcake on your Stubli's birthday."
 msgstr ""
 
-#: assets/app/app.js:1872
+#: assets/app/app.js:1890
 msgid "Saved. Your page and the app use it now."
 msgstr ""
 
-#: assets/app/app.js:1890
+#: assets/app/app.js:1908
 msgid "Little surprises are on."
 msgstr ""
 
-#: assets/app/app.js:1890
+#: assets/app/app.js:1908
 msgid "Little surprises are off."
 msgstr ""
 
-#: assets/app/app.js:1901
+#: assets/app/app.js:1919
 msgid "Step %s of 5"
 msgstr ""
 
-#: assets/app/app.js:1901
+#: assets/app/app.js:1919
 msgid "Finish later"
 msgstr ""
 
-#: assets/app/app.js:1902
+#: assets/app/app.js:1920
 msgid "Setup"
 msgstr ""
 
-#: assets/app/app.js:1902
+#: assets/app/app.js:1920
 msgid "Step %s of 5: %s"
 msgstr ""
 
-#: assets/app/app.js:1916
+#: assets/app/app.js:1934
 msgid "On your old Stubli, open You → Settings and more → Move to another site → Make a move link. Paste it here and everything comes along: photos, journal, guest book, people and settings."
 msgstr ""
 
-#: assets/app/app.js:1929
+#: assets/app/app.js:1947
 msgid "Change your smiley"
 msgstr ""
 
-#: assets/app/app.js:1929
+#: assets/app/app.js:1947
 msgid "Use a smiley instead"
 msgstr ""
 
-#: assets/app/app.js:1930
+#: assets/app/app.js:1948
 msgid "Colour"
 msgstr ""
 
-#: assets/app/app.js:1932
+#: assets/app/app.js:1950
 msgid "Colour %s"
 msgstr ""
 
-#: assets/app/app.js:1934
+#: assets/app/app.js:1952
 msgid "Something extra"
 msgstr ""
 
-#: assets/app/app.js:1942
+#: assets/app/app.js:1960
 msgid "That didn't save. Try again in a moment."
 msgstr ""
 
-#: assets/app/app.js:1964
+#: assets/app/app.js:1982
 msgid "Hello! Whose Stubli is this?"
 msgstr ""
 
-#: assets/app/app.js:1964
+#: assets/app/app.js:1982
 msgid "This is what people see at the top of your page. You can change it any time."
 msgstr ""
 
-#: assets/app/app.js:1966
+#: assets/app/app.js:1984
 msgid "Optional. Until then, this smiley is you. Make it yours below."
 msgstr ""
 
-#: assets/app/app.js:1968
+#: assets/app/app.js:1986
 msgid "Ana Keller"
 msgstr ""
 
-#: assets/app/app.js:1968
+#: assets/app/app.js:1986
 msgid "The name people see on your page."
 msgstr ""
 
-#: assets/app/app.js:1969
+#: assets/app/app.js:1987
 msgid "Photos from walks around Zurich"
 msgstr ""
 
-#: assets/app/app.js:1976
+#: assets/app/app.js:1994
 msgid "What do you like to photograph?"
 msgstr ""
 
-#: assets/app/app.js:1976
+#: assets/app/app.js:1994
 msgid "Each interest becomes a collection tab on your page and a way to sort the people you follow. Pick up to %s. You can add more when you post, and rename them on your You screen."
 msgstr ""
 
-#: assets/app/app.js:1981
+#: assets/app/app.js:1999
 msgid "Interests that already have photos stay, even if you untick them."
 msgstr ""
 
-#: assets/app/app.js:1982
+#: assets/app/app.js:2000
 msgid "Add your own interest"
 msgstr ""
 
-#: assets/app/app.js:1982
+#: assets/app/app.js:2000
 msgid "Add your own"
 msgstr ""
 
-#: assets/app/app.js:1982
-#: assets/app/app.js:2358
-#: assets/app/app.js:2658
+#: assets/app/app.js:2000
+#: assets/app/app.js:2376
+#: assets/app/app.js:2676
 msgid "Add"
 msgstr ""
 
-#: assets/app/app.js:1983
+#: assets/app/app.js:2001
 msgid "%s of %s chosen"
 msgstr ""
 
-#: assets/app/app.js:1984
+#: assets/app/app.js:2002
 msgid "Skip for now"
 msgstr ""
 
-#: assets/app/app.js:1988
+#: assets/app/app.js:2006
 msgid "Make it look like you"
 msgstr ""
 
-#: assets/app/app.js:1988
+#: assets/app/app.js:2006
 msgid "Choose a colour for buttons and tabs, and how your page reads."
 msgstr ""
 
-#: assets/app/app.js:2000
+#: assets/app/app.js:2018
 msgid "Visitors can still switch with the Aa button."
 msgstr ""
 
-#: assets/app/app.js:2001
+#: assets/app/app.js:2019
 msgid "Help friends find Stubli?"
 msgstr ""
 
-#: assets/app/app.js:2001
+#: assets/app/app.js:2019
 msgid "Show one small line on your page, “Made with Stubli · Make your own”, so visitors can see how to get their own. You can change it any time in Settings."
 msgstr ""
 
-#: assets/app/app.js:2002
+#: assets/app/app.js:2020
 msgid "Yes, show it"
 msgstr ""
 
-#: assets/app/app.js:2009
+#: assets/app/app.js:2027
 msgid "Their new photos will be in your Home feed. Nobody is told who else you follow."
 msgstr ""
 
-#: assets/app/app.js:2012
+#: assets/app/app.js:2030
 msgid "Show under"
 msgstr ""
 
-#: assets/app/app.js:2012
+#: assets/app/app.js:2030
 msgid "Just Home"
 msgstr ""
 
-#: assets/app/app.js:2014
+#: assets/app/app.js:2032
 msgid "Nobody yet, and that's fine. If a friend sent you an invite link, paste it below and you'll follow each other."
 msgstr ""
 
-#: assets/app/app.js:2015
+#: assets/app/app.js:2033
 msgid "Got an invite link?"
 msgstr ""
 
-#: assets/app/app.js:2015
+#: assets/app/app.js:2033
 msgid "theirname.com/invite/?t=…"
 msgstr ""
 
-#: assets/app/app.js:2015
-#: assets/app/app.js:2149
+#: assets/app/app.js:2033
+#: assets/app/app.js:2167
 msgid "Use link"
 msgstr ""
 
-#: assets/app/app.js:2016
+#: assets/app/app.js:2034
 msgid "People they follow"
 msgstr ""
 
-#: assets/app/app.js:2021
+#: assets/app/app.js:2039
 msgid "Follow someone by address"
 msgstr ""
 
-#: assets/app/app.js:2022
+#: assets/app/app.js:2040
 msgid "Send them a link. Once they've set up their Stubli, you follow each other. Each link works once, for 30 days."
 msgstr ""
 
-#: assets/app/app.js:2023
+#: assets/app/app.js:2041
 msgid "Follow and continue"
 msgstr ""
 
-#: assets/app/app.js:2028
+#: assets/app/app.js:2046
 msgid "You're ready"
 msgstr ""
 
-#: assets/app/app.js:2028
+#: assets/app/app.js:2046
 msgid "A few last choices, then your feed."
 msgstr ""
 
-#: assets/app/app.js:2029
+#: assets/app/app.js:2047
 msgid "Your daily summary"
 msgstr ""
 
-#: assets/app/app.js:2031
+#: assets/app/app.js:2049
 msgid "It will arrive on this phone"
 msgstr ""
 
-#: assets/app/app.js:2031
+#: assets/app/app.js:2049
 msgid "You can turn on phone notifications later in You → Settings and more → Daily summary."
 msgstr ""
 
-#: assets/app/app.js:2033
+#: assets/app/app.js:2051
 msgid "In Safari, tap the Share button, then"
 msgstr ""
 
-#: assets/app/app.js:2033
+#: assets/app/app.js:2051
 msgid "Android"
 msgstr ""
 
-#: assets/app/app.js:2033
+#: assets/app/app.js:2051
 msgid "Open the browser menu ⋮, then"
 msgstr ""
 
-#: assets/app/app.js:2034
+#: assets/app/app.js:2052
 msgid "Your site"
 msgstr ""
 
-#: assets/app/app.js:2035
+#: assets/app/app.js:2053
 msgid "Keep my site out of search engines"
 msgstr ""
 
-#: assets/app/app.js:2035
+#: assets/app/app.js:2053
 msgid "Google and others won't list it. Friends still find you through Stubli."
 msgstr ""
 
-#: assets/app/app.js:2036
+#: assets/app/app.js:2054
 msgid "Ask AI crawlers to stay away"
 msgstr ""
 
-#: assets/app/app.js:2036
+#: assets/app/app.js:2054
 msgid "A request that respectable bots honour."
 msgstr ""
 
-#: assets/app/app.js:2037
+#: assets/app/app.js:2055
 msgid "Stubli also turns on comments, so replies from friends' sites can arrive."
 msgstr ""
 
-#: assets/app/app.js:2037
+#: assets/app/app.js:2055
 msgid "Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends' sites can arrive."
 msgstr ""
 
-#: assets/app/app.js:2037
+#: assets/app/app.js:2055
 msgid "You can change all of this later in Settings → Stubli."
 msgstr ""
 
-#: assets/app/app.js:2038
+#: assets/app/app.js:2056
 msgid "Add Webmention in Plugins"
 msgstr ""
 
-#: assets/app/app.js:2039
+#: assets/app/app.js:2057
 msgid "Your first photo can wait. When you're ready, tap %s at the bottom."
 msgstr ""
 
-#: assets/app/app.js:2040
+#: assets/app/app.js:2058
 msgid "Open my feed anyway"
 msgstr ""
 
-#: assets/app/app.js:2040
+#: assets/app/app.js:2058
 msgid "Adding Webmention…"
 msgstr ""
 
-#: assets/app/app.js:2040
+#: assets/app/app.js:2058
 msgid "Open my feed"
 msgstr ""
 
-#: assets/app/app.js:2097
+#: assets/app/app.js:2115
 msgid "That's %s already. Untick one to choose another."
 msgstr ""
 
-#: assets/app/app.js:2105
+#: assets/app/app.js:2123
 msgid "That's %s already. Untick one to add another."
 msgstr ""
 
-#: assets/app/app.js:2143
+#: assets/app/app.js:2161
 msgid "Using…"
 msgstr ""
 
-#: assets/app/app.js:2146
+#: assets/app/app.js:2164
 msgid "them"
 msgstr ""
 
-#: assets/app/app.js:2147
+#: assets/app/app.js:2165
 msgid "You and %s now follow each other."
 msgstr ""
 
-#: assets/app/app.js:2147
+#: assets/app/app.js:2165
 msgid "You're following %s. They'll follow you back once their site hears from yours."
 msgstr ""
 
-#: assets/app/app.js:2169
+#: assets/app/app.js:2187
 msgid "That didn't work. You can try again later in You → Settings and more → Daily summary."
 msgstr ""
 
-#: assets/app/app.js:2182
+#: assets/app/app.js:2200
 msgid "Webmention couldn't be added just now."
 msgstr ""
 
-#: assets/app/app.js:2192
+#: assets/app/app.js:2210
 msgid "Cover photo: drag to move it. Arrow keys work too."
 msgstr ""
 
-#: assets/app/app.js:2193
+#: assets/app/app.js:2211
 msgid "Zoom"
 msgstr ""
 
-#: assets/app/app.js:2194
+#: assets/app/app.js:2212
 msgid "Turn a quarter"
 msgstr ""
 
-#: assets/app/app.js:2194
+#: assets/app/app.js:2212
 msgid "Turn"
 msgstr ""
 
-#: assets/app/app.js:2195
+#: assets/app/app.js:2213
 msgid "Drag the photo to choose what shows. Use the slider to zoom."
 msgstr ""
 
-#: assets/app/app.js:2196
-#: assets/app/app.js:2242
+#: assets/app/app.js:2214
+#: assets/app/app.js:2260
 msgid "Use this"
 msgstr ""
 
-#: assets/app/app.js:2241
+#: assets/app/app.js:2259
 msgid "Lovely. It's on your page now."
 msgstr ""
 
-#: assets/app/app.js:2268
+#: assets/app/app.js:2286
 msgid "Finish setting up"
 msgstr ""
 
-#: assets/app/app.js:2268
+#: assets/app/app.js:2286
 msgid "You're on step %s of 5."
 msgstr ""
 
-#: assets/app/app.js:2268
+#: assets/app/app.js:2286
 msgid "Your name, interests, colour and people. About three minutes, whenever suits you."
 msgstr ""
 
-#: assets/app/app.js:2268
+#: assets/app/app.js:2286
 msgid "Continue setup"
 msgstr ""
 
-#: assets/app/app.js:2273
+#: assets/app/app.js:2291
 msgid "What to post"
 msgstr ""
 
-#: assets/app/app.js:2280
+#: assets/app/app.js:2298
 msgid "New photo post"
 msgstr ""
 
-#: assets/app/app.js:2281
+#: assets/app/app.js:2299
 msgid "Video %s, %s"
 msgstr ""
 
-#: assets/app/app.js:2281
+#: assets/app/app.js:2299
 msgid "This browser can't preview this video, but it shares fine."
 msgstr ""
 
-#: assets/app/app.js:2281
+#: assets/app/app.js:2299
 msgid "Preview of video %s"
 msgstr ""
 
-#: assets/app/app.js:2281
+#: assets/app/app.js:2299
 msgid "Preview of photo %s"
 msgstr ""
 
-#: assets/app/app.js:2283
+#: assets/app/app.js:2301
 msgid "Choose up to %s photos or videos for one post. Videos can be up to a minute."
 msgstr ""
 
-#: assets/app/app.js:2283
+#: assets/app/app.js:2301
 msgid "Choose photos or videos"
 msgstr ""
 
-#: assets/app/app.js:2284
+#: assets/app/app.js:2302
 msgid "Choose up to %s photos for one post."
 msgstr ""
 
-#: assets/app/app.js:2284
+#: assets/app/app.js:2302
 msgid "Choose photos"
 msgstr ""
 
-#: assets/app/app.js:2285
+#: assets/app/app.js:2303
 msgid "Shape"
 msgstr ""
 
-#: assets/app/app.js:2288
+#: assets/app/app.js:2306
 msgid "The shape applies to photos. Videos keep their own shape."
 msgstr ""
 
-#: assets/app/app.js:2289
+#: assets/app/app.js:2307
 msgid "Your photos"
 msgstr ""
 
-#: assets/app/app.js:2289
+#: assets/app/app.js:2307
 msgid "%s selected · up to %s"
 msgstr ""
 
-#: assets/app/app.js:2289
+#: assets/app/app.js:2307
 msgid "up to %s"
 msgstr ""
 
-#: assets/app/app.js:2291
+#: assets/app/app.js:2309
 msgid "Show video %s"
 msgstr ""
 
-#: assets/app/app.js:2291
+#: assets/app/app.js:2309
 msgid "Show photo %s"
 msgstr ""
 
-#: assets/app/app.js:2294
+#: assets/app/app.js:2312
 msgid "Add more"
 msgstr ""
 
-#: assets/app/app.js:2294
+#: assets/app/app.js:2312
 msgctxt "button"
 msgid "Choose"
 msgstr ""
 
-#: assets/app/app.js:2296
-#: assets/app/app.js:2375
+#: assets/app/app.js:2314
+#: assets/app/app.js:2393
 msgid "Location details are removed from your photos and videos before they're shared."
 msgstr ""
 
-#: assets/app/app.js:2323
+#: assets/app/app.js:2341
 msgid "This video is %s, and your host accepts up to %s per file. Try a shorter clip."
 msgstr ""
 
-#: assets/app/app.js:2325
+#: assets/app/app.js:2343
 msgid "This video is %s long. Videos can be up to a minute; trim it in your phone's Photos app, then choose it again."
 msgstr ""
 
-#: assets/app/app.js:2327
+#: assets/app/app.js:2345
 msgid "That video couldn't be opened here. Try an MP4 or MOV from your phone's camera."
 msgstr ""
 
-#: assets/app/app.js:2331
+#: assets/app/app.js:2349
 msgid "One photo couldn't be opened. Try a JPEG or PNG, or pick it again."
 msgstr ""
 
-#: assets/app/app.js:2331
+#: assets/app/app.js:2349
 msgid "%s photos couldn't be opened. Try a JPEG or PNG, or pick it again."
 msgstr ""
 
-#: assets/app/app.js:2351
+#: assets/app/app.js:2369
 msgid "Back to photos"
 msgstr ""
 
-#: assets/app/app.js:2352
-#: assets/app/app.js:2422
-#: assets/app/app.js:2447
+#: assets/app/app.js:2370
+#: assets/app/app.js:2440
+#: assets/app/app.js:2465
 msgid "Sharing…"
 msgstr ""
 
-#: assets/app/app.js:2356
+#: assets/app/app.js:2374
 msgid "Say something about it, or leave it empty."
 msgstr ""
 
-#: assets/app/app.js:2358
-#: assets/app/app.js:2658
+#: assets/app/app.js:2376
+#: assets/app/app.js:2676
 msgid "Web address"
 msgstr ""
 
-#: assets/app/app.js:2358
+#: assets/app/app.js:2376
 msgid "It appears at the end of your caption and people can tap it."
 msgstr ""
 
-#: assets/app/app.js:2360
+#: assets/app/app.js:2378
 msgid "Which collection?"
 msgstr ""
 
-#: assets/app/app.js:2365
+#: assets/app/app.js:2383
 msgid "Each collection is a folder tab on your page. An emoji at the start is welcome."
 msgstr ""
 
-#: assets/app/app.js:2366
+#: assets/app/app.js:2384
 msgid "Add descriptions"
 msgstr ""
 
-#: assets/app/app.js:2366
+#: assets/app/app.js:2384
 msgid "A few words per photo, read aloud to people who use screen readers. You can add them later too."
 msgstr ""
 
-#: assets/app/app.js:2367
+#: assets/app/app.js:2385
 msgid "Describe what's shown for people who can't see it"
 msgstr ""
 
-#: assets/app/app.js:2367
+#: assets/app/app.js:2385
 msgid "Describe the photos for people who can't see them"
 msgstr ""
 
-#: assets/app/app.js:2372
+#: assets/app/app.js:2390
 msgid "Add a content note"
 msgstr ""
 
-#: assets/app/app.js:2412
+#: assets/app/app.js:2430
 msgid "Give the new collection a name, or pick one of your collections."
 msgstr ""
 
-#: assets/app/app.js:2417
+#: assets/app/app.js:2435
 msgid "Write a few words for the content note, so people know what to expect."
 msgstr ""
 
-#: assets/app/app.js:2423
+#: assets/app/app.js:2441
 msgid "Removing location details and preparing…"
 msgstr ""
 
-#: assets/app/app.js:2423
+#: assets/app/app.js:2441
 msgid "Preparing your photos…"
 msgstr ""
 
-#: assets/app/app.js:2431
+#: assets/app/app.js:2449
 msgid "Together these are %s, and your host accepts up to %s at once. Share the videos in separate posts, or choose a shorter clip."
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "Shared"
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "Your friends see it in their Stubli, in %s. It isn't on your public page."
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "Your friends see it in their Stubli. It isn't on your public page."
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "Your post is on your page in %s."
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "Your post is on your page."
 msgstr ""
 
-#: assets/app/app.js:2454
+#: assets/app/app.js:2472
 msgid "See your post"
 msgstr ""
 
-#: assets/app/app.js:2458
+#: assets/app/app.js:2476
 msgid "Something went wrong. Nothing was shared."
 msgstr ""
 
-#: assets/app/app.js:2458
+#: assets/app/app.js:2476
 msgid "Your photos and words are still here."
 msgstr ""
 
-#: assets/app/app.js:2478
-#: assets/app/app.js:2662
+#: assets/app/app.js:2496
+#: assets/app/app.js:2680
 msgid "Adding a photo…"
 msgstr ""
 
-#: assets/app/app.js:2478
-#: assets/app/app.js:2664
+#: assets/app/app.js:2496
+#: assets/app/app.js:2682
 msgid "Photo %s"
 msgstr ""
 
-#: assets/app/app.js:2499
+#: assets/app/app.js:2517
 msgid "Heading"
 msgstr ""
 
-#: assets/app/app.js:2500
+#: assets/app/app.js:2518
 msgid "Bold"
 msgstr ""
 
-#: assets/app/app.js:2501
+#: assets/app/app.js:2519
 msgid "Italic"
 msgstr ""
 
-#: assets/app/app.js:2502
+#: assets/app/app.js:2520
 msgid "Underline"
 msgstr ""
 
-#: assets/app/app.js:2503
+#: assets/app/app.js:2521
 msgid "Strikethrough"
 msgstr ""
 
-#: assets/app/app.js:2504
+#: assets/app/app.js:2522
 msgid "Bulleted list"
 msgstr ""
 
-#: assets/app/app.js:2505
+#: assets/app/app.js:2523
 msgid "Numbered list"
 msgstr ""
 
-#: assets/app/app.js:2506
+#: assets/app/app.js:2524
 msgid "Checklist"
 msgstr ""
 
-#: assets/app/app.js:2507
+#: assets/app/app.js:2525
 msgid "Quote"
 msgstr ""
 
-#: assets/app/app.js:2549
+#: assets/app/app.js:2567
 msgid "Draft saved %s"
 msgstr ""
 
-#: assets/app/app.js:2573
+#: assets/app/app.js:2591
 msgid "Saving draft…"
 msgstr ""
 
-#: assets/app/app.js:2582
+#: assets/app/app.js:2600
 msgid "Offline. Your draft is kept on this phone and saves when you're back."
 msgstr ""
 
-#: assets/app/app.js:2582
+#: assets/app/app.js:2600
 msgid "Couldn't save the draft just now. It's kept on this phone."
 msgstr ""
 
-#: assets/app/app.js:2598
+#: assets/app/app.js:2616
 msgid "Opening your journal…"
 msgstr ""
 
-#: assets/app/app.js:2602
+#: assets/app/app.js:2620
 msgid "No journal entries yet."
 msgstr ""
 
-#: assets/app/app.js:2602
+#: assets/app/app.js:2620
 msgid "Write one"
 msgstr ""
 
-#: assets/app/app.js:2605
+#: assets/app/app.js:2623
 msgid "Drafts"
 msgstr ""
 
-#: assets/app/app.js:2606
+#: assets/app/app.js:2624
 msgid "Saved %s"
 msgstr ""
 
-#: assets/app/app.js:2607
+#: assets/app/app.js:2625
 msgid "An empty draft"
 msgstr ""
 
-#: assets/app/app.js:2608
-#: assets/app/app.js:2906
+#: assets/app/app.js:2626
+#: assets/app/app.js:2924
 msgid "Published"
 msgstr ""
 
-#: assets/app/app.js:2609
+#: assets/app/app.js:2627
 msgid "Nothing published yet."
 msgstr ""
 
-#: assets/app/app.js:2615
-#: assets/app/app.js:2906
+#: assets/app/app.js:2633
+#: assets/app/app.js:2924
 msgid "New entry"
 msgstr ""
 
-#: assets/app/app.js:2616
+#: assets/app/app.js:2634
 msgid "Every entry, including Only-me ones and drafts. Tap one to change or delete it."
 msgstr ""
 
-#: assets/app/app.js:2639
+#: assets/app/app.js:2657
 msgid "Edit entry"
 msgstr ""
 
-#: assets/app/app.js:2639
+#: assets/app/app.js:2657
 msgid "Draft"
 msgstr ""
 
-#: assets/app/app.js:2642
+#: assets/app/app.js:2660
 msgid "Back to your journal"
 msgstr ""
 
-#: assets/app/app.js:2642
+#: assets/app/app.js:2660
 msgid "Opening your entry…"
 msgstr ""
 
-#: assets/app/app.js:2651
-#: assets/app/app.js:2892
+#: assets/app/app.js:2669
+#: assets/app/app.js:2910
 msgid "Publishing…"
 msgstr ""
 
-#: assets/app/app.js:2651
+#: assets/app/app.js:2669
 msgid "Publish"
 msgstr ""
 
-#: assets/app/app.js:2652
+#: assets/app/app.js:2670
 msgid "Edit journal entry"
 msgstr ""
 
-#: assets/app/app.js:2652
+#: assets/app/app.js:2670
 msgid "New journal entry"
 msgstr ""
 
-#: assets/app/app.js:2653
+#: assets/app/app.js:2671
 msgid "All your entries"
 msgstr ""
 
-#: assets/app/app.js:2654
+#: assets/app/app.js:2672
 msgid "Your unsaved changes from before are back. Tap Save to keep them."
 msgstr ""
 
-#: assets/app/app.js:2654
+#: assets/app/app.js:2672
 msgid "Discard them"
 msgstr ""
 
-#: assets/app/app.js:2655
+#: assets/app/app.js:2673
 msgid "Title (optional)"
 msgstr ""
 
-#: assets/app/app.js:2656
+#: assets/app/app.js:2674
 msgid "Formatting"
 msgstr ""
 
-#: assets/app/app.js:2657
+#: assets/app/app.js:2675
 msgid "Journal entry"
 msgstr ""
 
-#: assets/app/app.js:2657
+#: assets/app/app.js:2675
 msgid "What happened today?"
 msgstr ""
 
-#: assets/app/app.js:2658
+#: assets/app/app.js:2676
 msgid "YouTube or Vimeo address"
 msgstr ""
 
-#: assets/app/app.js:2658
+#: assets/app/app.js:2676
 msgid "A YouTube or Vimeo link"
 msgstr ""
 
-#: assets/app/app.js:2659
+#: assets/app/app.js:2677
 msgid "It shows as a cover with a play button. Nothing loads from the video site until someone presses play."
 msgstr ""
 
-#: assets/app/app.js:2660
+#: assets/app/app.js:2678
 msgid "Add a video link"
 msgstr ""
 
-#: assets/app/app.js:2662
+#: assets/app/app.js:2680
 msgid "Adding %s photos…"
 msgstr ""
 
-#: assets/app/app.js:2663
+#: assets/app/app.js:2681
 msgid "Photos in this entry"
 msgstr ""
 
-#: assets/app/app.js:2663
+#: assets/app/app.js:2681
 msgid "Each photo sits where you put it in your text. Use the arrows to move it up or down."
 msgstr ""
 
-#: assets/app/app.js:2664
+#: assets/app/app.js:2682
 msgid "Move photo %s up"
 msgstr ""
 
-#: assets/app/app.js:2664
+#: assets/app/app.js:2682
 msgid "Move photo %s down"
 msgstr ""
 
-#: assets/app/app.js:2665
+#: assets/app/app.js:2683
 msgid "(shown under the photo)"
 msgstr ""
 
-#: assets/app/app.js:2666
+#: assets/app/app.js:2684
 msgid "Description"
 msgstr ""
 
-#: assets/app/app.js:2666
+#: assets/app/app.js:2684
 msgid "(optional, for people who can't see it)"
 msgstr ""
 
-#: assets/app/app.js:2669
+#: assets/app/app.js:2687
 msgid "Who can see this"
 msgstr ""
 
-#: assets/app/app.js:2670
+#: assets/app/app.js:2688
 msgid "In your Journal tab"
 msgstr ""
 
-#: assets/app/app.js:2671
+#: assets/app/app.js:2689
 msgid "A private note"
 msgstr ""
 
-#: assets/app/app.js:2673
+#: assets/app/app.js:2691
 msgid "Photos in an Only-me entry aren't shown anywhere, but anyone who has a photo's exact web address could open it."
 msgstr ""
 
-#: assets/app/app.js:2674
+#: assets/app/app.js:2692
 msgid "Saving keeps the original date and adds an \"Edited\" time under it. The earlier version is kept, privately, in WordPress. Until you save, your changes are kept on this phone."
 msgstr ""
 
-#: assets/app/app.js:2675
+#: assets/app/app.js:2693
 msgid "Your draft saves itself to your Stubli as you write, so you can carry on from any device. Only you can see drafts. Publishing dates the entry today. Journal entries never appear in anyone's feed."
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "Delete this entry?"
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "Delete this draft?"
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "It leaves your Journal tab. You can undo right after."
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "Nobody has seen it. You can undo right after."
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "Delete entry"
 msgstr ""
 
-#: assets/app/app.js:2677
+#: assets/app/app.js:2695
 msgid "Delete draft"
 msgstr ""
 
-#: assets/app/app.js:2678
+#: assets/app/app.js:2696
 msgid "Delete entry…"
 msgstr ""
 
-#: assets/app/app.js:2678
+#: assets/app/app.js:2696
 msgid "Delete draft…"
 msgstr ""
 
-#: assets/app/app.js:2821
+#: assets/app/app.js:2839
 msgid "A photo couldn't be added. Try again."
 msgstr ""
 
-#: assets/app/app.js:2882
+#: assets/app/app.js:2900
 msgid "Draft deleted."
 msgstr ""
 
-#: assets/app/app.js:2882
+#: assets/app/app.js:2900
 msgid "Entry deleted."
 msgstr ""
 
-#: assets/app/app.js:2883
+#: assets/app/app.js:2901
 msgid "It's back in your journal."
 msgstr ""
 
-#: assets/app/app.js:2899
+#: assets/app/app.js:2917
 msgid "Saved. It shows when you edited it."
 msgstr ""
 
-#: assets/app/app.js:2906
+#: assets/app/app.js:2924
 msgid "Only you can see this entry."
 msgstr ""
 
-#: assets/app/app.js:2906
+#: assets/app/app.js:2924
 msgid "Your entry is in your Journal tab."
 msgstr ""
 
-#: assets/app/app.js:2906
+#: assets/app/app.js:2924
 msgid "See your journal"
 msgstr ""
 
-#: assets/app/app.js:2908
+#: assets/app/app.js:2926
 msgid "Something went wrong. Your entry is still here."
 msgstr ""
 
-#: assets/app/app.js:2929
+#: assets/app/app.js:2947
 msgid "Your note is with the Stubli team."
 msgstr ""
 
-#: assets/app/app.js:2929
+#: assets/app/app.js:2947
 msgid "If you asked a question, Celestine will reply."
 msgstr ""
 
-#: assets/app/app.js:2930
+#: assets/app/app.js:2948
 msgid "Write another"
 msgstr ""
 
-#: assets/app/app.js:2937
+#: assets/app/app.js:2955
 msgid "This goes to the people who make Stubli, not to anyone you follow. Every message is read."
 msgstr ""
 
-#: assets/app/app.js:2943
+#: assets/app/app.js:2961
 msgid "Include my address ("
 msgstr ""
 
-#: assets/app/app.js:2943
+#: assets/app/app.js:2961
 msgid ") so you can reply"
 msgstr ""
 
-#: assets/app/app.js:2944
+#: assets/app/app.js:2962
 msgid "Your screenshot"
 msgstr ""
 
-#: assets/app/app.js:2944
+#: assets/app/app.js:2962
 msgid "Screenshot added ·"
 msgstr ""
 
-#: assets/app/app.js:2945
+#: assets/app/app.js:2963
 msgid "Add a screenshot"
 msgstr ""
 
-#: assets/app/app.js:2946
+#: assets/app/app.js:2964
 msgid "We also send your Stubli version and phone type, to help fix problems. Nothing else."
 msgstr ""
 
-#: assets/app/app.js:2959
+#: assets/app/app.js:2977
 msgid "That image couldn't be opened. Try a PNG or JPEG."
 msgstr ""
 
-#: assets/app/app.js:3051
-#: assets/app/app.js:3135
+#: assets/app/app.js:3069
+#: assets/app/app.js:3153
 msgid "From Instagram"
 msgstr ""
 
-#: assets/app/app.js:3095
+#: assets/app/app.js:3113
 msgid "This download is the HTML version. Ask Instagram for a new download and choose JSON as the format."
 msgstr ""
 
-#: assets/app/app.js:3096
+#: assets/app/app.js:3114
 msgid "That file isn't a zip file. Choose the file Instagram sent you, without unpacking it."
 msgstr ""
 
-#: assets/app/app.js:3097
+#: assets/app/app.js:3115
 msgid "There are no posts in this download. When you request it, tick Posts (or Content)."
 msgstr ""
 
-#: assets/app/app.js:3098
+#: assets/app/app.js:3116
 msgid "This download couldn't be read here. Try it on a computer with a current browser."
 msgstr ""
 
-#: assets/app/app.js:3106
+#: assets/app/app.js:3124
 msgid "Instagram lets you download everything you've posted. Stubli reads that download on this device and brings your photos over, with their original dates and captions."
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "1. Ask Instagram for your download"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "In Instagram, open your profile, the menu, then"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Accounts Centre"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Choose"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Your information and permissions"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Download your information"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Pick"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Some of your information"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Posts"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid ", then"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Download to device"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Set"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Date range: All time"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Format: JSON"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "and"
 msgstr ""
 
-#: assets/app/app.js:3107
+#: assets/app/app.js:3125
 msgid "Media quality: High"
 msgstr ""
 
-#: assets/app/app.js:3108
+#: assets/app/app.js:3126
 msgid "Instagram emails you when it's ready, which can take a few hours. Big accounts may get several zip files: choose them all."
 msgstr ""
 
-#: assets/app/app.js:3109
+#: assets/app/app.js:3127
 msgid "2. Choose the zip file"
 msgstr ""
 
-#: assets/app/app.js:3109
+#: assets/app/app.js:3127
 msgid "Choose zip files"
 msgstr ""
 
-#: assets/app/app.js:3112
+#: assets/app/app.js:3130
 msgid "Reading your download…"
 msgstr ""
 
-#: assets/app/app.js:3114
+#: assets/app/app.js:3132
 msgid "No photo or video posts found in this download."
 msgstr ""
 
-#: assets/app/app.js:3117
+#: assets/app/app.js:3135
 msgid "Found %s from %s to %s."
 msgstr ""
 
-#: assets/app/app.js:3118
+#: assets/app/app.js:3136
 msgid "Videos up to a minute come along; longer ones stay behind."
 msgstr ""
 
-#: assets/app/app.js:3118
+#: assets/app/app.js:3136
 msgid "So the videos in this download stay behind."
 msgstr ""
 
-#: assets/app/app.js:3119
+#: assets/app/app.js:3137
 msgid "Put them in this collection"
 msgstr ""
 
-#: assets/app/app.js:3120
+#: assets/app/app.js:3138
 msgid "Choose posts"
 msgstr ""
 
-#: assets/app/app.js:3120
+#: assets/app/app.js:3138
 msgid "Select none"
 msgstr ""
 
-#: assets/app/app.js:3120
+#: assets/app/app.js:3138
 msgid "Select all"
 msgstr ""
 
-#: assets/app/app.js:3124
+#: assets/app/app.js:3142
 msgid "Captions and dates come along. Comments and likes stay on Instagram. Location details are removed. Keep this screen open while it works."
 msgstr ""
 
-#: assets/app/app.js:3125
-#: assets/app/app.js:3153
+#: assets/app/app.js:3143
+#: assets/app/app.js:3171
 msgid "Import 1 post"
 msgstr ""
 
-#: assets/app/app.js:3125
-#: assets/app/app.js:3153
+#: assets/app/app.js:3143
+#: assets/app/app.js:3171
 msgid "Import %s posts"
 msgstr ""
 
-#: assets/app/app.js:3128
-#: assets/app/app.js:3211
+#: assets/app/app.js:3146
+#: assets/app/app.js:3229
 msgid "Importing %s of %s…"
 msgstr ""
 
-#: assets/app/app.js:3129
+#: assets/app/app.js:3147
 msgid "You can keep using your phone, but leave this screen open. If it stops, start again: posts already imported are skipped."
 msgstr ""
 
-#: assets/app/app.js:3129
+#: assets/app/app.js:3147
 msgid "Stop"
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "Stopped"
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "1 post imported into %s."
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "%s posts imported into %s."
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "1 post imported."
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "%s posts imported."
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "1 was already on your page, so nothing was doubled."
 msgstr ""
 
-#: assets/app/app.js:3132
+#: assets/app/app.js:3150
 msgid "%s were already on your page, so nothing was doubled."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "%s couldn't be imported; try again to retry them."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "One video was longer than a minute and stayed behind."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "%s videos were longer than a minute and stayed behind."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "One video couldn't be read and stayed behind."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "%s videos couldn't be read and stayed behind."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "One video stayed behind, because your site can't take videos."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "%s videos stayed behind, because your site can't take videos."
 msgstr ""
 
-#: assets/app/app.js:3133
+#: assets/app/app.js:3151
 msgid "%s still to go."
 msgstr ""
 
-#: assets/app/app.js:3146
+#: assets/app/app.js:3164
 msgid "Stopping after this post…"
 msgstr ""
 
-#: assets/app/app.js:3226
+#: assets/app/app.js:3244
 msgid "Discard?"
 msgstr ""
 
-#: assets/app/app.js:3226
+#: assets/app/app.js:3244
 msgid "Discard this post. Press again to confirm."
 msgstr ""

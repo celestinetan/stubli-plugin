@@ -154,6 +154,8 @@ class Rest {
 
 		// ——— Public ———
 		self::route( '/profile', WP_REST_Server::READABLE, static fn() => rest_ensure_response( Posts::profile() ), true );
+		// The app asks this when you come back to it, to offer a reload after an update.
+		self::route( '/app-version', WP_REST_Server::READABLE, static fn() => rest_ensure_response( array( 'version' => VERSION ) ) );
 		self::route( '/following', WP_REST_Server::READABLE, static fn() => rest_ensure_response( Follows::public_list() ), true );
 		self::route(
 			'/posts/(?P<id>\d+)/comments',

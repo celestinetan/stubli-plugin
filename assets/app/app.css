@@ -758,3 +758,11 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 @keyframes stw-wave { 0%, 100% { transform: skewY(0) scaleX(1); } 25% { transform: skewY(-9deg) scaleX(.93); } 55% { transform: skewY(6deg) scaleX(.97); } 80% { transform: skewY(-3deg) scaleX(.99); } }
 @keyframes stw-flicker { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(.9, 1.12); } 60% { transform: scale(1.05, .94); } }
 @media (prefers-reduced-motion: reduce) { .stw *, .stw .stw-l { animation: none !important; } .stw-bit, .stw-hearts path { opacity: 0 !important; } }
+/* "Stubli has been updated. Reload": a quiet bar at the top when the site has a newer app. */
+.a-update {
+	position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; white-space: nowrap;
+	display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px); padding: 4px 6px 4px 16px; min-height: 44px;
+	border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 500; font-size: 14px;
+	box-shadow: 0 0 0 1px var(--field);
+}
+.a-update .a-text-btn { font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
