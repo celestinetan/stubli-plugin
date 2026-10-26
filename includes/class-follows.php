@@ -251,7 +251,7 @@ class Follows {
 	public static function get( $id ) {
 		global $wpdb;
 		$table = Install::follows_table();
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE id = %d", $table, $id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**
@@ -261,7 +261,7 @@ class Follows {
 	public static function find_by_site( $site_url ) {
 		global $wpdb;
 		$table = Install::follows_table();
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE site_url = %s", $site_url ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE site_url = %s", $table, $site_url ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**
@@ -270,7 +270,7 @@ class Follows {
 	public static function all() {
 		global $wpdb;
 		$table = Install::follows_table();
-		return $wpdb->get_results( "SELECT * FROM {$table} ORDER BY name ASC", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i ORDER BY name ASC", $table ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**

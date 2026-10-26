@@ -43,7 +43,7 @@ class Setup {
 	public static function init() {
 		add_action( 'rest_api_init', array( self::class, 'routes' ) );
 		add_action( 'admin_init', array( self::class, 'maybe_open' ) );
-		add_action( 'wp_head', array( self::class, 'print_accent' ), 100 );
+		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_accent' ), 100 );
 	}
 
 	/**
@@ -116,12 +116,15 @@ class Setup {
 	}
 
 	/**
-	 * Print the accent on public pages (theme or built-in look).
+	 * Add the accent to public pages (theme or built-in look), as an inline style
+	 * on its own handle so it works with any theme.
 	 */
-	public static function print_accent() {
+	public static function enqueue_accent() {
 		$css = self::accent_css();
 		if ( '' !== $css ) {
-			echo '<style id="stubli-accent">' . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from fixed hex values.
+			wp_register_style( 'stubli-accent', false, array(), VERSION );
+			wp_enqueue_style( 'stubli-accent' );
+			wp_add_inline_style( 'stubli-accent', $css );
 		}
 	}
 

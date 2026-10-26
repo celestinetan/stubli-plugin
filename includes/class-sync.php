@@ -107,7 +107,7 @@ class Sync {
 			$aud      = $item->get_item_tags( Posts::NS, 'audience' );
 			$audience = ! empty( $aud[0]['data'] ) && 'friends' === trim( (string) $aud[0]['data'] ) ? 'friends' : '';
 
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE follow_id = %d AND guid = %s", $follow['id'], $guid ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM %i WHERE follow_id = %d AND guid = %s", $table, $follow['id'], $guid ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( $exists ) {
 				// The owner may have edited the caption, descriptions or content note.
 				$wpdb->update(
@@ -149,7 +149,7 @@ class Sync {
 		// deleted by its owner, so it leaves the reader too.
 		if ( $seen && null !== $oldest ) {
 			$marks = implode( ',', array_fill( 0, count( $seen ), '%s' ) );
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE follow_id = %d AND published >= %s AND guid NOT IN ({$marks})", array_merge( array( (int) $follow['id'], gmdate( 'Y-m-d H:i:s', $oldest ) ), $seen ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE follow_id = %d AND published >= %s AND guid NOT IN ({$marks})", array_merge( array( $table, (int) $follow['id'], gmdate( 'Y-m-d H:i:s', $oldest ) ), $seen ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		}
 
 		$wpdb->update(
@@ -262,28 +262,25 @@ class Sync {
 		$follows = Install::follows_table();
 		$offset  = max( 0, ( (int) $page - 1 ) * (int) $per_page );
 
-		$where  = 'WHERE f.muted = 0';
-		$params = array();
-		if ( '' !== $list_name ) {
-			$where   .= ' AND f.list_name = %s';
-			$params[] = $list_name;
-		}
-		$params[] = (int) $per_page;
-		$params[] = $offset;
+		$list_name = (string) $list_name;
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own reader table.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT i.*, f.name AS author_name, f.avatar_url AS author_avatar, f.site_url AS author_url, f.list_name AS list_name
-				FROM {$items} i INNER JOIN {$follows} f ON f.id = i.follow_id
-				{$where}
+				FROM %i i INNER JOIN %i f ON f.id = i.follow_id
+				WHERE f.muted = 0 AND ( %s = '' OR f.list_name = %s )
 				ORDER BY i.published DESC
 				LIMIT %d OFFSET %d",
-				$params
+				$items,
+				$follows,
+				$list_name,
+				$list_name,
+				(int) $per_page,
+				$offset
 			),
 			ARRAY_A
 		);
-		// phpcs:enable
 
 		return array_map(
 			static function ( $row ) {
@@ -321,6 +318,6 @@ class Sync {
 	public static function get_item( $id ) {
 		global $wpdb;
 		$table = Install::items_table();
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE id = %d", $table, $id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 }

@@ -77,7 +77,7 @@ class Digest {
 		$items = Install::items_table();
 		$fols  = Install::follows_table();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- plugin tables.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT f.name, f.site_url, COUNT(*) AS n FROM {$items} i JOIN {$fols} f ON f.id = i.follow_id WHERE i.published > %s AND f.muted = 0 GROUP BY f.id ORDER BY MAX(i.published) DESC", $after ) );
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT f.name, f.site_url, COUNT(*) AS n FROM %i i JOIN %i f ON f.id = i.follow_id WHERE i.published > %s AND f.muted = 0 GROUP BY f.id ORDER BY MAX(i.published) DESC", $items, $fols, $after ) );
 		foreach ( (array) $rows as $r ) {
 			$out['posts'] += (int) $r->n;
 			$out['people'][] = '' !== (string) $r->name ? (string) $r->name : (string) wp_parse_url( $r->site_url, PHP_URL_HOST );
@@ -294,8 +294,7 @@ class Digest {
 					'aud' => $aud,
 					'exp' => time() + 12 * HOUR_IN_SECONDS,
 					'sub' => is_email( $email ) ? 'mailto:' . $email : home_url( '/' ),
-				),
-				JSON_UNESCAPED_SLASHES
+				)
 			)
 		);
 		if ( ! openssl_sign( $jwt, $sig, $v['private'], OPENSSL_ALGO_SHA256 ) ) {
@@ -353,7 +352,7 @@ class Digest {
 	 * @return int HTTP status (0 on failure to send).
 	 */
 	public static function push( array $sub, array $msg ) {
-		$body = self::encrypt( wp_json_encode( $msg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), $sub['p256dh'], $sub['auth'] );
+		$body = self::encrypt( wp_json_encode( $msg ), $sub['p256dh'], $sub['auth'] );
 		$auth = self::vapid_header( $sub['endpoint'] );
 		if ( null === $body || null === $auth ) {
 			return 0;

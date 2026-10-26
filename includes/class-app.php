@@ -145,8 +145,7 @@ class App {
 						'purpose' => 'any maskable',
 					),
 				),
-			),
-			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+			)
 		);
 		exit;
 	}
@@ -264,7 +263,7 @@ class App {
 		// The app's words in the site's language: from WordPress.org's language
 		// packs, or from the plugin's own languages folder.
 		wp_set_script_translations( 'stubli-app', 'stubli', STUBLI_PLUGIN_DIR . 'languages' );
-		wp_add_inline_script( 'stubli-app', 'window.STUBLI = ' . wp_json_encode( self::boot(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
+		wp_add_inline_script( 'stubli-app', 'window.STUBLI = ' . wp_json_encode( self::boot(), JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
 		status_header( 200 );
 		header( 'Content-Type: text/html; charset=utf-8' );
 		header( 'X-Robots-Tag: noindex, nofollow' );

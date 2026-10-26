@@ -184,7 +184,7 @@ class Archive {
 		if ( true !== $zip->open( $file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE ) ) {
 			return new \WP_Error( 'stubli_archive_write', __( 'The archive couldn\'t be started. There may not be enough space on this host.', 'stubli' ), array( 'status' => 500 ) );
 		}
-		$zip->addFromString( 'data/stubli.json', (string) wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
+		$zip->addFromString( 'data/stubli.json', (string) wp_json_encode( $data, JSON_PRETTY_PRINT ) );
 		foreach ( self::pages( $data ) as $name => $html ) {
 			$zip->addFromString( $name, $html );
 		}

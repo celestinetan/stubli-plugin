@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.39.0
+Stable tag: 0.39.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 4. Posting photos and videos from the phone.
 
 == Changelog ==
+
+= 0.39.1 =
+* Under the hood, for the WordPress.org review: the reading-mode script and colour styles now load through WordPress's own script and style system, database queries name their tables with WordPress's placeholder, and JSON output uses WordPress's standard escaping. Nothing changes in how Stubli looks or works.
 
 = 0.39.0 =
 * The demo in your browser now has Ana's made-up friends: their posts in Home, comments, guest book entries, a note and people to discover. Real Stublis are unchanged.

@@ -128,12 +128,12 @@ class Install {
 			if ( $old !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $old ) ) ) ) {
 				continue;
 			}
-			$from = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$old}`" );
-			if ( 0 === (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$new}`" ) && $from > 0 ) {
-				$wpdb->query( "INSERT INTO `{$new}` SELECT * FROM `{$old}`" );
+			$from = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $old ) );
+			if ( 0 === (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $new ) ) && $from > 0 ) {
+				$wpdb->query( $wpdb->prepare( 'INSERT INTO %i SELECT * FROM %i', $new, $old ) );
 			}
-			if ( (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$new}`" ) >= $from ) {
-				$wpdb->query( "DROP TABLE IF EXISTS `{$old}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+			if ( (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $new ) ) >= $from ) {
+				$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $old ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
 			} else {
 				$done = false; // Keep the old table and try again on the next load.
 			}

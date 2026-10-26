@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stubli 0.39.0\n"
+"Project-Id-Version: Stubli 0.39.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stubli\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T23:17:03+00:00\n"
+"POT-Creation-Date: 2026-10-26T21:17:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: stubli\n"
@@ -19,7 +19,7 @@ msgstr ""
 #: includes/class-admin.php:34
 #: includes/class-admin.php:68
 #: includes/class-app.php:96
-#: includes/class-app.php:284
+#: includes/class-app.php:283
 #: assets/app/app.js:87
 #: assets/app/app.js:88
 #: assets/app/app.js:487
@@ -343,7 +343,7 @@ msgstr ""
 msgid "Stubli app"
 msgstr ""
 
-#: includes/class-app.php:167
+#: includes/class-app.php:166
 #: includes/class-archive.php:311
 #: includes/class-archive.php:383
 #: includes/class-arrange.php:54
@@ -358,7 +358,7 @@ msgstr ""
 msgid "Photos"
 msgstr ""
 
-#: includes/class-app.php:293
+#: includes/class-app.php:292
 #: look/inc/setup.php:53
 #: assets/app/app.js:855
 #: assets/app/app.js:860
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: includes/class-app.php:295
+#: includes/class-app.php:294
 msgid "The Stubli app needs JavaScript."
 msgstr ""
 
@@ -407,7 +407,7 @@ msgstr ""
 
 #: includes/class-archive.php:312
 #: includes/class-archive.php:384
-#: look/inc/setup.php:171
+#: look/inc/setup.php:186
 #: look/inc/views.php:236
 #: look/inc/views.php:462
 #: look/inc/views.php:701
@@ -582,7 +582,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: includes/class-digest.php:123
-#: includes/class-digest.php:477
+#: includes/class-digest.php:476
 msgid "Your Stubli today"
 msgstr ""
 
@@ -594,11 +594,11 @@ msgstr ""
 msgid "You get at most one of these a day, and only when something is new. Turn it off in the app: You → Settings and more → Daily summary."
 msgstr ""
 
-#: includes/class-digest.php:442
+#: includes/class-digest.php:441
 msgid "This phone didn't give a usable address for notifications."
 msgstr ""
 
-#: includes/class-digest.php:478
+#: includes/class-digest.php:477
 msgid "This is how your daily summary will look. Nothing new right now."
 msgstr ""
 
@@ -988,8 +988,8 @@ msgid "That entry can't be brought back."
 msgstr ""
 
 #: includes/class-journal.php:789
-#: includes/class-setup.php:300
-#: includes/class-setup.php:346
+#: includes/class-setup.php:303
+#: includes/class-setup.php:349
 msgid "Choose a photo first."
 msgstr ""
 
@@ -1333,29 +1333,29 @@ msgstr ""
 msgid "Happy Swiss National Day"
 msgstr ""
 
-#: includes/class-setup.php:239
+#: includes/class-setup.php:242
 #: assets/app/app.js:934
 #: assets/app/app.js:2120
 msgid "Add the name people should see."
 msgstr ""
 
-#: includes/class-setup.php:308
-#: includes/class-setup.php:354
+#: includes/class-setup.php:311
+#: includes/class-setup.php:357
 msgid "That file isn't a photo. Try a JPEG or PNG."
 msgstr ""
 
-#: includes/class-setup.php:312
-#: includes/class-setup.php:358
+#: includes/class-setup.php:315
+#: includes/class-setup.php:361
 #: assets/app/app.js:2273
 msgid "That didn't upload. Try again when you're ready."
 msgstr ""
 
-#: includes/class-setup.php:356
+#: includes/class-setup.php:359
 #: assets/app/app.js:874
 msgid "Cover photo"
 msgstr ""
 
-#: includes/class-setup.php:407
+#: includes/class-setup.php:410
 msgid "That doesn't look like an invite link. It ends in /invite/?t= and a code."
 msgstr ""
 
@@ -1497,14 +1497,14 @@ msgstr ""
 msgid "That doesn't look like a website address. Try something like yourname.com."
 msgstr ""
 
-#: look/inc/setup.php:169
+#: look/inc/setup.php:184
 #: look/inc/views.php:650
 #: look/inc/views.php:679
 #: look/inc/views.php:702
 msgid "All entries"
 msgstr ""
 
-#: look/inc/setup.php:173
+#: look/inc/setup.php:188
 #: look/inc/views.php:238
 #: look/inc/views.php:781
 #: assets/app/app.js:600
@@ -1513,11 +1513,11 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: look/inc/setup.php:175
+#: look/inc/setup.php:190
 msgid "From your own Stubli"
 msgstr ""
 
-#: look/inc/setup.php:177
+#: look/inc/setup.php:192
 msgid "You're invited"
 msgstr ""
 

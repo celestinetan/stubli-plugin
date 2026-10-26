@@ -93,7 +93,7 @@ class Demo {
 				continue; // Not "posted" yet.
 			}
 			$guid = $p['url'] . '?p=' . $post['id'];
-			if ( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE follow_id = %d AND guid = %s", $follow['id'], $guid ) ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
+			if ( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM %i WHERE follow_id = %d AND guid = %s", $table, $follow['id'], $guid ) ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
 				continue;
 			}
 			$images = (array) $post['images'];

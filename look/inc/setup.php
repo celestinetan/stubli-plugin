@@ -66,7 +66,7 @@ add_action(
 );
 
 /**
- * Set the reading mode before anything paints, so there's no flash.
+ * Theme colours for the phone's browser bar.
  */
 add_action(
 	'wp_head',
@@ -74,8 +74,23 @@ add_action(
 		?>
 <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
-<script>(function(){try{var p=localStorage.getItem('stubli-mode')||<?php echo wp_json_encode( in_array( get_option( 'stubli_mode', 'auto' ), array( 'auto', 'light', 'paper', 'dark' ), true ) ? get_option( 'stubli_mode', 'auto' ) : 'auto' ); ?>;var m=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',p);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();</script>
 		<?php
+	},
+	1
+);
+
+/**
+ * Set the reading mode before anything paints, so there's no flash: a tiny
+ * script with no file, enqueued in the head.
+ */
+add_action(
+	'wp_enqueue_scripts',
+	static function () {
+		$pref = get_option( 'stubli_mode', 'auto' );
+		$pref = in_array( $pref, array( 'auto', 'light', 'paper', 'dark' ), true ) ? $pref : 'auto';
+		wp_register_script( 'stubli-mode', false, array(), (string) filemtime( stubli_look_dir() . '/assets/js/stubli.js' ), false );
+		wp_enqueue_script( 'stubli-mode' );
+		wp_add_inline_script( 'stubli-mode', "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( $pref ) . ";var m=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',p);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();" );
 	},
 	1
 );
