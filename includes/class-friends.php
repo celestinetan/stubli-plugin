@@ -181,7 +181,7 @@ class Friends {
 		if ( empty( $ours[ $origin ]['key'] ) ) {
 			return ! empty( $ours[ $origin ]['sent'] );
 		}
-		$res = Rest::remote(
+		$res = Demo::person( $origin ) ? array( 'response' => array( 'code' => 200 ) ) : Rest::remote(
 			$origin,
 			'/friends/key',
 			array(

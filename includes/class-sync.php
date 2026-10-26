@@ -48,6 +48,10 @@ class Sync {
 	public static function poll_one( array $follow ) {
 		global $wpdb;
 
+		if ( Demo::on() ) {
+			return Demo::poll( $follow );
+		}
+
 		require_once ABSPATH . WPINC . '/feed.php';
 
 		// WordGram stores what it fetches, so WordPress's own feed cache would

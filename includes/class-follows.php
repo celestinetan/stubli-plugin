@@ -24,6 +24,10 @@ class Follows {
 	 * @return array|WP_Error Profile data with 'feed' and 'url'.
 	 */
 	public static function discover( $url ) {
+		$demo = Demo::profile( (string) $url );
+		if ( $demo ) {
+			return $demo;
+		}
 		$url = esc_url_raw( trim( $url ) );
 		if ( ! $url || ! wp_http_validate_url( $url ) && ! self::allow_local_urls() ) {
 			return new WP_Error( 'stubli_bad_url', __( 'That doesn\'t look like a website address.', 'stubli' ), array( 'status' => 400 ) );

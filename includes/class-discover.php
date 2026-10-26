@@ -96,6 +96,9 @@ class Discover {
 	 * @return array origin => profile|null
 	 */
 	private static function profiles( array $origins ) {
+		if ( Demo::on() ) {
+			return Demo::discover( $origins );
+		}
 		$out  = array();
 		$todo = array();
 		foreach ( $origins as $o ) {
