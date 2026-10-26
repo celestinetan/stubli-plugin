@@ -310,7 +310,9 @@ class Setup {
 		if ( empty( $type['type'] ) || 0 !== strpos( (string) $type['type'], 'image/' ) ) {
 			return new \WP_Error( 'stubli_not_photo', __( 'That file isn\'t a photo. Try a JPEG or PNG.', 'stubli' ), array( 'status' => 400 ) );
 		}
-		$id = media_handle_upload( 'photo', 0, array( 'post_title' => get_bloginfo( 'name' ) ) );
+		Posts::$fresh = true;
+		$id           = media_handle_upload( 'photo', 0, array( 'post_title' => get_bloginfo( 'name' ) ) );
+		Posts::$fresh = false;
 		if ( is_wp_error( $id ) ) {
 			return new \WP_Error( 'stubli_upload', __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
 		}
@@ -356,7 +358,9 @@ class Setup {
 		if ( empty( $type['type'] ) || 0 !== strpos( (string) $type['type'], 'image/' ) ) {
 			return new \WP_Error( 'stubli_not_photo', __( 'That file isn\'t a photo. Try a JPEG or PNG.', 'stubli' ), array( 'status' => 400 ) );
 		}
-		$id = media_handle_upload( 'cover', 0, array( 'post_title' => __( 'Cover photo', 'stubli' ) ) );
+		Posts::$fresh = true;
+		$id           = media_handle_upload( 'cover', 0, array( 'post_title' => __( 'Cover photo', 'stubli' ) ) );
+		Posts::$fresh = false;
 		if ( is_wp_error( $id ) ) {
 			return new \WP_Error( 'stubli_upload', __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );
 		}

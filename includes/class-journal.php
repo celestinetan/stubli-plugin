@@ -795,7 +795,9 @@ class Journal {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
-		$id = media_handle_sideload( $file, 0 );
+		Posts::$fresh = true;
+		$id           = media_handle_sideload( $file, 0 );
+		Posts::$fresh = false;
 		if ( is_wp_error( $id ) ) {
 			return new WP_Error( 'stubli_upload_failed', __( 'That photo didn\'t upload. Try again in a moment.', 'stubli' ), array( 'status' => 400 ) );
 		}

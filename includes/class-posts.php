@@ -37,6 +37,8 @@ class Posts {
 		add_action( 'rss2_ns', array( self::class, 'rss_namespace' ) );
 		add_action( 'rss2_item', array( self::class, 'rss_item_extras' ) );
 		add_filter( 'wp_handle_upload', array( self::class, 'strip_photo_metadata' ) );
+		add_filter( 'wp_handle_sideload_prefilter', array( self::class, 'fresh_name' ) );
+		add_filter( 'wp_handle_upload_prefilter', array( self::class, 'fresh_name' ) );
 		add_filter( 'wp_handle_upload', array( self::class, 'strip_video_upload' ) );
 	}
 
@@ -315,6 +317,35 @@ class Posts {
 	}
 
 	/**
+	 * True while Stubli saves a photo, so the file gets a name of its own.
+	 *
+	 * @var bool
+	 */
+	public static $fresh = false;
+
+	/**
+	 * Give each new photo a file name that has never been used on this site.
+	 * The app sends every photo as "photo-1.jpg", so WordPress would number
+	 * them, and once an old photo is deleted its number (and address) is free
+	 * again. Hosts with an image cache (WordPress.com among them) then keep
+	 * showing the old picture at that address. A date and a few random letters
+	 * keep every address new.
+	 *
+	 * @param array $file Upload, as WordPress hands it over.
+	 * @return array
+	 */
+	public static function fresh_name( $file ) {
+		if ( ! self::$fresh || empty( $file['name'] ) || ! is_string( $file['name'] ) ) {
+			return $file;
+		}
+		$ext          = strtolower( (string) pathinfo( $file['name'], PATHINFO_EXTENSION ) );
+		$base         = substr( sanitize_title( (string) pathinfo( $file['name'], PATHINFO_FILENAME ) ), 0, 40 );
+		$base         = '' !== $base ? preg_replace( '/-\d+$/', '', $base ) : 'photo';
+		$file['name'] = $base . '-' . gmdate( 'Ymd-His' ) . '-' . strtolower( wp_generate_password( 5, false, false ) ) . ( '' !== $ext ? '.' . $ext : '' );
+		return $file;
+	}
+
+	/**
 	 * Save checked photos and videos to a post's media. If one fails, the
 	 * ones already saved from this batch are removed again.
 	 *
@@ -330,8 +361,9 @@ class Posts {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		$ids       = array();
-		$extra_ids = array();
+		$ids         = array();
+		$extra_ids   = array();
+		self::$fresh = true;
 		foreach ( array_values( $files ) as $i => $file ) {
 			$video_id = 0;
 			if ( isset( $videos[ $i ] ) ) {
@@ -345,6 +377,7 @@ class Posts {
 			}
 			$attachment_id = is_wp_error( $video_id ) ? $video_id : media_handle_sideload( $file, $post_id );
 			if ( is_wp_error( $attachment_id ) ) {
+				self::$fresh = false;
 				foreach ( array_merge( $ids, $extra_ids ) as $done ) {
 					wp_delete_attachment( $done, true );
 				}
@@ -359,6 +392,7 @@ class Posts {
 			}
 			$ids[] = (int) $attachment_id;
 		}
+		self::$fresh = false;
 		return $ids;
 	}
 
