@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.39.2
+Stable tag: 0.39.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,7 +92,14 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 3. The setup that opens after installing.
 4. Posting photos and videos from the phone.
 
+== Source code ==
+
+Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
+
 == Changelog ==
+
+= 0.39.3 =
+* For the WordPress.org review: every piece of HTML Stubli prints now goes through WordPress's escaping, smiley avatars are small picture files in the plugin (older links forward to them), the offline archive's pages and styles come from template files, the notification script is a plain file, and the readme says where the source lives. Nothing changes in how Stubli looks or works.
 
 = 0.39.2 =
 * Fixed: after replacing a photo, some hosts (WordPress.com among them) could show an older, deleted photo instead of the new one. Every new photo now gets a file name of its own.

@@ -35,7 +35,7 @@ add_action(
 		$uri = stubli_look_uri();
 		$dir = stubli_look_dir();
 		wp_enqueue_style( 'stubli', $uri . '/assets/css/stubli.css', array(), (string) filemtime( $dir . '/assets/css/stubli.css' ) );
-		wp_add_inline_style( 'stubli', stubli_font_faces() );
+		wp_add_inline_style( 'stubli', wp_strip_all_tags( stubli_font_faces() ) );
 		wp_enqueue_script( 'stubli', $uri . '/assets/js/stubli.js', array(), (string) filemtime( $dir . '/assets/js/stubli.js' ), array( 'strategy' => 'defer', 'in_footer' => true ) );
 		wp_localize_script(
 			'stubli',

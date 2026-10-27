@@ -188,6 +188,7 @@ class Archive {
 		foreach ( self::pages( $data ) as $name => $html ) {
 			$zip->addFromString( $name, $html );
 		}
+		$zip->addFromString( 'style.css', self::css() );
 		$zip->addFromString( 'README.txt', self::readme( $data ) );
 		$zip->close();
 
@@ -259,14 +260,7 @@ class Archive {
 		while ( ob_get_level() ) {
 			ob_end_clean();
 		}
-		$fh = fopen( $j['file'], 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-		while ( $fh && ! feof( $fh ) ) {
-			echo fread( $fh, 1048576 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.WP.AlternativeFunctions.file_system_operations_fread
-			flush();
-		}
-		if ( $fh ) {
-			fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
-		}
+		readfile( $j['file'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- sends the owner's own zip as a download.
 		exit;
 	}
 
@@ -377,7 +371,15 @@ class Archive {
 		$pp .= '</ul>';
 
 		$wrap = static function ( $file, $title, $body ) use ( $nav, $head, $e, $p ) {
-			return '<!doctype html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' . $e( $title . ' · ' . $p['name'] ) . '</title><style>' . self::css() . '</style></head><body><main>' . $head . $nav( $file ) . $body . '</main></body></html>';
+			// A standalone page in the zip, from the template in assets/archive (it links the zip's style.css).
+			return strtr(
+				self::template( 'page.html' ),
+				array(
+					'{{lang}}'    => esc_attr( get_bloginfo( 'language' ) ),
+					'{{title}}'   => $e( $title . ' · ' . $p['name'] ),
+					'{{content}}' => $head . $nav( $file ) . $body,
+				)
+			);
 		};
 		return array(
 			'index.html'     => $wrap( 'index.html', __( 'Photos', 'stubli' ), ( $photos ? $grid . $list : '<p class="m">' . $e( __( 'No photos yet.', 'stubli' ) ) . '</p>' ) ),
@@ -393,7 +395,17 @@ class Archive {
 	 * @return string
 	 */
 	private static function css() {
-		return 'body{margin:0;background:#f7f3ec;color:#211d19;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:720px;margin:0 auto;padding:24px 16px 64px}header{display:flex;gap:16px;align-items:center}.av{width:72px;height:72px;border-radius:50%;overflow:hidden;background:#e8e1d5;flex:none}.av img{width:100%;height:100%;object-fit:cover}h1{margin:0;font-size:24px}h2{font-size:18px}p{margin:4px 0}.m{color:#6b6157;font-size:14px}nav{display:flex;gap:18px;margin:20px 0;border-bottom:1px solid #e2d9cc}nav a{padding:8px 0;color:#211d19;text-decoration:none}nav a[aria-current]{border-bottom:2px solid #4b6b47;font-weight:600}a{color:#3d5a3a}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:32px}.grid a{position:relative;aspect-ratio:4/5;background:#e8e1d5}.grid img{width:100%;height:100%;object-fit:cover;display:block}.grid span{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:1px 6px;border-radius:9px}article{padding:20px 0;border-top:1px solid #e2d9cc}figure{margin:10px 0}figure img,figure video,.cap img,.cap video{max-width:100%;height:auto;border-radius:10px;display:block}figcaption{color:#6b6157;font-size:14px}.cap{white-space:normal}ul.c{list-style:none;padding:0}ul.c li{padding:6px 0}@media (prefers-color-scheme:dark){body{background:#1c1916;color:#eee6da}.m,figcaption{color:#b3a899}nav{border-color:#3a342d}nav a{color:#eee6da}article{border-color:#3a342d}a{color:#9fc29a}.av,.grid a{background:#2a2520}}';
+		return self::template( 'style.css' );
+	}
+
+	/**
+	 * A file from assets/archive: the offline pages' template and styles.
+	 *
+	 * @param string $name File name.
+	 * @return string
+	 */
+	private static function template( $name ) {
+		return (string) file_get_contents( STUBLI_PLUGIN_DIR . 'assets/archive/' . $name ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- the plugin's own template file.
 	}
 
 	/**
@@ -407,7 +419,7 @@ class Archive {
 		$j = count( $d['posts'] ) - $n;
 		return sprintf(
 			/* translators: 1: name, 2: site, 3: date, 4: photo posts, 5: journal entries */
-			__( "Your Stubli, yours to keep\n\nAn archive of %1\$s (%2\$s), made on %3\$s.\n\nindex.html        Your photos, captions and comments. Open it in any browser; no internet needed.\njournal.html      Your journal entries, including the ones only you could see.\nguestbook.html    Your guest book.\npeople.html       The people you followed.\nmedia/            Your original photos and videos, by month, with location already removed.\ndata/stubli.json  Everything above as data, for other tools.\n\nInside: %4\$d photo posts and %5\$d journal entries.\n\nTo move to another WordPress site instead, use \"Move to another site\" in the Stubli app.\n", 'stubli' ),
+			__( "Your Stubli, yours to keep\n\nAn archive of %1\$s (%2\$s), made on %3\$s.\n\nindex.html        Your photos, captions and comments. Open it in any browser; no internet needed.\njournal.html      Your journal entries, including the ones only you could see.\nguestbook.html    Your guest book.\npeople.html       The people you followed.\nstyle.css         How these pages look.\nmedia/            Your original photos and videos, by month, with location already removed.\ndata/stubli.json  Everything above as data, for other tools.\n\nInside: %4\$d photo posts and %5\$d journal entries.\n\nTo move to another WordPress site instead, use \"Move to another site\" in the Stubli app.\n", 'stubli' ),
 			$d['profile']['name'],
 			$d['site'],
 			wp_date( 'j F Y', (int) strtotime( $d['exported'] ) ),

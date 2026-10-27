@@ -258,7 +258,7 @@ class App {
 		// The app is its own page, outside the theme, but its files still go
 		// through WordPress's script and style registry.
 		wp_register_style( 'stubli-app', $assets . 'app.css', array(), VERSION );
-		wp_add_inline_style( 'stubli-app', self::fonts() . Setup::accent_css() );
+		wp_add_inline_style( 'stubli-app', wp_strip_all_tags( self::fonts() . Setup::accent_css() ) );
 		wp_register_script( 'stubli-app', $assets . 'app.js', array( 'wp-i18n' ), VERSION, true );
 		// The app's words in the site's language: from WordPress.org's language
 		// packs, or from the plugin's own languages folder.

@@ -1,4 +1,8 @@
-/* Stubli app: feed, composer, journal, Discover, What's new, setup wizard. No dependencies. */
+/*
+ * Stubli app: feed, composer, journal, Discover, What's new, setup wizard. No dependencies.
+ * Hand-written and shipped as it is: no build step, nothing compiled or minified.
+ * Source and history: https://github.com/celestinetan/stubli-plugin (assets/app/app.js)
+ */
 ( function () {
 	'use strict';
 	var B = window.STUBLI || {};

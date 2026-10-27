@@ -101,7 +101,7 @@ class Setup {
 		if ( 'moss' === $key ) {
 			return '';
 		}
-		list( , $light, $ink, $dark ) = self::ACCENTS[ $key ];
+		list( , $light, $ink, $dark ) = array_map( 'sanitize_hex_color', self::ACCENTS[ $key ] );
 		// Gold is too pale for words on a light page, so text gets a deeper gold.
 		$text = 'gold' === $key ? '#7d5f16' : $light;
 		return sprintf(
@@ -124,7 +124,7 @@ class Setup {
 		if ( '' !== $css ) {
 			wp_register_style( 'stubli-accent', false, array(), VERSION );
 			wp_enqueue_style( 'stubli-accent' );
-			wp_add_inline_style( 'stubli-accent', $css );
+			wp_add_inline_style( 'stubli-accent', wp_strip_all_tags( $css ) );
 		}
 	}
 

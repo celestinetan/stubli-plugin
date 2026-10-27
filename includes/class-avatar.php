@@ -4,8 +4,9 @@
  *
  * Built from the Stubli smile (the ü: two dots and a curve) in one of the
  * poster inks, with one accessory. Every new Stubli gets a random one, and
- * its owner can pick another in setup. The look is part of the address
- * (/?stubli_avatar=3-cowboy), so other Stublis can show and cache it.
+ * its owner can pick another in setup. Each look is a small picture file in
+ * assets/avatars ("3-cowboy.svg"), drawn by svg() below and written by
+ * tests/make-avatars.php, so other Stublis can show and cache it.
  *
  * @package Stubli
  */
@@ -105,7 +106,17 @@ class Avatar {
 	 */
 	public static function url( $l = null ) {
 		$l = $l ? self::clean( $l['c'] ?? 0, $l['x'] ?? '' ) : self::look();
-		return add_query_arg( 'stubli_avatar', $l['c'] . ( '' !== $l['x'] ? '-' . $l['x'] : '' ), home_url( '/' ) );
+		return STUBLI_PLUGIN_URL . 'assets/avatars/' . self::key( $l ) . '.svg';
+	}
+
+	/**
+	 * File name of a smiley: colour, then the accessory ("3-cowboy", or "3").
+	 *
+	 * @param array $l Clean look.
+	 * @return string
+	 */
+	public static function key( $l ) {
+		return (int) $l['c'] . ( '' !== (string) $l['x'] ? '-' . $l['x'] : '' );
 	}
 
 	/**
@@ -155,7 +166,7 @@ class Avatar {
 	}
 
 	/**
-	 * Answer /?stubli_avatar=3-cowboy with the SVG. The look is in the address,
+	 * Older links like /?stubli_avatar=3-cowboy forward to the picture file. The look is in the address,
 	 * so it can be cached for a long time.
 	 */
 	public static function serve() {
@@ -165,15 +176,14 @@ class Avatar {
 		$v     = sanitize_key( wp_unslash( $_GET['stubli_avatar'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$parts = explode( '-', $v, 2 );
 		$l     = '' === $v ? self::look() : self::clean( $parts[0], $parts[1] ?? '' );
-		nocache_headers();
-		header_remove( 'Cache-Control' );
-		header_remove( 'Expires' );
-		header_remove( 'Pragma' );
-		header( 'Content-Type: image/svg+xml; charset=utf-8' );
-		header( 'Cache-Control: public, max-age=31536000, immutable' );
-		header( 'X-Content-Type-Options: nosniff' );
-		header( "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'" );
-		echo self::svg( $l ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from known parts only.
+		// The pictures are files in the plugin (assets/avatars); older links forward there.
+		$to    = self::url( $l );
+		$allow = static function ( $hosts ) use ( $to ) {
+			$hosts[] = (string) wp_parse_url( $to, PHP_URL_HOST );
+			return $hosts;
+		};
+		add_filter( 'allowed_redirect_hosts', $allow );
+		wp_safe_redirect( $to, 301, 'Stubli' );
 		exit;
 	}
 

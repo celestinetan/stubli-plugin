@@ -611,6 +611,7 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-two { padding-left: 20px; }
 .st-gs-two > li { margin: 0 0 18px; }
 .st-gs-two > li > .st-button { margin: 4px 12px 6px 0; }
+.st-gs-two > li > .st-small { display: block; line-height: 1.5; }
 .st-gs-host li { margin: 6px 0; }
 .st-gs-badge { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 2px 10px; border-radius: 999px; background: var(--st-accent); color: var(--st-accent-ink); font-size: 12px; font-weight: 650; }
 .st-gs-more { margin: 12px 0; padding: 12px 16px; border-radius: 14px; background: var(--st-surface); }
@@ -820,7 +821,7 @@ html { scroll-behavior: smooth; }
 /* New Year: the word dances and confetti keeps falling */
 .stw-newyear .stw-l { transform: rotate(var(--stw-r, 0)) translateY(var(--stw-y, 0)); animation: stw-hop .9s ease-in-out 6; }
 .stw-newyear .stw-l:nth-child(2n) { animation-delay: .45s; }
-.stw-bit { opacity: 0; animation: stw-fall 1.6s linear 3 both; }
+.stw-bit { opacity: 0; animation: stw-fall 1.6s linear 3 both; animation-delay: var(--stw-d, 0s); }
 /* Valentine's Day: heart eyes, then back */
 .stw-hearts path { opacity: 0; animation: stw-heart-on 2.4s ease-in-out 2 both; }
 .stw-eyes { animation: stw-eyes-off 2.4s ease-in-out 2 both; }
@@ -832,7 +833,7 @@ html { scroll-behavior: smooth; }
 .stw-pumpkin { transform-origin: 50% 100%; animation: stw-wobble 1.8s ease-in-out 3; }
 .stw-halloween .stw-u { transform-origin: 50% 112%; animation: stw-wobble-u 1.8s ease-in-out 3; }
 /* Christmas: the lights glow and twinkle one after another */
-.stw-bulb { animation: stw-twinkle 1.4s ease-in-out 4; }
+.stw-bulb { animation: stw-twinkle 1.4s ease-in-out 4; animation-delay: var(--stw-d, 0s); }
 .stw-bulb circle { transform-origin: 50% 50%; }
 /* 1 August: the flag waves in the wind */
 .stw-flag { transform-origin: 0 100%; animation: stw-wave 1.3s ease-in-out 4; }

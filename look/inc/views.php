@@ -14,7 +14,19 @@ defined( 'ABSPATH' ) || exit;
  * @return string
  */
 function stubli_render_view( $attrs ) {
-	$view = isset( $attrs['view'] ) ? (string) $attrs['view'] : 'profile';
+	$view = stubli_view_name( isset( $attrs['view'] ) ? (string) $attrs['view'] : 'profile' );
+	ob_start();
+	stubli_print_view( $view );
+	return (string) ob_get_clean();
+}
+
+/**
+ * Which view this request shows.
+ *
+ * @param string $view The view asked for.
+ * @return string
+ */
+function stubli_view_name( $view ) {
 	if ( get_query_var( 'stubli_journal' ) ) {
 		$view = 'journal';
 	} elseif ( get_query_var( 'stubli_links' ) ) {
@@ -26,8 +38,15 @@ function stubli_render_view( $attrs ) {
 	} elseif ( 'page' === $view && stubli_has_plugin() && is_page( \Stubli\Guestbook::page_id() ) ) {
 		$view = 'guestbook';
 	}
+	return $view;
+}
 
-	ob_start();
+/**
+ * Print a view straight to the page (the built-in look's page template).
+ *
+ * @param string $view View name, already resolved by stubli_view_name().
+ */
+function stubli_print_view( $view ) {
 	echo '<div class="st-app">';
 	switch ( $view ) {
 		case 'single':
@@ -59,7 +78,6 @@ function stubli_render_view( $attrs ) {
 	}
 	stubli_footer();
 	echo '</div>';
-	return (string) ob_get_clean();
 }
 
 /* ───────────────────────── Shared pieces ───────────────────────── */
@@ -103,10 +121,10 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	?>
 	<header class="st-top<?php echo $hub ? ' st-top-brand' : ''; ?>">
 		<?php if ( $back_url ) : ?>
-			<a class="st-top-back" href="<?php echo esc_url( $back_url ); ?>"><?php echo stubli_icon( 'back', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $back_text ); ?></span></a>
+			<a class="st-top-back" href="<?php echo esc_url( $back_url ); ?>"><?php echo wp_kses( stubli_icon( 'back', 22 ), stubli_allowed_html() ); ?><span><?php echo esc_html( $back_text ); ?></span></a>
 		<?php else : ?>
 			<?php if ( $hub ) : ?>
-				<a class="st-top-host st-top-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Stubli (beta), home', 'stubli' ); ?>"><?php echo stubli_wordmark( true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span class="st-beta" aria-hidden="true"><?php esc_html_e( 'Beta', 'stubli' ); ?></span></a>
+				<a class="st-top-host st-top-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Stubli (beta), home', 'stubli' ); ?>"><?php echo wp_kses( stubli_wordmark( true ), stubli_allowed_html() ); ?><span class="st-beta" aria-hidden="true"><?php esc_html_e( 'Beta', 'stubli' ); ?></span></a>
 			<?php else : ?>
 				<a class="st-top-host" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></a>
 			<?php endif; ?>
@@ -165,9 +183,9 @@ function stubli_profile_cards() {
 				</div>
 				<?php
 				if ( stubli_is_owner() ) {
-					echo stubli_pill( home_url( '/app/' ), __( 'Open the app', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wp_kses( stubli_pill( home_url( '/app/' ), __( 'Open the app', 'stubli' ) ), stubli_allowed_html() );
 				} else {
-					echo stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wp_kses( stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ), stubli_allowed_html() );
 				}
 				?>
 			</div>
@@ -191,9 +209,9 @@ function stubli_profile_cards() {
 		</div>
 		<?php if ( $prompts ) : ?>
 			<div class="st-stack-nav" data-st-stack-nav hidden>
-				<button type="button" class="st-stack-btn" data-st-prev aria-label="<?php esc_attr_e( 'Previous card', 'stubli' ); ?>"><?php echo stubli_icon( 'back', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
-				<span class="st-stack-dots" aria-hidden="true"><?php echo str_repeat( '<span></span>', count( $prompts ) + 1 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-				<button type="button" class="st-stack-btn" data-st-next aria-label="<?php /* translators: %s: name */ echo esc_attr( sprintf( __( 'Next card: more about %s', 'stubli' ), $p['name'] ) ); ?>"><?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
+				<button type="button" class="st-stack-btn" data-st-prev aria-label="<?php esc_attr_e( 'Previous card', 'stubli' ); ?>"><?php echo wp_kses( stubli_icon( 'back', 18 ), stubli_allowed_html() ); ?></button>
+				<span class="st-stack-dots" aria-hidden="true"><?php echo wp_kses( str_repeat( '<span></span>', count( $prompts ) + 1 ), stubli_allowed_html() ); ?></span>
+				<button type="button" class="st-stack-btn" data-st-next aria-label="<?php /* translators: %s: name */ echo esc_attr( sprintf( __( 'Next card: more about %s', 'stubli' ), $p['name'] ) ); ?>"><?php echo wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ); ?></button>
 				<span class="st-sr" aria-live="polite" data-st-stack-status></span>
 			</div>
 		<?php endif; ?>
@@ -209,12 +227,12 @@ function stubli_profile_cards() {
 					$coll = stubli_post_collection( $r->ID );
 					?>
 					<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
-						<?php echo $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '', 'loading' => $k ? 'lazy' : 'eager' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php echo wp_kses( $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '', 'loading' => $k ? 'lazy' : 'eager' ) ) : '', stubli_allowed_html() ); ?>
 						<span class="st-latest-text">
 							<span class="st-muted"><?php if ( 0 === $k ) : ?><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $r ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $r ) ); ?></span><?php else : ?><?php echo esc_html( stubli_gentle_date( $r ) ); ?><?php endif; ?></span>
 							<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
 						</span>
-						<?php echo stubli_icon( 'chev', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php echo wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ); ?>
 					</a>
 				<?php endforeach; ?>
 				</div>
@@ -243,15 +261,18 @@ function stubli_tabs( $active ) {
 			return;
 		}
 		$is = ( $active === $key );
-		printf(
-			'<a class="st-tab %1$s%2$s" href="%3$s"%4$s%5$s><span class="st-tab-face">%6$s<span class="st-tab-label">%7$s</span></span></a>',
-			$green ? 'st-tab-green' : 'st-tab-plain',
-			$is ? ' is-active' : ' st-tab-icon',
-			esc_url( $url ),
-			$is ? ' aria-current="page"' : '',
-			$is ? '' : ' aria-label="' . esc_attr( $label ) . '" data-tip="' . esc_attr( $label ) . '"',
-			stubli_icon( $icon, 18 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			esc_html( $label )
+		echo wp_kses(
+			sprintf(
+				'<a class="st-tab %1$s%2$s" href="%3$s"%4$s%5$s><span class="st-tab-face">%6$s<span class="st-tab-label">%7$s</span></span></a>',
+				$green ? 'st-tab-green' : 'st-tab-plain',
+				$is ? ' is-active' : ' st-tab-icon',
+				esc_url( $url ),
+				$is ? ' aria-current="page"' : '',
+				$is ? '' : ' aria-label="' . esc_attr( $label ) . '" data-tip="' . esc_attr( $label ) . '"',
+				stubli_icon( $icon, 18 ),
+				esc_html( $label )
+			),
+			stubli_allowed_html()
 		);
 	};
 	?>
@@ -280,7 +301,7 @@ function stubli_tabs( $active ) {
  */
 function stubli_grid( WP_Query $q ) {
 	if ( ! $q->have_posts() ) {
-		echo stubli_empty( 'photos' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		echo wp_kses( stubli_empty( 'photos' ), stubli_allowed_html() );
 		return;
 	}
 	// The collection takes the shape of its first photo: landscape, square or portrait (the default).
@@ -302,18 +323,18 @@ function stubli_grid( WP_Query $q ) {
 		echo '<li><a class="st-tile" href="' . esc_url( get_permalink( $post ) ) . '">';
 		echo '<span class="st-tile-photo' . ( $note ? ' has-note' : '' ) . '">';
 		if ( $ids ) {
-			echo wp_get_attachment_image( $ids[0], $size, false, array( 'alt' => $note ? '' : $alt, 'loading' => 'lazy', 'sizes' => '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 46vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( wp_get_attachment_image( $ids[0], $size, false, array( 'alt' => $note ? '' : $alt, 'loading' => 'lazy', 'sizes' => '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 46vw' ) ), stubli_allowed_html() );
 		}
 		if ( count( $ids ) > 1 ) {
-			echo '<span class="st-badge">' . stubli_icon( 'stack', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Photos:', 'stubli' ) . ' </span>' . (int) count( $ids ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<span class="st-badge">' . stubli_icon( 'stack', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Photos:', 'stubli' ) . ' </span>' . (int) count( $ids ) . '</span>', stubli_allowed_html() );
 		} elseif ( $ids && stubli_video_for( $ids[0] ) ) {
-			echo '<span class="st-badge">' . stubli_icon( 'play', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Video', 'stubli' ) . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<span class="st-badge">' . stubli_icon( 'play', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Video', 'stubli' ) . '</span></span>', stubli_allowed_html() );
 		}
 		if ( $note ) {
 			echo '<span class="st-tile-note">' . esc_html( $note ) . '</span>';
 		}
 		if ( ! empty( $post->stubli_pinned ) ) {
-			echo '<span class="st-badge st-badge-pin">' . stubli_icon( 'pin', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Pinned', 'stubli' ) . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<span class="st-badge st-badge-pin">' . stubli_icon( 'pin', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Pinned', 'stubli' ) . '</span></span>', stubli_allowed_html() );
 		}
 		echo '</span><span class="st-tile-caption"><span class="st-muted">' . esc_html( stubli_short_date( $post ) ) . '</span> · ' . esc_html( stubli_post_label( $post ) ) . '</span>';
 		echo '</a></li>';
@@ -350,10 +371,10 @@ function stubli_comments( $post_id ) {
 		<?php if ( stubli_profile()['on_break'] ) : ?>
 			<p class="st-break"><?php esc_html_e( 'Comments are paused for now.', 'stubli' ); ?></p>
 		<?php elseif ( ! stubli_is_owner() ) : ?>
-			<?php echo stubli_pill( stubli_remote_url( 'comment', get_permalink( $post_id ) ), __( 'Comment from your own Stubli', 'stubli' ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo wp_kses( stubli_pill( stubli_remote_url( 'comment', get_permalink( $post_id ) ), __( 'Comment from your own Stubli', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
 		<?php endif; ?>
 		<?php if ( stubli_is_owner() && in_array( get_post_format( $post_id ), array( 'image', 'gallery' ), true ) ) : ?>
-			<?php echo stubli_pill( home_url( '/app/#edit/' . (int) $post_id ), __( 'Edit in the app', 'stubli' ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo wp_kses( stubli_pill( home_url( '/app/#edit/' . (int) $post_id ), __( 'Edit in the app', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
 		<?php endif; ?>
 	</section>
 	<?php
@@ -382,7 +403,7 @@ function stubli_footer() {
 			$links[] = '<a href="https://github.com/celestinetan/stubli-plugin">' . esc_html__( 'See the code', 'stubli' ) . '</a>';
 			$links[] = '<a href="https://buymeacoffee.com/celestinetan">' . esc_html__( 'Support Stubli', 'stubli' ) . '</a>';
 			$links[] = '<a href="' . esc_url( home_url( '/privacy/' ) ) . '">' . esc_html__( 'Privacy', 'stubli' ) . '</a>';
-			echo implode( '<span aria-hidden="true">·</span>', $links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			echo wp_kses( implode( '<span aria-hidden="true">·</span>', $links ), stubli_allowed_html() );
 			?>
 		</nav>
 		<p class="st-footer-copy">&copy; <?php echo (int) $now; ?> Celestine Tan</p>
@@ -407,7 +428,7 @@ function stubli_footer() {
 		<span>&copy; <?php echo esc_html( $years . ' ' . get_bloginfo( 'name' ) ); ?></span>
 		<?php if ( stubli_credit_on() && empty( $GLOBALS['stubli_own_shown'] ) ) : // Once per page; only if the owner said yes in setup or in Settings → Stubli. ?>
 			<span aria-hidden="true">·</span>
-			<a href="https://stubli.app/"><?php esc_html_e( 'Made with', 'stubli' ); ?> <?php echo stubli_wordmark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+			<a href="https://stubli.app/"><?php esc_html_e( 'Made with', 'stubli' ); ?> <?php echo wp_kses( stubli_wordmark(), stubli_allowed_html() ); ?></a>
 		<?php endif; ?>
 	</footer>
 	<?php
@@ -468,8 +489,8 @@ function stubli_view_single() {
 		} else {
 			echo '<h1 class="st-entry-date">' . esc_html( get_the_date( 'l, j F Y', $post ) ) . '</h1>';
 		}
-		echo stubli_entry_meta( $post ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
-		echo '<div class="st-entry-text">' . stubli_entry_html( $post ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( stubli_entry_meta( $post ), stubli_allowed_html() );
+		echo wp_kses( '<div class="st-entry-text">' . stubli_entry_html( $post ) . '</div>', stubli_allowed_html() );
 		echo '</article>';
 		stubli_comments( $post->ID );
 		echo '</main>';
@@ -494,23 +515,23 @@ function stubli_view_single() {
 		if ( $vid ) {
 			// Tap to play, with sound (nothing loads until then).
 			$alt = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
-			echo '<figure class="st-slide st-slide-video"><button type="button" class="st-play" data-st-video="' . esc_url( wp_get_attachment_url( $vid ) ) . '" data-type="' . esc_attr( get_post_mime_type( $vid ) ) . '" data-label="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( $alt ? sprintf( /* translators: %s: video description */ __( 'Play video: %s', 'stubli' ), $alt ) : __( 'Play video', 'stubli' ) ) . '">' . $img . '<span class="st-play-icon">' . stubli_icon( 'play', 30 ) . '</span></button></figure>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<figure class="st-slide st-slide-video"><button type="button" class="st-play" data-st-video="' . esc_url( wp_get_attachment_url( $vid ) ) . '" data-type="' . esc_attr( get_post_mime_type( $vid ) ) . '" data-label="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( $alt ? sprintf( /* translators: %s: video description */ __( 'Play video: %s', 'stubli' ), $alt ) : __( 'Play video', 'stubli' ) ) . '">' . $img . '<span class="st-play-icon">' . stubli_icon( 'play', 30 ) . '</span></button></figure>', stubli_allowed_html() );
 		} else {
 			// Tap or click to see it full screen, at full size (stubli.js).
 			$alt   = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
 			/* translators: %d: photo number */
 			$label = sprintf( __( 'See photo %d full screen', 'stubli' ), $i + 1 );
-			echo '<figure class="st-slide"><button type="button" class="st-zoom" data-st-zoom="' . esc_url( wp_get_attachment_url( $id ) ) . '" data-alt="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( '' !== $alt ? $alt . ' · ' . $label : $label ) . '">' . $img . '<span class="st-zoom-icon">' . stubli_icon( 'expand', 18 ) . '</span></button></figure>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<figure class="st-slide"><button type="button" class="st-zoom" data-st-zoom="' . esc_url( wp_get_attachment_url( $id ) ) . '" data-alt="' . esc_attr( $alt ) . '" aria-label="' . esc_attr( '' !== $alt ? $alt . ' · ' . $label : $label ) . '">' . $img . '<span class="st-zoom-icon">' . stubli_icon( 'expand', 18 ) . '</span></button></figure>', stubli_allowed_html() );
 		}
 	}
 	echo '</div>';
 	if ( count( $ids ) > 1 ) {
 		/* translators: 1: current photo, 2: number of photos */
 		echo '<span class="st-carousel-count" aria-live="polite">' . esc_html( sprintf( __( '%1$d of %2$d', 'stubli' ), 1, count( $ids ) ) ) . '</span>';
-		echo '<div class="st-dots" aria-hidden="true">' . str_repeat( '<span></span>', count( $ids ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( '<div class="st-dots" aria-hidden="true">' . str_repeat( '<span></span>', count( $ids ) ) . '</div>', stubli_allowed_html() );
 	}
 	if ( $note ) {
-		echo '<button type="button" class="st-note-reveal" data-st-reveal>' . stubli_icon( 'eye', 20 ) . '<span><strong>' . esc_html( $note ) . '</strong><span>' . esc_html__( 'Show photo', 'stubli' ) . '</span></span></button>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( '<button type="button" class="st-note-reveal" data-st-reveal>' . stubli_icon( 'eye', 20 ) . '<span><strong>' . esc_html( $note ) . '</strong><span>' . esc_html__( 'Show photo', 'stubli' ) . '</span></span></button>', stubli_allowed_html() );
 	}
 	echo '</div>';
 
@@ -533,9 +554,9 @@ function stubli_view_single() {
 	if ( $next && ! has_post_format( 'status', $next ) ) {
 		$nids = stubli_photo_ids( $next->ID );
 		echo '<a class="st-card-tone st-next" href="' . esc_url( get_permalink( $next ) ) . '">';
-		echo $nids ? wp_get_attachment_image( $nids[0], 'thumbnail', false, array( 'alt' => '' ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( $nids ? wp_get_attachment_image( $nids[0], 'thumbnail', false, array( 'alt' => '' ) ) : '', stubli_allowed_html() );
 		/* translators: %s: collection */
-		echo '<span><span class="st-muted">' . esc_html( $coll ? sprintf( __( 'Next in %s', 'stubli' ), stubli_collection_name( $coll ) ) : __( 'Next', 'stubli' ) ) . '</span><span>' . esc_html( stubli_post_label( $next ) ) . '</span></span>' . stubli_icon( 'chev', 20 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( '<span><span class="st-muted">' . esc_html( $coll ? sprintf( __( 'Next in %s', 'stubli' ), stubli_collection_name( $coll ) ) : __( 'Next', 'stubli' ) ) . '</span><span>' . esc_html( stubli_post_label( $next ) ) . '</span></span>' . stubli_icon( 'chev', 20 ) . '</a>', stubli_allowed_html() );
 	}
 	echo '</div></article></main>';
 }
@@ -644,7 +665,7 @@ function stubli_view_journal() {
 		)
 	);
 	if ( ! $entries->have_posts() ) {
-		echo stubli_empty( 'journal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		echo wp_kses( stubli_empty( 'journal' ), stubli_allowed_html() );
 	} else {
 		// A quiet way to every entry, at the top and again at the bottom (no count, like everywhere in Stubli).
 		echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a></p>';
@@ -655,13 +676,13 @@ function stubli_view_journal() {
 		echo '<article class="st-entry' . ( $long ? ' is-long' : '' ) . '">';
 		$when = '<time datetime="' . esc_attr( get_post_time( 'c', true, $entry ) ) . '">' . esc_html( get_the_date( 'l, j F', $entry ) ) . '</time>';
 		if ( '' !== $title ) {
-			echo '<p class="st-entry-date">' . $when . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			echo wp_kses( '<p class="st-entry-date">' . $when . '</p>', stubli_allowed_html() );
 			echo '<h2 class="st-entry-title"><a href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html( $title ) . '</a></h2>';
 		} else {
-			echo '<h2 class="st-entry-date">' . $when . '</h2>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			echo wp_kses( '<h2 class="st-entry-date">' . $when . '</h2>', stubli_allowed_html() );
 		}
-		echo stubli_entry_meta( $entry ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
-		echo '<div class="st-entry-text">' . stubli_entry_html( $entry ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( stubli_entry_meta( $entry ), stubli_allowed_html() );
+		echo wp_kses( '<div class="st-entry-text">' . stubli_entry_html( $entry ) . '</div>', stubli_allowed_html() );
 		if ( $long ) {
 			echo '<a class="st-read-more" href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html__( 'Read more', 'stubli' ) . '</a>';
 		}
@@ -677,7 +698,7 @@ function stubli_view_journal() {
 			$links[] = '<a href="' . esc_url( 2 === $page ? home_url( '/journal/' ) : home_url( '/journal/page/' . ( $page - 1 ) . '/' ) ) . '">' . esc_html__( 'Newer entries', 'stubli' ) . '</a>';
 		}
 		$links[] = '<a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a>';
-		echo '<p class="st-more st-journal-more">' . implode( '<span aria-hidden="true">·</span>', $links ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		echo wp_kses( '<p class="st-more st-journal-more">' . implode( '<span aria-hidden="true">·</span>', $links ) . '</p>', stubli_allowed_html() );
 	}
 	echo '</section></main>';
 }
@@ -698,11 +719,11 @@ function stubli_entry_title( $post ) {
  */
 function stubli_journal_contents() {
 	echo '<div class="st-contents">';
-	echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/' ) ) . '">' . stubli_icon( 'back', 16 ) . esc_html__( 'Journal', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- icon is fixed markup.
+	echo wp_kses( '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/' ) ) . '">' . stubli_icon( 'back', 16 ) . esc_html__( 'Journal', 'stubli' ) . '</a></p>', stubli_allowed_html() );
 	echo '<h2 class="st-contents-h">' . esc_html__( 'All entries', 'stubli' ) . '</h2>';
 	$items = stubli_has_plugin() ? \Stubli\Journal::contents( false ) : array();
 	if ( ! $items ) {
-		echo stubli_empty( 'journal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		echo wp_kses( stubli_empty( 'journal' ), stubli_allowed_html() );
 		echo '</div>';
 		return;
 	}
@@ -741,28 +762,28 @@ function stubli_view_guestbook() {
 	if ( stubli_profile()['on_break'] ) {
 		echo '<p class="st-break">' . esc_html__( 'The guest book is paused for now.', 'stubli' ) . '</p>';
 	} elseif ( ! $owner && $page instanceof WP_Post ) {
-		echo stubli_pill( stubli_remote_url( 'sign', get_permalink( $page ) ), __( 'Sign the guest book', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( stubli_pill( stubli_remote_url( 'sign', get_permalink( $page ) ), __( 'Sign the guest book', 'stubli' ) ), stubli_allowed_html() );
 	}
 	echo '</div>';
 	if ( $page instanceof WP_Post && '' !== trim( $page->post_content ) ) {
 		echo '<p class="st-wall-label st-gb-intro">' . esc_html( trim( html_entity_decode( wp_strip_all_tags( $page->post_content ), ENT_QUOTES ) ) ) . '</p>';
 	}
 	if ( ! $entries ) {
-		echo '<div class="st-gb-empty">' . stubli_icon( 'pen', 22 ) . '<p><strong>' . esc_html__( 'No signatures yet', 'stubli' ) . '</strong><br>' . esc_html( $owner ? __( 'When friends sign from their own Stubli, their words appear here.', 'stubli' ) : __( 'Be the first to say hello.', 'stubli' ) ) . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( '<div class="st-gb-empty">' . stubli_icon( 'pen', 22 ) . '<p><strong>' . esc_html__( 'No signatures yet', 'stubli' ) . '</strong><br>' . esc_html( $owner ? __( 'When friends sign from their own Stubli, their words appear here.', 'stubli' ) : __( 'Be the first to say hello.', 'stubli' ) ) . '</p></div>', stubli_allowed_html() );
 	}
 	echo '<div class="st-gb-list"' . ( $owner ? ' data-st-gb data-nonce="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '" data-api="' . esc_url( rest_url( 'og/v1/guestbook/' ) ) . '"' : '' ) . '>';
 	foreach ( $entries as $e ) {
 		$host = (string) wp_parse_url( $e['author']['url'], PHP_URL_HOST );
 		echo '<article class="st-gb-card' . ( $e['pinned'] ? ' is-pinned' : '' ) . '">';
 		if ( $e['pinned'] ) {
-			echo '<span class="st-gb-pin">' . stubli_icon( 'pin', 13 ) . esc_html__( 'Pinned', 'stubli' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<span class="st-gb-pin">' . stubli_icon( 'pin', 13 ) . esc_html__( 'Pinned', 'stubli' ) . '</span>', stubli_allowed_html() );
 		}
 		echo '<p class="st-gb-text">' . esc_html( $e['text'] ) . '</p>';
 		echo '<footer class="st-gb-sig"><img src="' . esc_url( stubli_img_src( $e['author']['avatar'] ), array( 'http', 'https', 'data' ) ) . '" alt="" width="28" height="28" loading="lazy">';
 		echo '<span><a href="' . esc_url( $e['author']['url'] ) . '">' . esc_html( $e['author']['name'] ) . '</a><span class="st-muted">' . esc_html( $host ) . ' · <time datetime="' . esc_attr( $e['date'] ) . '">' . esc_html( wp_date( 'j M Y', strtotime( $e['date'] ) ) ) . '</time></span></span>';
 		if ( $owner ) {
 			/* translators: %s: name */
-			echo '<button type="button" class="st-gb-pinbtn" data-st-gb-pin="' . (int) $e['id'] . '" data-pinned="' . ( $e['pinned'] ? '1' : '0' ) . '" aria-label="' . esc_attr( sprintf( $e['pinned'] ? __( 'Unpin the entry from %s', 'stubli' ) : __( 'Pin the entry from %s to the top', 'stubli' ), $e['author']['name'] ) ) . '">' . stubli_icon( 'pin', 15 ) . '<span>' . esc_html( $e['pinned'] ? __( 'Unpin', 'stubli' ) : __( 'Pin', 'stubli' ) ) . '</span></button>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<button type="button" class="st-gb-pinbtn" data-st-gb-pin="' . (int) $e['id'] . '" data-pinned="' . ( $e['pinned'] ? '1' : '0' ) . '" aria-label="' . esc_attr( sprintf( $e['pinned'] ? __( 'Unpin the entry from %s', 'stubli' ) : __( 'Pin the entry from %s to the top', 'stubli' ), $e['author']['name'] ) ) . '">' . stubli_icon( 'pin', 15 ) . '<span>' . esc_html( $e['pinned'] ? __( 'Unpin', 'stubli' ) : __( 'Pin', 'stubli' ) ) . '</span></button>', stubli_allowed_html() );
 		}
 		echo '</footer></article>';
 	}
@@ -789,7 +810,7 @@ function stubli_view_links() {
 	if ( $links ) {
 		echo '<h3 class="st-links-h">' . esc_html__( 'My links', 'stubli' ) . '</h3><div class="st-link-list">';
 		foreach ( $links as $l ) {
-			echo '<a class="st-link-row" href="' . esc_url( $l[1] ) . '" rel="me noopener"><span><strong>' . esc_html( $l[0] ) . '</strong><span class="st-muted">' . esc_html( preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l[1] ) ) ) . '</span></span>' . stubli_icon( 'chev', 18 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo wp_kses( '<a class="st-link-row" href="' . esc_url( $l[1] ) . '" rel="me noopener"><span><strong>' . esc_html( $l[0] ) . '</strong><span class="st-muted">' . esc_html( preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l[1] ) ) ) . '</span></span>' . stubli_icon( 'chev', 18 ) . '</a>', stubli_allowed_html() );
 		}
 		echo '</div>';
 	}
@@ -978,7 +999,7 @@ function stubli_view_invite() {
 			</section>
 		<?php else : ?>
 			<section class="st-card-tone st-notfound">
-				<?php echo stubli_app_icon( 44 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo wp_kses( stubli_app_icon( 44 ), stubli_allowed_html() ); ?>
 				<h1 class="st-h2">
 					<?php
 					if ( 'used' === $state ) {
@@ -991,11 +1012,26 @@ function stubli_view_invite() {
 					?>
 				</h1>
 				<p><?php /* translators: %s: name */ printf( esc_html__( 'Invites work once, for 30 days. Ask %s for a new link.', 'stubli' ), esc_html( $name ) ); ?></p>
-				<?php echo stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), $name ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo wp_kses( stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), $name ), 'quiet' ), stubli_allowed_html() ); ?>
 			</section>
 		<?php endif; ?>
 	</main>
 	<?php
+}
+
+/**
+ * A WordPress page's own content, printed by WordPress's the_content().
+ *
+ * @param WP_Post $page The page being viewed.
+ */
+function stubli_the_content( $page ) {
+	if ( (int) get_the_ID() !== (int) $page->ID ) {
+		// Not the main page of this request: escape it like any post content.
+		echo wp_kses_post( apply_filters( 'the_content', $page->post_content ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter.
+		return;
+	}
+	setup_postdata( $page );
+	the_content();
 }
 
 /**
@@ -1008,7 +1044,7 @@ function stubli_view_page() {
 	$wide = array( 'welcome' => 'st-pitch', 'pitch' => 'st-pitch', 'how-it-works' => 'st-pitch st-guide' );
 	if ( $page instanceof WP_Post && isset( $wide[ $page->post_name ] ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
 		echo '<main class="st-main ' . esc_attr( $wide[ $page->post_name ] ) . '" id="main">';
-		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		stubli_the_content( $page );
 		echo '</main>';
 		return;
 	}
@@ -1030,7 +1066,7 @@ function stubli_view_page() {
 			echo '</main>';
 			return;
 		}
-		echo apply_filters( 'the_content', $page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		stubli_the_content( $page );
 		if ( 'feedback' === $page->post_name && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
 			stubli_feedback_form();
 		}
@@ -1081,17 +1117,17 @@ function stubli_view_notfound() {
 	?>
 	<main class="st-main st-narrow" id="main">
 		<section class="st-card-tone st-notfound">
-			<?php echo stubli_app_icon( 44, true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo wp_kses( stubli_app_icon( 44, true ), stubli_allowed_html() ); ?>
 			<h1 class="st-h2"><?php esc_html_e( 'This page has moved or is gone', 'stubli' ); ?></h1>
 			<?php if ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) : ?>
 				<p><?php esc_html_e( 'Maybe it was tidied away. These might help:', 'stubli' ); ?></p>
 				<div class="st-welcome-actions">
-					<?php echo stubli_pill( function_exists( 'stubli_story_url' ) ? stubli_story_url( 'join' ) : home_url( '/get-started/' ), __( 'Make your Stubli', 'stubli' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php echo stubli_pill( home_url( '/help/' ), __( 'Help', 'stubli' ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo wp_kses( stubli_pill( function_exists( 'stubli_story_url' ) ? stubli_story_url( 'join' ) : home_url( '/get-started/' ), __( 'Make your Stubli', 'stubli' ) ), stubli_allowed_html() ); ?>
+					<?php echo wp_kses( stubli_pill( home_url( '/help/' ), __( 'Help', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
 				</div>
 			<?php else : ?>
 				<p><?php /* translators: %s: name */ printf( esc_html__( 'Maybe it was tidied away. %s\'s photos are still here.', 'stubli' ), esc_html( get_bloginfo( 'name' ) ) ); ?></p>
-				<?php echo stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), get_bloginfo( 'name' ) ), 'quiet' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo wp_kses( stubli_pill( home_url( '/' ), sprintf( /* translators: %s: name */ __( 'Go to %s\'s page', 'stubli' ), get_bloginfo( 'name' ) ), 'quiet' ), stubli_allowed_html() ); ?>
 			<?php endif; ?>
 		</section>
 	</main>

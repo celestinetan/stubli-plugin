@@ -357,6 +357,77 @@ function stubli_remote_url( $do, $url ) {
 }
 
 /**
+ * The HTML Stubli's own pieces may print: WordPress's post HTML plus the
+ * SVG used by the logo, the app icon and the icons, buttons and images
+ * with srcset. Data and aria attributes are allowed on every tag by WordPress.
+ *
+ * @return array For wp_kses().
+ */
+function stubli_allowed_html() {
+	static $allowed = null;
+	if ( null !== $allowed ) {
+		return $allowed;
+	}
+	$shape   = array(
+		'class'           => true,
+		'style'           => true,
+		'fill'            => true,
+		'opacity'         => true,
+		'stroke'          => true,
+		'stroke-width'    => true,
+		'stroke-linecap'  => true,
+		'stroke-linejoin' => true,
+		'transform'       => true,
+		'mask'            => true,
+	);
+	$allowed = wp_kses_allowed_html( 'post' );
+	$allowed['svg']     = $shape + array(
+		'width'               => true,
+		'height'              => true,
+		'viewbox'             => true,
+		'role'                => true,
+		'focusable'           => true,
+		'preserveaspectratio' => true,
+		'xmlns'               => true,
+	);
+	$allowed['g']        = $shape;
+	$allowed['defs']     = array();
+	$allowed['mask']     = array( 'id' => true, 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'maskunits' => true );
+	$allowed['path']     = $shape + array( 'd' => true );
+	$allowed['circle']   = $shape + array( 'cx' => true, 'cy' => true, 'r' => true );
+	$allowed['ellipse']  = $shape + array( 'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true );
+	$allowed['rect']     = $shape + array( 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true, 'ry' => true );
+	$allowed['line']     = $shape + array( 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true );
+	$allowed['polyline'] = $shape + array( 'points' => true );
+	$allowed['polygon']  = $shape + array( 'points' => true );
+	$allowed['button']   = array( 'type' => true, 'disabled' => true );
+	$allowed['time']     = array( 'datetime' => true );
+	$allowed['img']      = array_merge(
+		isset( $allowed['img'] ) ? $allowed['img'] : array(),
+		array( 'srcset' => true, 'sizes' => true, 'loading' => true, 'decoding' => true, 'fetchpriority' => true )
+	);
+	// The attributes WordPress allows on all of its own tags, for the ones added here too.
+	$global = array(
+		'aria-describedby' => true,
+		'aria-hidden'      => true,
+		'aria-label'       => true,
+		'aria-labelledby'  => true,
+		'aria-live'        => true,
+		'class'            => true,
+		'data-*'           => true,
+		'hidden'           => true,
+		'id'               => true,
+		'role'             => true,
+		'style'            => true,
+		'title'            => true,
+	);
+	foreach ( array( 'svg', 'g', 'defs', 'mask', 'path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'button', 'time' ) as $tag ) {
+		$allowed[ $tag ] += $global;
+	}
+	return $allowed;
+}
+
+/**
  * Inline SVG icons on a 24px grid, 1.7–1.8 stroke, round caps (design §18).
  *
  * @param string $name Icon name.
@@ -523,5 +594,5 @@ function stubli_make_your_own() {
 		return;
 	}
 	$GLOBALS['stubli_own_shown'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- own prefix.
-	echo '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/welcome/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wordmark is static SVG.
+	echo wp_kses( '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/welcome/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>', stubli_allowed_html() );
 }

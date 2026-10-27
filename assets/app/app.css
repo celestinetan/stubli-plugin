@@ -728,7 +728,7 @@ label.a-tool { position: relative; }
 /* New Year: the word dances and confetti keeps falling */
 .stw-newyear .stw-l { transform: rotate(var(--stw-r, 0)) translateY(var(--stw-y, 0)); animation: stw-hop .9s ease-in-out 6; }
 .stw-newyear .stw-l:nth-child(2n) { animation-delay: .45s; }
-.stw-bit { opacity: 0; animation: stw-fall 1.6s linear 3 both; }
+.stw-bit { opacity: 0; animation: stw-fall 1.6s linear 3 both; animation-delay: var(--stw-d, 0s); }
 /* Valentine's Day: heart eyes, then back */
 .stw-hearts path { opacity: 0; animation: stw-heart-on 2.4s ease-in-out 2 both; }
 .stw-eyes { animation: stw-eyes-off 2.4s ease-in-out 2 both; }
@@ -740,7 +740,7 @@ label.a-tool { position: relative; }
 .stw-pumpkin { transform-origin: 50% 100%; animation: stw-wobble 1.8s ease-in-out 3; }
 .stw-halloween .stw-u { transform-origin: 50% 112%; animation: stw-wobble-u 1.8s ease-in-out 3; }
 /* Christmas: the lights glow and twinkle one after another */
-.stw-bulb { animation: stw-twinkle 1.4s ease-in-out 4; }
+.stw-bulb { animation: stw-twinkle 1.4s ease-in-out 4; animation-delay: var(--stw-d, 0s); }
 .stw-bulb circle { transform-origin: 50% 50%; }
 /* 1 August: the flag waves in the wind */
 .stw-flag { transform-origin: 0 100%; animation: stw-wave 1.3s ease-in-out 4; }

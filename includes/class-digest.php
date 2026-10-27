@@ -352,6 +352,7 @@ class Digest {
 	 * @return int HTTP status (0 on failure to send).
 	 */
 	public static function push( array $sub, array $msg ) {
+		$msg += array( 'icon' => STUBLI_PLUGIN_URL . 'assets/app/icon-192.png' );
 		$body = self::encrypt( wp_json_encode( $msg ), $sub['p256dh'], $sub['auth'] );
 		$auth = self::vapid_header( $sub['endpoint'] );
 		if ( null === $body || null === $auth ) {
@@ -492,29 +493,8 @@ class Digest {
 		header( 'Content-Type: application/javascript; charset=utf-8' );
 		header( 'Service-Worker-Allowed: ' . wp_parse_url( home_url( '/app/' ), PHP_URL_PATH ) );
 		header( 'Cache-Control: no-cache' );
-		$icon = STUBLI_PLUGIN_URL . 'assets/app/icon-192.png';
-		$app  = home_url( '/app/' );
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON-encoded values in a script.
-		echo '/* Stubli: the daily summary. No caching, no tracking. */' . "\n";
-		echo 'var ICON = ' . wp_json_encode( $icon ) . ', APP = ' . wp_json_encode( $app ) . ";\n";
-		// phpcs:enable
-		echo <<<'JS'
-self.addEventListener( 'install', function () { self.skipWaiting(); } );
-self.addEventListener( 'activate', function ( e ) { e.waitUntil( self.clients.claim() ); } );
-self.addEventListener( 'push', function ( e ) {
-	var d = {};
-	try { d = e.data ? e.data.json() : {}; } catch ( err ) { d = {}; }
-	e.waitUntil( self.registration.showNotification( d.title || 'Stubli', { body: d.body || '', icon: ICON, badge: ICON, tag: 'stubli-daily', renotify: false, data: { url: d.url || APP } } ) );
-} );
-self.addEventListener( 'notificationclick', function ( e ) {
-	e.notification.close();
-	var url = ( e.notification.data && e.notification.data.url ) || APP;
-	e.waitUntil( self.clients.matchAll( { type: 'window', includeUncontrolled: true } ).then( function ( list ) {
-		for ( var i = 0; i < list.length; i++ ) { if ( list[ i ].url.indexOf( APP ) === 0 && 'focus' in list[ i ] ) { list[ i ].navigate( url ); return list[ i ].focus(); } }
-		return self.clients.openWindow( url );
-	} ) );
-} );
-JS;
+		// A plain file (assets/app/sw.js), served from /app/ so it may look after the app.
+		readfile( STUBLI_PLUGIN_DIR . 'assets/app/sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- the plugin's own script file.
 		exit;
 	}
 }
