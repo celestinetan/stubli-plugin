@@ -316,25 +316,57 @@ if ( $gb ) {
 	$comment( $gb, 'yasmin-haddad', 'Found you through Cleo\'s page. Your tram drawing made my morning.', 22 * $h, 0 );
 }
 
-// ——— A note from Sofia, answering one of Ana's cards ———
-$note = wp_insert_post(
-	wp_slash(
-		array(
-			'post_type'     => 'stubli_note',
-			'post_status'   => 'private',
-			'post_title'    => 'Zopf and a lake walk? Count me in next Sunday.',
-			'post_content'  => 'Zopf and a lake walk? Count me in next Sunday. I\'ll bring the jam this time.',
-			'post_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 9 * $h ),
-			'post_date'     => get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $now - 9 * $h ) ),
-			'meta_input'    => array(
-				'_stubli_dir'    => 'in',
-				'_stubli_kind'   => 'stubli',
-				'_stubli_site'   => $site( 'sofia-meier' ),
-				'_stubli_name'   => 'Sofia Meier',
-				'_stubli_avatar' => $people[ $o( 'sofia-meier' ) ]['avatar'],
-				'_stubli_state'  => 'inbox',
-				'_stubli_prompt' => wp_json_encode( Prompts::at( 0 ) ),
-			),
+// ——— Letters: a few conversations, one still waiting for Ana's OK ———
+$letter = static function ( $slug, $dir, $text, $ago, $args = array() ) use ( $people, $o, $site, $now ) {
+	$p    = $people[ $o( $slug ) ];
+	$meta = array(
+		'_stubli_dir'  => $dir,
+		'_stubli_site' => $site( $slug ),
+	);
+	if ( 'in' === $dir ) {
+		$meta += array(
+			'_stubli_kind'   => 'stubli',
+			'_stubli_name'   => $p['name'],
+			'_stubli_avatar' => $p['avatar'],
+			'_stubli_state'  => $args['state'] ?? 'inbox',
+		);
+	} else {
+		$meta['_stubli_state'] = 'sent';
+	}
+	if ( ! empty( $args['prompt'] ) ) {
+		$meta['_stubli_prompt'] = wp_json_encode( $args['prompt'] );
+	}
+	if ( ! empty( $args['read'] ) || 'out' === $dir ) {
+		$meta['_stubli_read'] = 1;
+	}
+	$g = gmdate( 'Y-m-d H:i:s', $now - $ago );
+	return wp_insert_post(
+		wp_slash(
+			array(
+				'post_type'     => 'stubli_note',
+				'post_status'   => 'private',
+				'post_title'    => wp_trim_words( $text, 8, '…' ),
+				'post_content'  => $text,
+				'post_date_gmt' => $g,
+				'post_date'     => get_date_from_gmt( $g ),
+				'meta_input'    => $meta,
+			)
 		)
-	)
-);
+	);
+};
+update_option( 'stubli_letters_read_marked', 1, false );
+// Sofia: answers Ana's Sunday card, not read yet.
+$letter( 'sofia-meier', 'out', 'The soup photo! Is the recipe in your journal yet?', 3 * $d + 2 * $h );
+$letter( 'sofia-meier', 'in', 'Tomorrow, promise. It\'s mostly pumpkin, cream and patience.', 3 * $d, array( 'read' => 1 ) );
+$letter( 'sofia-meier', 'in', 'Zopf and a lake walk? Count me in next Sunday. I\'ll bring the jam this time.', 9 * $h, array( 'prompt' => Prompts::at( 0 ) ) );
+// Ben: bread plans, his last letter unread.
+$letter( 'ben-huber', 'in', 'Loaf 40 worked. Want to try my starter? It\'s called Kurt.', 2 * $d, array( 'read' => 1 ) );
+$letter( 'ben-huber', 'out', 'Yes please. Is Kurt friendly?', 2 * $d - 2 * $h );
+$letter( 'ben-huber', 'in', 'Very. Bring a clean jar on Saturday and he\'s yours.', 20 * $h );
+// Mila: Ana wrote last.
+$letter( 'mila-rossi', 'in', 'Nina wants to know if you can draw her a cow. A purple one.', 4 * $d, array( 'read' => 1 ) );
+$letter( 'mila-rossi', 'out', 'A purple cow is the only kind I draw. Coming up this week.', 4 * $d - 5 * $h );
+// Luca: answered her café card, read.
+$letter( 'luca-bernasconi', 'in', 'The one with the wobbly tables? I think I\'ve sat there. Next time I\'m in Zurich, coffee is on me.', 12 * $d, array( 'read' => 1, 'prompt' => Prompts::at( 2 ) ) );
+// Yasmin: Ana doesn't follow her, so it waits for her OK.
+$letter( 'yasmin-haddad', 'in', 'Found you through Cleo. Your tram drawing made my morning. Do you ever sell prints?', 6 * $h, array( 'state' => 'request' ) );
