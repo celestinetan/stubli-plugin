@@ -84,7 +84,7 @@ class Act {
 				<h1><?php esc_html_e( 'Nothing to do here', 'stubli' ); ?></h1>
 				<p><?php esc_html_e( 'This link is missing the page it\'s about. Go back and try the button again.', 'stubli' ); ?></p>
 			<?php elseif ( $done ) : ?>
-				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html__( 'You\'re following them', 'stubli' ) ) : ( 'follow' === $do ? esc_html__( 'You\'re following them', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Note sent', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ) ); ?></h1>
+				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html__( 'You\'re following them', 'stubli' ) ) : ( 'follow' === $do ? esc_html__( 'You\'re following them', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Letter sent', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ) ); ?></h1>
 				<p>
 					<?php
 					if ( 'accept' === $do && 'both' === $done ) {
@@ -130,7 +130,7 @@ class Act {
 					<blockquote class="<?php echo $app ? 'a-quote' : ''; ?>"><strong><?php echo esc_html( $quote['q'] ); ?></strong><br><?php echo esc_html( $quote['a'] ); ?></blockquote>
 				<?php endif; ?>
 				<?php if ( 'note' === $do ) : ?>
-					<p><?php esc_html_e( 'A private note: only they see it. If they follow you, it arrives straight away; otherwise it waits for their OK.', 'stubli' ); ?></p>
+					<p><?php esc_html_e( 'A private letter: only they see it. If they follow you, it arrives straight away; otherwise it waits for their OK.', 'stubli' ); ?></p>
 				<?php endif; ?>
 				<?php if ( 'accept' === $do ) : ?>
 					<p><?php /* translators: %s: site */ printf( esc_html__( 'You\'ll follow %s, and their site will follow you back. Either of you can stop following any time.', 'stubli' ), esc_html( $host ) ); ?></p>
@@ -150,14 +150,14 @@ class Act {
 					<?php endif; ?>
 					<?php if ( 'follow' !== $do && 'accept' !== $do ) : ?>
 						<p>
-							<label for="og-act-text"><strong><?php echo 'sign' === $do ? esc_html__( 'Your message', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Your note', 'stubli' ) : esc_html__( 'Your comment', 'stubli' ) ); ?></strong></label><br>
+							<label for="og-act-text"><strong><?php echo 'sign' === $do ? esc_html__( 'Your message', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Your letter', 'stubli' ) : esc_html__( 'Your comment', 'stubli' ) ); ?></strong></label><br>
 							<textarea id="og-act-text" name="text" rows="5" class="<?php echo $app ? 'a-textarea' : 'large-text'; ?>" maxlength="1000" required></textarea>
 						</p>
 						<?php if ( 'note' !== $do ) : ?>
 						<p class="description"><?php esc_html_e( 'It\'s saved on your own site too, and you can delete it any time.', 'stubli' ); ?></p>
 					<?php endif; ?>
 					<?php endif; ?>
-					<p><button type="submit" id="submit" class="<?php echo esc_attr( $btn ); ?>"><?php echo esc_html( 'accept' === $do ? __( 'Follow each other', 'stubli' ) : ( 'follow' === $do ? __( 'Follow', 'stubli' ) : ( 'sign' === $do ? __( 'Sign the guest book', 'stubli' ) : ( 'note' === $do ? __( 'Send note', 'stubli' ) : __( 'Send comment', 'stubli' ) ) ) ) ); ?></button></p>
+					<p><button type="submit" id="submit" class="<?php echo esc_attr( $btn ); ?>"><?php echo esc_html( 'accept' === $do ? __( 'Follow each other', 'stubli' ) : ( 'follow' === $do ? __( 'Follow', 'stubli' ) : ( 'sign' === $do ? __( 'Sign the guest book', 'stubli' ) : ( 'note' === $do ? __( 'Send letter', 'stubli' ) : __( 'Send comment', 'stubli' ) ) ) ) ); ?></button></p>
 				</form>
 			<?php endif; ?>
 		</div>

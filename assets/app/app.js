@@ -72,6 +72,7 @@
 		down: '<path d="M6 9l6 6 6-6"/>',
 		pin: '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+		mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
@@ -85,6 +86,11 @@
 	};
 	function icon( n, w ) {
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
+	}
+	// The top of the main screens: the wordmark, the envelope for letters, and anything else on the right.
+	function topRow( extra ) {
+		var n = B.unread || 0;
+		return '<div class="a-top a-top-row">' + wordmark() + '<span class="a-top-acts"><a class="a-text-btn a-env" href="#letters" aria-label="' + esc( n ? __( 'Letters, new ones waiting', 'stubli' ) : __( 'Letters', 'stubli' ) ) + '">' + icon( 'mail', 22 ) + ( n ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>' + ( extra || '' ) + '</span></div>';
 	}
 	function wordmark() {
 		var mark = B.logo && B.logo.html ?
@@ -461,7 +467,9 @@
 		if ( h === 'links' ) { return viewLinks(); }
 		if ( h === 'arrange' ) { return viewArrange(); }
 		if ( /^arrange\/\d+$/.test( h ) ) { return viewPins( +h.split( '/' )[ 1 ] ); }
-		if ( /^note\/\d+$/.test( h ) ) { return viewNote( +h.split( '/' )[ 1 ] ); }
+		if ( /^note\/\d+$/.test( h ) ) { location.replace( '#letters' ); return; }
+		if ( h === 'letters' ) { return viewLetters(); }
+		if ( /^letters\//.test( h ) ) { return viewThread( decodeURIComponent( h.slice( 8 ) ) ); }
 		if ( h === 'feedback' ) { return viewFeedback(); }
 		if ( h === 'import' ) { if ( imp && ( imp.state === 'done' || imp.state === 'empty' ) ) { imp = null; } return viewImport(); }
 		if ( h === 'discover' ) { return viewDiscover(); }
@@ -484,12 +492,12 @@
 		var items = [
 			[ 'home', '#home', __( 'Home', 'stubli' ), 'home', __( 'Home', 'stubli' ) ],
 			[ 'discover', '#discover', __( 'People', 'stubli' ), 'people', __( 'People', 'stubli' ) ],
-			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus', _x( 'New', 'tab', 'stubli' ) ],
+			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus', _x( 'Post', 'tab', 'stubli' ) ],
 			[ 'whatsnew', '#whatsnew', __( 'What\'s new', 'stubli' ), 'news', __( 'What\'s new', 'stubli' ) ],
 			[ 'you', '#you', __( 'You', 'stubli' ), 'you', __( 'You', 'stubli' ) ]
 		];
 		return '<div class="a-bar"><nav aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '">' + items.map( function ( i ) {
-			var waiting = ( B.waiting || 0 ) + ( B.requests || 0 ), dot = i[ 0 ] === 'whatsnew' && waiting > 0;
+			var waiting = B.waiting || 0, dot = i[ 0 ] === 'whatsnew' && waiting > 0;
 			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '"><span class="a-bar-i">' + icon( i[ 3 ], 24 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</span><span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span></a>';
 		} ).join( '' ) + '</nav></div>';
 	}
@@ -572,7 +580,7 @@
 	}
 	function viewYou() {
 		if ( ! me.p || ! mine.loaded ) {
-			root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + ( '</a></div><h1 class="sr">' + __( 'You', 'stubli' ) + '</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' ) + bar( 'you' );
+			root.innerHTML = '<main class="a-main" id="main">' + topRow( '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a>' ) + ( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' ) + bar( 'you' );
 			var todo = [];
 			if ( ! me.p && ! me.loading ) { todo.push( loadMe() ); }
 			if ( ! mine.loaded && ! mine.loading ) { mine.loading = true; todo.push( loadMine( true ).then( function () { mine.loading = false; }, function () { mine.loading = false; mine.loaded = true; } ) ); }
@@ -590,7 +598,7 @@
 		mine.items.forEach( function ( i ) { if ( i.coll && colls.indexOf( i.coll ) < 0 ) { colls.push( i.coll ); } } );
 		// Same order as your page (Arrange); new ones at the end.
 		var ord = B.collOrder || []; colls.sort( function ( a, b ) { var x = ord.indexOf( a ), y = ord.indexOf( b ); return ( x < 0 ? 999 : x ) - ( y < 0 ? 999 : y ); } );
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top a-top-row">' + wordmark() + '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a></div>' +
+		root.innerHTML = '<main class="a-main" id="main">' + topRow( '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a>' ) +
 			( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1>' ) +
 			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
 			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
@@ -954,63 +962,110 @@
 		if ( /^\+?[\d\s()\-]{7,}$/.test( c ) ) { return { href: 'tel:' + c.replace( /[^\d+]/g, '' ), label: __( 'Call or text', 'stubli' ) }; }
 		return null;
 	}
-	function noteCard( n, isRequest ) {
-		var d = nt.done[ n.id ];
-		if ( d ) { return '<div class="a-card a-note is-done" data-note-card="' + n.id + '"><p role="status" style="margin:0">' + esc( d ) + '</p></div>'; }
-		var who = n.kind === 'guest' ? __( 'no Stubli', 'stubli' ) : hostOf( n.site ), c = n.kind === 'guest' ? contactLink( n.contact ) : null;
-		return '<div class="a-card a-note" data-note-card="' + n.id + '"><div class="a-wait-head">' + face( n.avatar, n.name, 36 ) +
-			'<span><strong>' + esc( unent( n.name ) ) + '</strong> <span class="muted">' + esc( who ) + ( isRequest ? ( ' ' + __( '· Request', 'stubli' ) ) : '' ) + ' · ' + esc( gentle( n.date ) ) + '</span></span></div>' +
+	/* ── Letters: one conversation per person, like letters between friends ── */
+	var lt = { loaded: false, requests: [], convs: [], done: {}, thread: null };
+	function loadLetters() {
+		return send( 'GET', 'letters', null ).then( function ( r ) { lt.requests = r.requests || []; lt.convs = r.conversations || []; lt.loaded = true; }, function ( e ) { lt.loaded = true; lt.error = ( e && e.message ) || ''; } );
+	}
+	function letterTime( iso ) {
+		var t = new Date( iso ), now = new Date();
+		if ( isNaN( t ) ) { return ''; }
+		if ( t.toDateString() === now.toDateString() ) { return t.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ); }
+		if ( now - t < 6 * 86400000 ) { return t.toLocaleDateString( [], { weekday: 'short' } ); }
+		return t.toLocaleDateString( [], { day: 'numeric', month: 'short' } );
+	}
+	function viewLetters() {
+		renderLetters();
+		loadLetters().then( function () { if ( location.hash === '#letters' ) { renderLetters(); } } );
+	}
+	function requestCard( n ) {
+		var d = lt.done[ n.id ];
+		if ( d ) { return '<div class="a-card a-note is-done"><p role="status" style="margin:0">' + esc( d ) + '</p></div>'; }
+		var who = n.kind === 'guest' ? __( 'no Stubli', 'stubli' ) : hostOf( n.site );
+		return '<div class="a-card a-note a-lt-req"><div class="a-wait-head">' + face( n.avatar, n.name, 36 ) +
+			'<span><strong>' + esc( unent( n.name ) ) + '</strong> <span class="muted">' + esc( who ) + ' · ' + esc( gentle( n.date ) ) + '</span></span></div>' +
 			( n.prompt ? '<p class="muted small a-note-re">' + _f( __( 'Replying to “%s”', 'stubli' ), esc( n.prompt.q ) ) + '</p>' : '' ) +
 			'<p class="a-note-text">' + esc( n.text ) + '</p>' +
-			( n.kind === 'guest' ? '<p class="a-note-contact">' + _f( __( 'Reach %s at %s', 'stubli' ), esc( unent( n.name ) ), '<strong>' + esc( n.contact ) + '</strong>' ) + '</p>' : '' ) +
-			'<div class="a-wait-acts">' +
-			( isRequest ? '<button type="button" class="a-btn" data-note="accept" data-id="' + n.id + '">' + ( n.kind === 'guest' ? __( 'Keep', 'stubli' ) : __( 'Accept', 'stubli' ) ) + '</button>' : '' ) +
-			( ! isRequest && n.kind !== 'guest' ? '<a class="a-btn" href="#note/' + n.id + '">' + ( n.replied ? __( 'Reply again', 'stubli' ) : __( 'Reply', 'stubli' ) ) + '</a>' : '' ) +
-			( ! isRequest && c ? '<a class="a-btn" href="' + esc( c.href ) + '">' + esc( c.label ) + '</a>' : '' ) +
-			'<button type="button" class="a-btn quiet" data-note="delete" data-id="' + n.id + ( '">' + __( 'Delete', 'stubli' ) + '</button>' ) +
-			'<button type="button" class="a-text-btn a-block" data-note="block" data-id="' + n.id + ( '">' + __( 'Block', 'stubli' ) + '</button></div></div>' );
+			'<div class="a-wait-acts"><button type="button" class="a-btn" data-lt="accept" data-id="' + n.id + '">' + __( 'Accept', 'stubli' ) + '</button>' +
+			'<button type="button" class="a-btn quiet" data-lt="delete" data-id="' + n.id + '">' + __( 'Delete', 'stubli' ) + '</button>' +
+			'<button type="button" class="a-text-btn a-block" data-lt="block" data-id="' + n.id + '">' + __( 'Block', 'stubli' ) + '</button></div></div>';
 	}
-	function notesSection() {
-		if ( ! nt.loaded || ( ! nt.inbox.length && ! nt.requests.length ) ) { return ''; }
-		var open = nt.requests.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length + nt.inbox.filter( function ( n ) { return ! nt.done[ n.id ]; } ).length;
-		return ( '<h2 class="a-label">' + __( 'Notes', 'stubli' ) ) + ( open ? ' · ' + open : '' ) + '</h2>' + nt.requests.map( function ( n ) { return noteCard( n, true ); } ).join( '' ) + nt.inbox.slice( 0, 20 ).map( function ( n ) { return noteCard( n, false ); } ).join( '' );
-	}
-	function bindNotes( redraw ) {
-		$$( '[data-note]' ).forEach( function ( b ) {
+	function renderLetters() {
+		var body;
+		if ( ! lt.loaded ) {
+			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:72px"></span><span style="height:72px"></span><span style="height:72px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>';
+		} else {
+			var reqs = lt.requests;
+			body = ( reqs.length ? '<h2 class="a-label">' + __( 'Waiting for your OK', 'stubli' ) + '</h2><p class="muted small" style="margin:-4px 0 10px">' + __( 'From people you don\'t follow. Nothing reaches your inbox until you accept.', 'stubli' ) + '</p>' + reqs.map( requestCard ).join( '' ) : '' ) +
+				( '<h2 class="a-label">' + __( 'Conversations', 'stubli' ) + '</h2>' ) +
+				( lt.convs.length ? '<ul class="a-lt-list" role="list">' + lt.convs.map( function ( c ) {
+					var last = ( c.last.dir === 'out' ? __( 'You:', 'stubli' ) + ' ' : '' ) + c.last.text;
+					return '<li><a class="a-lt-row' + ( c.unread ? ' is-unread' : '' ) + '" href="#letters/' + encodeURIComponent( c.with ) + '">' + face( c.avatar, c.name, 44 ) +
+						'<span class="a-lt-mid"><span class="a-lt-name">' + esc( unent( c.name ) ) + ( c.unread ? '<span class="sr"> ' + __( '(new)', 'stubli' ) + '</span>' : '' ) + '</span><span class="a-lt-last">' + esc( last ) + '</span></span>' +
+						'<span class="a-lt-when">' + esc( letterTime( c.last.date ) ) + ( c.unread ? '<span class="a-lt-dot" aria-hidden="true"></span>' : '' ) + '</span></a></li>';
+				} ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'No letters yet. When someone answers one of your cards or writes to you from their Stubli, it arrives here.', 'stubli' ) + '</p>' ) +
+				'<p class="a-help" style="margin-top:20px">' + __( 'Letters are private: only you and the person you write to see them. They aren\'t end-to-end encrypted, so for anything very sensitive, use a messaging app.', 'stubli' ) + '</p>';
+		}
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + esc( cameFrom ) + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Letters', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
+		$$( '[data-lt]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
-				var id = +b.dataset.id, act = b.dataset.note;
-				$$( '[data-note][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = true; } );
+				var id = +b.dataset.id, act = b.dataset.lt;
+				$$( '[data-lt][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = true; } );
 				send( 'POST', 'notes/' + id, { action: act } ).then( function () {
-					var n = nt.requests.concat( nt.inbox ).filter( function ( x ) { return x.id === id; } )[ 0 ];
-					if ( act === 'accept' && n ) { nt.requests = nt.requests.filter( function ( x ) { return x.id !== id; } ); nt.inbox.unshift( n ); }
-					else { nt.done[ id ] = act === 'block' ? __( 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.', 'stubli' ) : __( 'Deleted.', 'stubli' ); }
-					B.requests = nt.requests.filter( function ( x ) { return ! nt.done[ x.id ]; } ).length;
-					redraw();
-				}, function ( e ) { $$( '[data-note][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); toast( e.message ); } );
+					if ( act === 'accept' ) { loadLetters().then( renderLetters ); return; }
+					lt.done[ id ] = act === 'block' ? __( 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.', 'stubli' ) : __( 'Deleted.', 'stubli' );
+					refreshUnread(); renderLetters();
+				}, function ( e ) { $$( '[data-lt][data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); toast( e.message ); } );
 			} );
 		} );
 	}
-	var nc = null;
-	function viewNote( id ) {
-		var n = nt.inbox.filter( function ( x ) { return x.id === id; } )[ 0 ];
-		if ( ! n ) {
-			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#whatsnew">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Reply', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span></div></main>' );
-			loadNotes().then( function () { if ( nt.inbox.some( function ( x ) { return x.id === id; } ) ) { viewNote( id ); } else { location.replace( '#whatsnew' ); } } );
-			return;
+	function refreshUnread() {
+		send( 'GET', 'letters', null ).then( function ( r ) {
+			B.unread = ( r.requests || [] ).length + ( r.conversations || [] ).filter( function ( c ) { return c.unread; } ).length;
+		}, function () {} );
+	}
+	function viewThread( w ) {
+		if ( ! lt.thread || lt.thread.with !== w ) { lt.thread = { with: w, letters: null, text: '', busy: false, error: '' }; }
+		var th = lt.thread;
+		renderThread();
+		if ( ! lt.loaded ) { loadLetters().then( function () { if ( lt.thread === th ) { renderThread(); } } ); }
+		send( 'GET', 'letters/thread?with=' + encodeURIComponent( w ), null ).then( function ( l ) {
+			th.letters = Array.isArray( l ) ? l : []; if ( lt.thread === th ) { renderThread( true ); }
+			// Opening a conversation marks its letters read.
+			send( 'POST', 'letters/thread', { with: w } ).then( function ( r ) { B.unread = r.unread || 0; lt.convs.forEach( function ( c ) { if ( c.with === w ) { c.unread = false; } } ); }, function () {} );
+		}, function ( e ) { th.letters = []; th.error = e.message; renderThread(); } );
+	}
+	function renderThread( scroll ) {
+		var th = lt.thread, c = lt.convs.filter( function ( x ) { return x.with === th.with; } )[ 0 ] || {}, letters = th.letters;
+		var lastIn = letters ? letters.filter( function ( l ) { return l.dir === 'in'; } ).slice( -1 )[ 0 ] : null;
+		var name = c.name || ( lastIn && lastIn.name ) || '', site = c.site || ( lastIn && lastIn.site ) || '', guest = c.kind === 'guest' || ( lastIn && lastIn.kind === 'guest' );
+		var day = '', body = '';
+		if ( ! letters ) {
+			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:80px"></span><span style="height:80px"></span></div>';
+		} else {
+			body = letters.map( function ( l ) {
+				var d = new Date( l.date ), dl = d.toLocaleDateString( [], { weekday: 'long', day: 'numeric', month: 'long' } ), out = '';
+				if ( dl !== day ) { day = dl; out += '<p class="a-lt-day">' + esc( dl ) + '</p>'; }
+				if ( l.prompt ) { out += '<div class="a-lt-card"><span>' + ( l.dir === 'in' ? __( 'Replying to your card', 'stubli' ) : __( 'Replying to their card', 'stubli' ) ) + '</span><q>' + esc( l.prompt.q ) + ' ' + esc( l.prompt.a ) + '</q></div>'; }
+				return out + '<div class="a-lt-letter ' + ( l.dir === 'out' ? 'is-me' : 'is-them' ) + '"><p>' + esc( l.text ) + '</p><span class="a-lt-t">' + esc( d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) ) + ( l.dir === 'out' && l.state === 'failed' ? ' · ' + __( 'not delivered', 'stubli' ) : '' ) + '</span></div>';
+			} ).join( '' );
 		}
-		if ( ! nc || nc.id !== id ) { nc = { id: id, text: '', busy: false, error: '' }; }
-		root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#whatsnew">' + __( 'Close', 'stubli' ) + '</a><h1>' + _f( __( 'Reply to %s', 'stubli' ), esc( unent( n.name ) ) ) ) + '</h1><button type="button" class="a-btn" data-nc-send' + ( nc.busy || ! nc.text.trim() ? ' disabled' : '' ) + '>' + ( nc.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></header>' +
-			'<main class="a-compose" id="main"><div class="a-card a-note"><p class="muted small" style="margin:0 0 4px">' + esc( unent( n.name ) ) + ' wrote</p><p class="a-note-text" style="margin:0">' + esc( n.text ) + '</p></div>' +
-			( nc.error ? '<div class="a-notice" role="alert"><p>' + esc( nc.error ) + '</p></div>' : '' ) +
-			( '<label class="a-label" for="a-nc">' + __( 'Your note', 'stubli' ) + '</label><textarea id="a-nc" class="a-textarea" maxlength="1000">' ) + esc( nc.text ) + '</textarea>' +
-			( '<p class="a-help">' + _f( __( 'Private: only %s sees it, in their own Stubli.', 'stubli' ), esc( unent( n.name ) ) ) ) + ( '' + '</p></main>' );
-		var t = $( '#a-nc' ), b = $( '[data-nc-send]' );
-		t.addEventListener( 'input', function () { nc.text = t.value; b.disabled = ! nc.text.trim() || nc.busy; } );
+		var guestNote = guest && lastIn ? ( function () { var k = contactLink( lastIn.contact ); return '<p class="a-help">' + _f( __( '%s doesn\'t have a Stubli, so you can\'t write back here.', 'stubli' ), esc( unent( name ) ) ) + ( k ? ' <a href="' + esc( k.href ) + '">' + esc( k.label ) + '</a>' : ( lastIn.contact ? ' ' + _f( __( 'They left this: %s', 'stubli' ), '<strong>' + esc( lastIn.contact ) + '</strong>' ) : '' ) ) + '</p>'; } )() : '';
+		root.innerHTML = '<header class="a-head a-lt-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( c.avatar ? face( c.avatar, name, 28 ) : '' ) + '<span>' + esc( unent( name ) ) + ( site && ! guest ? '<small class="muted">' + esc( hostOf( site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>' +
+			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + '</main>' +
+			( guest || ! site ? '' : '<div class="a-lt-compose"><label class="sr" for="a-lt-text">' + __( 'Your letter', 'stubli' ) + '</label><textarea id="a-lt-text" class="a-field a-grow" rows="1" maxlength="1000" placeholder="' + esc( __( 'Write a letter…', 'stubli' ) ) + '">' + esc( th.text ) + '</textarea><button type="button" class="a-btn" data-lt-send' + ( th.busy || ! th.text.trim() ? ' disabled' : '' ) + '>' + ( th.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></div>' );
+		if ( scroll ) { window.scrollTo( 0, document.body.scrollHeight ); }
+		var t = $( '#a-lt-text' ), b = $( '[data-lt-send]' );
+		if ( ! t ) { return; }
+		var fit = function () { t.style.height = 'auto'; t.style.height = Math.min( 160, t.scrollHeight ) + 'px'; }; fit();
+		t.addEventListener( 'input', function () { th.text = t.value; b.disabled = ! th.text.trim() || th.busy; fit(); } );
 		b.addEventListener( 'click', function () {
-			nc.busy = true; nc.error = ''; b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
-			send( 'POST', 'notes/send', { to: n.site, text: nc.text, reply: n.id } ).then( function () { n.replied = true; nc = null; location.hash = '#whatsnew'; toast( _f( __( 'Sent. Only %s sees it.', 'stubli' ), unent( n.name ) ) ); }, function ( e ) { nc.busy = false; nc.error = e.message; viewNote( id ); } );
+			th.busy = true; th.error = ''; b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
+			send( 'POST', 'notes/send', { to: site, text: th.text, reply: lastIn ? lastIn.id : 0 } ).then( function () {
+				th.letters = ( th.letters || [] ).concat( [ { id: 0, dir: 'out', text: th.text, date: new Date().toISOString(), state: 'sent' } ] );
+				th.text = ''; th.busy = false; lt.loaded = false; renderThread( true );
+			}, function ( e ) { th.busy = false; th.error = e.message; renderThread(); } );
 		} );
-		t.focus();
 	}
 
 	/* ── Your people: who you follow, and who is a friend (Q44) ── */
@@ -1526,7 +1581,7 @@
 				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + ( '<strong>' + __( 'That\'s everything for now', 'stubli' ) + '</strong><span class="muted">' + __( 'You\'re all caught up.', 'stubli' ) + ' ' ) + esc( endLine() ) + '</span></div>' : '' );
 		}
 		var sub = feed.stale ? __( 'Offline. Showing your feed from last time.', 'stubli' ) : feed.loaded && feed.newSince ? _f( __( '%s new since your last visit', 'stubli' ), feed.newSince ) : '';
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + '</div>' +
+		root.innerHTML = '<main class="a-main" id="main">' + topRow() +
 			'<h1 class="a-greet a-greet-sky">' + sky( 36 ) + '<span>' + esc( greeting() ) + '</span></h1>' + ( sub ? '<p class="muted" style="margin:-2px 0 14px">' + esc( sub ) + '</p>' : '' ) +
 			setupCard() + firstDayCard() + body + '</main>' + bar( 'home' );
 		bindFollow(); bindInvite(); bindFirstDay();
@@ -1653,7 +1708,7 @@
 			} ).join( '' );
 		}
 		// People: bring friends in, the people you follow, then people they follow.
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><h1 class="a-greet">' + __( 'People', 'stubli' ) + '</h1>' ) +
+		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'People', 'stubli' ) + '</h1>' ) +
 			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
 			( '<div data-invite-out></div><button type="button" class="a-btn" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			peopleCard() +
@@ -1699,7 +1754,6 @@
 		if ( ! wn.loaded ) {
 			body = ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' );
 		} else {
-			body += notesSection();
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
 			var open = waiting.filter( function ( c ) { return ! wn.done[ c.id ]; } ).length;
@@ -1736,9 +1790,8 @@
 				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + ( a.where === 'guestbook' ? __( 'signed your guest book', 'stubli' ) : _f( __( 'commented on %s', 'stubli' ), '<a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || __( 'your post', 'stubli' ) ) + '</a>' ) ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
 			} ).join( '' ) + '</ul>' : ( '<p class="muted">' + __( 'No new comments or guest book entries in the last two weeks.', 'stubli' ) + '</p>' );
 		}
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
+		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
-		bindNotes( renderWhatsNew );
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
 		$$( '[data-open-list]' ).forEach( function ( a ) { a.addEventListener( 'click', function () { feed.list = a.dataset.openList; feed.loaded = false; } ); } );
@@ -1788,7 +1841,7 @@
 		if ( su.loaded ) { return renderSetup(); }
 		if ( su.loading ) { return; }
 		su.loading = true;
-		root.innerHTML = '<main class="a-main" id="main"><div class="a-top">' + wordmark() + ( '</div><div class="a-feed-skel" aria-hidden="true"><span style="height:280px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' );
+		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:280px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' );
 		send( 'GET', 'setup', null ).then( function ( d ) {
 			su.d = d; su.loaded = true; su.loading = false; su.step = d.done ? 0 : Math.min( 4, d.step || 0 );
 			su.picked = d.interests.map( function ( i ) { return i.name; } );

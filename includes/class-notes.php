@@ -38,6 +38,183 @@ class Notes {
 		add_action( 'admin_init', array( self::class, 'privacy_text' ) );
 		add_filter( 'wp_privacy_personal_data_exporters', array( self::class, 'add_exporter' ) );
 		add_filter( 'wp_privacy_personal_data_erasers', array( self::class, 'add_eraser' ) );
+		add_action( 'init', array( self::class, 'mark_old_read' ), 20 );
+		add_action( self::PUSH_HOOK, array( self::class, 'push' ) );
+	}
+
+	const PUSH_HOOK = 'stubli_letter_push';
+	const READ      = '_stubli_read';
+
+	/**
+	 * Letters that arrived before the inbox existed (0.40.0) count as read,
+	 * so nobody opens the new inbox to a wall of "unread".
+	 */
+	public static function mark_old_read() {
+		if ( get_option( 'stubli_letters_read_marked' ) ) {
+			return;
+		}
+		update_option( 'stubli_letters_read_marked', 1, false );
+		foreach ( get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'posts_per_page' => 500, 'fields' => 'ids' ) ) as $id ) {
+			update_post_meta( $id, self::READ, 1 );
+		}
+	}
+
+	/**
+	 * Who a letter is with: their site's origin, or one guest letter on its own.
+	 *
+	 * @param array $n Shaped note.
+	 * @return string
+	 */
+	public static function with_key( array $n ) {
+		if ( 'guest' === $n['kind'] ) {
+			return 'guest-' . (int) $n['id'];
+		}
+		$o = Follows::origin( (string) $n['site'] );
+		return $o ? $o : 'note-' . (int) $n['id'];
+	}
+
+	/**
+	 * The inbox: requests, then one conversation per person, newest first.
+	 *
+	 * @return array { requests: [], conversations: [] }
+	 */
+	public static function inbox() {
+		$posts = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'private',
+				'posts_per_page' => 500,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+		$requests = array();
+		$convs    = array();
+		foreach ( $posts as $p ) {
+			$n = self::shape( $p );
+			if ( 'in' === $n['dir'] && 'request' === $n['state'] ) {
+				$requests[] = $n;
+				continue;
+			}
+			$k = self::with_key( $n );
+			if ( ! isset( $convs[ $k ] ) ) {
+				$convs[ $k ] = array(
+					'with'   => $k,
+					'kind'   => 'out' === $n['dir'] ? 'stubli' : $n['kind'],
+					'site'   => $n['site'],
+					'name'   => '',
+					'avatar' => '',
+					'last'   => array(
+						'text' => $n['text'],
+						'date' => $n['date'],
+						'dir'  => $n['dir'],
+					),
+					'unread' => false,
+				);
+			}
+			if ( 'in' === $n['dir'] ) {
+				if ( '' === $convs[ $k ]['name'] ) {
+					$convs[ $k ]['name']   = $n['name'];
+					$convs[ $k ]['avatar'] = $n['avatar'];
+				}
+				if ( ! get_post_meta( $p->ID, self::READ, true ) ) {
+					$convs[ $k ]['unread'] = true;
+				}
+			}
+		}
+		foreach ( $convs as $k => $c ) {
+			if ( '' === $c['name'] ) {
+				$f                     = $c['site'] ? Follows::find_by_site( trailingslashit( Follows::origin( $c['site'] ) ) ) : null;
+				$convs[ $k ]['name']   = $f && $f['name'] ? $f['name'] : (string) wp_parse_url( (string) $c['site'], PHP_URL_HOST );
+				$convs[ $k ]['avatar'] = $f ? $f['avatar_url'] : '';
+			}
+		}
+		return array(
+			'requests'      => $requests,
+			'conversations' => array_values( $convs ),
+		);
+	}
+
+	/**
+	 * One conversation, oldest letter first.
+	 *
+	 * @param string $with Key from inbox().
+	 * @return array[]
+	 */
+	public static function thread( $with ) {
+		$out = array();
+		foreach ( get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'posts_per_page' => 500, 'orderby' => 'date', 'order' => 'ASC' ) ) as $p ) {
+			$n = self::shape( $p );
+			if ( self::with_key( $n ) === (string) $with && ! ( 'in' === $n['dir'] && 'request' === $n['state'] ) ) {
+				$out[] = $n;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Mark a conversation's letters as read.
+	 *
+	 * @param string $with Key.
+	 * @return int How many were unread.
+	 */
+	public static function mark_read( $with ) {
+		$n = 0;
+		foreach ( self::thread( $with ) as $l ) {
+			if ( 'in' === $l['dir'] && ! get_post_meta( $l['id'], self::READ, true ) ) {
+				update_post_meta( $l['id'], self::READ, 1 );
+				++$n;
+			}
+		}
+		return $n;
+	}
+
+	/**
+	 * Unread letters and waiting requests, for the envelope's dot.
+	 *
+	 * @return int
+	 */
+	public static function unread() {
+		$q = new \WP_Query(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'private',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'   => '_stubli_dir',
+						'value' => 'in',
+					),
+					array(
+						'key'     => self::READ,
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+		return (int) $q->found_posts;
+	}
+
+	/**
+	 * A letter arrived: tell the owner's phone, if they turned notifications on.
+	 *
+	 * @param int $id Letter.
+	 */
+	public static function push( $id ) {
+		$p = get_post( (int) $id );
+		if ( ! $p || self::POST_TYPE !== $p->post_type || ! class_exists( __NAMESPACE__ . '\\Digest' ) ) {
+			return;
+		}
+		$n = self::shape( $p );
+		Digest::push_all(
+			array(
+				/* translators: %s: name */
+				'title' => sprintf( __( 'A letter from %s', 'stubli' ), $n['name'] ),
+				'body'  => wp_trim_words( $n['text'], 16, '…' ),
+				'url'   => home_url( '/app/#letters' ),
+			)
+		);
 	}
 
 	/**
@@ -255,6 +432,7 @@ class Notes {
 		if ( $reply ) {
 			update_post_meta( (int) $reply, '_stubli_replied', current_time( 'mysql', true ) );
 		}
+		update_post_meta( $id, self::READ, 1 );
 		return array(
 			'id'   => (int) $id,
 			'sent' => true,
@@ -350,6 +528,7 @@ class Notes {
 		if ( is_wp_error( $new ) ) {
 			return $new;
 		}
+		wp_schedule_single_event( time(), self::PUSH_HOOK, array( (int) $new ) );
 		return array(
 			'ok'    => true,
 			'state' => $state,
@@ -411,7 +590,11 @@ class Notes {
 			),
 			true
 		);
-		return is_wp_error( $id ) ? $id : array( 'ok' => true );
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+		wp_schedule_single_event( time(), self::PUSH_HOOK, array( (int) $id ) );
+		return array( 'ok' => true );
 	}
 
 	/**
@@ -484,7 +667,7 @@ class Notes {
 			'text'    => (string) $p->post_content,
 			'prompt'  => is_array( $quote ) ? $quote : null,
 			'replied' => (bool) get_post_meta( $p->ID, '_stubli_replied', true ),
-			'date'    => mysql_to_rfc3339( $p->post_date_gmt ),
+			'date'    => gmdate( 'c', (int) strtotime( $p->post_date_gmt . ' UTC' ) ),
 		);
 	}
 
@@ -617,6 +800,37 @@ class Notes {
 					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
 				},
 				'permission_callback' => array( Rest::class, 'is_owner' ),
+			)
+		);
+		Rest::register(
+			'/letters',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => static function () {
+					return rest_ensure_response( self::inbox() );
+				},
+				'permission_callback' => array( Rest::class, 'is_owner' ),
+			)
+		);
+		Rest::register(
+			'/letters/thread',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => static function ( \WP_REST_Request $r ) {
+						return rest_ensure_response( self::thread( (string) $r['with'] ) );
+					},
+					'permission_callback' => array( Rest::class, 'is_owner' ),
+					'args'                => array( 'with' => array( 'type' => 'string', 'required' => true ) ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => static function ( \WP_REST_Request $r ) {
+						return rest_ensure_response( array( 'read' => self::mark_read( (string) $r['with'] ), 'unread' => self::unread() ) );
+					},
+					'permission_callback' => array( Rest::class, 'is_owner' ),
+					'args'                => array( 'with' => array( 'type' => 'string', 'required' => true ) ),
+				),
 			)
 		);
 		Rest::register(
