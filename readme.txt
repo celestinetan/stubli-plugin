@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.40.0
+Stable tag: 0.40.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.40.1 =
+* Journal: a short journal shows All entries once, at the top; it appears again at the bottom only when there are older entries.
 
 = 0.40.0 =
 * Letters: notes between Stublis now have a proper inbox, one conversation per person, behind an envelope at the top of the app. Unread letters are marked, letters from people you don't follow wait for your OK, and your phone can tell you when a letter arrives.
