@@ -114,12 +114,15 @@ function stubli_photo_tax_query() {
 		),
 	);
 	// Journal entries the owner filed into a collection belong there too (Stubli plugin 0.41.0+).
+	// The OR group sits inside an outer array, so a collection filter ('cat')
+	// that WordPress adds next to it is ANDed, not ORed.
 	if ( taxonomy_exists( 'stubli_shelf' ) ) {
 		$q['relation'] = 'OR';
 		$q[]           = array(
 			'taxonomy' => 'stubli_shelf',
 			'operator' => 'EXISTS',
 		);
+		$q = array( $q );
 	}
 	return $q;
 }

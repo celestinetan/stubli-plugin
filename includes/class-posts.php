@@ -423,16 +423,20 @@ class Posts {
 	 * @return array Tax query.
 	 */
 	public static function tile_tax() {
+		// The OR group sits inside an outer array, so a collection filter
+		// ('cat') that WordPress adds next to it is ANDed, not ORed.
 		return array(
-			'relation' => 'OR',
 			array(
-				'taxonomy' => 'post_format',
-				'field'    => 'slug',
-				'terms'    => array( 'post-format-image', 'post-format-gallery' ),
-			),
-			array(
-				'taxonomy' => Journal::SHELF,
-				'operator' => 'EXISTS',
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'terms'    => array( 'post-format-image', 'post-format-gallery' ),
+				),
+				array(
+					'taxonomy' => Journal::SHELF,
+					'operator' => 'EXISTS',
+				),
 			),
 		);
 	}

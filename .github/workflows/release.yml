@@ -1,0 +1,70 @@
+# The whole release from one tag: push a tag like v0.41.1 and this
+#  1. checks the tag, the plugin header and the readme's Stable tag agree,
+#  2. builds stubli.zip (the plugin in a "stubli" folder),
+#  3. creates the GitHub Release "Stubli <version>" with the changelog entry
+#     and stubli.zip attached, marked Latest,
+#  4. publishes the same version to the WordPress.org plugin directory.
+# Needs the repository secrets SVN_USERNAME and SVN_PASSWORD.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wordpress-org
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code of that version
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Check the version matches the plugin and readme
+        run: |
+          WANT="${GITHUB_REF_NAME#v}"
+          HEAD=$(grep -m1 -E '^\s*\*\s*Version:' wordgram.php | sed -E 's/.*Version:\s*//' | tr -d '[:space:]')
+          STABLE=$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/Stable tag:\s*//' | tr -d '[:space:]')
+          echo "tag $WANT, plugin $HEAD, readme $STABLE"
+          test "$WANT" = "$HEAD" && test "$WANT" = "$STABLE"
+          echo "VERSION=$WANT" >> "$GITHUB_ENV"
+
+      - name: Write the release notes from the changelog
+        run: |
+          awk -v v="= $VERSION =" '$0==v{on=1;next} on&&/^= /{exit} on' readme.txt | sed '/^\s*$/d' > notes.md
+          test -s notes.md
+          printf '\nTo install: download **stubli.zip** below, then in WordPress go to Plugins → Add New Plugin → Upload Plugin. Don'"'"'t unzip it.\n' >> notes.md
+          cat notes.md
+
+      - name: Build stubli.zip
+        run: |
+          mkdir -p build/stubli
+          tar --exclude=./.git --exclude=./.github --exclude=./build --exclude=./notes.md \
+              --exclude=./README.md --exclude=./blueprint.json --exclude=./.distignore --exclude=./.wordpress-org \
+              -cf - . | tar -C build/stubli -xf -
+          (cd build && zip -qr ../stubli.zip stubli)
+          unzip -l stubli.zip | tail -1
+
+      - name: Create the GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          name: Stubli ${{ env.VERSION }}
+          body_path: notes.md
+          files: stubli.zip
+          make_latest: true
+
+      - name: Leave out files WordPress.org doesn't need
+        run: |
+          printf '%s\n' /.git /.github /.gitignore /.gitattributes /.distignore /.wordpress-org /README.md /blueprint.json /build /notes.md /stubli.zip > .distignore
+
+      - name: Publish to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: stubli
