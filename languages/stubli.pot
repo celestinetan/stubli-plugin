@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stubli 0.42.1\n"
+"Project-Id-Version: Stubli 0.42.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stubli\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-28T19:50:54+00:00\n"
+"POT-Creation-Date: 2026-10-28T19:58:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: stubli\n"
@@ -346,7 +346,7 @@ msgstr ""
 #: includes/class-archive.php:385
 #: includes/class-arrange.php:52
 #: includes/class-posts.php:409
-#: look/inc/helpers.php:211
+#: look/inc/helpers.php:217
 #: look/inc/views.php:546
 #: assets/app/app.js:618
 #: assets/app/app.js:654
@@ -1365,88 +1365,88 @@ msgstr ""
 msgid "That doesn't look like an invite link. It ends in /invite/?t= and a code."
 msgstr ""
 
-#: look/inc/helpers.php:404
+#: look/inc/helpers.php:410
 msgid "today"
 msgstr ""
 
-#: look/inc/helpers.php:407
+#: look/inc/helpers.php:413
 #: assets/app/app.js:1568
 msgid "yesterday"
 msgstr ""
 
 #. translators: %d: number of days
-#: look/inc/helpers.php:411
+#: look/inc/helpers.php:417
 msgid "%d days ago"
 msgstr ""
 
-#: look/inc/helpers.php:429
+#: look/inc/helpers.php:435
 msgid "A photo"
 msgstr ""
 
-#: look/inc/helpers.php:632
+#: look/inc/helpers.php:638
 msgid "They"
 msgstr ""
 
-#: look/inc/helpers.php:636
+#: look/inc/helpers.php:642
 msgid "Your journal is a blank page. One line about today is a fine start."
 msgstr ""
 
-#: look/inc/helpers.php:637
+#: look/inc/helpers.php:643
 msgid "Nothing written yet. The best entries begin with an ordinary day."
 msgstr ""
 
-#: look/inc/helpers.php:638
+#: look/inc/helpers.php:644
 msgid "Your first entry can be short. Future you will be glad you wrote it."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:641
+#: look/inc/helpers.php:647
 msgid "%s's journal is still a blank page. Good stories take their time."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:643
+#: look/inc/helpers.php:649
 msgid "Nothing written yet. %s is probably out living the first entry."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:645
+#: look/inc/helpers.php:651
 msgid "The ink on %s's first entry is still drying. Come back soon."
 msgstr ""
 
-#: look/inc/helpers.php:647
+#: look/inc/helpers.php:653
 msgid "Write your first entry"
 msgstr ""
 
-#: look/inc/helpers.php:650
+#: look/inc/helpers.php:656
 msgid "Nothing in here yet. A photo from today would look lovely."
 msgstr ""
 
-#: look/inc/helpers.php:651
+#: look/inc/helpers.php:657
 msgid "An empty shelf, waiting for its first photo."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:654
+#: look/inc/helpers.php:660
 msgid "No photos here yet. %s is still choosing the good ones."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:656
+#: look/inc/helpers.php:662
 msgid "This spot is saved for %s's next favourite photo."
 msgstr ""
 
-#: look/inc/helpers.php:658
+#: look/inc/helpers.php:664
 #: assets/app/app.js:569
 msgid "Post a photo"
 msgstr ""
 
-#: look/inc/helpers.php:688
+#: look/inc/helpers.php:694
 #: look/inc/views.php:466
 msgid "Made with"
 msgstr ""
 
-#: look/inc/helpers.php:688
+#: look/inc/helpers.php:694
 msgid "Make your own"
 msgstr ""
 

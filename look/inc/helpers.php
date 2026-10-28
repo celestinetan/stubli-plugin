@@ -105,6 +105,12 @@ function stubli_has_photos_query() {
  * @return array
  */
 function stubli_photo_tax_query() {
+	// No journal entry has ever been written here, so there is nothing to keep
+	// out. (WordPress drops a "not in" clause whose term doesn't exist, which
+	// would leave only the filed-entries clause below and hide every photo.)
+	if ( ! term_exists( 'post-format-status', 'post_format' ) ) {
+		return array();
+	}
 	$q = array(
 		array(
 			'taxonomy' => 'post_format',
