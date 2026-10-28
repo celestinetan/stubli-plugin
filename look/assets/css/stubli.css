@@ -873,3 +873,53 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 @keyframes stw-wave { 0%, 100% { transform: skewY(0) scaleX(1); } 25% { transform: skewY(-9deg) scaleX(.93); } 55% { transform: skewY(6deg) scaleX(.97); } 80% { transform: skewY(-3deg) scaleX(.99); } }
 @keyframes stw-flicker { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(.9, 1.12); } 60% { transform: scale(1.05, .94); } }
 @media (prefers-reduced-motion: reduce) { .stw *, .stw .stw-l { animation: none !important; } .stw-bit, .stw-hearts path { opacity: 0 !important; } }
+
+/* Make your Stubli as a step-by-step wizard (0.2.96): one card per step. */
+.st-gs.is-live .st-gs-card { margin-top: 14px; padding: 18px 18px 16px; border-radius: 24px; background: var(--st-surface); }
+.st-gs.is-live .st-gs-step { padding: 0; }
+.st-gs.is-live .st-gs-step .st-h2 { margin-top: 6px; }
+.st-gs.is-live .st-gs-pick, .st-gs.is-live .st-gs-host, .st-gs.is-live .st-gs-more { background: var(--st-bg); }
+.st-gs.is-live .st-gs-card .st-button-quiet { background: var(--st-bg) !important; }
+.st-gs.is-live .st-gs-host .st-button-quiet { background: var(--st-surface) !important; }
+.st-gs.is-live .st-gs-pick:hover, .st-gs.is-live .st-gs-pick:focus-visible { background: var(--st-field); }
+.st-gs.is-live .st-gs-card .st-input, .st-gs.is-live .st-gs-card input[type="text"] { background: var(--st-bg); }
+.st-gs.is-live .st-gs-progress { margin: 0 0 6px; }
+.st-gs.is-live .st-gs-list { display: flex; gap: 0; align-items: center; }
+.st-gs.is-live .st-gs-list li { flex: 1 1 0; gap: 0; }
+.st-gs.is-live .st-gs-list li:last-child { flex: 0 0 auto; }
+.st-gs.is-live .st-gs-list li:not(:last-child)::after { content: ""; flex: 1; height: 2px; margin: 0 6px; border-radius: 2px; background: var(--st-field); }
+.st-gs.is-live .st-gs-list li.is-done::after { background: var(--st-accent); }
+.st-gs.is-live .st-gs-mark { width: 30px; height: 30px; font-size: 13px; background: var(--st-bg); }
+.st-gs.is-live .st-gs-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.st-gs-now { margin: 12px 0 0; font-size: 14px; font-weight: 600; color: var(--st-muted); }
+.st-gs.is-live .st-gs-stuck { margin-top: 18px; text-align: center; font-size: 13px; color: var(--st-muted); }
+.st-gs.is-live .st-gs-why { margin-top: 14px; }
+.st-gs.is-live .st-gs-why summary { font-weight: 500; font-size: 15px; color: var(--st-muted); }
+.st-gs.is-live .st-gs-why p, .st-gs.is-live .st-gs-why ul { font-size: 15px; }
+.st-gs.is-live .st-gs-back { margin: 0; }
+.st-gs[data-at]:not([data-at="start"]) > .st-lead, .st-gs[data-at]:not([data-at="start"]) > .st-gs-try { display: none; }
+html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
+@media (max-width: 599px) {
+	.st-gs.is-live .st-gs-card { margin-left: -6px; margin-right: -6px; padding: 16px 14px 14px; }
+	.st-gs.is-live .st-gs-card .st-gs-choices > .st-button, .st-gs.is-live .st-gs-host > .st-button { width: 100%; justify-content: center; }
+}
+.st-gs.is-live .st-gs-card .st-gs-end { display: block; padding: 14px 16px; border-radius: 16px; background: var(--st-bg); }
+.st-gs.is-live .st-gs-card .st-gs-end p + p { margin-top: 8px; }
+.st-gs-else .st-gs-site { margin-bottom: 4px; }
+.st-gs.is-live .st-gs-card { max-width: 640px; }
+.st-gs.is-live .st-gs-pick { position: relative; padding-right: 44px; }
+.st-gs.is-live .st-gs-pick::after { content: ""; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -5px; border-top: 2px solid var(--st-muted); border-right: 2px solid var(--st-muted); transform: rotate(45deg); }
+.st-gs.is-live a.st-gs-mark { background: var(--st-accent); color: var(--st-accent-ink); text-decoration: none; }
+.st-gs.is-live a.st-gs-mark:hover, .st-gs.is-live a.st-gs-mark:focus-visible { outline: 2px solid var(--st-ink); outline-offset: 2px; }
+.st-gs.is-live a.st-gs-mark { position: relative; }
+.st-gs.is-live a.st-gs-mark::before { content: ""; position: absolute; inset: -7px; }
+#gs-setup .st-gs-site .st-button-quiet { background: var(--st-accent) !important; color: var(--st-accent-ink) !important; }
+#gs-setup > .st-button:not(.st-button-quiet) { background: var(--st-bg); color: var(--st-ink); }
+@keyframes st-gs-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.st-gs-step.is-in { animation: st-gs-in .22s cubic-bezier(0.2, 0, 0, 1); }
+@media (prefers-reduced-motion: reduce) { .st-gs-step.is-in { animation: none; } }
+.st-gs.is-live .st-gs-step > .st-button { margin-top: 14px; }
+.st-gs.is-live .st-gs-host > .st-button + .st-muted { margin-top: 12px; }
+@media (max-width: 599px) {
+	.st-gs.is-live .st-gs-step > .st-button, .st-gs.is-live .st-gs-card .st-gs-site .st-button { width: 100%; }
+}

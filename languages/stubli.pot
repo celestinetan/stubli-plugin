@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stubli 0.43.2\n"
+"Project-Id-Version: Stubli 0.43.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stubli\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-28T23:01:29+00:00\n"
+"POT-Creation-Date: 2026-10-28T23:19:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: stubli\n"
@@ -403,7 +403,7 @@ msgstr ""
 
 #: includes/class-archive.php:306
 #: includes/class-archive.php:386
-#: look/inc/setup.php:194
+#: look/inc/setup.php:198
 #: look/inc/views.php:254
 #: look/inc/views.php:518
 #: look/inc/views.php:767
@@ -1529,14 +1529,24 @@ msgstr ""
 msgid "Invite your people"
 msgstr ""
 
-#: look/inc/setup.php:192
+#. translators: %1$s: step number, 1 to 4.
+#: look/inc/setup.php:68
+msgid "Step %1$s of 4"
+msgstr ""
+
+#. translators: 1: step number, 2: step name.
+#: look/inc/setup.php:70
+msgid "Back to step %1$s: %2$s"
+msgstr ""
+
+#: look/inc/setup.php:196
 #: look/inc/views.php:713
 #: look/inc/views.php:744
 #: look/inc/views.php:768
 msgid "All entries"
 msgstr ""
 
-#: look/inc/setup.php:196
+#: look/inc/setup.php:200
 #: look/inc/views.php:256
 #: look/inc/views.php:847
 #: assets/app/app.js:628
@@ -1545,11 +1555,11 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: look/inc/setup.php:198
+#: look/inc/setup.php:202
 msgid "From your own Stubli"
 msgstr ""
 
-#: look/inc/setup.php:200
+#: look/inc/setup.php:204
 msgid "You're invited"
 msgstr ""
 

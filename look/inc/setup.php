@@ -64,6 +64,10 @@ add_action(
 				'gs2'         => __( 'Add the Stubli plugin', 'stubli' ),
 				'gs3'         => __( 'Answer five quick questions', 'stubli' ),
 				'gs4'         => __( 'Invite your people', 'stubli' ),
+				/* translators: %1$s: step number, 1 to 4. */
+				'stepOf'      => __( 'Step %1$s of 4', 'stubli' ),
+				/* translators: 1: step number, 2: step name. */
+				'backTo'      => __( 'Back to step %1$s: %2$s', 'stubli' ),
 			)
 		);
 		// Keep WordPress's global block styles from fighting the design.

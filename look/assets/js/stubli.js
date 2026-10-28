@@ -91,11 +91,14 @@
 			}
 		};
 		var where = { start: 1, host: 1, check: 1, noplugins: 1, install: 2, setup: 3, invite: 4 };
+		var firstOf = { 1: 'start', 2: 'install', 3: 'setup', 4: 'invite' };
 		var show = function ( focus ) {
 			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || gs.querySelector( '[data-gs-step="start"]' );
 			steps.forEach( function ( s ) { s.hidden = s !== cur; } );
+			if ( focus ) { cur.classList.remove( 'is-in' ); void cur.offsetWidth; cur.classList.add( 'is-in' ); }
 			var n = +cur.getAttribute( 'data-gs-n' );
 			var sid = cur.getAttribute( 'data-gs-step' );
+			gs.setAttribute( 'data-at', sid ); document.documentElement.setAttribute( 'data-gs-at', sid );
 			if ( where[ sid ] ) { mem.set( 'stubli-gs-step', sid ); }
 			paintInvite();
 			var ibox = gs.querySelector( '[data-gs-invited]' );
@@ -105,8 +108,8 @@
 				if ( focus ) { var h0 = cur.querySelector( 'h2' ); h0.setAttribute( 'tabindex', '-1' ); h0.focus(); }
 				return;
 			}
-			// A short checklist of the four steps, not a slideshow bar: people swiped
-			// sideways on phones when it looked like stories.
+			// A wizard stepper: four numbered stops (✓ when done) and "Step 2 of 4 · name".
+			// Numbers, not a thin slideshow bar: people swiped sideways when it looked like stories.
 			prog.hidden = false;
 			prog.innerHTML = '';
 			var list = document.createElement( 'ol' ); list.className = 'st-gs-list';
@@ -114,11 +117,16 @@
 				var li = document.createElement( 'li' );
 				li.className = k < n ? 'is-done' : ( k === n ? 'is-now' : '' );
 				if ( k === n ) { li.setAttribute( 'aria-current', 'step' ); }
-				var mark = document.createElement( 'span' ); mark.className = 'st-gs-mark'; mark.setAttribute( 'aria-hidden', 'true' ); mark.textContent = k < n ? '✓' : String( k );
-				li.appendChild( mark ); li.appendChild( document.createTextNode( names[ k ] ) );
+				// Steps already done can be tapped to go back to them.
+				var mark = document.createElement( k < n ? 'a' : 'span' ); mark.className = 'st-gs-mark'; mark.textContent = k < n ? '✓' : String( k );
+				var nm = document.createElement( 'span' ); nm.className = 'st-gs-name'; nm.textContent = names[ k ];
+				if ( k < n ) { mark.href = '#gs-' + firstOf[ k ]; mark.setAttribute( 'aria-label', ( T.backTo || 'Back to step %1$s: %2$s' ).replace( '%1$s', k ).replace( '%2$s', names[ k ] ) ); nm.hidden = true; } else { mark.setAttribute( 'aria-hidden', 'true' ); }
+				li.appendChild( mark ); li.appendChild( nm );
 				list.appendChild( li );
 			} );
-			prog.appendChild( list );
+			var now = document.createElement( 'p' ); now.className = 'st-gs-now';
+			now.textContent = ( T.stepOf || 'Step %1$s of 4' ).replace( '%1$s', n ) + ' · ' + names[ n ];
+			prog.appendChild( list ); prog.appendChild( now );
 			if ( focus ) { var h = cur.querySelector( 'h2' ); h.setAttribute( 'tabindex', '-1' ); h.focus(); window.scrollTo( 0, Math.max( 0, gs.getBoundingClientRect().top + window.scrollY - 80 ) ); }
 		};
 		var resumed = gs.querySelector( '[data-gs-resumed]' );
