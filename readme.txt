@@ -87,10 +87,11 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 == Screenshots ==
 
-1. A profile with collections as folder tabs.
-2. The app: Home feed from the people you follow.
-3. The setup that opens after installing.
-4. Posting photos and videos from the phone.
+1. One account, many grids. Sort your photos into collections; each one is a grid of its own.
+2. No company in the middle. Each Stubli is its own WordPress site, and sites talk to each other directly.
+3. A feed that ends. Newest first from the people you follow, with no algorithm, likes or counts.
+4. You decide who's in. Friends-only posts, and comments from anyone outside the people you follow (and the people they follow) wait for your OK.
+5. Yours to keep. Download everything, or move your whole Stubli to another site; the people who follow you come along.
 
 == Source code ==
 

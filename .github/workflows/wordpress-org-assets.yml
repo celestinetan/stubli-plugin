@@ -1,0 +1,50 @@
+# Updates only the WordPress.org listing (banner, icon, screenshots from
+# .wordpress-org/, and readme.txt) without a new plugin version.
+# Runs when those files change on main, or by hand from the Actions tab.
+# Safety: it only runs when the readme's Stable tag is a version that has
+# already been released (a v<version> tag exists), so unreleased changes on
+# main never reach the listing. Plugin code is never touched here.
+name: Update WordPress.org listing
+
+on:
+  push:
+    branches: [main]
+    paths: ['.wordpress-org/**', 'readme.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wordpress-org
+  cancel-in-progress: false
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Check the readme belongs to a released version
+        id: guard
+        run: |
+          STABLE=$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/Stable tag:\s*//' | tr -d '[:space:]')
+          if git rev-parse -q --verify "refs/tags/v$STABLE" >/dev/null; then
+            echo "Stable tag $STABLE is released; updating the listing."
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "Stable tag $STABLE has no v$STABLE tag yet; the release itself will update the listing. Skipping."
+            echo "go=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update banner, icon, screenshots and readme
+        if: steps.guard.outputs.go == 'yes'
+        uses: 10up/action-wordpress-plugin-asset-update@2480306f6f693672726d08b5917ea114cb2825f7 # 2.2.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: stubli
+          IGNORE_OTHER_FILES: true
