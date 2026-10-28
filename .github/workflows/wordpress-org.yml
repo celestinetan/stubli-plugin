@@ -1,0 +1,48 @@
+# Publishes Stubli to the WordPress.org plugin directory (SVN).
+# Runs by itself when a GitHub Release is published, or by hand from the
+# Actions tab ("Run workflow") with the version to publish, e.g. 0.40.1.
+# Needs two repository secrets: SVN_USERNAME and SVN_PASSWORD.
+name: Publish to WordPress.org
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must have a v<version> tag), e.g. 0.40.1"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wordpress-org
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code of that version
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref }}
+
+      - name: Check the version matches the plugin and readme
+        env:
+          WANT: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.event.release.tag_name }}
+        run: |
+          WANT="${WANT#v}"
+          HEAD=$(grep -m1 -E '^\s*\*\s*Version:' wordgram.php | sed -E 's/.*Version:\s*//' | tr -d '[:space:]')
+          STABLE=$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/Stable tag:\s*//' | tr -d '[:space:]')
+          echo "release $WANT, plugin $HEAD, readme $STABLE"
+          test "$WANT" = "$HEAD" && test "$WANT" = "$STABLE"
+          echo "VERSION=$WANT" >> "$GITHUB_ENV"
+
+      - name: Publish to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: stubli
