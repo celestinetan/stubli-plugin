@@ -19,6 +19,11 @@
 		set: function ( k, v ) { try { localStorage.setItem( k, v ); } catch ( e ) {} },
 		del: function ( k ) { try { localStorage.removeItem( k ); } catch ( e ) {} }
 	};
+	// A friend's invite, brought along from stubli.app's Make your Stubli: the setup uses it at "Your people".
+	try {
+		var qInv = new URLSearchParams( location.search ).get( 'stubli_invite' );
+		if ( qInv && /^https?:\/\/[^\s]+$/i.test( qInv ) ) { store.set( 'stubli-pending-invite', qInv ); history.replaceState( null, '', location.pathname + location.hash ); }
+	} catch ( e ) {}
 
 	/* ── Helpers ── */
 	// Titles and names can arrive with HTML entities ("Here&#8217;s").
@@ -2191,7 +2196,7 @@
 						( su.picked.length ? '<label class="a-su-sel-l" for="a-su-l' + f.id + '">' + __( 'Show under', 'stubli' ) + '</label><select id="a-su-l' + f.id + '" class="a-su-select" data-su-list="' + f.id + '">' + opts.map( function ( o ) { return '<option value="' + esc( o ) + '"' + ( o === f.list ? ' selected' : '' ) + '>' + esc( o || __( 'Just Home', 'stubli' ) ) + '</option>'; } ).join( '' ) + '</select>' : '' ) +
 						'</span><span class="a-su-following">' + icon( 'check', 16 ) + ( __( 'Following', 'stubli' ) + '</span></li>' );
 				} ).join( '' ) + '</ul>' : ( '<p class="a-su-empty">' + __( 'Nobody yet, and that\'s fine. If a friend sent you an invite link, paste it below and you\'ll follow each other.', 'stubli' ) + '</p>' ) ) +
-				( '<label class="a-label" for="a-su-inv">' + __( 'Got an invite link?', 'stubli' ) + '</label><form class="a-inline" data-su-inv style="margin-top:0"><input id="a-su-inv" class="a-field" type="url" inputmode="url" autocomplete="off" placeholder="' + esc( __( 'theirname.com/invite/?t=…', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet">' + __( 'Use link', 'stubli' ) + '</button></form><p class="a-help" aria-live="polite" data-su-inv-msg></p>' ) +
+				( '<label class="a-label" for="a-su-inv">' + __( 'Got an invite link?', 'stubli' ) + '</label><form class="a-inline" data-su-inv style="margin-top:0"><input id="a-su-inv" class="a-field" type="url" inputmode="url" autocomplete="off" placeholder="' + esc( __( 'theirname.com/invite/?t=…', 'stubli' ) ) + '"><button type="submit" class="a-btn quiet">' + __( 'Use link', 'stubli' ) + '</button></form><p class="a-help" aria-live="polite" data-su-inv-msg>' + esc( su.invMsg || '' ) + '</p>' ) +
 				( su.sugg && su.sugg.length ? ( '<p class="a-label">' + __( 'People they follow', 'stubli' ) + '</p><ul class="a-su-people">' ) + su.sugg.map( function ( s ) {
 					var on = !! su.ticks[ s.url ];
 					return '<li><button type="button" class="a-su-row" role="checkbox" aria-checked="' + on + '" data-su-tick="' + esc( s.url ) + '">' + ( s.avatar ? '<img class="a-av" src="' + esc( s.avatar ) + '" alt="">' : '<span class="a-av a-su-ini" aria-hidden="true">' + esc( initials( s.name || hostOf( s.url ) ) ) + '</span>' ) +
@@ -2327,6 +2332,14 @@
 					renderSetup(); var mm = $( '[data-su-inv-msg]' ); if ( mm ) { mm.textContent = su.invMsg; }
 				}, function ( er ) { btn.disabled = false; btn.textContent = __( 'Use link', 'stubli' ); m.textContent = er.message; } );
 			} );
+			// The invite you came with is used once, by itself.
+			var pend = store.get( 'stubli-pending-invite' );
+			if ( pend && ! su.invTried ) {
+				su.invTried = true; store.del( 'stubli-pending-invite' );
+				$( '#a-su-inv' ).value = pend;
+				var pf = $( '[data-su-inv]' );
+				if ( pf.requestSubmit ) { pf.requestSubmit(); } else { pf.dispatchEvent( new Event( 'submit', { cancelable: true } ) ); }
+			}
 			next.addEventListener( 'click', function () {
 				var urls = Object.keys( su.ticks ).filter( function ( k ) { return su.ticks[ k ]; } );
 				su.busy = true; renderSetup();

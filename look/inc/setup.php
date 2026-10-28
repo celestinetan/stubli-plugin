@@ -56,6 +56,15 @@ add_action(
 				/* translators: 1: current photo, 2: number of photos */
 				'photoOf'     => __( 'Photo %1$d of %2$d', 'stubli' ),
 				'badAddress'  => __( 'That doesn\'t look like a website address. Try something like yourname.com.', 'stubli' ),
+				/* translators: %s: name */
+				'invitedBy'   => __( '%s invited you', 'stubli' ),
+				/* translators: 1: step number, 2: step name */
+				'carryOn'     => __( 'Carry on at step %1$s: %2$s', 'stubli' ),
+				'badInvite'   => __( 'That doesn\'t look like an invite link. It looks like theirname.com/invite/?t=… Ask your friend to send it again if you can\'t find it.', 'stubli' ),
+				'gs1'         => __( 'A home for your site', 'stubli' ),
+				'gs2'         => __( 'Install Stubli', 'stubli' ),
+				'gs3'         => __( 'Stubli sets itself up', 'stubli' ),
+				'gs4'         => __( 'Invite your people', 'stubli' ),
 			)
 		);
 		// Keep WordPress's global block styles from fighting the design.

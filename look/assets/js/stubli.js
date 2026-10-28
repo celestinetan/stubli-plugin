@@ -62,10 +62,55 @@
 		var steps = gs.querySelectorAll( '[data-gs-step]' ), prog = gs.querySelector( '[data-gs-progress]' );
 		var names = { 1: T.gs1 || 'A home for your site', 2: T.gs2 || 'Install Stubli', 3: T.gs3 || 'Stubli sets itself up', 4: T.gs4 || 'Invite your people' };
 		gs.classList.add( 'is-live' );
+		// Remembered on this device only: the step you reached, and a friend's invite.
+		var mem = { get: function ( k ) { try { return localStorage.getItem( k ); } catch ( e ) { return null; } }, set: function ( k, v ) { try { localStorage.setItem( k, v ); } catch ( e ) {} } };
+		var invite = null;
+		try { invite = JSON.parse( mem.get( 'stubli-gs-invite' ) || 'null' ); } catch ( e ) { invite = null; }
+		if ( invite && ( ! invite.url || Date.now() - ( invite.at || 0 ) > 30 * 864e5 ) ) { invite = null; }
+		var keepInvite = function ( url, from ) {
+			url = String( url || '' ).trim();
+			if ( ! /^https?:\/\//i.test( url ) ) { url = 'https://' + url; }
+			var u; try { u = new URL( url ); } catch ( e ) { return false; }
+			if ( u.hostname.indexOf( '.' ) < 1 || ! u.searchParams.get( 't' ) ) { return false; }
+			invite = { url: u.href, from: String( from || '' ).slice( 0, 60 ) || u.hostname, at: Date.now() };
+			mem.set( 'stubli-gs-invite', JSON.stringify( invite ) );
+			return true;
+		};
+		// Arriving from a friend's invite page: keep the invite, and start at the beginning.
+		try {
+			var qs = new URLSearchParams( location.search );
+			if ( qs.get( 'invite' ) && keepInvite( qs.get( 'invite' ), qs.get( 'from' ) ) ) { history.replaceState( null, '', location.pathname + '#gs-welcome' ); }
+		} catch ( e ) {}
+		var paintInvite = function () {
+			var box = gs.querySelector( '[data-gs-invited]' ), h = gs.querySelector( '[data-gs-invited-h]' ), pick = gs.querySelector( '[data-gs-invite-pick]' );
+			if ( ! box ) { return; }
+			box.hidden = ! invite;
+			if ( invite ) {
+				h.textContent = ( T.invitedBy || '%s invited you' ).replace( '%s', invite.from );
+				if ( pick ) { pick.hidden = true; }
+			}
+		};
+		var where = { start: 1, host: 1, check: 1, noplugins: 1, install: 2, setup: 3, invite: 4 };
 		var show = function ( focus ) {
 			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || steps[ 0 ];
 			steps.forEach( function ( s ) { s.hidden = s !== cur; } );
 			var n = +cur.getAttribute( 'data-gs-n' );
+			var sid = cur.getAttribute( 'data-gs-step' );
+			if ( where[ sid ] ) { mem.set( 'stubli-gs-step', sid ); }
+			var resume = gs.querySelector( '[data-gs-resume]' ), saved = mem.get( 'stubli-gs-step' );
+			if ( resume ) {
+				resume.hidden = ! ( saved && where[ saved ] && saved !== 'start' );
+				if ( ! resume.hidden ) {
+					resume.setAttribute( 'href', '#gs-' + saved ); resume.setAttribute( 'data-gs-go', saved );
+					gs.querySelector( '[data-gs-resume-where]' ).textContent = ( T.carryOn || 'Carry on at step %1$s: %2$s' ).replace( '%1$s', where[ saved ] ).replace( '%2$s', names[ where[ saved ] ] );
+				}
+			}
+			paintInvite();
+			if ( ! n ) {
+				prog.hidden = true;
+				if ( focus ) { var h0 = cur.querySelector( 'h2' ); h0.setAttribute( 'tabindex', '-1' ); h0.focus(); }
+				return;
+			}
 			// A short checklist of the four steps, not a slideshow bar: people swiped
 			// sideways on phones when it looked like stories.
 			prog.hidden = false;
@@ -86,6 +131,16 @@
 		// Coming from the welcome page's "Do you have a WordPress site?": skip that question.
 		try { var have = new URLSearchParams( location.search ).get( 'have' ); if ( ! location.hash && ( 'yes' === have || 'no' === have ) ) { history.replaceState( null, '', '#gs-' + ( 'yes' === have ? 'check' : 'host' ) ); } } catch ( e ) {}
 		show( false );
+		var invForm = gs.querySelector( '[data-gs-invite-form]' );
+		if ( invForm ) {
+			invForm.addEventListener( 'submit', function ( e ) {
+				e.preventDefault();
+				var err = invForm.querySelector( '.st-error' );
+				if ( ! keepInvite( invForm.link.value ) ) { err.textContent = T.badInvite || 'That doesn\'t look like an invite link. It looks like theirname.com/invite/?t=… Ask your friend to send it again if you can\'t find it.'; err.hidden = false; invForm.link.focus(); return; }
+				err.hidden = true;
+				location.hash = '#gs-start';
+			} );
+		}
 		// "Type your address" → open that page on the visitor's own WordPress.
 		gs.querySelectorAll( '[data-gs-site]' ).forEach( function ( f ) {
 			f.addEventListener( 'submit', function ( e ) {
@@ -94,10 +149,13 @@
 				if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
 				var u;
 				try { u = new URL( v ); } catch ( x ) { u = null; }
-				if ( ! u || u.hostname.indexOf( '.' ) < 1 ) { err.textContent = T.badAddr || 'That doesn\'t look like a web address. Try something like yourname.com.'; err.hidden = false; f.addr.focus(); return; }
+				if ( ! u || u.hostname.indexOf( '.' ) < 1 ) { err.textContent = T.badAddress || 'That doesn\'t look like a web address. Try something like yourname.com.'; err.hidden = false; f.addr.focus(); return; }
 				err.hidden = true;
-				var base = u.origin + u.pathname.replace( /\/(wp-admin|wp-login\.php).*$/, '' ).replace( /\/+$/, '' );
-				window.open( base + '/' + f.getAttribute( 'data-path' ), '_blank', 'noopener' );
+				var base = u.origin + u.pathname.replace( /\/(wp-admin|wp-login\.php|app).*$/, '' ).replace( /\/+$/, '' );
+				var path = f.getAttribute( 'data-path' );
+				// Opening the setup: the friend's invite comes along, so the setup can use it.
+				if ( invite && 0 === path.indexOf( 'app/' ) ) { path = 'app/?stubli_invite=' + encodeURIComponent( invite.url ) + path.slice( 4 ); }
+				window.open( base + '/' + path, '_blank', 'noopener' );
 			} );
 		} );
 	}

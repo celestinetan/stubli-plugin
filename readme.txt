@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.42.2
+Stable tag: 0.43.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.43.0 =
+* Invites travel: open a friend's invite, make your Stubli on stubli.app, and the setup follows your friend for you at "Your people". No link to copy or paste.
+* Setup: the message after using an invite link stays on screen.
 
 = 0.42.2 =
 * A new Stubli that has no journal entries yet shows its photos again. Since 0.41.0, such a site's page could look empty.

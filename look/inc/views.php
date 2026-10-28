@@ -1037,10 +1037,19 @@ function stubli_view_invite() {
 				<p>
 					<?php
 					/* translators: %s: date */
-					printf( esc_html__( 'Setting one up takes about 15 minutes. Keep this link: during setup, paste it in "Your people" and you\'ll follow each other. It works until %s.', 'stubli' ), esc_html( wp_date( 'j F', \Stubli\Invites::expires( $token ) ) ) );
+					printf( esc_html__( 'Setting one up takes about 15 minutes, one small step at a time. We\'ll keep this invite for you, and at the end you and %1$s follow each other. It works until %2$s.', 'stubli' ), esc_html( $name ), esc_html( wp_date( 'j F', \Stubli\Invites::expires( $token ) ) ) );
 					?>
 				</p>
-				<a href="https://stubli.app/welcome/#start"><?php esc_html_e( 'How to get started', 'stubli' ); ?></a>
+				<?php
+				$start = add_query_arg(
+					array(
+						'invite' => rawurlencode( add_query_arg( 't', $token, home_url( '/invite/' ) ) ),
+						'from'   => rawurlencode( $name ),
+					),
+					'https://stubli.app/get-started/'
+				);
+				echo wp_kses( stubli_pill( $start, __( 'Make my Stubli', 'stubli' ) ), stubli_allowed_html() );
+				?>
 			</section>
 		<?php else : ?>
 			<section class="st-card-tone st-notfound">

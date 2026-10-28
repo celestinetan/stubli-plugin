@@ -605,6 +605,18 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-list li.is-now .st-gs-mark { background: var(--st-ink); color: var(--st-bg); }
 .st-gs-list li.is-done .st-gs-mark { background: var(--st-accent); color: var(--st-accent-ink); }
 .st-gs-choices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+/* Big choices, one per row: easy to hit with a thumb. */
+.st-gs-big { display: grid; gap: 10px; margin-top: 16px; }
+.st-gs-pick { display: block; min-height: 56px; padding: 14px 16px; border-radius: 16px; background: var(--st-surface); color: var(--st-ink); text-decoration: none; }
+.st-gs-pick strong { display: block; font-size: 17px; font-weight: 650; }
+.st-gs-pick span { display: block; margin-top: 2px; font-size: 14px; color: var(--st-muted); }
+.st-gs-pick:hover, .st-gs-pick:focus-visible { background: var(--st-field); }
+.st-gs-pick[hidden] { display: none; }
+.st-gs-stuck { margin: 22px 0 0; font-size: 14px; }
+.st-gs-step h2[tabindex="-1"]:focus { outline: none; }
+.st-gs-invited { margin: 4px 0 14px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--st-accent) 14%, var(--st-bg)); }
+.st-gs-invited p { margin: 0; }
+.st-gs-invited-h { font-weight: 650; margin-bottom: 4px !important; }
 .st-gs .st-button { text-decoration: none; }
 .st-button-quiet { background: var(--st-surface) !important; color: var(--st-ink) !important; }
 .st-gs-back { margin: 0 0 4px; font-size: 14px; }
