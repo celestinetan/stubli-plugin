@@ -98,7 +98,7 @@ foreach ( array_reverse( $posts, true ) as $key => $post ) {
 // ——— Ana's journal ———
 $entries = array(
 	array( 'First snow, warm Nussgipfel', '<p>Walked along the lake before work. First snow on the peaks, and the bakery had warm Nussgipfel again.</p><p>Small things, but they set the tone for the whole day.</p>', 2 * $d, 'everyone' ),
-	array( 'Bread with Ben', '<p>Ben came over with his starter and a lot of opinions. Our first loaf was flat, the second one rose like it meant it.</p><p>The kitchen still smells of it.</p>', 5 * $d, 'everyone' ),
+	array( 'Bread with Ben', '<p>Ben came over with his starter and a lot of opinions. Our first loaf was flat, the second one rose like it meant it.</p><p>The kitchen still smells of it.</p>', 5 * $d, 'everyone', 'Food' ),
 	array( '', '<p>A slow Sunday: coffee, a long walk, nothing else. To do next week:</p><ul class="checklist"><li data-checked="true">Call Mum</li><li data-checked="false">Buy new boots</li></ul>', 8 * $d, 'everyone' ),
 	array( 'Things to draw this winter', '<ul class="checklist"><li data-checked="true">The 4 in the rain</li><li data-checked="false">Sofia\'s market stall</li><li data-checked="false">Bruno, if he sits still</li><li data-checked="false">The lake frozen at the edges</li></ul>', 10 * $d, 'only_me' ),
 );
@@ -111,6 +111,9 @@ foreach ( $entries as $e ) {
 			$upd['post_title'] = wp_date( get_option( 'date_format' ), $now - $e[2] );
 		}
 		wp_update_post( $upd );
+		if ( ! empty( $e[4] ) && method_exists( Journal::class, 'file' ) ) {
+			Journal::file( (int) $r['id'], $e[4] ); // Also a tile in her Food collection.
+		}
 	}
 }
 
