@@ -4,8 +4,10 @@
  * posts pinned to the top of each collection. Everything else stays newest
  * first, and followers' feeds are never reordered.
  *
- * Stored as two options the page reads: stubli_coll_order (category IDs in
- * the owner's order) and stubli_pins (category ID => post IDs).
+ * Stored as options the page reads: stubli_coll_order (category IDs in the
+ * owner's order), stubli_pins (category ID => post IDs) and stubli_hand
+ * (category ID => post IDs, for collections arranged by hand: then the
+ * whole collection follows that order, new posts first, and pins rest).
  *
  * @package Stubli
  */
@@ -20,6 +22,8 @@ defined( 'ABSPATH' ) || exit;
 class Arrange {
 
 	const MAX_PINS = 3;
+
+	const MAX_HAND = 500;
 
 	/**
 	 * Hooks.
@@ -96,6 +100,7 @@ class Arrange {
 		$pins = self::all_pins();
 		foreach ( $out as &$c ) {
 			$c['pins'] = count( $pins[ $c['id'] ] ?? array() );
+			$c['hand'] = self::is_hand( $c['id'] );
 		}
 		return $out;
 	}
@@ -109,8 +114,13 @@ class Arrange {
 	 * @return string
 	 */
 	public static function shape( $cat ) {
-		$pins = self::all_pins()[ (int) $cat ] ?? array();
-		$id   = $pins ? $pins[0] : 0;
+		if ( self::is_hand( $cat ) ) {
+			$ord = self::ordered_ids( $cat );
+			$id  = $ord ? $ord[0] : 0;
+		} else {
+			$pins = self::all_pins()[ (int) $cat ] ?? array();
+			$id   = $pins ? $pins[0] : 0;
+		}
 		if ( ! $id ) {
 			$q  = new \WP_Query(
 				array(
@@ -172,6 +182,61 @@ class Arrange {
 	}
 
 	/**
+	 * Is this collection arranged by hand?
+	 *
+	 * @param int $cat Category ID.
+	 * @return bool
+	 */
+	public static function is_hand( $cat ) {
+		$all = (array) get_option( 'stubli_hand', array() );
+		return array_key_exists( (int) $cat, $all );
+	}
+
+	/**
+	 * Every post in a collection, in the order the page shows them: by hand
+	 * (posts added since come first, newest first) or else newest first.
+	 * Pins are left to the caller.
+	 *
+	 * @param int $cat Category ID.
+	 * @return int[]
+	 */
+	public static function ordered_ids( $cat ) {
+		$q   = new \WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => 'publish',
+				'cat'            => (int) $cat,
+				'posts_per_page' => self::MAX_HAND,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'tax_query'      => self::photo_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			)
+		);
+		$ids = array_map( 'intval', $q->posts );
+		if ( ! self::is_hand( $cat ) ) {
+			return $ids;
+		}
+		$hand = array_map( 'intval', (array) ( ( (array) get_option( 'stubli_hand', array() ) )[ (int) $cat ] ?? array() ) );
+		$kept = array_values( array_intersect( $hand, $ids ) );
+		return array_merge( array_values( array_diff( $ids, $kept ) ), $kept );
+	}
+
+	/**
+	 * Hand orders by collection name, for the app's You tab.
+	 *
+	 * @return array name => post IDs
+	 */
+	public static function hand_orders() {
+		$out = array();
+		foreach ( self::collections() as $c ) {
+			if ( $c['hand'] ) {
+				$out[ $c['name'] ] = self::ordered_ids( $c['id'] );
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * The newest posts in a collection, for choosing pins.
 	 *
 	 * @param int $cat Category ID.
@@ -179,17 +244,18 @@ class Arrange {
 	 */
 	public static function posts( $cat ) {
 		$pins = self::all_pins()[ (int) $cat ] ?? array();
-		$q    = new \WP_Query(
+		$hand = self::is_hand( $cat );
+		$ids  = self::ordered_ids( $cat );
+		$list = $ids ? get_posts(
 			array(
-				'post_type'      => 'post',
+				'post__in'       => $hand ? $ids : array_slice( $ids, 0, 60 ),
+				'orderby'        => 'post__in',
+				'posts_per_page' => -1,
 				'post_status'    => 'publish',
-				'cat'            => (int) $cat,
-				'posts_per_page' => 60,
-				'tax_query'      => self::photo_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 			)
-		);
+		) : array();
 		$out  = array();
-		foreach ( $q->posts as $p ) {
+		foreach ( $list as $p ) {
 			$ids   = Posts::tile_ids( $p->ID );
 			$out[] = array(
 				'id'     => (int) $p->ID,
@@ -203,6 +269,7 @@ class Arrange {
 			'posts'       => $out,
 			'pins'        => $pins,
 			'max'         => self::MAX_PINS,
+			'hand'        => $hand,
 			'name'        => $term && ! is_wp_error( $term ) ? self::name( $term ) : '',
 			'description' => $term && ! is_wp_error( $term ) ? wp_strip_all_tags( (string) $term->description ) : '',
 		);
@@ -275,6 +342,25 @@ class Arrange {
 							if ( is_wp_error( $res ) ) {
 								return new \WP_Error( 'stubli_collection_name', __( 'That name didn\'t save. Try another one.', 'stubli' ), array( 'status' => 400 ) );
 							}
+							if ( null === $r['pins'] && null === $r['hand'] ) {
+								return rest_ensure_response( self::posts( $cat ) );
+							}
+						}
+						// Arrange by hand: switch it on or off, and save the order.
+						if ( null !== $r['hand'] ) {
+							$all = (array) get_option( 'stubli_hand', array() );
+							if ( rest_sanitize_boolean( $r['hand'] ) ) {
+								$valid = self::ordered_ids( $cat ); // Before switching on: newest first, pins kept on top.
+								if ( ! self::is_hand( $cat ) && null === $r['order'] ) {
+									$pins  = self::all_pins()[ $cat ] ?? array();
+									$valid = array_merge( $pins, array_values( array_diff( $valid, $pins ) ) );
+								}
+								$want = null !== $r['order'] ? array_values( array_unique( array_map( 'intval', (array) $r['order'] ) ) ) : $valid;
+								$all[ $cat ] = array_slice( array_values( array_intersect( $want, $valid ) ), 0, self::MAX_HAND );
+							} else {
+								unset( $all[ $cat ] );
+							}
+							update_option( 'stubli_hand', $all, false );
 							if ( null === $r['pins'] ) {
 								return rest_ensure_response( self::posts( $cat ) );
 							}

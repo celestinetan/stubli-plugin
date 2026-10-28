@@ -807,3 +807,14 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lt-card q { display: block; margin-top: 2px; font-family: var(--serif); font-size: 14px; quotes: none; }
 .a-lt-compose { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 10px; align-items: flex-end; max-width: 560px; margin: 0 auto; padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--field); }
 .a-lt-compose textarea { flex: 1; resize: none; min-height: 44px; }
+/* Arrange a collection by hand */
+.a-hand .a-pin-tile { touch-action: manipulation; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.a-hand .a-pin-tile { overflow: visible; }
+.a-hand .a-pin-tile > img, .a-hand .a-pin-tile > .a-mine-paper { border-radius: 8px; overflow: hidden; }
+.a-hand .a-pin-tile.is-sel { outline: 3px solid var(--ink); outline-offset: 2px; }
+.a-hand .a-mine-paper { padding-top: 34px; }
+.a-pins .a-mine-paper { padding-top: 32px; }
+.a-hand li.is-drag { opacity: .55; transform: scale(.94); }
+.a-hand-n { position: absolute; top: 6px; left: 6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: rgba(28,25,22,.62); color: #fff; font-size: 12px; font-weight: 650; display: flex; align-items: center; justify-content: center; }
+.a-hand-tools { position: sticky; top: calc(60px + env(safe-area-inset-top)); z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 0 10px; background: var(--bg); }
+.a-hand-tools .a-btn { padding: 8px 12px; min-height: 40px; }

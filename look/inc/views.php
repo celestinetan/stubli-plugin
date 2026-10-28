@@ -585,7 +585,14 @@ function stubli_view_single() {
 	echo '<div class="st-caption">' . wp_kses_post( wpautop( $post->post_content ) ) . '</div>';
 	stubli_comments( $post->ID );
 
-	$next = $coll ? get_adjacent_post( true, '', true, 'category' ) : get_adjacent_post( false, '', true );
+	$hand = $coll ? stubli_hand_ids( (int) $coll->term_id ) : null;
+	if ( null !== $hand ) {
+		// Next in a collection arranged by hand: the one after it in that order.
+		$at   = array_search( (int) $post->ID, $hand, true );
+		$next = false !== $at && isset( $hand[ $at + 1 ] ) ? get_post( $hand[ $at + 1 ] ) : null;
+	} else {
+		$next = $coll ? get_adjacent_post( true, '', true, 'category' ) : get_adjacent_post( false, '', true );
+	}
 	if ( $next && ! has_post_format( 'status', $next ) ) {
 		$nids = stubli_photo_ids( $next->ID );
 		echo '<a class="st-card-tone st-next" href="' . esc_url( get_permalink( $next ) ) . '">';

@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.41.1
+Stable tag: 0.42.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.42.0 =
+* Collections: Arrange by hand. Open a collection under Arrange your page, choose By hand, and drag the tiles into your own order (or tap one and move it with the buttons). Your page follows that order, new posts appear first, and the dates stay. Newest first is one tap away.
+* Hold a journal entry's tile on the You screen to pin or edit it, like a photo.
 
 = 0.41.1 =
 * Collections: each collection shows only its own photos again. In 0.41.0, every collection showed every photo.

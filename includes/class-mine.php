@@ -193,6 +193,7 @@ class Mine {
 			'total'   => (int) $q->found_posts,
 			'missing' => self::missing_count(),
 			'shapes'  => 1 === max( 1, (int) $page ) ? Arrange::shapes() : null,
+			'orders'  => 1 === max( 1, (int) $page ) ? (object) Arrange::hand_orders() : null,
 		);
 	}
 

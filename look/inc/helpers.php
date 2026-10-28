@@ -232,6 +232,26 @@ function stubli_photos( $cat = 0, $paged = 1 ) {
 	if ( $cat ) {
 		$args['cat'] = (int) $cat;
 	}
+	// A collection arranged by hand follows its owner's order; pins rest.
+	$hand = $cat ? stubli_hand_ids( (int) $cat ) : null;
+	if ( null !== $hand ) {
+		$page  = max( 1, (int) $paged );
+		$slice = array_slice( $hand, ( $page - 1 ) * 24, 24 );
+		$q     = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => 'publish',
+				'post__in'       => $slice ? $slice : array( 0 ),
+				'orderby'        => 'post__in',
+				'posts_per_page' => 24,
+				'no_found_rows'  => true,
+			)
+		);
+		$q->found_posts   = count( $hand );
+		$q->max_num_pages = (int) ceil( count( $hand ) / 24 );
+		$q->set( 'paged', $page );
+		return $q;
+	}
 	$pins = $cat ? stubli_pins( (int) $cat ) : array();
 	if ( ! $pins ) {
 		return new WP_Query( $args );
@@ -264,6 +284,36 @@ function stubli_photos( $cat = 0, $paged = 1 ) {
 	$q->max_num_pages = (int) ceil( $q->found_posts / 24 );
 	$q->set( 'paged', $page );
 	return $q;
+}
+
+/**
+ * A collection arranged by hand (in the app): every post in the owner's
+ * order, posts added since first (newest first). Null when the collection
+ * isn't arranged by hand.
+ *
+ * @param int $cat Category ID.
+ * @return int[]|null
+ */
+function stubli_hand_ids( $cat ) {
+	$all = (array) get_option( 'stubli_hand', array() );
+	if ( ! array_key_exists( (int) $cat, $all ) ) {
+		return null;
+	}
+	$q    = new WP_Query(
+		array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'cat'            => (int) $cat,
+			'posts_per_page' => 500,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			'meta_query'     => stubli_has_photos_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		)
+	);
+	$ids  = array_map( 'intval', $q->posts );
+	$kept = array_values( array_intersect( array_map( 'intval', (array) $all[ (int) $cat ] ), $ids ) );
+	return array_merge( array_values( array_diff( $ids, $kept ) ), $kept );
 }
 
 /**
