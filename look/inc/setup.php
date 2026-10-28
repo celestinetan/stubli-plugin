@@ -59,11 +59,10 @@ add_action(
 				/* translators: %s: name */
 				'invitedBy'   => __( '%s invited you', 'stubli' ),
 				/* translators: 1: step number, 2: step name */
-				'carryOn'     => __( 'Carry on at step %1$s: %2$s', 'stubli' ),
 				'badInvite'   => __( 'That doesn\'t look like an invite link. It looks like theirname.com/invite/?t=… Ask your friend to send it again if you can\'t find it.', 'stubli' ),
-				'gs1'         => __( 'A home for your site', 'stubli' ),
-				'gs2'         => __( 'Install Stubli', 'stubli' ),
-				'gs3'         => __( 'Stubli sets itself up', 'stubli' ),
+				'gs1'         => __( 'Get a WordPress site', 'stubli' ),
+				'gs2'         => __( 'Add the Stubli plugin', 'stubli' ),
+				'gs3'         => __( 'Answer five quick questions', 'stubli' ),
 				'gs4'         => __( 'Invite your people', 'stubli' ),
 			)
 		);

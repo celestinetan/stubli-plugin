@@ -613,6 +613,9 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-gs-pick:hover, .st-gs-pick:focus-visible { background: var(--st-field); }
 .st-gs-pick[hidden] { display: none; }
 .st-gs-stuck { margin: 22px 0 0; font-size: 14px; }
+.st-gs-resumed { margin: 0 0 12px; font-size: 14px; }
+.st-gs-resumed a, .st-gs-paste a { font-weight: 600; }
+.st-gs-paste { margin: 16px 0 0; font-size: 15px; }
 .st-gs-step h2[tabindex="-1"]:focus { outline: none; }
 .st-gs-invited { margin: 4px 0 14px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--st-accent) 14%, var(--st-bg)); }
 .st-gs-invited p { margin: 0; }

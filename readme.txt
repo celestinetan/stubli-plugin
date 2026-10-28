@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.43.1
+Stable tag: 0.43.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.43.2 =
+* Make your Stubli opens on its first real question, picks up where you stopped when you come back, and uses the same four step names as the welcome page.
 
 = 0.43.1 =
 * On WordPress.com: posts and journal entries made in Stubli are no longer emailed to the site's subscribers or shared to its social accounts. Your followers get them in their own Stubli. Posts written in WordPress's own editor are left alone.

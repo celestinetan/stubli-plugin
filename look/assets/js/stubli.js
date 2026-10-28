@@ -60,7 +60,7 @@
 	var gs = document.querySelector( '[data-st-gs]' );
 	if ( gs ) {
 		var steps = gs.querySelectorAll( '[data-gs-step]' ), prog = gs.querySelector( '[data-gs-progress]' );
-		var names = { 1: T.gs1 || 'A home for your site', 2: T.gs2 || 'Install Stubli', 3: T.gs3 || 'Stubli sets itself up', 4: T.gs4 || 'Invite your people' };
+		var names = { 1: T.gs1 || 'Get a WordPress site', 2: T.gs2 || 'Add the Stubli plugin', 3: T.gs3 || 'Answer five quick questions', 4: T.gs4 || 'Invite your people' };
 		gs.classList.add( 'is-live' );
 		// Remembered on this device only: the step you reached, and a friend's invite.
 		var mem = { get: function ( k ) { try { return localStorage.getItem( k ); } catch ( e ) { return null; } }, set: function ( k, v ) { try { localStorage.setItem( k, v ); } catch ( e ) {} } };
@@ -76,10 +76,10 @@
 			mem.set( 'stubli-gs-invite', JSON.stringify( invite ) );
 			return true;
 		};
-		// Arriving from a friend's invite page: keep the invite, and start at the beginning.
+		// Arriving from a friend's invite page: keep the invite, and start at the first question.
 		try {
 			var qs = new URLSearchParams( location.search );
-			if ( qs.get( 'invite' ) && keepInvite( qs.get( 'invite' ), qs.get( 'from' ) ) ) { history.replaceState( null, '', location.pathname + '#gs-welcome' ); }
+			if ( qs.get( 'invite' ) && keepInvite( qs.get( 'invite' ), qs.get( 'from' ) ) ) { history.replaceState( null, '', location.pathname + '#gs-start' ); }
 		} catch ( e ) {}
 		var paintInvite = function () {
 			var box = gs.querySelector( '[data-gs-invited]' ), h = gs.querySelector( '[data-gs-invited-h]' ), pick = gs.querySelector( '[data-gs-invite-pick]' );
@@ -92,20 +92,14 @@
 		};
 		var where = { start: 1, host: 1, check: 1, noplugins: 1, install: 2, setup: 3, invite: 4 };
 		var show = function ( focus ) {
-			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || steps[ 0 ];
+			var id = ( location.hash || '' ).replace( '#gs-', '' ), cur = gs.querySelector( '[data-gs-step="' + id + '"]' ) || gs.querySelector( '[data-gs-step="start"]' );
 			steps.forEach( function ( s ) { s.hidden = s !== cur; } );
 			var n = +cur.getAttribute( 'data-gs-n' );
 			var sid = cur.getAttribute( 'data-gs-step' );
 			if ( where[ sid ] ) { mem.set( 'stubli-gs-step', sid ); }
-			var resume = gs.querySelector( '[data-gs-resume]' ), saved = mem.get( 'stubli-gs-step' );
-			if ( resume ) {
-				resume.hidden = ! ( saved && where[ saved ] && saved !== 'start' );
-				if ( ! resume.hidden ) {
-					resume.setAttribute( 'href', '#gs-' + saved ); resume.setAttribute( 'data-gs-go', saved );
-					gs.querySelector( '[data-gs-resume-where]' ).textContent = ( T.carryOn || 'Carry on at step %1$s: %2$s' ).replace( '%1$s', where[ saved ] ).replace( '%2$s', names[ where[ saved ] ] );
-				}
-			}
 			paintInvite();
+			var ibox = gs.querySelector( '[data-gs-invited]' );
+			if ( ibox && 'start' !== sid ) { ibox.hidden = true; }
 			if ( ! n ) {
 				prog.hidden = true;
 				if ( focus ) { var h0 = cur.querySelector( 'h2' ); h0.setAttribute( 'tabindex', '-1' ); h0.focus(); }
@@ -127,10 +121,20 @@
 			prog.appendChild( list );
 			if ( focus ) { var h = cur.querySelector( 'h2' ); h.setAttribute( 'tabindex', '-1' ); h.focus(); window.scrollTo( 0, Math.max( 0, gs.getBoundingClientRect().top + window.scrollY - 80 ) ); }
 		};
-		window.addEventListener( 'hashchange', function () { if ( /^#gs-/.test( location.hash ) || ! location.hash ) { show( true ); } } );
-		// Coming from the welcome page's "Do you have a WordPress site?": skip that question.
+		var resumed = gs.querySelector( '[data-gs-resumed]' );
+		window.addEventListener( 'hashchange', function () { if ( /^#gs-/.test( location.hash ) || ! location.hash ) { if ( resumed ) { resumed.hidden = true; } show( true ); } } );
+		// Older links from the welcome page (?have=yes|no): skip the first question.
 		try { var have = new URLSearchParams( location.search ).get( 'have' ); if ( ! location.hash && ( 'yes' === have || 'no' === have ) ) { history.replaceState( null, '', '#gs-' + ( 'yes' === have ? 'check' : 'host' ) ); } } catch ( e ) {}
+		// Coming back later: open where you stopped, with a way to start again.
+		try {
+			var saved = mem.get( 'stubli-gs-step' );
+			if ( ! location.hash && saved && where[ saved ] && 'start' !== saved ) { history.replaceState( null, '', '#gs-' + saved ); if ( resumed ) { resumed.hidden = false; } }
+		} catch ( e ) {}
+		var restart = gs.querySelector( '[data-gs-restart]' );
+		if ( restart ) { restart.addEventListener( 'click', function () { mem.set( 'stubli-gs-step', 'start' ); } ); }
 		show( false );
+		// The browser jumps to #gs-… on load, past the checklist and any invite or welcome-back note: start at the top instead.
+		window.addEventListener( 'load', function () { if ( /^#gs-/.test( location.hash ) ) { window.scrollTo( 0, 0 ); setTimeout( function () { window.scrollTo( 0, 0 ); }, 60 ); } } );
 		var invForm = gs.querySelector( '[data-gs-invite-form]' );
 		if ( invForm ) {
 			invForm.addEventListener( 'submit', function ( e ) {
