@@ -18,6 +18,13 @@ defined( 'ABSPATH' ) || exit;
 class Compat {
 
 	/**
+	 * True while Stubli itself is publishing (the app, the importer, a move).
+	 *
+	 * @var bool
+	 */
+	public static $quiet = false;
+
+	/**
 	 * Register hooks.
 	 */
 	public static function init() {
@@ -36,6 +43,13 @@ class Compat {
 		add_filter( 'jetpack_subscribe_floating_button_enabled', '__return_false', 99 );
 		add_filter( 'jetpack_blaze_enabled', '__return_false', 99 );
 		add_action( 'init', array( self::class, 'drop_jetpack_modules' ), 99 );
+		// Posts made in Stubli reach followers in their own Stubli, so WordPress.com
+		// doesn't also email them to the site's subscribers or share them to the
+		// owner's social accounts (Celestine's decision 28 Oct). Posts written in
+		// WordPress's own editor are left alone.
+		add_filter( 'rest_request_before_callbacks', array( self::class, 'note_request' ), 10, 3 );
+		add_action( 'transition_post_status', array( self::class, 'quiet_publish' ), 1, 3 );
+		add_filter( 'publicize_should_publicize_published_post', array( self::class, 'no_publicize' ), 99 );
 		// Stubli opens photos itself; Jetpack's lightbox brings its own comment box.
 		add_filter( 'jp_carousel_maybe_disable', '__return_true', 99 );
 		// No Gravatar profile pop-ups: they load scripts from gravatar.com for every visitor.
@@ -47,6 +61,47 @@ class Compat {
 	/**
 	 * Remove the Like and sharing output if the modules are already loaded.
 	 */
+	/**
+	 * Note when a request comes from Stubli's own app.
+	 *
+	 * @param mixed            $response Response so far.
+	 * @param array            $handler  Route handler.
+	 * @param \WP_REST_Request $request  Request.
+	 * @return mixed
+	 */
+	public static function note_request( $response, $handler, $request ) {
+		if ( $request instanceof \WP_REST_Request && preg_match( '#^/(stubli|og)/v1/#', (string) $request->get_route() ) ) {
+			self::$quiet = true;
+		}
+		return $response;
+	}
+
+	/**
+	 * A post Stubli publishes: no subscriber email, no social sharing.
+	 *
+	 * @param string   $new  New status.
+	 * @param string   $old  Old status.
+	 * @param \WP_Post $post Post.
+	 */
+	public static function quiet_publish( $new, $old, $post ) {
+		if ( ! self::$quiet || 'publish' !== $new || 'publish' === $old || 'post' !== $post->post_type ) {
+			return;
+		}
+		update_post_meta( $post->ID, '_jetpack_dont_email_post_to_subs', 1 );
+		update_post_meta( $post->ID, 'jetpack_publicize_feature_enabled', false );
+		update_post_meta( $post->ID, '_wpas_done_all', 1 );
+	}
+
+	/**
+	 * Jetpack asks whether to share a post that was just published.
+	 *
+	 * @param bool $should Share it.
+	 * @return bool
+	 */
+	public static function no_publicize( $should ) {
+		return self::$quiet ? false : $should;
+	}
+
 	/**
 	 * @return string
 	 */

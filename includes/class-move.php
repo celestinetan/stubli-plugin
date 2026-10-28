@@ -503,6 +503,7 @@ class Move {
 	 * @return int|\WP_Error|false New post ID.
 	 */
 	private static function copy_post( array $j, $id ) {
+		Compat::$quiet = true; // A move brings old posts: no emails, no sharing.
 		$key      = 'move:' . md5( $j['source'] ) . ':' . $id;
 		$existing = get_posts(
 			array(
