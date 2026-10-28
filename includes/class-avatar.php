@@ -125,8 +125,19 @@ class Avatar {
 	 * @return string
 	 */
 	public static function current() {
-		$icon = (string) get_site_icon_url( 256 );
+		$icon = self::photo();
 		return '' !== $icon ? $icon : self::url();
+	}
+
+	/**
+	 * The owner's own photo (the site icon they chose), or '' when there is
+	 * none. WordPress.com hands every site without an icon its own logo
+	 * (s0.wp.com/i/webclip.png), so only an icon actually set on the site counts.
+	 *
+	 * @return string
+	 */
+	public static function photo() {
+		return (int) get_option( 'site_icon' ) ? (string) get_site_icon_url( 256 ) : '';
 	}
 
 	/**

@@ -200,7 +200,7 @@ class Setup {
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
 			'avatar'    => Avatar::current(),
-			'photo'     => (bool) get_site_icon_url( 256 ),
+			'photo'     => '' !== Avatar::photo(),
 			'cover'     => self::cover_url(),
 			'smiley'    => Avatar::look() + Avatar::choices(),
 			'interests' => self::interests(),
@@ -219,10 +219,11 @@ class Setup {
 			'manual'    => Helper::manual_url(),
 			'follows'   => array_map(
 				static fn( $f ) => array(
-					'id'   => (int) $f['id'],
-					'name' => (string) $f['name'],
-					'url'  => (string) $f['site_url'],
-					'list' => (string) $f['list_name'],
+					'id'     => (int) $f['id'],
+					'name'   => (string) $f['name'],
+					'url'    => (string) $f['site_url'],
+					'list'   => (string) $f['list_name'],
+					'avatar' => (string) ( $f['avatar_url'] ?? '' ),
 				),
 				Follows::all()
 			),

@@ -79,6 +79,11 @@ class Look {
 		if ( is_single() ) {
 			return 'single';
 		}
+		// The home page is always your Stubli, even when the site was set to
+		// show a fixed page there (many WordPress.com sites start that way).
+		if ( is_front_page() ) {
+			return 'profile';
+		}
 		if ( is_page() ) {
 			return 'page';
 		}
