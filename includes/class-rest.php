@@ -226,7 +226,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'], (string) $r['title'] ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( self::filed( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'], (string) $r['title'] ), $r ) ),
 					'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
 					'args'                => array(
 						'text'       => array_merge( $text, array( 'required' => false ) ),
@@ -257,7 +257,7 @@ class Rest {
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), (bool) $r['draft'], null !== $r['title'] ? (string) $r['title'] : null ) ),
+					'callback'            => static fn( WP_REST_Request $r ) => self::respond( self::filed( Journal::update( (int) $r['id'], (string) $r['html'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), (bool) $r['draft'], null !== $r['title'] ? (string) $r['title'] : null ), $r ) ),
 					'permission_callback' => array( self::class, 'is_owner' ),
 					'args'                => array(
 						'html'       => array(
@@ -543,6 +543,21 @@ class Rest {
 				)
 			)
 		);
+	}
+
+	/**
+	 * After saving an entry: put it in a collection, or take it out, when the
+	 * app sent "collection" ('' = none). Without it, the entry stays where it was.
+	 *
+	 * @param array|WP_Error  $res Saved entry.
+	 * @param WP_REST_Request $r   Request.
+	 * @return array|WP_Error
+	 */
+	private static function filed( $res, WP_REST_Request $r ) {
+		if ( is_wp_error( $res ) || null === $r['collection'] || empty( $res['id'] ) ) {
+			return $res;
+		}
+		return Journal::file( (int) $res['id'], sanitize_text_field( (string) $r['collection'] ), sanitize_key( (string) $r['tile'] ) );
 	}
 
 	/**

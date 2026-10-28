@@ -92,6 +92,10 @@ function stubli_has_photos_query() {
 			'key'     => '_thumbnail_id',
 			'compare' => 'EXISTS',
 		),
+		array(
+			'key'     => '_stubli_filed',
+			'compare' => 'EXISTS',
+		),
 	);
 }
 
@@ -101,7 +105,7 @@ function stubli_has_photos_query() {
  * @return array
  */
 function stubli_photo_tax_query() {
-	return array(
+	$q = array(
 		array(
 			'taxonomy' => 'post_format',
 			'field'    => 'slug',
@@ -109,6 +113,39 @@ function stubli_photo_tax_query() {
 			'operator' => 'NOT IN',
 		),
 	);
+	// Journal entries the owner filed into a collection belong there too (Stubli plugin 0.41.0+).
+	if ( taxonomy_exists( 'stubli_shelf' ) ) {
+		$q['relation'] = 'OR';
+		$q[]           = array(
+			'taxonomy' => 'stubli_shelf',
+			'operator' => 'EXISTS',
+		);
+	}
+	return $q;
+}
+
+/**
+ * Is this post a journal entry filed into a collection?
+ *
+ * @param int $post_id Post ID.
+ * @return bool
+ */
+function stubli_is_filed_entry( $post_id ) {
+	return stubli_has_plugin() && class_exists( '\\Stubli\\Journal' ) && method_exists( '\\Stubli\\Journal', 'is_filed' ) && \Stubli\Journal::is_filed( $post_id );
+}
+
+/**
+ * The photos a post shows as its tile in a collection.
+ *
+ * @param int $post_id Post ID.
+ * @return int[]
+ */
+function stubli_tile_ids( $post_id ) {
+	if ( stubli_is_filed_entry( $post_id ) ) {
+		$id = \Stubli\Journal::tile_photo( $post_id );
+		return $id ? array( (int) $id ) : array();
+	}
+	return stubli_photo_ids( $post_id );
 }
 
 /**
@@ -442,6 +479,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'back'    => '<path d="M15 5l-7 7 7 7"/>',
 		'chev'    => '<path d="M9 6l6 6-6 6"/>',
 		'stack'   => '<rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
+		'page'    => '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 11h6M9 15h4"/>',
 		'link'    => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 		'search'  => '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
 		'pin'     => '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',

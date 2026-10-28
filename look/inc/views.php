@@ -306,7 +306,7 @@ function stubli_grid( WP_Query $q ) {
 	}
 	// The collection takes the shape of its first photo: landscape, square or portrait (the default).
 	$shape = 'portrait';
-	$first = stubli_photo_ids( $q->posts[0]->ID );
+	$first = stubli_tile_ids( $q->posts[0]->ID );
 	if ( $first ) {
 		$meta = wp_get_attachment_metadata( $first[0] );
 		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
@@ -317,6 +317,10 @@ function stubli_grid( WP_Query $q ) {
 	$size = 'portrait' === $shape ? 'stubli-tile' : 'medium_large';
 	echo '<ul class="st-grid' . ( 'portrait' !== $shape ? ' is-' . esc_attr( $shape ) : '' ) . '" role="list">';
 	foreach ( $q->posts as $post ) {
+		if ( stubli_is_filed_entry( $post->ID ) ) {
+			stubli_entry_tile( $post, $size );
+			continue;
+		}
 		$ids  = stubli_photo_ids( $post->ID );
 		$note = (string) get_post_meta( $post->ID, '_stubli_content_note', true );
 		$alt  = $ids ? (string) get_post_meta( $ids[0], '_wp_attachment_image_alt', true ) : '';
@@ -344,6 +348,37 @@ function stubli_grid( WP_Query $q ) {
 	if ( $next ) {
 		echo '<p class="st-more"><a href="' . esc_url( $next ) . '">' . esc_html__( 'Older photos', 'stubli' ) . '</a></p>';
 	}
+}
+
+/**
+ * A journal entry filed into a collection, as a tile the same size as the
+ * photos around it: its first photo with a page sign, or a paper tile with
+ * its title and first lines (DESIGN §11.5).
+ *
+ * @param WP_Post $post Entry.
+ * @param string  $size Image size for photo tiles.
+ */
+function stubli_entry_tile( $post, $size ) {
+	$photo = \Stubli\Journal::tile_photo( $post->ID );
+	$title = stubli_entry_title( $post );
+	$badge = '<span class="st-badge st-badge-page">' . stubli_icon( 'page', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Journal entry', 'stubli' ) . '</span></span>';
+	echo '<li><a class="st-tile st-tile-entry" href="' . esc_url( get_permalink( $post ) ) . '">';
+	if ( $photo ) {
+		echo '<span class="st-tile-photo">';
+		echo wp_kses( wp_get_attachment_image( $photo, $size, false, array( 'alt' => (string) get_post_meta( $photo, '_wp_attachment_image_alt', true ), 'loading' => 'lazy', 'sizes' => '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 46vw' ) ), stubli_allowed_html() );
+	} else {
+		echo '<span class="st-tile-photo st-tile-paper">';
+		if ( '' !== $title ) {
+			echo '<span class="st-paper-h">' . esc_html( $title ) . '</span>';
+		}
+		echo '<span class="st-paper-b">' . esc_html( \Stubli\Journal::opening( $post, 45 ) ) . '</span>';
+	}
+	if ( ! empty( $post->stubli_pinned ) ) {
+		echo wp_kses( '<span class="st-badge st-badge-pin">' . stubli_icon( 'pin', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Pinned', 'stubli' ) . '</span></span>', stubli_allowed_html() );
+	}
+	echo wp_kses( $badge, stubli_allowed_html() );
+	echo '</span><span class="st-tile-caption"><span class="st-muted">' . esc_html( stubli_short_date( $post ) ) . '</span> · ' . esc_html( '' !== $title ? $title : __( 'Journal entry', 'stubli' ) ) . '</span>';
+	echo '</a></li>';
 }
 
 /**

@@ -34,13 +34,7 @@ class Arrange {
 	 * @return array
 	 */
 	private static function photo_tax() {
-		return array(
-			array(
-				'taxonomy' => 'post_format',
-				'field'    => 'slug',
-				'terms'    => array( 'post-format-image', 'post-format-gallery' ),
-			),
-		);
+		return Posts::tile_tax();
 	}
 
 	/**
@@ -130,7 +124,7 @@ class Arrange {
 			);
 			$id = $q->posts ? (int) $q->posts[0] : 0;
 		}
-		$ids = $id ? Posts::photo_ids( $id ) : array();
+		$ids = $id ? Posts::tile_ids( $id ) : array();
 		if ( $ids ) {
 			$m = wp_get_attachment_metadata( $ids[0] );
 			if ( ! empty( $m['width'] ) && ! empty( $m['height'] ) ) {
@@ -196,10 +190,10 @@ class Arrange {
 		);
 		$out  = array();
 		foreach ( $q->posts as $p ) {
-			$ids   = Posts::photo_ids( $p->ID );
+			$ids   = Posts::tile_ids( $p->ID );
 			$out[] = array(
 				'id'     => (int) $p->ID,
-				'title'  => html_entity_decode( get_the_title( $p ), ENT_QUOTES ),
+				'title'  => Journal::is_filed( $p->ID ) ? ( Journal::title( $p->ID ) ? Journal::title( $p->ID ) : Journal::first_words( $p ) ) : html_entity_decode( get_the_title( $p ), ENT_QUOTES ),
 				'thumb'  => $ids ? (string) wp_get_attachment_image_url( $ids[0], 'thumbnail' ) : '',
 				'pinned' => array_search( (int) $p->ID, $pins, true ),
 			);

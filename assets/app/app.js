@@ -73,6 +73,7 @@
 		pin: '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
 		mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
+		page: '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 11h6M9 15h4"/>',
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
@@ -444,7 +445,7 @@
 	function newPost() {
 		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: B.collections && B.collections[ 0 ] || '', newCollection: '', addingCollection: ! ( B.collections && B.collections.length ), note: false, noteText: '', audience: 'everyone', linkOpen: false, altsChecked: false, busy: false, error: '' };
 	}
-	var journal = { title: store.get( 'stubli-journal-title' ) || '', html: store.get( 'stubli-journal-html' ) || jTextToHtml( store.get( 'stubli-journal-draft' ) ), visibility: store.get( 'stubli-journal-vis' ) || 'everyone', tool: '', busy: false, error: '', uploading: 0, photos: [], pending: {} };
+	var journal = { title: store.get( 'stubli-journal-title' ) || '', html: store.get( 'stubli-journal-html' ) || jTextToHtml( store.get( 'stubli-journal-draft' ) ), visibility: store.get( 'stubli-journal-vis' ) || 'everyone', collection: store.get( 'stubli-journal-coll' ) || '', tile: store.get( 'stubli-journal-tile' ) || 'photo', tool: '', busy: false, error: '', uploading: 0, photos: [], pending: {} };
 	try { journal.photos = JSON.parse( store.get( 'stubli-journal-photos' ) || '[]' ) || []; } catch ( e ) { journal.photos = []; }
 	journal.did = +( store.get( 'stubli-journal-did' ) || 0 ) || 0;
 	function saveJournalDraft() { store.set( 'stubli-journal-title', journal.title || '' ); store.set( 'stubli-journal-html', journal.html ); store.del( 'stubli-journal-draft' ); store.set( 'stubli-journal-photos', JSON.stringify( journal.photos ) ); }
@@ -568,12 +569,20 @@
 		var shape = me.coll && mine.shapes ? mine.shapes[ me.coll ] : '';
 		return ( '' ) + // Descriptions are optional (23 Oct): no reminders.
 			'<div class="a-mine-grid' + ( shape && shape !== 'portrait' ? ' is-' + shape : '' ) + '">' + list.map( function ( i ) {
+				if ( i.kind === 'entry' ) { return entryTile( i ); }
 				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
 				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '' ) +
 					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) +
 					( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
 			( mine.more && ! me.coll ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' );
+	}
+	// A journal entry filed in a collection: its photo, or a paper tile with its title and first lines. It opens in the journal editor.
+	function entryTile( i ) {
+		var label = _f( __( 'Journal entry: %s', 'stubli' ), i.title || i.words || '' );
+		return '<a href="#journal/' + i.id + '" class="a-mine-entry" aria-label="' + esc( label ) + '">' +
+			( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy">' : '<span class="a-mine-paper" aria-hidden="true">' + ( i.title ? '<b>' + esc( i.title ) + '</b>' : '' ) + '<span>' + esc( i.words || '' ) + '</span></span>' ) +
+			'<span class="a-mine-n" aria-hidden="true">' + icon( 'page', 12 ) + '</span></a>';
 	}
 	function smile() {
 		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
@@ -603,7 +612,7 @@
 			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
 			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
-			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || __( 'Photo post', 'stubli' ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
+			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || ( latest.kind === 'entry' ? __( 'Journal entry', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
 			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'Photos', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
 				'<a class="a-ctab a-ctab-icon" href="#journals" aria-label="' + esc( __( 'Your journal', 'stubli' ) ) + '" title="' + esc( __( 'Your journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
@@ -836,7 +845,7 @@
 			'<ul class="a-pins" role="list">' + pn.posts.map( function ( p ) {
 				var at = pn.pins.indexOf( p.id );
 				return '<li><button type="button" class="a-pin-tile' + ( at > -1 ? ' is-pinned' : '' ) + '" data-pin="' + p.id + '" aria-pressed="' + ( at > -1 ) + '" aria-label="' + esc( ( p.title || __( 'Photo post', 'stubli' ) ) + ( at > -1 ? ', ' + _f( __( 'pinned %s', 'stubli' ), at + 1 ) : '' ) ) + '">' +
-					( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" loading="lazy">' : '' ) + ( at > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( at + 1 ) + '</span>' : '' ) + '</button></li>';
+					( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" loading="lazy">' : '<span class="a-mine-paper" aria-hidden="true"><b>' + esc( p.title || '' ) + '</b></span>' ) + ( at > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( at + 1 ) + '</span>' : '' ) + '</button></li>';
 			} ).join( '' ) + '</ul>' +
 			'<p class="a-help" aria-live="polite" data-pin-msg>' + esc( pn.msg ) + '</p></main>' + bar( 'you' );
 		$( '#a-cn' ).addEventListener( 'input', function ( e ) { pn.name = e.target.value; } );
@@ -1205,6 +1214,7 @@
 		return ( '<section class="a-card" data-mine><h2>' + __( 'Your posts', 'stubli' ) + '</h2><p class="muted">' + __( 'Tap a photo to change its caption, collection or descriptions, or to delete it.', 'stubli' ) + '</p>' ) +
 			( '' ) + // Descriptions are optional (23 Oct): no reminders.
 			'<div class="a-mine-grid">' + mine.items.map( function ( i ) {
+				if ( i.kind === 'entry' ) { return entryTile( i ); }
 				var label = ( i.title || ( i.video ? __( 'Video post', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( i.video && i.count === 1 ? __( ', video', 'stubli' ) : '' ) + ( i.count > 1 ? _f( __( ', %s photos', 'stubli' ), i.count ) : '' ) + ( i.friends ? __( ', friends only', 'stubli' ) : '' );
 				return '<a href="#edit/' + i.id + '" aria-label="' + esc( _f( __( 'Edit: %s', 'stubli' ), label ) ) + '">' + ( i.thumb ? '<img src="' + esc( i.thumb ) + '" alt="" loading="lazy"' + ( i.note ? ' class="is-noted"' : '' ) + '>' : '' ) +
 					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) + ( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
@@ -2646,9 +2656,24 @@
 		clearTimeout( j.timer );
 		j.timer = setTimeout( function () { jAutosave( j ); }, 1500 );
 	}
+	// Optional: an entry can also sit in one collection on your page, as a tile among the photos (DESIGN §11.5).
+	function jCollChoice( j ) {
+		if ( j.visibility === 'only_me' ) { return ''; }
+		var cols = ( B.collections || [] ).slice();
+		if ( j.collection && cols.indexOf( j.collection ) < 0 ) { cols.push( j.collection ); }
+		if ( ! cols.length ) { return ''; }
+		var chip = function ( val, label ) { var on = ( j.collection || '' ) === val; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-jcol="' + esc( val ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( label ) + '</button>'; };
+		var hasPhoto = jUsed( j.html ).length > 0;
+		return '<h2 class="a-caps" id="a-jcol-h">' + __( 'Also show it in a collection?', 'stubli' ) + ' <span class="muted" style="font-weight:400;text-transform:none">' + __( '(optional)', 'stubli' ) + '</span></h2>' +
+			'<div class="a-chips" role="radiogroup" aria-labelledby="a-jcol-h">' + chip( '', __( 'No, just the Journal', 'stubli' ) ) + cols.map( function ( c ) { return chip( c, c ); } ).join( '' ) + '</div>' +
+			( j.collection ? ( hasPhoto ? '<h2 class="a-caps" id="a-jtile-h" style="margin-top:14px">' + __( 'Its tile shows', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-jtile-h">' +
+				[ [ 'photo', __( 'The first photo', 'stubli' ) ], [ 'words', __( 'The words', 'stubli' ) ] ].map( function ( t ) { var on = ( j.tile === 'words' ? 'words' : 'photo' ) === t[ 0 ]; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-jtile="' + t[ 0 ] + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( t[ 1 ] ) + '</button>'; } ).join( '' ) + '</div>' : '' ) +
+				'<p class="a-help">' + _f( __( 'It stays in your Journal tab and also shows in %s on your page, as a tile with a small page sign.', 'stubli' ), esc( j.collection ) ) + '</p>' : '' );
+	}
 	function jPayload( j, draft ) {
 		var used = jUsed( j.html );
 		var out = { title: String( j.title || '' ).trim(), html: j.html, visibility: j.visibility, photos: j.photos.filter( function ( p ) { return used.indexOf( p.n ) > -1; } ).map( function ( p ) { return { n: p.n, id: p.id, caption: String( p.caption || '' ).trim(), alt: String( p.alt || '' ).trim() }; } ) };
+		out.collection = j.visibility === 'only_me' ? '' : j.collection || ''; out.tile = j.tile === 'words' ? 'words' : 'photo';
 		if ( draft ) { out.draft = true; }
 		return out;
 	}
@@ -2714,7 +2739,7 @@
 			if ( ! jed || jed.id !== id ) {
 				jed = { id: id, loading: true, html: '', photos: [], pending: {}, visibility: 'everyone', tool: '', busy: false, error: '', uploading: 0, sure: false };
 				send( 'GET', 'journal/' + id, null ).then( function ( r ) {
-					jed.loading = false; jed.title = r.title || ''; jed.serverTitle = jed.title; jed.html = r.html; jed.serverHtml = r.html; jed.photos = r.photos || []; jed.visibility = r.visibility; jed.date = r.date; jed.edited = r.edited; jed.url = r.url; jed.isDraft = !! r.draft; jed.savedAt = r.draft && r.saved ? new Date( r.saved ) : null;
+					jed.loading = false; jed.title = r.title || ''; jed.serverTitle = jed.title; jed.html = r.html; jed.serverHtml = r.html; jed.photos = r.photos || []; jed.visibility = r.visibility; jed.collection = r.collection || ''; jed.tile = r.tile || 'photo'; jed.date = r.date; jed.edited = r.edited; jed.url = r.url; jed.isDraft = !! r.draft; jed.savedAt = r.draft && r.saved ? new Date( r.saved ) : null;
 					// Unsaved changes to a published entry, kept on this phone, come back.
 					var kept = ! r.draft && store.get( 'stubli-jedit-' + id ), keptT = ! r.draft ? store.get( 'stubli-jedit-t-' + id ) : null;
 					if ( kept && kept !== r.html ) { jed.html = kept; jed.restored = true; }
@@ -2757,6 +2782,7 @@
 			( '<h2 class="a-caps" id="a-vis-h">' + __( 'Who can see this', 'stubli' ) + '</h2><div class="a-vis" role="radiogroup" aria-labelledby="a-vis-h">' ) +
 			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'everyone' ) + '" data-vis="everyone"><strong>' + ( j.visibility === 'everyone' ? '✓ ' : '' ) + ( __( 'Everyone', 'stubli' ) + '</strong><span>' + __( 'In your Journal tab', 'stubli' ) + '</span></button>' ) +
 			'<button type="button" role="radio" aria-checked="' + ( j.visibility === 'only_me' ) + '" data-vis="only_me"><strong>' + ( j.visibility === 'only_me' ? '✓ ' : '' ) + ( __( 'Only me', 'stubli' ) + '</strong><span>' + __( 'A private note', 'stubli' ) + '</span></button></div>' ) +
+			jCollChoice( j ) +
 			'<div data-msg aria-live="polite">' + ( j.error ? '<div class="a-notice" role="alert"><p>' + esc( j.error ) + '</p></div>' : '' ) + '</div>' +
 			( j.visibility === 'only_me' && j.photos.length ? ( '<p class="a-help" style="margin-top:14px">' + __( 'Photos in an Only-me entry aren\'t shown anywhere, but anyone who has a photo\'s exact web address could open it.', 'stubli' ) + '</p>' ) : '' ) +
 			( pub ? '<p class="a-help" style="margin-top:14px">' + __( 'Saving keeps the original date and adds an "Edited" time under it. The earlier version is kept, privately, in WordPress. Until you save, your changes are kept on this phone.', 'stubli' ) + '</p>' :
@@ -2954,6 +2980,8 @@
 			} );
 		}
 		$$( '[data-vis]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.visibility = b.dataset.vis; if ( ! editing ) { store.set( 'stubli-journal-vis', j.visibility ); } jQueue( j ); rerender(); } ); } );
+		$$( '[data-jcol]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.collection = b.dataset.jcol; if ( ! editing ) { store.set( 'stubli-journal-coll', j.collection ); } jQueue( j ); rerender(); } ); } );
+		$$( '[data-jtile]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { j.tile = b.dataset.jtile; if ( ! editing ) { store.set( 'stubli-journal-tile', j.tile ); } jQueue( j ); rerender(); } ); } );
 		var dis = $( '[data-jdiscard]' );
 		if ( dis ) { dis.addEventListener( 'click', function () { j.html = j.serverHtml; j.title = j.serverTitle || ''; j.restored = false; store.del( 'stubli-jedit-' + j.id ); store.del( 'stubli-jedit-t-' + j.id ); rerender(); } ); }
 		var del = $( '[data-jdel]' ); if ( del ) { del.addEventListener( 'click', function () { j.sure = true; rerender(); $( '[data-jdel-no]' ).focus(); } ); }
@@ -2984,14 +3012,14 @@
 				return send( 'POST', target ? 'journal/' + target : 'journal', jPayload( j, false ) );
 			} ).then( function () {
 				jlReset();
-				if ( pub ) { store.del( 'stubli-jedit-' + j.id ); store.del( 'stubli-jedit-t-' + j.id ); jed = null; location.hash = '#journals'; toast( __( 'Saved. It shows when you edited it.', 'stubli' ) ); return; }
-				var priv = j.visibility === 'only_me';
-				j.published = true;
+				if ( pub ) { mine.loaded = false; store.del( 'stubli-jedit-' + j.id ); store.del( 'stubli-jedit-t-' + j.id ); jed = null; location.hash = '#journals'; toast( __( 'Saved. It shows when you edited it.', 'stubli' ) ); return; }
+				var priv = j.visibility === 'only_me', inColl = priv ? '' : j.collection || '';
+				j.published = true; mine.loaded = false;
 				if ( editing ) { jed = null; } else {
-					j.html = ''; j.title = ''; j.photos = []; j.busy = false; j.did = 0; j.savedAt = null; j.saveMsg = ''; j.published = false;
-					store.del( 'stubli-journal-html' ); store.del( 'stubli-journal-title' ); store.del( 'stubli-journal-draft' ); store.del( 'stubli-journal-photos' ); store.del( 'stubli-journal-did' );
+					j.html = ''; j.title = ''; j.photos = []; j.collection = ''; j.tile = 'photo'; j.busy = false; j.did = 0; j.savedAt = null; j.saveMsg = ''; j.published = false;
+					store.del( 'stubli-journal-html' ); store.del( 'stubli-journal-title' ); store.del( 'stubli-journal-draft' ); store.del( 'stubli-journal-photos' ); store.del( 'stubli-journal-did' ); store.del( 'stubli-journal-coll' ); store.del( 'stubli-journal-tile' );
 				}
-				doneView( __( 'Published', 'stubli' ), priv ? __( 'Only you can see this entry.', 'stubli' ) : __( 'Your entry is in your Journal tab.', 'stubli' ), B.journal, __( 'See your journal', 'stubli' ), '', '#journal', __( 'New entry', 'stubli' ) );
+				doneView( __( 'Published', 'stubli' ), priv ? __( 'Only you can see this entry.', 'stubli' ) : inColl ? _f( __( 'Your entry is in your Journal tab and in %s.', 'stubli' ), inColl ) : __( 'Your entry is in your Journal tab.', 'stubli' ), B.journal, __( 'See your journal', 'stubli' ), '', '#journal', __( 'New entry', 'stubli' ) );
 			}, function ( err ) {
 				j.busy = false; j.error = ( err && err.message ) || __( 'Something went wrong. Your entry is still here.', 'stubli' ); rerender();
 			} );

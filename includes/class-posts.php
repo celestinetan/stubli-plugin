@@ -417,6 +417,42 @@ class Posts {
 	}
 
 	/**
+	 * What a collection holds: photo posts, and journal entries the owner
+	 * filed into it (marked with Journal::SHELF).
+	 *
+	 * @return array Tax query.
+	 */
+	public static function tile_tax() {
+		return array(
+			'relation' => 'OR',
+			array(
+				'taxonomy' => 'post_format',
+				'field'    => 'slug',
+				'terms'    => array( 'post-format-image', 'post-format-gallery' ),
+			),
+			array(
+				'taxonomy' => Journal::SHELF,
+				'operator' => 'EXISTS',
+			),
+		);
+	}
+
+	/**
+	 * The photo(s) a post shows as its tile in a collection: a photo post's
+	 * photos, or a filed journal entry's first photo (none for a paper tile).
+	 *
+	 * @param int $post_id Post ID.
+	 * @return int[]
+	 */
+	public static function tile_ids( $post_id ) {
+		if ( Journal::is_filed( $post_id ) ) {
+			$id = Journal::tile_photo( $post_id );
+			return $id ? array( $id ) : array();
+		}
+		return self::photo_ids( $post_id );
+	}
+
+	/**
 	 * The photos of a post, in order.
 	 *
 	 * @param int $post_id Post ID.

@@ -143,17 +143,34 @@ class Mine {
 				'post_status'    => array( 'publish', 'private' ),
 				'posts_per_page' => self::PER_PAGE,
 				'paged'          => max( 1, (int) $page ),
-				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-					array(
-						'taxonomy' => 'post_format',
-						'field'    => 'slug',
-						'terms'    => array( 'post-format-image', 'post-format-gallery' ),
-					),
-				),
+				'tax_query'      => Posts::tile_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 			)
 		);
 		$items = array();
 		foreach ( $q->posts as $p ) {
+			if ( Journal::is_filed( $p->ID ) ) {
+				if ( 'publish' !== $p->post_status ) {
+					continue; // Only-me entries never show in a collection.
+				}
+				// A journal entry filed into a collection: its photo, or a paper tile.
+				$tp      = Journal::tile_photo( $p->ID );
+				$items[] = array(
+					'id'      => (int) $p->ID,
+					'kind'    => 'entry',
+					'thumb'   => $tp ? (string) wp_get_attachment_image_url( $tp, 'medium' ) : '',
+					'count'   => 0,
+					'missing' => 0,
+					'note'    => false,
+					'video'   => false,
+					'friends' => false,
+					'title'   => Journal::title( $p->ID ),
+					'words'   => Journal::opening( $p, 30 ),
+					'url'     => (string) get_permalink( $p ),
+					'date'    => get_post_time( 'c', true, $p ),
+					'coll'    => self::collection_of( $p->ID ),
+				);
+				continue;
+			}
 			$photos  = self::photos( $p->ID );
 			$missing = count( array_filter( $photos, static fn( $ph ) => '' === trim( $ph['alt'] ) ) );
 			$items[] = array(

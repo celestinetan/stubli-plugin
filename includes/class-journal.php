@@ -28,9 +28,122 @@ class Journal {
 	 */
 	public static function init() {
 		add_action( 'init', array( self::class, 'rewrite' ) );
+		add_action( 'init', array( self::class, 'register_shelf' ), 5 );
 		add_filter( 'query_vars', array( self::class, 'query_vars' ) );
 		add_filter( 'request', array( self::class, 'route' ), 5 );
 		add_action( 'pre_get_posts', array( self::class, 'keep_out_of_feeds' ) );
+	}
+
+	/**
+	 * Entries the owner files into a collection carry the "filed" mark of
+	 * this private taxonomy, so a collection's grid can ask for "photo posts
+	 * or filed entries" in one query. Nobody sees it; it has no pages.
+	 */
+	const SHELF = 'stubli_shelf';
+
+	/**
+	 * Register the private mark.
+	 */
+	public static function register_shelf() {
+		register_taxonomy(
+			self::SHELF,
+			'post',
+			array(
+				'public'            => false,
+				'show_ui'           => false,
+				'show_in_rest'      => false,
+				'show_in_nav_menus' => false,
+				'rewrite'           => false,
+				'query_var'         => false,
+				'hierarchical'      => false,
+			)
+		);
+	}
+
+	/**
+	 * Put an entry in a collection, or take it out ('' = none). In a
+	 * collection it shows as a tile like a photo post: its first photo, or a
+	 * paper tile with its title and first lines ($tile 'words'). It stays in
+	 * the Journal tab either way.
+	 *
+	 * @param int    $id         Entry.
+	 * @param string $collection Collection name, or ''.
+	 * @param string $tile       'photo' or 'words'.
+	 * @return array|WP_Error The entry, as get() shapes it.
+	 */
+	public static function file( $id, $collection, $tile = 'photo' ) {
+		$post = self::own_entry( $id );
+		if ( ! $post ) {
+			return new WP_Error( 'stubli_not_found', __( 'That entry isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		$collection = trim( (string) $collection );
+		if ( '' === $collection ) {
+			wp_set_object_terms( $post->ID, array(), self::SHELF );
+			delete_post_meta( $post->ID, '_stubli_filed' );
+			delete_post_meta( $post->ID, '_stubli_tile' );
+			wp_set_post_categories( $post->ID, array( (int) get_option( 'default_category' ) ) );
+			return self::get( $post->ID );
+		}
+		$cat = Posts::collection_id( $collection );
+		if ( ! $cat ) {
+			return new WP_Error( 'stubli_bad_collection', __( 'That collection name didn\'t work. Try another.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		wp_set_post_categories( $post->ID, array( (int) $cat ) );
+		wp_set_object_terms( $post->ID, 'filed', self::SHELF );
+		update_post_meta( $post->ID, '_stubli_filed', 1 );
+		update_post_meta( $post->ID, '_stubli_tile', 'words' === $tile ? 'words' : 'photo' );
+		return self::get( $post->ID );
+	}
+
+	/**
+	 * Is this entry filed into a collection?
+	 *
+	 * @param int $id Entry.
+	 * @return bool
+	 */
+	public static function is_filed( $id ) {
+		return (bool) get_post_meta( (int) $id, '_stubli_filed', true );
+	}
+
+	/**
+	 * The photo a filed entry shows as its tile: its first photo, unless the
+	 * owner chose words. 0 for a paper tile.
+	 *
+	 * @param int $id Entry.
+	 * @return int Attachment ID.
+	 */
+	public static function tile_photo( $id ) {
+		if ( 'words' === get_post_meta( (int) $id, '_stubli_tile', true ) ) {
+			return 0;
+		}
+		return self::first_photo( $id );
+	}
+
+	/**
+	 * The first photo in an entry's text, 0 if none.
+	 *
+	 * @param int $id Entry.
+	 * @return int
+	 */
+	public static function first_photo( $id ) {
+		$post = get_post( (int) $id );
+		if ( $post && preg_match( '#data-photo-id="(\d+)"#', (string) $post->post_content, $m ) && 'attachment' === get_post_type( (int) $m[1] ) ) {
+			return (int) $m[1];
+		}
+		return 0;
+	}
+
+	/**
+	 * The first lines of an entry, for a paper tile.
+	 *
+	 * @param WP_Post $post Entry.
+	 * @param int     $words How many words.
+	 * @return string Plain text.
+	 */
+	public static function opening( $post, $words = 40 ) {
+		$text = preg_replace( '#<figure\b.*?</figure>#is', ' ', (string) $post->post_content );
+		$text = html_entity_decode( wp_strip_all_tags( (string) $text ), ENT_QUOTES, 'UTF-8' );
+		return wp_trim_words( trim( (string) preg_replace( '/\s+/', ' ', $text ) ), $words, '…' );
 	}
 
 	/**
@@ -461,6 +574,8 @@ class Journal {
 			'url'        => 'draft' === $post->post_status ? '' : get_permalink( $post ),
 			'draft'      => 'draft' === $post->post_status,
 			'saved'      => self::iso( $post->post_modified ),
+			'collection' => self::is_filed( $post->ID ) ? Mine::collection_of( $post->ID ) : '',
+			'tile'       => 'words' === get_post_meta( $post->ID, '_stubli_tile', true ) ? 'words' : 'photo',
 		);
 	}
 
