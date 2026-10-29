@@ -447,8 +447,15 @@
 
 	/* ── State ── */
 	var post = null;
+	// New post starts on the collection used last time (Celestine, 29 Oct), or None.
+	function lastColl() {
+		var cols = B.collections || [], last = null;
+		try { last = localStorage.getItem( 'stubli-last-coll' ); } catch ( e ) {}
+		if ( null !== last && ( cols.indexOf( last ) > -1 || ( '' === last && B.noneOk ) ) ) { return last; }
+		return cols[ 0 ] || '';
+	}
 	function newPost() {
-		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: B.collections && B.collections[ 0 ] || '', newCollection: '', addingCollection: ! ( B.collections && B.collections.length ), note: false, noteText: '', audience: 'everyone', linkOpen: false, altsChecked: false, busy: false, error: '' };
+		post = { photos: [], current: 0, ratio: 'portrait', caption: '', collection: lastColl(), newCollection: '', addingCollection: ! ( B.collections && B.collections.length ) && ! B.noneOk, note: false, noteText: '', audience: 'everyone', linkOpen: false, altsChecked: false, busy: false, error: '' };
 	}
 	var journal = { title: store.get( 'stubli-journal-title' ) || '', html: store.get( 'stubli-journal-html' ) || jTextToHtml( store.get( 'stubli-journal-draft' ) ), visibility: store.get( 'stubli-journal-vis' ) || 'everyone', collection: store.get( 'stubli-journal-coll' ) || '', tile: store.get( 'stubli-journal-tile' ) || 'photo', tool: '', busy: false, error: '', uploading: 0, photos: [], pending: {} };
 	try { journal.photos = JSON.parse( store.get( 'stubli-journal-photos' ) || '[]' ) || []; } catch ( e ) { journal.photos = []; }
@@ -620,7 +627,7 @@
 			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || ( latest.kind === 'entry' ? __( 'Journal entry', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
-			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'Photos', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
+			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'All', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
 				'<a class="a-ctab a-ctab-icon" href="#journals" aria-label="' + esc( __( 'Your journal', 'stubli' ) ) + '" title="' + esc( __( 'Your journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
 				'<span class="a-ctabs-gap"></span>' +
@@ -656,7 +663,8 @@
 	// The short line of the collection you're looking at, as on your page.
 	function youLine() {
 		if ( ! ar.list ) { if ( ! ar.loading ) { ar.loading = true; send( 'GET', 'arrange', null ).then( function ( r ) { ar.list = r.collections; ar.loading = false; var yl = $( '[data-you-line]' ); if ( yl && location.hash === '#you' ) { yl.innerHTML = youLine(); } }, function () { ar.loading = false; } ); } return ''; }
-		var name = me.coll || __( 'Photos', 'stubli' );
+		if ( ! me.coll ) { return ''; }
+		var name = me.coll;
 		var c = ar.list.filter( function ( x ) { return x.name === name; } )[ 0 ];
 		return c && c.description ? '<p class="a-you-line">' + esc( c.description ) + '</p>' : '';
 	}
@@ -778,8 +786,8 @@
 	function openSheet( id ) {
 		var item = mine.items.filter( function ( i ) { return i.id === id; } )[ 0 ];
 		if ( ! item ) { return; }
-		// Posts in the untouched default collection show it as "Photos".
-		var coll = item.coll || __( 'Photos', 'stubli' );
+		// Posts without a collection (they show in All) can't be pinned.
+		var coll = item.coll || '';
 		me.sheet = { id: id, coll: coll, cat: 0, pins: [], loading: true, msg: '', entry: item.kind === 'entry', hand: false };
 		viewYou();
 		( ar.list ? Promise.resolve( { collections: ar.list } ) : send( 'GET', 'arrange', null ) ).then( function ( r ) {
@@ -1369,8 +1377,8 @@
 			( '<label class="a-label" for="a-ed-cap">' + __( 'Caption', 'stubli' ) + '</label><textarea id="a-ed-cap" class="a-textarea" maxlength="' ) + B.maxCaption + '">' + esc( d.caption ) + '</textarea>' +
 			'<p class="a-count" data-ed-count' + ( d.caption.length < B.maxCaption - 200 ? ' hidden' : '' ) + '>' + d.caption.length + ' / ' + B.maxCaption + '</p>' +
 			( '<h2 class="a-label" id="a-ed-col">' + __( 'Collection', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-ed-col">' ) +
-			cols.map( function ( c ) { var on = ! ed.adding && d.collection === c; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-ed-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>'; } ).join( '' ) +
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + ( ! ed.adding && ! d.collection ) + '" data-ed-col="">' + ( ! ed.adding && ! d.collection ? icon( 'check', 16 ) : '' ) + ( __( 'None', 'stubli' ) + '</button>' ) +
+			cols.map( function ( c ) { var on = ! ed.adding && d.collection === c; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-ed-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>'; } ).join( '' ) +
 			'<button type="button" class="a-chip" role="radio" aria-checked="' + ed.adding + '" data-ed-col-new>' + ( ed.adding ? icon( 'check', 16 ) : '' ) + ( __( '+ New', 'stubli' ) + '</button></div>' ) +
 			( ed.adding ? ( '<div class="a-inline"><label class="sr" for="a-ed-newcol">' + __( 'New collection name', 'stubli' ) + '</label><input id="a-ed-newcol" class="a-field" maxlength="40" placeholder="' + esc( __( 'e.g. Mountains', 'stubli' ) ) + '" value="' ) + esc( ed.newCol ) + '"></div>' : '' ) +
 			audienceChips( d.audience, 'ed-aud' ) +
@@ -2550,10 +2558,11 @@
 			( p.linkOpen ? ( '<div class="a-inline"><label class="sr" for="a-link">' + __( 'Web address', 'stubli' ) + '</label><input id="a-link" class="a-field" type="url" inputmode="url" placeholder="https://…"><button type="button" class="a-btn quiet" data-link-add>' + __( 'Add', 'stubli' ) + '</button></div><p class="a-help">' + __( 'It appears at the end of your caption and people can tap it.', 'stubli' ) + '</p>' ) :
 				'<button type="button" class="a-chip" data-link style="margin-top:8px">' + icon( 'link', 16 ) + ( __( 'Add a link', 'stubli' ) + '</button>' ) ) +
 			( '<h2 class="a-label" id="a-col-h">' + __( 'Which collection?', 'stubli' ) + '</h2>' ) +
-			'<div class="a-chips" role="radiogroup" aria-labelledby="a-col-h">' + cols.map( function ( c ) {
+			'<div class="a-chips" role="radiogroup" aria-labelledby="a-col-h">' + ( B.noneOk ? '<button type="button" class="a-chip" role="radio" aria-checked="' + ( ! p.addingCollection && '' === p.collection ) + '" data-col="">' + ( ! p.addingCollection && '' === p.collection ? icon( 'check', 16 ) : '' ) + __( 'None', 'stubli' ) + '</button>' : '' ) + cols.map( function ( c ) {
 				var on = ! p.addingCollection && p.collection === c;
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-col="' + esc( c ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( c ) + '</button>';
 			} ).join( '' ) + '<button type="button" class="a-chip" role="radio" aria-checked="' + p.addingCollection + '" data-col-new>' + ( p.addingCollection ? icon( 'check', 16 ) : '' ) + ( __( '+ New', 'stubli' ) + '</button></div>' ) +
+			( ! p.addingCollection && '' === p.collection && B.noneOk ? '<p class="a-help">' + __( 'It shows in All on your page.', 'stubli' ) + '</p>' : '' ) +
 			( p.addingCollection ? ( '<div class="a-inline"><label class="sr" for="a-newcol">' + __( 'New collection name', 'stubli' ) + '</label><input id="a-newcol" class="a-field" maxlength="40" placeholder="' + esc( __( 'e.g. Mountains', 'stubli' ) ) + '" value="' ) + esc( p.newCollection ) + ( '"></div><p class="a-help">' + __( 'Each collection is a folder tab on your page. An emoji at the start is welcome.', 'stubli' ) + '</p>' ) : '' ) +
 			( ( p.descOpen || p.photos.some( function ( x ) { return x.alt && x.alt.trim(); } ) ) ? '' : '<button type="button" class="a-btn quiet a-desc-open" data-desc-open aria-expanded="false">' + icon( 'plus', 16 ) + __( 'Add descriptions', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></button><p class="a-help">' + __( 'A few words per photo, read aloud to people who use screen readers. You can add them later too.', 'stubli' ) + '</p>' ) +
 			( ( p.descOpen || p.photos.some( function ( x ) { return x.alt && x.alt.trim(); } ) ) ? '<h2 class="a-label">' + ( p.photos.some( function ( x ) { return x.video; } ) ? __( 'Describe what\'s shown for people who can\'t see it', 'stubli' ) : __( 'Describe the photos for people who can\'t see them', 'stubli' ) ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></h2>' +
@@ -2634,6 +2643,7 @@
 			} );
 			fd.append( 'caption', p.caption.trim() );
 			fd.append( 'collection', p.addingCollection ? p.newCollection.trim() : p.collection );
+			try { localStorage.setItem( 'stubli-last-coll', p.addingCollection ? p.newCollection.trim() : p.collection ); } catch ( e ) {}
 			if ( p.note ) { fd.append( 'content_note', p.noteText.trim() ); }
 			if ( p.audience === 'friends' ) { fd.append( 'audience', 'friends' ); }
 			var t = $( '.a-notice p' ); if ( t ) { t.textContent = __( 'Sharing…', 'stubli' ); }

@@ -170,6 +170,9 @@ function stubli_collections() {
 	}
 	$out = array();
 	foreach ( get_categories( array( 'hide_empty' => true ) ) as $term ) {
+		if ( stubli_is_unsorted( $term ) ) {
+			continue; // No collection: these photos show in All.
+		}
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -207,7 +210,47 @@ function stubli_collections() {
 }
 
 /**
- * A collection's display name.
+ * WordPress's untouched "Uncategorized": photos there have no collection.
+ *
+ * @param WP_Term|mixed $term Category.
+ * @return bool
+ */
+function stubli_is_unsorted( $term ) {
+	return $term instanceof WP_Term && (int) $term->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $term->name ), array( 'uncategorized', 'uncategorised' ), true );
+}
+
+/**
+ * Whether this Stubli has public photos without a collection. Then the page
+ * gets an "All" tab first, showing every photo (Celestine, 29 Oct 2026).
+ *
+ * @return bool
+ */
+function stubli_has_all() {
+	static $has = null;
+	if ( null !== $has ) {
+		return $has;
+	}
+	$def = get_term( (int) get_option( 'default_category' ), 'category' );
+	if ( ! stubli_is_unsorted( $def ) ) {
+		return ( $has = false );
+	}
+	$q   = new WP_Query(
+		array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'cat'            => (int) $def->term_id,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+		)
+	);
+	$has = (bool) $q->posts;
+	return $has;
+}
+
+/**
+ * The display name of a collection.
  *
  * @param WP_Term $term Category.
  * @return string
@@ -382,8 +425,12 @@ function stubli_photo_ids( $post_id ) {
  * @return WP_Term|null
  */
 function stubli_post_collection( $post_id ) {
-	$cats = get_the_category( $post_id );
-	return $cats ? $cats[0] : null;
+	foreach ( get_the_category( $post_id ) as $cat ) {
+		if ( ! stubli_is_unsorted( $cat ) ) {
+			return $cat;
+		}
+	}
+	return null;
 }
 
 /**

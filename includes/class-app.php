@@ -160,11 +160,12 @@ class App {
 		$collections = array();
 		$default     = (int) get_option( 'default_category' );
 		foreach ( get_categories( array( 'hide_empty' => false, 'orderby' => 'count', 'order' => 'DESC' ) ) as $term ) {
-			if ( $default === (int) $term->term_id && 0 === (int) $term->count ) {
-				continue; // An empty "Uncategorized" isn't a collection yet.
+			// WordPress's untouched "Uncategorized" is no collection: posts there
+			// show in All on the page (0.44.0). Renamed, it's a collection like any other.
+			if ( $default === (int) $term->term_id && Posts::is_unsorted( $term ) ) {
+				continue;
 			}
-			$name = ( $default === (int) $term->term_id && in_array( strtolower( $term->name ), array( 'uncategorized', 'uncategorised' ), true ) ) ? __( 'Photos', 'stubli' ) : $term->name;
-			$collections[] = $name;
+			$collections[] = $term->name;
 		}
 		return array(
 			'rest'        => esc_url_raw( rest_url( REST_NS . '/' ) ),
@@ -178,6 +179,7 @@ class App {
 			'settings'    => admin_url( 'options-general.php?page=stubli' ),
 			'dashboard'   => admin_url(),
 			'collections' => array_values( array_unique( $collections ) ),
+			'noneOk'      => Posts::is_unsorted( get_term( $default, 'category' ) ),
 			'collOrder'   => array_column( Arrange::collections(), 'name' ),
 			'maxPhotos'   => Posts::MAX_PHOTOS,
 			'maxCaption'  => Posts::MAX_CAPTION_LENGTH,

@@ -279,6 +279,10 @@ function stubli_tabs( $active ) {
 	<nav class="st-tabs" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: name */ __( '%s\'s page', 'stubli' ), get_bloginfo( 'name' ) ) ); ?>">
 		<div class="st-tabs-left">
 			<div class="st-tabs-scroll" data-st-scroll>
+				<?php if ( stubli_has_all() ) : ?>
+					<?php $is = ( 0 === $active ); ?>
+					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?>><span class="st-tab-face"><span class="st-tab-label"><?php esc_html_e( 'All', 'stubli' ); ?></span></span></a>
+				<?php endif; ?>
 				<?php foreach ( $collections as $term ) : ?>
 					<?php $is = ( (int) $active === (int) $term->term_id ); ?>
 					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $term ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?>><span class="st-tab-face"><span class="st-tab-label"><?php echo esc_html( stubli_collection_name( $term ) ); ?></span></span></a>
@@ -479,7 +483,7 @@ function stubli_view_profile() {
 	$active      = 0;
 	if ( is_category() ) {
 		$active = (int) get_queried_object_id();
-	} elseif ( $collections ) {
+	} elseif ( $collections && ! stubli_has_all() ) {
 		$active = (int) $collections[0]->term_id;
 	}
 	$term = $active ? get_term( $active, 'category' ) : null;
@@ -495,7 +499,8 @@ function stubli_view_profile() {
 	}
 	stubli_profile_cards();
 	stubli_tabs( $active );
-	echo '<section class="st-panel' . ( $collections && (int) $collections[0]->term_id === $active ? ' is-first' : '' ) . '">';
+	$first = stubli_has_all() ? 0 === $active : ( $collections && (int) $collections[0]->term_id === $active );
+	echo '<section class="st-panel' . ( $first ? ' is-first' : '' ) . '">';
 	if ( $term && ! is_wp_error( $term ) && '' !== trim( $term->description ) ) {
 		echo '<p class="st-wall-label">' . esc_html( wp_strip_all_tags( $term->description ) ) . '</p>';
 	}

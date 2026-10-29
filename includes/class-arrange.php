@@ -42,14 +42,15 @@ class Arrange {
 	}
 
 	/**
-	 * A collection's name ("Photos" for an untouched default category).
+	 * A collection's name. The untouched default category reads "All", so
+	 * no collection can take the name of the All tab (0.44.0).
 	 *
 	 * @param \WP_Term $t Category.
 	 * @return string
 	 */
 	private static function name( $t ) {
 		if ( (int) $t->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $t->name ), array( 'uncategorized', 'uncategorised' ), true ) ) {
-			return __( 'Photos', 'stubli' );
+			return __( 'All', 'stubli' );
 		}
 		return html_entity_decode( $t->name, ENT_QUOTES );
 	}
@@ -63,6 +64,9 @@ class Arrange {
 	public static function collections() {
 		$out = array();
 		foreach ( get_categories( array( 'hide_empty' => true ) ) as $t ) {
+			if ( Posts::is_unsorted( $t ) ) {
+				continue; // No collection: these show in All (0.44.0).
+			}
 			$q = new \WP_Query(
 				array(
 					'post_type'      => 'post',
@@ -325,7 +329,7 @@ class Arrange {
 								}
 								$taken = false;
 								foreach ( get_categories( array( 'hide_empty' => false ) ) as $o ) {
-									// Compare with what each tab shows, so "Photos" counts too.
+									// Compare with what each tab shows, so "All" counts too.
 									if ( (int) $o->term_id !== $cat && 0 === strcasecmp( self::name( $o ), $name ) ) {
 										$taken = true;
 									}

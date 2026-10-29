@@ -397,6 +397,17 @@ class Posts {
 	}
 
 	/**
+	 * Whether a category is WordPress's untouched default ("Uncategorized"):
+	 * photos there have no collection and show in All on the page.
+	 *
+	 * @param \WP_Term|mixed $term Category.
+	 * @return bool
+	 */
+	public static function is_unsorted( $term ) {
+		return $term instanceof \WP_Term && (int) $term->term_id === (int) get_option( 'default_category' ) && in_array( strtolower( $term->name ), array( 'uncategorized', 'uncategorised' ), true );
+	}
+
+	/**
 	 * Category ID for a collection name, creating it if needed.
 	 *
 	 * @param string $name Collection name.
