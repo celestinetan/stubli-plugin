@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.0
+Stable tag: 0.45.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.1 =
+* Fixed: an & or quotes in a collection's line under its tab showed as &amp; or &quot; in the app.
 
 = 0.45.0 =
 * Links is now Favourites, with a heart: up to 100 favourite places, shops and websites, each with an optional note. Sort them into up to 12 groups, like Coffee or Books, and they show as headings on your page. A link from Google Maps or Apple Maps shows with a map pin. Your links carry over by themselves.

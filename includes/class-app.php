@@ -165,7 +165,7 @@ class App {
 			if ( $default === (int) $term->term_id && Posts::is_unsorted( $term ) ) {
 				continue;
 			}
-			$collections[] = $term->name;
+			$collections[] = html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' );
 		}
 		return array(
 			'rest'        => esc_url_raw( rest_url( REST_NS . '/' ) ),

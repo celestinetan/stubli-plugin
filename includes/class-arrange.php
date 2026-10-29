@@ -42,6 +42,18 @@ class Arrange {
 	}
 
 	/**
+	 * A collection's line under its tab as plain text. WordPress keeps it with
+	 * & and quotes written as &amp; and &quot;, so they're turned back into
+	 * the characters here, for the app's text field (0.45.1).
+	 *
+	 * @param string $text Stored description.
+	 * @return string
+	 */
+	private static function plain( $text ) {
+		return html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	}
+
+	/**
 	 * A collection's name. The untouched default category reads "All", so
 	 * no collection can take the name of the All tab (0.44.0).
 	 *
@@ -82,7 +94,7 @@ class Arrange {
 					'id'          => (int) $t->term_id,
 					'name'        => self::name( $t ),
 					'count'       => (int) $q->found_posts,
-					'description' => wp_strip_all_tags( (string) $t->description ),
+					'description' => self::plain( (string) $t->description ),
 				);
 			}
 		}
@@ -275,7 +287,7 @@ class Arrange {
 			'max'         => self::MAX_PINS,
 			'hand'        => $hand,
 			'name'        => $term && ! is_wp_error( $term ) ? self::name( $term ) : '',
-			'description' => $term && ! is_wp_error( $term ) ? wp_strip_all_tags( (string) $term->description ) : '',
+			'description' => $term && ! is_wp_error( $term ) ? self::plain( (string) $term->description ) : '',
 		);
 	}
 
