@@ -927,3 +927,4 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 /* Favourites (0.2.101): a favourite without a link is a quiet row, not a button. */
 .st-links .st-link-row.is-plain, .st-links .st-link-row.is-plain:hover { background: var(--st-bg); cursor: default; }
 .st-links .st-link-list + .st-links-h { margin-top: 22px; }
+.st-links .st-link-row > span { min-width: 0; overflow-wrap: anywhere; }

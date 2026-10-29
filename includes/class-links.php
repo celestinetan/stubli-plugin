@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Favourites (since 0.45.0): up to 100, each a name with an optional link,
- * an optional one-line note and an optional group; up to 12 groups, shown
+ * an optional note (up to 140 characters) and an optional group; up to 12 groups, shown
  * as headed sections on the Favourites tab. Stored in stubli_favourites as
  * { items: [ { label, url, note, group } ], groups: [ names ] }. The old
  * "Name | https://…" lines in stubli_links are read once if there's nothing
@@ -196,7 +196,7 @@ class Links {
 			$out[] = array(
 				'label' => mb_substr( $label, 0, 60 ),
 				'url'   => $url,
-				'note'  => mb_substr( $note, 0, 80 ),
+				'note'  => mb_substr( $note, 0, 140 ),
 				'group' => $group,
 			);
 		}

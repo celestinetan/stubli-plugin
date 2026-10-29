@@ -820,11 +820,12 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-hand-tools .a-btn { padding: 8px 12px; min-height: 40px; }
 
 /* Favourites (0.45.0): one row per favourite, tap to edit, arrows to reorder within its group. */
-.a-fav { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
-.a-fav li { display: flex; align-items: center; gap: 4px; border-radius: 12px; background: var(--bg); padding-right: 4px; }
+.a-fav { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.a-fav li { min-width: 0; display: flex; align-items: center; gap: 4px; border-radius: 12px; background: var(--bg); padding-right: 4px; }
 .a-fav-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; color: inherit; text-decoration: none; border-radius: 12px; }
 .a-fav-row > span { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
-.a-fav-row > span > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-fav-row > span > * { overflow-wrap: anywhere; }
+.a-fav-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .a-fav-row .muted { font-size: 13px; }
 .a-fav-row > svg { color: var(--muted); flex: none; }
 .a-fav .a-icon-btn { width: 40px; height: 40px; }
