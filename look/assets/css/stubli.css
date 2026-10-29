@@ -923,3 +923,7 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 @media (max-width: 599px) {
 	.st-gs.is-live .st-gs-step > .st-button, .st-gs.is-live .st-gs-card .st-gs-site .st-button { width: 100%; }
 }
+
+/* Favourites (0.2.101): a favourite without a link is a quiet row, not a button. */
+.st-links .st-link-row.is-plain, .st-links .st-link-row.is-plain:hover { background: var(--st-bg); cursor: default; }
+.st-links .st-link-list + .st-links-h { margin-top: 22px; }

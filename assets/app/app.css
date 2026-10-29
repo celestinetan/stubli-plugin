@@ -818,3 +818,16 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-hand-n { position: absolute; top: 6px; left: 6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: rgba(28,25,22,.62); color: #fff; font-size: 12px; font-weight: 650; display: flex; align-items: center; justify-content: center; }
 .a-hand-tools { position: sticky; top: calc(60px + env(safe-area-inset-top)); z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 0 10px; background: var(--bg); }
 .a-hand-tools .a-btn { padding: 8px 12px; min-height: 40px; }
+
+/* Favourites (0.45.0): one row per favourite, tap to edit, arrows to reorder within its group. */
+.a-fav { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.a-fav li { display: flex; align-items: center; gap: 4px; border-radius: 12px; background: var(--bg); padding-right: 4px; }
+.a-fav-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; color: inherit; text-decoration: none; border-radius: 12px; }
+.a-fav-row > span { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.a-fav-row > span > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-fav-row .muted { font-size: 13px; }
+.a-fav-row > svg { color: var(--muted); flex: none; }
+.a-fav .a-icon-btn { width: 40px; height: 40px; }
+.a-fav .a-icon-btn:disabled { opacity: .3; }
+.a-fav-sure { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.a-lk-btns.a-lk-row { flex-direction: row; }

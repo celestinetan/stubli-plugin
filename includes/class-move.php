@@ -305,7 +305,15 @@ class Move {
 		if ( isset( $p['prompts'] ) && is_array( $p['prompts'] ) ) {
 			Prompts::save( $p['prompts'] );
 		}
-		update_option( 'stubli_links', sanitize_textarea_field( (string) ( $p['links'] ?? '' ) ) );
+		if ( isset( $p['favourites']['items'] ) && is_array( $p['favourites']['items'] ) ) {
+			$fav = Links::save( $p['favourites']['items'], is_array( $p['favourites']['groups'] ?? null ) ? $p['favourites']['groups'] : array() );
+			if ( is_wp_error( $fav ) ) {
+				update_option( 'stubli_links', sanitize_textarea_field( (string) ( $p['links'] ?? '' ) ) );
+			}
+		} else {
+			delete_option( 'stubli_favourites' );
+			update_option( 'stubli_links', sanitize_textarea_field( (string) ( $p['links'] ?? '' ) ) );
+		}
 		Setup::save(
 			array(
 				'accent' => (string) ( $p['accent'] ?? '' ),

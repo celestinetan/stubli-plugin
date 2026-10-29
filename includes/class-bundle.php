@@ -35,6 +35,7 @@ class Bundle {
 			'accent'    => Setup::accent(),
 			'mode'      => Setup::mode(),
 			'links'     => (string) get_option( 'stubli_links', '' ),
+			'favourites' => Links::data(),
 			'interests' => array_column( Setup::interests(), 'name' ),
 			'prompts'   => Prompts::get(),
 		);

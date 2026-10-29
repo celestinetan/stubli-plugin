@@ -118,7 +118,7 @@ add_filter(
 );
 
 /**
- * /links/, /from-your-stubli/ and /invite/ without rewrite rules, so they
+ * /favourites/ (and the old /links/), /from-your-stubli/ and /invite/ without rewrite rules, so they
  * work straight after an update with nothing to flush.
  */
 add_filter(
@@ -134,6 +134,7 @@ add_filter(
 		}
 		$map = array(
 			'links'            => 'stubli_links',
+			'favourites'       => 'stubli_links',
 			'from-your-stubli' => 'stubli_remote',
 			'invite'           => 'stubli_invite',
 		);
@@ -197,7 +198,7 @@ add_filter(
 		} elseif ( get_query_var( 'stubli_journal' ) ) {
 			$parts['title'] = __( 'Journal', 'stubli' );
 		} elseif ( get_query_var( 'stubli_links' ) ) {
-			$parts['title'] = __( 'Links', 'stubli' );
+			$parts['title'] = __( 'Favourites', 'stubli' );
 		} elseif ( get_query_var( 'stubli_remote' ) ) {
 			$parts['title'] = __( 'From your own Stubli', 'stubli' );
 		} elseif ( get_query_var( 'stubli_invite' ) ) {

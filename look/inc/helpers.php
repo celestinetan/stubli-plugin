@@ -574,6 +574,8 @@ function stubli_icon( $name, $size = 18 ) {
 		'book'    => '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		'pen'     => '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		'mark'    => '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
+		'heart'   => '<path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
+		'place'   => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
 		'back'    => '<path d="M15 5l-7 7 7 7"/>',
 		'chev'    => '<path d="M9 6l6 6-6 6"/>',
 		'stack'   => '<rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
@@ -731,4 +733,42 @@ function stubli_make_your_own() {
 	}
 	$GLOBALS['stubli_own_shown'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- own prefix.
 	echo wp_kses( '<p class="st-own"><span>' . esc_html__( 'Made with', 'stubli' ) . ' ' . stubli_wordmark() . '</span> <span aria-hidden="true">·</span> <a href="https://stubli.app/welcome/?from=profile">' . esc_html__( 'Make your own', 'stubli' ) . '</a></p>', stubli_allowed_html() );
+}
+
+/**
+ * Favourites as sections for the Favourites tab: ungrouped ones first, then
+ * each group. Without the plugin, the old "Name | address" lines.
+ *
+ * @return array[] { group, items: { label, url, note, map } }
+ */
+function stubli_favourite_sections() {
+	if ( class_exists( '\\Stubli\\Links' ) && method_exists( '\\Stubli\\Links', 'sections' ) ) {
+		$out = \Stubli\Links::sections();
+		foreach ( $out as &$sec ) {
+			foreach ( $sec['items'] as &$i ) {
+				$i['map'] = '' !== $i['url'] && \Stubli\Links::is_map( $i['url'] );
+			}
+			unset( $i );
+		}
+		unset( $sec );
+		return $out;
+	}
+	$items = array();
+	foreach ( preg_split( '/\r?\n/', (string) get_option( 'stubli_links', '' ) ) as $line ) {
+		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
+		if ( 2 === count( $parts ) && '' !== $parts[0] && in_array( wp_parse_url( $parts[1], PHP_URL_SCHEME ), array( 'http', 'https' ), true ) ) {
+			$items[] = array(
+				'label' => $parts[0],
+				'url'   => $parts[1],
+				'note'  => '',
+				'map'   => false,
+			);
+		}
+	}
+	return $items ? array(
+		array(
+			'group' => '',
+			'items' => $items,
+		),
+	) : array();
 }

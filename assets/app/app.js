@@ -82,6 +82,7 @@
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
+		heart: '<path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
 		people: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M15.5 14.2c2.6-.3 4.6 1.3 5.2 4.3"/>',
 		sort: '<path d="M8 4v16M4.5 7.5 8 4l3.5 3.5M16 20V4M12.5 16.5 16 20l3.5-3.5"/>',
 		grip: '<path d="M5 9h14M5 15h14"/>',
@@ -477,7 +478,10 @@
 		if ( h === 'about' ) { return viewAbout(); }
 		if ( h === 'look' ) { return viewLook(); }
 		if ( h === 'guestbook' ) { return viewGuestbook(); }
-		if ( h === 'links' ) { return viewLinks(); }
+		if ( h === 'links' ) { fav.draft = null; fav.gdraft = null; return viewLinks(); }
+		if ( h === 'links/new' ) { return viewFavEdit( -1 ); }
+		if ( /^links\/\d+$/.test( h ) ) { return viewFavEdit( +h.split( '/' )[ 1 ] ); }
+		if ( h === 'links/groups' ) { return viewFavGroups(); }
 		if ( h === 'arrange' ) { return viewArrange(); }
 		if ( /^arrange\/\d+$/.test( h ) ) { return viewPins( +h.split( '/' )[ 1 ] ); }
 		if ( /^note\/\d+$/.test( h ) ) { location.replace( '#letters' ); return; }
@@ -632,7 +636,7 @@
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
 				'<span class="a-ctabs-gap"></span>' +
 				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="#guestbook" aria-label="' + esc( __( 'Guest book', 'stubli' ) ) + '" title="' + esc( __( 'Guest book', 'stubli' ) ) + '">' + icon( 'pen', 18 ) + '</a>' : '' ) +
-				'<a class="a-ctab a-ctab-icon a-ctab-green" href="#links" aria-label="' + esc( __( 'Links', 'stubli' ) ) + '" title="' + esc( __( 'Links', 'stubli' ) ) + '">' + icon( 'mark', 18 ) + '</a></div>' +
+				'<a class="a-ctab a-ctab-icon a-ctab-green" href="#links" aria-label="' + esc( __( 'Favourites', 'stubli' ) ) + '" title="' + esc( __( 'Favourites', 'stubli' ) ) + '">' + icon( 'heart', 18 ) + '</a></div>' +
 			( me.edit ? tabEditHtml() : '' ) +
 			'<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>' +
 			( me.sheet ? sheetHtml() : '' ) +
@@ -2005,34 +2009,131 @@
 		} ); } );
 	}
 
-	/* ── Your links: add, change, reorder, remove ── */
-	var lks = { loaded: false, list: [], msg: '', dirty: false };
+	/* ── Favourites (once Your links): places, shops, websites, in optional groups ── */
+	var fav = { loaded: false, items: [], groups: [], msg: '', draft: null, at: -1, adding: false, confirm: false, gdraft: null };
+	var FAV_MAX = 100, FAV_GROUPS = 12;
+	function favLoad( then ) {
+		root.innerHTML = arrangeHead( '#you', __( 'Favourites', 'stubli' ) ) + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
+		Promise.all( [ send( 'GET', 'links', null ), pp.loaded ? Promise.resolve( pp.list ) : send( 'GET', 'follows', null ) ] ).then( function ( r ) {
+			fav.items = ( r[ 0 ] && r[ 0 ].items ) || []; fav.groups = ( r[ 0 ] && r[ 0 ].groups ) || [];
+			pp.list = Array.isArray( r[ 1 ] ) ? r[ 1 ] : []; pp.loaded = true; fav.loaded = true; then();
+		}, function ( e ) { toast( e.message ); } );
+	}
+	function favSave( items, groups, msg, done ) {
+		return send( 'POST', 'links', { items: items, groups: groups } ).then( function ( r ) {
+			fav.items = r.items || []; fav.groups = r.groups || []; fav.msg = msg || ''; if ( done ) { done(); }
+		}, function ( er ) { toast( er.message ); throw er; } );
+	}
+	function favSections() {
+		var out = [ { group: '', idx: [] } ].concat( fav.groups.map( function ( g ) { return { group: g, idx: [] }; } ) );
+		fav.items.forEach( function ( it, i ) { var k = fav.groups.indexOf( it.group ) + 1; out[ k ].idx.push( i ); } );
+		return out.filter( function ( s ) { return s.idx.length; } );
+	}
 	function viewLinks() {
-		if ( ! lks.loaded ) {
-			root.innerHTML = arrangeHead( '#you', __( 'Links', 'stubli' ) ) + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
-			Promise.all( [ send( 'GET', 'links', null ), pp.loaded ? Promise.resolve( pp.list ) : send( 'GET', 'follows', null ) ] ).then( function ( r ) { lks.list = r[ 0 ] || []; pp.list = Array.isArray( r[ 1 ] ) ? r[ 1 ] : []; pp.loaded = true; lks.loaded = true; if ( ! lks.list.length ) { lks.list = [ { label: '', url: '' } ]; } if ( location.hash === '#links' ) { viewLinks(); } }, function ( e ) { toast( e.message ); } );
-			return;
-		}
-		var n = lks.list.length;
-		root.innerHTML = arrangeHead( '#you', __( 'Links', 'stubli' ) ) + '<main class="a-main" id="main">' +
-			'<section class="a-card"><h2>' + __( 'Your links', 'stubli' ) + '</h2><p class="muted">' + __( 'A shop, a newsletter, another website: they show in the Links tab on your page.', 'stubli' ) + '</p>' +
-			'<ol class="a-lk">' + lks.list.map( function ( l, i ) {
-				return '<li><div class="a-lk-fields"><label class="sr" for="a-lk-l' + i + '">' + _f( __( 'Name of link %s', 'stubli' ), i + 1 ) + '</label><input id="a-lk-l' + i + '" class="a-field" maxlength="60" placeholder="' + esc( __( 'Name, like Shop', 'stubli' ) ) + '" value="' + esc( l.label ) + '" data-lk-label="' + i + '">' +
-					'<label class="sr" for="a-lk-u' + i + '">' + _f( __( 'Address of link %s', 'stubli' ), i + 1 ) + '</label><input id="a-lk-u' + i + '" class="a-field" type="url" inputmode="url" placeholder="shop.example.com" value="' + esc( l.url ) + '" data-lk-url="' + i + '"></div>' +
-					'<div class="a-lk-btns"><button type="button" class="a-icon-btn" data-lk-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move link %s up', 'stubli' ), i + 1 ) ) + '">' + icon( 'up', 18 ) + '</button><button type="button" class="a-icon-btn" data-lk-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move link %s down', 'stubli' ), i + 1 ) ) + '">' + icon( 'down', 18 ) + '</button><button type="button" class="a-icon-btn" data-lk-rm="' + i + '" aria-label="' + esc( _f( __( 'Remove link %s', 'stubli' ), i + 1 ) ) + '">' + icon( 'x', 18 ) + '</button></div></li>';
-			} ).join( '' ) + '</ol>' +
-			'<div class="a-actions"><button type="button" class="a-btn quiet" data-lk-add' + ( n >= 20 ? ' disabled' : '' ) + '>' + icon( 'plus', 18 ) + __( 'Add a link', 'stubli' ) + '</button><button type="button" class="a-btn" data-lk-save>' + __( 'Save', 'stubli' ) + '</button></div><p class="a-help" aria-live="polite" data-lk-msg>' + esc( lks.msg ) + '</p></section>' +
-			'<section class="a-card"><h2>' + __( 'Sites you follow', 'stubli' ) + '</h2><p class="muted">' + __( 'The ones you follow publicly show under your links. Change who you follow in People.', 'stubli' ) + '</p>' +
+		if ( ! fav.loaded ) { favLoad( function () { if ( location.hash === '#links' ) { viewLinks(); } } ); return; }
+		var secs = favSections(), full = fav.items.length >= FAV_MAX;
+		root.innerHTML = arrangeHead( '#you', __( 'Favourites', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			'<section class="a-card"><h2>' + __( 'Your favourites', 'stubli' ) + '</h2><p class="muted">' + __( 'Places, shops and websites you love. They show in the Favourites tab on your page.', 'stubli' ) + '</p>' +
+			( fav.items.length ? '' : '<p class="muted">' + __( 'Nothing here yet. A café you love, a bookshop, a friend\'s website?', 'stubli' ) + '</p>' ) +
+			secs.map( function ( s ) {
+				return ( s.group ? '<h3 class="a-label">' + esc( s.group ) + '</h3>' : '' ) + '<ol class="a-fav">' + s.idx.map( function ( i, k ) {
+					var it = fav.items[ i ], sub = it.note || hostOf( it.url );
+					return '<li><a class="a-fav-row" href="#links/' + i + '"><span><strong>' + esc( it.label ) + '</strong>' + ( sub ? '<span class="muted">' + esc( sub ) + '</span>' : '' ) + '</span>' + icon( 'pen', 16 ) + '<span class="sr">' + __( 'Edit', 'stubli' ) + '</span></a>' +
+						'<button type="button" class="a-icon-btn" data-fav-move="' + i + '" data-dir="-1"' + ( k === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), it.label ) ) + '">' + icon( 'up', 18 ) + '</button>' +
+						'<button type="button" class="a-icon-btn" data-fav-move="' + i + '" data-dir="1"' + ( k === s.idx.length - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), it.label ) ) + '">' + icon( 'down', 18 ) + '</button></li>';
+				} ).join( '' ) + '</ol>';
+			} ).join( '' ) +
+			'<div class="a-actions">' + ( full ? '<p class="a-help">' + __( 'That\'s 100 favourites, the most a page can keep.', 'stubli' ) + '</p>' : '<a class="a-btn" href="#links/new">' + icon( 'plus', 18 ) + __( 'Add a favourite', 'stubli' ) + '</a>' ) +
+			( fav.groups.length > 1 ? '<a class="a-btn quiet" href="#links/groups">' + __( 'Arrange groups', 'stubli' ) + '</a>' : '' ) + '</div>' +
+			'<p class="a-help" aria-live="polite" data-fav-msg>' + esc( fav.msg ) + '</p></section>' +
+			'<section class="a-card"><h2>' + __( 'Sites you follow', 'stubli' ) + '</h2><p class="muted">' + __( 'The ones you follow publicly show under your favourites. Change who you follow in People.', 'stubli' ) + '</p>' +
 			( pp.list.length ? '<ul class="a-lk-sites">' + pp.list.map( function ( f ) { return '<li><strong>' + esc( f.name || hostOf( f.site_url ) ) + '</strong> <span class="muted">' + esc( hostOf( f.site_url ) ) + '</span></li>'; } ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'You don\'t follow anyone yet.', 'stubli' ) + '</p>' ) +
 			'<a class="a-btn quiet" href="#discover">' + __( 'Open People', 'stubli' ) + '</a></section></main>';
-		lks.msg = '';
-		var read = function () { lks.list = lks.list.map( function ( l, i ) { return { label: $( '[data-lk-label="' + i + '"]' ).value, url: $( '[data-lk-url="' + i + '"]' ).value }; } ); };
-		$$( '[data-lk-move]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); var i = +b.dataset.lkMove, j = i + ( +b.dataset.dir ), t = lks.list[ i ]; lks.list[ i ] = lks.list[ j ]; lks.list[ j ] = t; viewLinks(); var f = $( '[data-lk-move="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-lk-move="' + j + '"]' ); if ( f ) { f.focus(); } } ); } );
-		$$( '[data-lk-rm]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); lks.list.splice( +b.dataset.lkRm, 1 ); if ( ! lks.list.length ) { lks.list = [ { label: '', url: '' } ]; } viewLinks(); } ); } );
-		$( '[data-lk-add]' ).addEventListener( 'click', function () { read(); lks.list.push( { label: '', url: '' } ); viewLinks(); var f = $( '[data-lk-label="' + ( lks.list.length - 1 ) + '"]' ); if ( f ) { f.focus(); } } );
-		$( '[data-lk-save]' ).addEventListener( 'click', function ( e ) {
-			read(); var b = e.currentTarget; b.disabled = true;
-			send( 'POST', 'links', { links: lks.list } ).then( function ( r ) { lks.list = r.length ? r : [ { label: '', url: '' } ]; lks.msg = __( 'Saved. Your Links tab shows them now.', 'stubli' ); viewLinks(); }, function ( er ) { b.disabled = false; $( '[data-lk-msg]' ).textContent = er.message; } );
+		fav.msg = '';
+		$$( '[data-fav-move]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var i = +b.dataset.favMove, dir = +b.dataset.dir, g = fav.items[ i ].group, j = i + dir;
+			while ( j >= 0 && j < fav.items.length && fav.items[ j ].group !== g ) { j += dir; }
+			if ( j < 0 || j >= fav.items.length ) { return; }
+			var items = fav.items.slice(), t = items[ i ]; items[ i ] = items[ j ]; items[ j ] = t;
+			favSave( items, fav.groups, __( 'Moved.', 'stubli' ), function () { viewLinks(); var f = $( '[data-fav-move="' + j + '"][data-dir="' + dir + '"]' ); if ( f && ! f.disabled ) { f.focus(); } else if ( ( f = $( '[data-fav-move="' + j + '"]' ) ) ) { f.focus(); } } ).catch( function () {} );
+		} ); } );
+	}
+	function viewFavEdit( at ) {
+		if ( ! fav.loaded ) { favLoad( function () { route(); } ); return; }
+		if ( at >= fav.items.length ) { location.replace( '#links' ); return; }
+		if ( ! fav.draft || fav.at !== at ) {
+			var src = at < 0 ? { label: '', url: '', note: '', group: store.get( 'stubli-last-fav-group' ) || '' } : fav.items[ at ];
+			fav.draft = { label: src.label, url: src.url, note: src.note, group: fav.groups.indexOf( src.group ) > -1 ? src.group : '', newGroup: '' };
+			fav.at = at; fav.adding = false; fav.confirm = false;
+		}
+		var d = fav.draft, full = fav.groups.length >= FAV_GROUPS;
+		var chip = function ( val, label, on, attr ) { return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" ' + attr + '>' + ( on ? icon( 'check', 16 ) : '' ) + esc( label ) + '</button>'; };
+		root.innerHTML = arrangeHead( '#links', at < 0 ? __( 'Add a favourite', 'stubli' ) : __( 'Edit favourite', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card">' +
+			'<label class="a-label" for="a-fav-l">' + __( 'Name', 'stubli' ) + '</label><input id="a-fav-l" class="a-field" maxlength="60" autocomplete="off" placeholder="' + esc( __( 'Like Café Henrici', 'stubli' ) ) + '" value="' + esc( d.label ) + '">' +
+			'<label class="a-label" for="a-fav-u">' + __( 'Link', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-fav-u" class="a-field" type="url" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="' + esc( __( 'A website or a map link', 'stubli' ) ) + '" value="' + esc( d.url ) + '">' +
+			'<p class="a-help">' + __( 'For a place, paste its link from Google Maps or Apple Maps. It shows with a map pin.', 'stubli' ) + '</p>' +
+			'<label class="a-label" for="a-fav-n">' + __( 'Note', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-fav-n" class="a-field" maxlength="80" placeholder="' + esc( __( 'Like Best flat white in town', 'stubli' ) ) + '" value="' + esc( d.note ) + '">' +
+			'<h2 class="a-label" id="a-fav-g">' + __( 'Which group?', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-fav-g">' +
+				chip( '', __( 'None', 'stubli' ), ! fav.adding && '' === d.group, 'data-fav-g=""' ) +
+				fav.groups.map( function ( g ) { return chip( g, g, ! fav.adding && d.group === g, 'data-fav-g="' + esc( g ) + '"' ); } ).join( '' ) +
+				( full ? '' : chip( '', __( '+ New', 'stubli' ), fav.adding, 'data-fav-gnew' ) ) + '</div>' +
+			( fav.adding ? '<label class="sr" for="a-fav-ng">' + __( 'New group name', 'stubli' ) + '</label><input id="a-fav-ng" class="a-field" maxlength="30" placeholder="' + esc( __( 'Like Coffee', 'stubli' ) ) + '" value="' + esc( d.newGroup ) + '"><p class="a-help">' + __( 'Each group is a heading on your Favourites tab. An emoji at the start is welcome.', 'stubli' ) + '</p>' :
+				( '' === d.group ? '<p class="a-help">' + __( 'Favourites without a group show first.', 'stubli' ) + '</p>' : '' ) ) +
+			'<div class="a-actions"><button type="button" class="a-btn" data-fav-save>' + __( 'Save', 'stubli' ) + '</button>' +
+			( at < 0 ? '' : ( fav.confirm ? '<span class="a-fav-sure">' + esc( _f( __( 'Remove %s?', 'stubli' ), fav.items[ at ].label ) ) + ' <button type="button" class="a-btn quiet" data-fav-rm-yes>' + __( 'Remove', 'stubli' ) + '</button> <button type="button" class="a-btn quiet" data-fav-rm-no>' + __( 'Keep', 'stubli' ) + '</button></span>' : '<button type="button" class="a-btn quiet" data-fav-rm>' + __( 'Remove', 'stubli' ) + '</button>' ) ) +
+			'</div><p class="a-help" aria-live="polite" data-fav-msg></p></section></main>';
+		var read = function () { d.label = $( '#a-fav-l' ).value; d.url = $( '#a-fav-u' ).value; d.note = $( '#a-fav-n' ).value; var ng = $( '#a-fav-ng' ); if ( ng ) { d.newGroup = ng.value; } };
+		$$( '[data-fav-g]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); fav.adding = false; d.group = b.dataset.favG; viewFavEdit( at ); var f = $( '[data-fav-g="' + CSS.escape( d.group ) + '"]' ); if ( f ) { f.focus(); } } ); } );
+		var gn = $( '[data-fav-gnew]' ); if ( gn ) { gn.addEventListener( 'click', function () { read(); fav.adding = true; viewFavEdit( at ); $( '#a-fav-ng' ).focus(); } ); }
+		var say = function ( t ) { $( '[data-fav-msg]' ).textContent = t; };
+		$( '[data-fav-save]' ).addEventListener( 'click', function ( e ) {
+			read();
+			var label = d.label.trim(), group = fav.adding ? d.newGroup.trim() : d.group;
+			if ( ! label ) { say( __( 'Give it a name first, like Café Henrici.', 'stubli' ) ); $( '#a-fav-l' ).focus(); return; }
+			if ( fav.adding && ! group ) { say( __( 'Give the new group a name, or choose None.', 'stubli' ) ); $( '#a-fav-ng' ).focus(); return; }
+			var it = { label: label, url: d.url.trim(), note: d.note.trim(), group: group }, items = fav.items.slice(), groups = fav.groups.slice();
+			if ( group && groups.indexOf( group ) < 0 ) { groups.push( group ); }
+			if ( at > -1 && items[ at ].group === group ) { items[ at ] = it; } else {
+				if ( at > -1 ) { items.splice( at, 1 ); }
+				var last = -1; items.forEach( function ( x, k ) { if ( x.group === group ) { last = k; } } );
+				items.splice( last > -1 ? last + 1 : items.length, 0, it );
+			}
+			var b = e.currentTarget; b.disabled = true;
+			favSave( items, groups, at < 0 ? _f( __( 'Added %s. It\'s on your Favourites tab now.', 'stubli' ), label ) : __( 'Saved.', 'stubli' ), function () { store.set( 'stubli-last-fav-group', group ); fav.draft = null; location.hash = '#links'; } ).catch( function () { b.disabled = false; } );
+		} );
+		var rm = $( '[data-fav-rm]' ); if ( rm ) { rm.addEventListener( 'click', function () { read(); fav.confirm = true; viewFavEdit( at ); $( '[data-fav-rm-no]' ).focus(); } ); }
+		var no = $( '[data-fav-rm-no]' ); if ( no ) { no.addEventListener( 'click', function () { read(); fav.confirm = false; viewFavEdit( at ); $( '[data-fav-rm]' ).focus(); } ); }
+		var yes = $( '[data-fav-rm-yes]' ); if ( yes ) { yes.addEventListener( 'click', function () {
+			var name = fav.items[ at ].label, items = fav.items.slice(); items.splice( at, 1 ); yes.disabled = true;
+			favSave( items, fav.groups, _f( __( 'Removed %s.', 'stubli' ), name ), function () { fav.draft = null; location.hash = '#links'; } ).catch( function () { yes.disabled = false; } );
+		} ); }
+	}
+	function viewFavGroups() {
+		if ( ! fav.loaded ) { favLoad( function () { if ( location.hash === '#links/groups' ) { viewFavGroups(); } } ); return; }
+		if ( ! fav.gdraft ) { fav.gdraft = fav.groups.map( function ( g ) { return { from: g, name: g }; } ); }
+		var gd = fav.gdraft, n = gd.length;
+		root.innerHTML = arrangeHead( '#links', __( 'Arrange groups', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card"><p class="muted" style="margin-top:0">' + __( 'Rename a group or change the order of the headings on your Favourites tab. Removing a group keeps its favourites; they move to the top, without a group.', 'stubli' ) + '</p>' +
+			'<ol class="a-lk">' + gd.map( function ( g, i ) {
+				return '<li><div class="a-lk-fields"><label class="sr" for="a-fg-' + i + '">' + _f( __( 'Name of group %s', 'stubli' ), i + 1 ) + '</label><input id="a-fg-' + i + '" class="a-field" maxlength="30" value="' + esc( g.name ) + '" data-fg="' + i + '"></div>' +
+					'<div class="a-lk-btns a-lk-row"><button type="button" class="a-icon-btn" data-fg-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), g.name ) ) + '">' + icon( 'up', 18 ) + '</button><button type="button" class="a-icon-btn" data-fg-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), g.name ) ) + '">' + icon( 'down', 18 ) + '</button><button type="button" class="a-icon-btn" data-fg-rm="' + i + '" aria-label="' + esc( _f( __( 'Remove the group %s', 'stubli' ), g.name ) ) + '">' + icon( 'x', 18 ) + '</button></div></li>';
+			} ).join( '' ) + '</ol>' +
+			'<div class="a-actions"><button type="button" class="a-btn" data-fg-save>' + __( 'Save', 'stubli' ) + '</button><a class="a-btn quiet" href="#links" data-fg-cancel>' + __( 'Cancel', 'stubli' ) + '</a></div><p class="a-help" aria-live="polite" data-fg-msg></p></section></main>';
+		var read = function () { gd.forEach( function ( g, i ) { g.name = $( '[data-fg="' + i + '"]' ).value; } ); };
+		$$( '[data-fg-move]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); var i = +b.dataset.fgMove, j = i + ( +b.dataset.dir ), t = gd[ i ]; gd[ i ] = gd[ j ]; gd[ j ] = t; viewFavGroups(); var f = $( '[data-fg-move="' + j + '"][data-dir="' + b.dataset.dir + '"]' ); if ( f && ! f.disabled ) { f.focus(); } } ); } );
+		$$( '[data-fg-rm]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { read(); gd.splice( +b.dataset.fgRm, 1 ); viewFavGroups(); } ); } );
+		$( '[data-fg-cancel]' ).addEventListener( 'click', function () { fav.gdraft = null; } );
+		$( '[data-fg-save]' ).addEventListener( 'click', function ( e ) {
+			read();
+			var names = gd.map( function ( g ) { return g.name.trim(); } );
+			if ( names.some( function ( x ) { return ! x; } ) ) { $( '[data-fg-msg]' ).textContent = __( 'Each group needs a name.', 'stubli' ); return; }
+			if ( names.some( function ( x, i ) { return names.indexOf( x ) !== i; } ) ) { $( '[data-fg-msg]' ).textContent = __( 'Two groups can\'t share a name.', 'stubli' ); return; }
+			var map = {}; gd.forEach( function ( g ) { map[ g.from ] = g.name.trim(); } );
+			var items = fav.items.map( function ( it ) { return { label: it.label, url: it.url, note: it.note, group: it.group && map[ it.group ] !== undefined ? map[ it.group ] : '' }; } );
+			// Keep each group's favourites together, in the new order of the groups.
+			var order = [ '' ].concat( names );
+			items = items.map( function ( it, k ) { return { it: it, k: k }; } ).sort( function ( a, b ) { return order.indexOf( a.it.group ) - order.indexOf( b.it.group ) || a.k - b.k; } ).map( function ( x ) { return x.it; } );
+			var b = e.currentTarget; b.disabled = true;
+			favSave( items, names, __( 'Groups saved.', 'stubli' ), function () { fav.gdraft = null; location.hash = '#links'; } ).catch( function () { b.disabled = false; } );
 		} );
 	}
 

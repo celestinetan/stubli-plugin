@@ -244,7 +244,7 @@ function stubli_profile_cards() {
 
 /**
  * The folder tabs: collections and Journal on the left, Guest book and
- * Links (Stubli green) on the right.
+ * Favourites (Stubli green) on the right.
  *
  * @param int|string $active Term ID, or journal | guest | links.
  */
@@ -253,7 +253,7 @@ function stubli_tabs( $active ) {
 	$tabs        = array(
 		'journal' => array( home_url( '/journal/' ), __( 'Journal', 'stubli' ), 'book' ),
 		'guest'   => array( stubli_has_plugin() ? \Stubli\Guestbook::url() : '', __( 'Guest book', 'stubli' ), 'pen' ),
-		'links'   => array( home_url( '/links/' ), __( 'Links', 'stubli' ), 'mark' ),
+		'links'   => array( home_url( '/favourites/' ), __( 'Favourites', 'stubli' ), 'heart' ),
 	);
 	$icon_tab    = static function ( $key, $green ) use ( $tabs, $active ) {
 		list( $url, $label, $icon ) = $tabs[ $key ];
@@ -837,7 +837,8 @@ function stubli_view_guestbook() {
 }
 
 /**
- * Links tab: my links, then sites I follow.
+ * Favourites tab (once Links): favourites without a group, then each group
+ * as a headed section, then the sites I follow. All on one page (29 Oct).
  */
 function stubli_view_links() {
 	stubli_topbar();
@@ -845,18 +846,21 @@ function stubli_view_links() {
 	stubli_profile_cards();
 	stubli_tabs( 'links' );
 	echo '<section class="st-panel st-links is-last">';
-	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Links', 'stubli' ) . '</h2></div></div>';
-	$links = array();
-	foreach ( preg_split( '/\r?\n/', (string) get_option( 'stubli_links', '' ) ) as $line ) {
-		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
-		if ( 2 === count( $parts ) && '' !== $parts[0] && in_array( wp_parse_url( $parts[1], PHP_URL_SCHEME ), array( 'http', 'https' ), true ) ) {
-			$links[] = $parts;
+	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Favourites', 'stubli' ) . '</h2></div></div>';
+	foreach ( stubli_favourite_sections() as $sec ) {
+		if ( '' !== $sec['group'] ) {
+			echo '<h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>';
 		}
-	}
-	if ( $links ) {
-		echo '<h3 class="st-links-h">' . esc_html__( 'My links', 'stubli' ) . '</h3><div class="st-link-list">';
-		foreach ( $links as $l ) {
-			echo wp_kses( '<a class="st-link-row" href="' . esc_url( $l[1] ) . '" rel="me noopener"><span><strong>' . esc_html( $l[0] ) . '</strong><span class="st-muted">' . esc_html( preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l[1] ) ) ) . '</span></span>' . stubli_icon( 'chev', 18 ) . '</a>', stubli_allowed_html() );
+		echo '<div class="st-link-list">';
+		foreach ( $sec['items'] as $l ) {
+			$sub  = '' !== $l['note'] ? $l['note'] : ( '' !== $l['url'] ? preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l['url'] ) ) : '' );
+			$body = '<span><strong>' . esc_html( $l['label'] ) . '</strong>' . ( '' !== $sub ? '<span class="st-muted">' . esc_html( $sub ) . '</span>' : '' ) . '</span>';
+			if ( '' !== $l['url'] ) {
+				$label = $l['map'] ? sprintf( /* translators: %s: name of a favourite place */ __( '%s, on a map', 'stubli' ), $l['label'] ) : '';
+				echo wp_kses( '<a class="st-link-row" href="' . esc_url( $l['url'] ) . '" rel="me noopener"' . ( $label ? ' aria-label="' . esc_attr( $label . ( '' !== $l['note'] ? '. ' . $l['note'] : '' ) ) . '"' : '' ) . '>' . $body . stubli_icon( $l['map'] ? 'place' : 'chev', 18 ) . '</a>', stubli_allowed_html() );
+			} else {
+				echo wp_kses( '<div class="st-link-row is-plain">' . $body . '</div>', stubli_allowed_html() );
+			}
 		}
 		echo '</div>';
 	}

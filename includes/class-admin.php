@@ -127,11 +127,11 @@ class Admin {
 					</tr>
 					<tr>
 						<th scope="row"><label for="og-bio"><?php esc_html_e( 'Bio', 'stubli' ); ?></label></th>
-						<td><textarea id="og-bio" name="bio" rows="3" maxlength="160" class="large-text"><?php echo esc_textarea( (string) get_option( 'stubli_bio', '' ) ); ?></textarea><p class="description"><?php esc_html_e( 'A few lines about you, shown on your profile card. Links go in My links below.', 'stubli' ); ?></p></td>
+						<td><textarea id="og-bio" name="bio" rows="3" maxlength="160" class="large-text"><?php echo esc_textarea( (string) get_option( 'stubli_bio', '' ) ); ?></textarea><p class="description"><?php esc_html_e( 'A few lines about you, shown on your profile card. Links and places go in your Favourites.', 'stubli' ); ?></p></td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="og-links"><?php esc_html_e( 'My links', 'stubli' ); ?></label></th>
-						<td><textarea id="og-links" name="links" rows="4" class="large-text code" placeholder="Shop | https://example.com"><?php echo esc_textarea( (string) get_option( 'stubli_links', '' ) ); ?></textarea><p class="description"><?php esc_html_e( 'One per line: a name, a | and the address. Shown in your Links tab.', 'stubli' ); ?></p></td>
+						<th scope="row"><?php esc_html_e( 'Favourites', 'stubli' ); ?></th>
+						<td><p><a href="<?php echo esc_url( home_url( '/app/#links' ) ); ?>"><?php esc_html_e( 'Edit your favourites in the Stubli app', 'stubli' ); ?></a></p><p class="description"><?php esc_html_e( 'Places, shops, websites: with an optional note and groups. They show in the Favourites tab on your page.', 'stubli' ); ?></p></td>
 					</tr>
 				</table>
 				<?php submit_button( __( 'Save settings', 'stubli' ) ); ?>
@@ -164,17 +164,6 @@ class Admin {
 		}
 		Settings::update( $changes );
 		update_option( 'stubli_bio', isset( $_POST['bio'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ), 0, 160 ) : '' );
-		$links = array();
-		foreach ( preg_split( '/\r?\n/', isset( $_POST['links'] ) ? sanitize_textarea_field( wp_unslash( $_POST['links'] ) ) : '' ) as $line ) {
-			$parts = array_map( 'trim', explode( '|', $line, 2 ) );
-			if ( 2 === count( $parts ) && '' !== $parts[0] ) {
-				$url = esc_url_raw( $parts[1], array( 'http', 'https' ) );
-				if ( $url ) {
-					$links[] = sanitize_text_field( $parts[0] ) . ' | ' . $url;
-				}
-			}
-		}
-		update_option( 'stubli_links', implode( "\n", array_slice( $links, 0, 20 ) ) );
 		// phpcs:enable
 		wp_safe_redirect( admin_url( 'options-general.php?page=' . self::PAGE . '&saved=1' ) );
 		exit;
