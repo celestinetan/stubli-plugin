@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stubli 0.44.0\n"
+"Project-Id-Version: Stubli 0.44.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stubli\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-29T19:26:47+00:00\n"
+"POT-Creation-Date: 2026-10-29T20:42:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: stubli\n"
@@ -105,7 +105,7 @@ msgstr ""
 #. translators: %s: site
 #. translators: %s: name
 #: includes/class-act.php:118
-#: look/inc/views.php:901
+#: look/inc/views.php:897
 msgid "Sign %s's guest book"
 msgstr ""
 
@@ -163,7 +163,7 @@ msgid "Follow"
 msgstr ""
 
 #: includes/class-act.php:160
-#: look/inc/views.php:815
+#: look/inc/views.php:811
 msgid "Sign the guest book"
 msgstr ""
 
@@ -250,7 +250,7 @@ msgid "Show a small \"Made with Stubli · Make your own\" line below your photos
 msgstr ""
 
 #: includes/class-admin.php:104
-#: look/inc/views.php:444
+#: look/inc/views.php:440
 msgid "Privacy"
 msgstr ""
 
@@ -317,7 +317,7 @@ msgid "A few lines about you, shown on your profile card. Links go in My links b
 msgstr ""
 
 #: includes/class-admin.php:133
-#: look/inc/views.php:861
+#: look/inc/views.php:857
 msgid "My links"
 msgstr ""
 
@@ -390,7 +390,7 @@ msgstr ""
 #: includes/class-archive.php:385
 #: includes/class-posts.php:420
 #: look/inc/helpers.php:260
-#: look/inc/views.php:551
+#: look/inc/views.php:547
 #: assets/app/app.js:1354
 #: assets/app/app.js:1703
 msgid "Photos"
@@ -400,8 +400,8 @@ msgstr ""
 #: includes/class-archive.php:386
 #: look/inc/setup.php:198
 #: look/inc/views.php:254
-#: look/inc/views.php:523
-#: look/inc/views.php:772
+#: look/inc/views.php:519
+#: look/inc/views.php:768
 #: assets/app/app.js:2473
 msgid "Journal"
 msgstr ""
@@ -410,7 +410,7 @@ msgstr ""
 #: includes/class-archive.php:387
 #: includes/class-guestbook.php:47
 #: look/inc/views.php:255
-#: look/inc/views.php:806
+#: look/inc/views.php:802
 #: assets/app/app.js:634
 #: assets/app/app.js:1920
 #: assets/app/app.js:1973
@@ -646,7 +646,7 @@ msgid "Not working"
 msgstr ""
 
 #: includes/class-feedback.php:298
-#: look/inc/views.php:1143
+#: look/inc/views.php:1139
 #: assets/app/app.js:3138
 msgid "Kind words"
 msgstr ""
@@ -1061,8 +1061,8 @@ msgid "Comments on Stubli come from your own Stubli site. Open this post on your
 msgstr ""
 
 #: includes/class-moderation.php:165
-#: look/inc/views.php:413
-#: look/inc/views.php:899
+#: look/inc/views.php:409
+#: look/inc/views.php:895
 msgid "Comment from your own Stubli"
 msgstr ""
 
@@ -1367,88 +1367,88 @@ msgstr ""
 msgid "That doesn't look like an invite link. It ends in /invite/?t= and a code."
 msgstr ""
 
-#: look/inc/helpers.php:457
+#: look/inc/helpers.php:449
 msgid "today"
 msgstr ""
 
-#: look/inc/helpers.php:460
+#: look/inc/helpers.php:452
 #: assets/app/app.js:1581
 msgid "yesterday"
 msgstr ""
 
 #. translators: %d: number of days
-#: look/inc/helpers.php:464
+#: look/inc/helpers.php:456
 msgid "%d days ago"
 msgstr ""
 
-#: look/inc/helpers.php:482
+#: look/inc/helpers.php:474
 msgid "A photo"
 msgstr ""
 
-#: look/inc/helpers.php:685
+#: look/inc/helpers.php:677
 msgid "They"
 msgstr ""
 
-#: look/inc/helpers.php:689
+#: look/inc/helpers.php:681
 msgid "Your journal is a blank page. One line about today is a fine start."
 msgstr ""
 
-#: look/inc/helpers.php:690
+#: look/inc/helpers.php:682
 msgid "Nothing written yet. The best entries begin with an ordinary day."
 msgstr ""
 
-#: look/inc/helpers.php:691
+#: look/inc/helpers.php:683
 msgid "Your first entry can be short. Future you will be glad you wrote it."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:694
+#: look/inc/helpers.php:686
 msgid "%s's journal is still a blank page. Good stories take their time."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:696
+#: look/inc/helpers.php:688
 msgid "Nothing written yet. %s is probably out living the first entry."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:698
+#: look/inc/helpers.php:690
 msgid "The ink on %s's first entry is still drying. Come back soon."
 msgstr ""
 
-#: look/inc/helpers.php:700
+#: look/inc/helpers.php:692
 msgid "Write your first entry"
 msgstr ""
 
-#: look/inc/helpers.php:703
+#: look/inc/helpers.php:695
 msgid "Nothing in here yet. A photo from today would look lovely."
 msgstr ""
 
-#: look/inc/helpers.php:704
+#: look/inc/helpers.php:696
 msgid "An empty shelf, waiting for its first photo."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:707
+#: look/inc/helpers.php:699
 msgid "No photos here yet. %s is still choosing the good ones."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/helpers.php:709
+#: look/inc/helpers.php:701
 msgid "This spot is saved for %s's next favourite photo."
 msgstr ""
 
-#: look/inc/helpers.php:711
+#: look/inc/helpers.php:703
 #: assets/app/app.js:581
 msgid "Post a photo"
 msgstr ""
 
-#: look/inc/helpers.php:741
-#: look/inc/views.php:470
+#: look/inc/helpers.php:733
+#: look/inc/views.php:466
 msgid "Made with"
 msgstr ""
 
-#: look/inc/helpers.php:741
+#: look/inc/helpers.php:733
 msgid "Make your own"
 msgstr ""
 
@@ -1484,7 +1484,7 @@ msgstr ""
 
 #. translators: 1: current photo, 2: number of photos
 #: look/inc/setup.php:52
-#: look/inc/views.php:570
+#: look/inc/views.php:566
 msgid "%1$d of %2$d"
 msgstr ""
 
@@ -1542,15 +1542,15 @@ msgid "Back to step %1$s: %2$s"
 msgstr ""
 
 #: look/inc/setup.php:196
-#: look/inc/views.php:718
-#: look/inc/views.php:749
-#: look/inc/views.php:773
+#: look/inc/views.php:714
+#: look/inc/views.php:745
+#: look/inc/views.php:769
 msgid "All entries"
 msgstr ""
 
 #: look/inc/setup.php:200
 #: look/inc/views.php:256
-#: look/inc/views.php:852
+#: look/inc/views.php:848
 #: assets/app/app.js:635
 #: assets/app/app.js:2012
 #: assets/app/app.js:2017
@@ -1581,14 +1581,14 @@ msgstr ""
 #. translators: %s: first name
 #: look/inc/views.php:135
 #: look/inc/views.php:138
-#: look/inc/views.php:943
-#: look/inc/views.php:992
-#: look/inc/views.php:1184
+#: look/inc/views.php:939
+#: look/inc/views.php:988
+#: look/inc/views.php:1180
 msgid "Make your Stubli"
 msgstr ""
 
 #: look/inc/views.php:135
-#: look/inc/views.php:440
+#: look/inc/views.php:436
 msgid "How it works"
 msgstr ""
 
@@ -1660,105 +1660,101 @@ msgid "Video"
 msgstr ""
 
 #: look/inc/views.php:345
-#: look/inc/views.php:381
-#: look/inc/views.php:829
+#: look/inc/views.php:377
+#: look/inc/views.php:825
 #: assets/app/app.js:1983
 msgid "Pinned"
 msgstr ""
 
-#: look/inc/views.php:353
-msgid "Older photos"
-msgstr ""
-
-#: look/inc/views.php:368
-#: look/inc/views.php:384
+#: look/inc/views.php:364
+#: look/inc/views.php:380
 #: assets/app/app.js:629
 #: assets/app/app.js:2874
 msgid "Journal entry"
 msgstr ""
 
-#: look/inc/views.php:397
+#: look/inc/views.php:393
 msgid "Comments"
 msgstr ""
 
-#: look/inc/views.php:399
+#: look/inc/views.php:395
 msgid "No comments yet."
 msgstr ""
 
-#: look/inc/views.php:411
+#: look/inc/views.php:407
 msgid "Comments are paused for now."
 msgstr ""
 
-#: look/inc/views.php:416
+#: look/inc/views.php:412
 msgid "Edit in the app"
 msgstr ""
 
-#: look/inc/views.php:431
+#: look/inc/views.php:427
 msgid "More about Stubli"
 msgstr ""
 
-#: look/inc/views.php:436
-#: look/inc/views.php:1185
+#: look/inc/views.php:432
+#: look/inc/views.php:1181
 msgid "Help"
 msgstr ""
 
-#: look/inc/views.php:442
+#: look/inc/views.php:438
 msgid "See the code"
 msgstr ""
 
-#: look/inc/views.php:443
+#: look/inc/views.php:439
 msgid "Support Stubli"
 msgstr ""
 
 #. translators: %s: new address
-#: look/inc/views.php:495
+#: look/inc/views.php:491
 #: assets/app/app.js:1228
 msgid "This Stubli has moved to %s."
 msgstr ""
 
 #. translators: %s: video description
-#: look/inc/views.php:558
+#: look/inc/views.php:554
 #: assets/app/app.js:1705
 msgid "Play video: %s"
 msgstr ""
 
 #. translators: %s: video description
-#: look/inc/views.php:558
-#: look/inc/views.php:657
+#: look/inc/views.php:554
+#: look/inc/views.php:653
 #: assets/app/app.js:1705
 msgid "Play video"
 msgstr ""
 
 #. translators: %d: photo number
-#: look/inc/views.php:563
+#: look/inc/views.php:559
 msgid "See photo %d full screen"
 msgstr ""
 
-#: look/inc/views.php:574
+#: look/inc/views.php:570
 #: assets/app/app.js:1710
 msgid "Show photo"
 msgstr ""
 
 #. translators: %s: date and time
-#: look/inc/views.php:584
-#: look/inc/views.php:634
+#: look/inc/views.php:580
+#: look/inc/views.php:630
 #: assets/app/app.js:2829
 #: assets/app/app.js:2870
 msgid "Edited %s"
 msgstr ""
 
 #. translators: %s: date and time
-#: look/inc/views.php:584
+#: look/inc/views.php:580
 msgid "Edited"
 msgstr ""
 
 #. translators: %s: collection
-#: look/inc/views.php:606
+#: look/inc/views.php:602
 msgid "Next in %s"
 msgstr ""
 
 #. translators: %s: collection
-#: look/inc/views.php:606
+#: look/inc/views.php:602
 #: assets/app/app.js:1807
 #: assets/app/app.js:2160
 #: assets/app/app.js:2176
@@ -1768,325 +1764,325 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: look/inc/views.php:637
+#: look/inc/views.php:633
 #: assets/app/app.js:827
 msgid "Edit"
 msgstr ""
 
 #. translators: %s: YouTube or Vimeo
-#: look/inc/views.php:657
+#: look/inc/views.php:653
 msgid "Video from %s · loads only when you press play"
 msgstr ""
 
-#: look/inc/views.php:662
+#: look/inc/views.php:658
 msgid "Done:"
 msgstr ""
 
-#: look/inc/views.php:734
+#: look/inc/views.php:730
 msgid "Read more"
 msgstr ""
 
-#: look/inc/views.php:742
-msgid "Older entries"
+#: look/inc/views.php:738
+msgid "More entries"
 msgstr ""
 
-#: look/inc/views.php:745
+#: look/inc/views.php:741
 msgid "Newer entries"
 msgstr ""
 
 #. translators: %s: number of entries
-#: look/inc/views.php:809
+#: look/inc/views.php:805
 msgid "%s signature"
 msgid_plural "%s signatures"
 msgstr[0] ""
 msgstr[1] ""
 
-#: look/inc/views.php:813
+#: look/inc/views.php:809
 msgid "The guest book is paused for now."
 msgstr ""
 
-#: look/inc/views.php:822
+#: look/inc/views.php:818
 msgid "No signatures yet"
 msgstr ""
 
-#: look/inc/views.php:822
+#: look/inc/views.php:818
 msgid "When friends sign from their own Stubli, their words appear here."
 msgstr ""
 
-#: look/inc/views.php:822
+#: look/inc/views.php:818
 msgid "Be the first to say hello."
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:836
+#: look/inc/views.php:832
 msgid "Unpin the entry from %s"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:836
+#: look/inc/views.php:832
 msgid "Pin the entry from %s to the top"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:836
+#: look/inc/views.php:832
 #: assets/app/app.js:1985
 msgid "Unpin"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:836
+#: look/inc/views.php:832
 #: assets/app/app.js:1985
 msgid "Pin"
 msgstr ""
 
-#: look/inc/views.php:868
+#: look/inc/views.php:864
 msgid "Sites I follow"
 msgstr ""
 
-#: look/inc/views.php:868
+#: look/inc/views.php:864
 msgid "· people I like to visit"
 msgstr ""
 
-#: look/inc/views.php:871
+#: look/inc/views.php:867
 msgid "Not following anyone yet."
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:898
+#: look/inc/views.php:894
 msgid "Follow %s from your own Stubli"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:903
-#: look/inc/views.php:964
+#: look/inc/views.php:899
+#: look/inc/views.php:960
 msgid "Reply to %s"
 msgstr ""
 
-#: look/inc/views.php:917
+#: look/inc/views.php:913
 msgid "Following happens on your own site. Enter your address and we'll take you there to confirm."
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:920
+#: look/inc/views.php:916
 msgid "You write it on your own site, and it shows up here too. If %1$s follows you, it appears right away; otherwise it waits for %1$s's OK."
 msgstr ""
 
-#: look/inc/views.php:925
-#: look/inc/views.php:998
-#: look/inc/views.php:1034
+#: look/inc/views.php:921
+#: look/inc/views.php:994
+#: look/inc/views.php:1030
 msgid "Your Stubli address"
 msgstr ""
 
-#: look/inc/views.php:927
-#: look/inc/views.php:1000
+#: look/inc/views.php:923
+#: look/inc/views.php:996
 msgid "This device will remember it for next time."
 msgstr ""
 
-#: look/inc/views.php:929
-#: look/inc/views.php:1038
+#: look/inc/views.php:925
+#: look/inc/views.php:1034
 #: assets/app/app.js:2101
 msgid "Continue"
 msgstr ""
 
-#: look/inc/views.php:932
+#: look/inc/views.php:928
 msgid "No Stubli yet?"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:937
+#: look/inc/views.php:933
 msgid "To follow %s, you need a Stubli of your own: your own little website for photos, a journal and the people you like. Completely free, you just pay for web hosting."
 msgstr ""
 
-#: look/inc/views.php:939
+#: look/inc/views.php:935
 msgid "You need a Stubli of your own for this: your own little website for photos, a journal and the people you like. Completely free, you just pay for web hosting."
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:969
+#: look/inc/views.php:965
 msgid "%s is taking a break, so notes are paused for now."
 msgstr ""
 
-#: look/inc/views.php:971
+#: look/inc/views.php:967
 msgid "How to reply"
 msgstr ""
 
-#: look/inc/views.php:972
+#: look/inc/views.php:968
 msgid "Leave a note"
 msgstr ""
 
-#: look/inc/views.php:973
+#: look/inc/views.php:969
 msgid "I have a Stubli"
 msgstr ""
 
-#: look/inc/views.php:977
+#: look/inc/views.php:973
 msgid "Your note"
 msgstr ""
 
-#: look/inc/views.php:979
+#: look/inc/views.php:975
 #: assets/app/app.js:993
 #: assets/app/app.js:2157
 msgid "Your name"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:981
+#: look/inc/views.php:977
 msgid "How %s can reach you"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:982
+#: look/inc/views.php:978
 msgid "Email, phone or Instagram name"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:984
+#: look/inc/views.php:980
 msgid "Only %s sees this note and your contact details. Nothing appears on this page, and it's deleted after 90 days."
 msgstr ""
 
-#: look/inc/views.php:986
+#: look/inc/views.php:982
 msgid "Send note"
 msgstr ""
 
-#: look/inc/views.php:989
+#: look/inc/views.php:985
 msgid "Sent. Thank you!"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:990
+#: look/inc/views.php:986
 msgid "%s will see it soon and can write back to you directly."
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:991
+#: look/inc/views.php:987
 msgid "Back to %s's page"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:992
+#: look/inc/views.php:988
 msgid "Want a page like this of your own?"
 msgstr ""
 
 #. translators: %s: first name
-#: look/inc/views.php:996
+#: look/inc/views.php:992
 msgid "Write it in your own Stubli app. %s gets it as a private note: straight away if they follow you, otherwise after their OK."
 msgstr ""
 
-#: look/inc/views.php:1002
+#: look/inc/views.php:998
 msgid "Continue in my app"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:1027
+#: look/inc/views.php:1023
 msgid "%s invited you to Stubli"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:1030
+#: look/inc/views.php:1026
 msgid "Stubli is your own little website for photos, a journal and the people you like. Once you're set up, you and %s follow each other automatically."
 msgstr ""
 
-#: look/inc/views.php:1032
+#: look/inc/views.php:1028
 msgid "I already have a Stubli"
 msgstr ""
 
-#: look/inc/views.php:1036
+#: look/inc/views.php:1032
 msgid "You'll confirm on your own site. This device will remember the address."
 msgstr ""
 
-#: look/inc/views.php:1041
+#: look/inc/views.php:1037
 msgid "Not yet?"
 msgstr ""
 
 #. translators: %s: date
-#: look/inc/views.php:1045
+#: look/inc/views.php:1041
 msgid "Setting one up takes about 15 minutes, one small step at a time. We'll keep this invite for you, and at the end you and %1$s follow each other. It works until %2$s."
 msgstr ""
 
-#: look/inc/views.php:1056
+#: look/inc/views.php:1052
 msgid "Make my Stubli"
 msgstr ""
 
-#: look/inc/views.php:1065
+#: look/inc/views.php:1061
 msgid "This invite has already been used"
 msgstr ""
 
-#: look/inc/views.php:1067
+#: look/inc/views.php:1063
 msgid "This invite has expired"
 msgstr ""
 
-#: look/inc/views.php:1069
+#: look/inc/views.php:1065
 msgid "This invite link doesn't work"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:1073
+#: look/inc/views.php:1069
 msgid "Invites work once, for 30 days. Ask %s for a new link."
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:1074
-#: look/inc/views.php:1189
+#: look/inc/views.php:1070
+#: look/inc/views.php:1185
 msgid "Go to %s's page"
 msgstr ""
 
-#: look/inc/views.php:1141
+#: look/inc/views.php:1137
 #: assets/app/app.js:3136
 msgid "An idea"
 msgstr ""
 
-#: look/inc/views.php:1141
+#: look/inc/views.php:1137
 #: assets/app/app.js:3136
 msgid "What would make Stubli better?"
 msgstr ""
 
-#: look/inc/views.php:1141
+#: look/inc/views.php:1137
 #: assets/app/app.js:3136
 msgid "I wish I could…"
 msgstr ""
 
-#: look/inc/views.php:1142
+#: look/inc/views.php:1138
 #: assets/app/app.js:3137
 msgid "Something's not working"
 msgstr ""
 
-#: look/inc/views.php:1142
+#: look/inc/views.php:1138
 #: assets/app/app.js:3137
 msgid "What happened?"
 msgstr ""
 
-#: look/inc/views.php:1142
+#: look/inc/views.php:1138
 #: assets/app/app.js:3137
 msgid "I tried to … and then …"
 msgstr ""
 
-#: look/inc/views.php:1143
+#: look/inc/views.php:1139
 #: assets/app/app.js:3138
 msgid "What do you like?"
 msgstr ""
 
-#: look/inc/views.php:1143
+#: look/inc/views.php:1139
 #: assets/app/app.js:3138
 msgid "I love that…"
 msgstr ""
 
-#: look/inc/views.php:1147
+#: look/inc/views.php:1143
 #: assets/app/app.js:3158
 msgid "What is it about?"
 msgstr ""
 
-#: look/inc/views.php:1155
+#: look/inc/views.php:1151
 msgid "Your email or Stubli address"
 msgstr ""
 
-#: look/inc/views.php:1155
+#: look/inc/views.php:1151
 msgid "(optional, so we can reply)"
 msgstr ""
 
-#: look/inc/views.php:1157
+#: look/inc/views.php:1153
 msgid "A screenshot"
 msgstr ""
 
-#: look/inc/views.php:1157
+#: look/inc/views.php:1153
 #: assets/app/app.js:699
 #: assets/app/app.js:858
 #: assets/app/app.js:986
@@ -2098,11 +2094,11 @@ msgstr ""
 msgid "(optional)"
 msgstr ""
 
-#: look/inc/views.php:1160
+#: look/inc/views.php:1156
 msgid "We also keep the type of phone or computer you use, to help fix problems. Nothing else."
 msgstr ""
 
-#: look/inc/views.php:1162
+#: look/inc/views.php:1158
 #: assets/app/app.js:529
 #: assets/app/app.js:3148
 #: assets/app/app.js:3156
@@ -2110,25 +2106,25 @@ msgstr ""
 msgid "Send feedback"
 msgstr ""
 
-#: look/inc/views.php:1165
+#: look/inc/views.php:1161
 #: assets/app/app.js:3149
 msgid "Thank you"
 msgstr ""
 
-#: look/inc/views.php:1166
+#: look/inc/views.php:1162
 msgid "Your note is with the Stubli team. If you left an address and asked a question, Celestine will reply."
 msgstr ""
 
-#: look/inc/views.php:1180
+#: look/inc/views.php:1176
 msgid "This page has moved or is gone"
 msgstr ""
 
-#: look/inc/views.php:1182
+#: look/inc/views.php:1178
 msgid "Maybe it was tidied away. These might help:"
 msgstr ""
 
 #. translators: %s: name
-#: look/inc/views.php:1188
+#: look/inc/views.php:1184
 msgid "Maybe it was tidied away. %s's photos are still here."
 msgstr ""
 
@@ -3746,7 +3742,7 @@ msgid "Invite a friend"
 msgstr ""
 
 #: assets/app/app.js:1681
-msgid "Older posts"
+msgid "More posts"
 msgstr ""
 
 #: assets/app/app.js:1682

@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.44.0
+Stable tag: 0.44.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.44.1 =
+* A collection on your page now shows all its photos at once, with no cut-off after 24 (pictures still load as you scroll). The Journal says More entries instead of Older entries, and Home says More posts.
 
 = 0.44.0 =
 * A photo without a collection now shows in All: an All tab appears first on your page only when you have such photos, and shows every photo, newest first. The old "Photos" folder is gone. New post offers None and starts on the collection you used last.

@@ -348,10 +348,6 @@ function stubli_grid( WP_Query $q ) {
 		echo '</a></li>';
 	}
 	echo '</ul>';
-	$next = (int) $q->get( 'paged' ) < (int) $q->max_num_pages ? get_pagenum_link( max( 1, (int) $q->get( 'paged' ) ) + 1 ) : '';
-	if ( $next ) {
-		echo '<p class="st-more"><a href="' . esc_url( $next ) . '">' . esc_html__( 'Older photos', 'stubli' ) . '</a></p>';
-	}
 }
 
 /**
@@ -504,7 +500,7 @@ function stubli_view_profile() {
 	if ( $term && ! is_wp_error( $term ) && '' !== trim( $term->description ) ) {
 		echo '<p class="st-wall-label">' . esc_html( wp_strip_all_tags( $term->description ) ) . '</p>';
 	}
-	stubli_grid( stubli_photos( $active, max( 1, (int) get_query_var( 'paged' ) ) ) );
+	stubli_grid( stubli_photos( $active ) );
 	echo '</section>';
 	stubli_make_your_own();
 	echo '</main>';
@@ -714,7 +710,7 @@ function stubli_view_journal() {
 	if ( ! $entries->have_posts() ) {
 		echo wp_kses( stubli_empty( 'journal' ), stubli_allowed_html() );
 	} else {
-		// A quiet way to every entry, at the top (and again at the bottom when there are older entries). No count, like everywhere in Stubli.
+		// A quiet way to every entry, at the top (and again at the bottom when there are more entries). No count, like everywhere in Stubli.
 		echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a></p>';
 	}
 	foreach ( $entries->posts as $entry ) {
@@ -739,12 +735,12 @@ function stubli_view_journal() {
 		$page  = max( 1, (int) get_query_var( 'paged' ) );
 		$links = array();
 		if ( $page < (int) $entries->max_num_pages ) {
-			$links[] = '<a href="' . esc_url( home_url( '/journal/page/' . ( $page + 1 ) . '/' ) ) . '">' . esc_html__( 'Older entries', 'stubli' ) . '</a>';
+			$links[] = '<a href="' . esc_url( home_url( '/journal/page/' . ( $page + 1 ) . '/' ) ) . '">' . esc_html__( 'More entries', 'stubli' ) . '</a>';
 		}
 		if ( $page > 1 ) {
 			$links[] = '<a href="' . esc_url( 2 === $page ? home_url( '/journal/' ) : home_url( '/journal/page/' . ( $page - 1 ) . '/' ) ) . '">' . esc_html__( 'Newer entries', 'stubli' ) . '</a>';
 		}
-		// With more than one page, "All entries" sits again beside Older/Newer entries; a short journal shows it once, at the top.
+		// With more than one page, "All entries" sits again beside More/Newer entries; a short journal shows it once, at the top.
 		if ( $links ) {
 			$links[] = '<a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a>';
 			echo wp_kses( '<p class="st-more st-journal-more">' . implode( '<span aria-hidden="true">·</span>', $links ) . '</p>', stubli_allowed_html() );

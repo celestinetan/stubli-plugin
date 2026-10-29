@@ -263,18 +263,23 @@ function stubli_collection_name( $term ) {
 }
 
 /**
- * Photo posts in a collection (or all), newest first.
+ * Photo posts in a collection (or all), newest first. A page shows every
+ * one of them, no cut-off (Celestine, 29 Oct); images load lazily as they
+ * scroll into view. Pass $per to take only the newest few.
  *
  * @param int $cat   Category ID, 0 for all.
- * @param int $paged Page.
+ * @param int $paged Unused; kept so old callers still work.
+ * @param int $per   How many, -1 for all.
  * @return WP_Query
  */
-function stubli_photos( $cat = 0, $paged = 1 ) {
+function stubli_photos( $cat = 0, $paged = 1, $per = -1 ) {
+	unset( $paged );
+	$per  = (int) $per;
 	$args = array(
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
-		'posts_per_page' => 24,
-		'paged'          => max( 1, (int) $paged ),
+		'posts_per_page' => $per > 0 ? $per : -1,
+		'no_found_rows'  => true,
 		'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 		'meta_query'     => stubli_has_photos_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	);
@@ -284,54 +289,41 @@ function stubli_photos( $cat = 0, $paged = 1 ) {
 	// A collection arranged by hand follows its owner's order; pins rest.
 	$hand = $cat ? stubli_hand_ids( (int) $cat ) : null;
 	if ( null !== $hand ) {
-		$page  = max( 1, (int) $paged );
-		$slice = array_slice( $hand, ( $page - 1 ) * 24, 24 );
-		$q     = new WP_Query(
+		$ids = $per > 0 ? array_slice( $hand, 0, $per ) : $hand;
+		return new WP_Query(
 			array(
 				'post_type'      => 'post',
 				'post_status'    => 'publish',
-				'post__in'       => $slice ? $slice : array( 0 ),
+				'post__in'       => $ids ? $ids : array( 0 ),
 				'orderby'        => 'post__in',
-				'posts_per_page' => 24,
+				'posts_per_page' => -1,
 				'no_found_rows'  => true,
 			)
 		);
-		$q->found_posts   = count( $hand );
-		$q->max_num_pages = (int) ceil( count( $hand ) / 24 );
-		$q->set( 'paged', $page );
-		return $q;
 	}
 	$pins = $cat ? stubli_pins( (int) $cat ) : array();
 	if ( ! $pins ) {
 		return new WP_Query( $args );
 	}
-	// Pinned posts lead the collection's first page; the rest follow newest first.
-	$n                    = count( $pins );
+	// Pinned posts lead the collection; the rest follow newest first.
 	$args['post__not_in'] = $pins;
-	$page                 = max( 1, (int) $paged );
-	$args['offset']       = 1 === $page ? 0 : ( $page - 1 ) * 24 - $n;
-	if ( 1 === $page ) {
-		$args['posts_per_page'] = 24 - $n;
+	$q                    = new WP_Query( $args );
+	$top                  = get_posts(
+		array(
+			'post__in'       => $pins,
+			'orderby'        => 'post__in',
+			'post_status'    => 'publish',
+			'posts_per_page' => count( $pins ),
+		)
+	);
+	foreach ( $top as $t ) {
+		$t->stubli_pinned = true;
 	}
-	$q = new WP_Query( $args );
-	if ( 1 === $page ) {
-		$top = get_posts(
-			array(
-				'post__in'       => $pins,
-				'orderby'        => 'post__in',
-				'post_status'    => 'publish',
-				'posts_per_page' => $n,
-			)
-		);
-		foreach ( $top as $t ) {
-			$t->stubli_pinned = true;
-		}
-		$q->posts      = array_merge( $top, $q->posts );
-		$q->post_count = count( $q->posts );
+	$q->posts = array_merge( $top, $q->posts );
+	if ( $per > 0 ) {
+		$q->posts = array_slice( $q->posts, 0, $per );
 	}
-	$q->found_posts  += $n;
-	$q->max_num_pages = (int) ceil( $q->found_posts / 24 );
-	$q->set( 'paged', $page );
+	$q->post_count = count( $q->posts );
 	return $q;
 }
 
@@ -400,8 +392,8 @@ function stubli_latest_photo() {
  * @return WP_Post[]
  */
 function stubli_latest_photos( $n = 3 ) {
-	$q = stubli_photos( 0, 1 );
-	return array_slice( $q->posts, 0, (int) $n );
+	$q = stubli_photos( 0, 1, max( 1, (int) $n ) );
+	return $q->posts;
 }
 
 /**

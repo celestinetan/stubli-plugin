@@ -1678,7 +1678,7 @@
 				} ).join( '' ) + '</div>';
 			}
 			body = pills + ( feed.items.length ? feed.items.map( item ).join( '' ) : ( '<div class="a-empty-feed"><p class="muted">' + __( 'Nothing here yet. Follow a few people and their new posts arrive here, every 15 minutes or so.', 'stubli' ) + '</p><div class="a-actions"><a class="a-btn" href="#discover">' + __( 'Find people in Discover', 'stubli' ) + '</a><a class="a-btn quiet" href="#more">' + __( 'Invite a friend', 'stubli' ) + '</a></div></div>' ) ) +
-				( feed.more && feed.items.length ? ( '<button type="button" class="a-btn quiet wide" data-older>' + __( 'Older posts', 'stubli' ) + '</button>' ) : '' ) +
+				( feed.more && feed.items.length ? ( '<button type="button" class="a-btn quiet wide" data-older>' + __( 'More posts', 'stubli' ) + '</button>' ) : '' ) +
 				( feed.items.length && ! feed.more ? '<div class="a-end">' + sky( 28 ) + ( '<strong>' + __( 'That\'s everything for now', 'stubli' ) + '</strong><span class="muted">' + __( 'You\'re all caught up.', 'stubli' ) + ' ' ) + esc( endLine() ) + '</span></div>' : '' );
 		}
 		var sub = feed.stale ? __( 'Offline. Showing your feed from last time.', 'stubli' ) : feed.loaded && feed.newSince ? _f( __( '%s new since your last visit', 'stubli' ), feed.newSince ) : '';
