@@ -928,3 +928,16 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-links .st-link-row.is-plain, .st-links .st-link-row.is-plain:hover { background: var(--st-bg); cursor: default; }
 .st-links .st-link-list + .st-links-h { margin-top: 22px; }
 .st-links .st-link-row > span { min-width: 0; overflow-wrap: anywhere; }
+
+/* Favourites as tiles (0.2.103, Celestine 30 Oct): one tile per group. Side by side on bigger screens, filling the
+   columns so a short tile leaves no gap; one under another on a phone. Rows inside a tile are separated by hairlines. */
+.st-fav-tiles { columns: 3 260px; column-gap: 14px; margin-top: 10px; }
+.st-fav-tile { break-inside: avoid; display: inline-block; width: 100%; box-sizing: border-box; margin: 0 0 14px; padding: 12px 12px 8px; background: var(--st-bg); border-radius: 18px; box-shadow: 0 1px 0 rgba(0,0,0,.05); }
+.st-fav-tile.is-loose { padding-top: 8px; }
+.st-links .st-fav-tile .st-links-h { margin: 4px 6px 6px; }
+.st-links .st-fav-tile .st-link-list { gap: 0; }
+.st-links .st-fav-tile .st-link-row { background: transparent; box-shadow: none; padding: 10px 6px; border-radius: 10px; min-height: 0; }
+.st-links .st-fav-tile .st-link-row:hover { background: var(--st-surface); }
+.st-links .st-fav-tile .st-link-row.is-plain:hover { background: transparent; }
+.st-links .st-fav-tile .st-link-row + .st-link-row { border-top: 1px solid color-mix(in srgb, var(--st-ink) 8%, transparent); border-radius: 0; }
+.st-links .st-fav-tiles + .st-links-h { margin-top: 8px; }

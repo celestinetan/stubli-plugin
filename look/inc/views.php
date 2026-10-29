@@ -837,8 +837,8 @@ function stubli_view_guestbook() {
 }
 
 /**
- * Favourites tab (once Links): favourites without a group, then each group
- * as a headed section, then the sites I follow. All on one page (29 Oct).
+ * Favourites tab (once Links): one tile per group, favourites without a
+ * group first, then the sites I follow. All on one page (29-30 Oct).
  */
 function stubli_view_links() {
 	stubli_topbar();
@@ -847,10 +847,13 @@ function stubli_view_links() {
 	stubli_tabs( 'links' );
 	echo '<section class="st-panel st-links is-last">';
 	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Favourites', 'stubli' ) . '</h2></div></div>';
-	foreach ( stubli_favourite_sections() as $sec ) {
-		if ( '' !== $sec['group'] ) {
-			echo '<h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>';
-		}
+	// One tile per group, side by side on bigger screens (Celestine, 30 Oct); favourites without a group come first, in a tile with no heading.
+	$secs = stubli_favourite_sections();
+	if ( $secs ) {
+		echo '<div class="st-fav-tiles">';
+	}
+	foreach ( $secs as $sec ) {
+		echo '' !== $sec['group'] ? '<section class="st-fav-tile" aria-label="' . esc_attr( $sec['group'] ) . '"><h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>' : '<section class="st-fav-tile is-loose" aria-label="' . esc_attr__( 'Favourites', 'stubli' ) . '">';
 		echo '<div class="st-link-list">';
 		foreach ( $sec['items'] as $l ) {
 			$sub  = '' !== $l['note'] ? $l['note'] : ( '' !== $l['url'] ? preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l['url'] ) ) : '' );
@@ -862,6 +865,9 @@ function stubli_view_links() {
 				echo wp_kses( '<div class="st-link-row is-plain">' . $body . '</div>', stubli_allowed_html() );
 			}
 		}
+		echo '</div></section>';
+	}
+	if ( $secs ) {
 		echo '</div>';
 	}
 	$sites = stubli_has_plugin() ? \Stubli\Follows::public_list() : array();
