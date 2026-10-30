@@ -941,3 +941,10 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-links .st-fav-tile .st-link-row.is-plain:hover { background: transparent; }
 .st-links .st-fav-tile .st-link-row + .st-link-row { border-top: 1px solid color-mix(in srgb, var(--st-ink) 8%, transparent); border-radius: 0; }
 .st-links .st-fav-tiles + .st-links-h { margin-top: 8px; }
+
+/* Previous and Next under a post (0.2.104, Celestine 30 Oct): side by side when there's room, else stacked. */
+.st-adjacent { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 20px; }
+.st-adjacent .st-next { margin-top: 0; min-width: 0; }
+.st-adjacent .st-next > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-next.is-prev > .st-icon { flex: none; }
+.st-post-grid.is-wide .st-adjacent { grid-column: 1; margin-top: 12px; }

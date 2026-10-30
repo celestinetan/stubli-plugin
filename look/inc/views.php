@@ -588,18 +588,35 @@ function stubli_view_single() {
 
 	$hand = $coll ? stubli_hand_ids( (int) $coll->term_id ) : null;
 	if ( null !== $hand ) {
-		// Next in a collection arranged by hand: the one after it in that order.
+		// In a collection arranged by hand: the ones before and after it in that order.
 		$at   = array_search( (int) $post->ID, $hand, true );
+		$prev = false !== $at && $at > 0 ? get_post( $hand[ $at - 1 ] ) : null;
 		$next = false !== $at && isset( $hand[ $at + 1 ] ) ? get_post( $hand[ $at + 1 ] ) : null;
 	} else {
+		// Newest first, like the grid: Previous is the newer one, Next the older one.
+		$prev = $coll ? get_adjacent_post( true, '', false, 'category' ) : get_adjacent_post( false, '', false );
 		$next = $coll ? get_adjacent_post( true, '', true, 'category' ) : get_adjacent_post( false, '', true );
 	}
-	if ( $next && ! has_post_format( 'status', $next ) ) {
-		$nids = stubli_photo_ids( $next->ID );
-		echo '<a class="st-card-tone st-next" href="' . esc_url( get_permalink( $next ) ) . '">';
-		echo wp_kses( $nids ? wp_get_attachment_image( $nids[0], 'thumbnail', false, array( 'alt' => '' ) ) : '', stubli_allowed_html() );
-		/* translators: %s: collection */
-		echo wp_kses( '<span><span class="st-muted">' . esc_html( $coll ? sprintf( __( 'Next in %s', 'stubli' ), stubli_collection_name( $coll ) ) : __( 'Next', 'stubli' ) ) . '</span><span>' . esc_html( stubli_post_label( $next ) ) . '</span></span>' . stubli_icon( 'chev', 20 ) . '</a>', stubli_allowed_html() );
+	$card = static function ( $p, $is_next ) use ( $coll ) {
+		if ( ! $p || has_post_format( 'status', $p ) ) {
+			return '';
+		}
+		$ids = stubli_photo_ids( $p->ID );
+		if ( $coll ) {
+			/* translators: %s: collection */
+			$label = sprintf( $is_next ? __( 'Next in %s', 'stubli' ) : __( 'Previous in %s', 'stubli' ), stubli_collection_name( $coll ) );
+		} else {
+			$label = $is_next ? __( 'Next', 'stubli' ) : __( 'Previous', 'stubli' );
+		}
+		return '<a class="st-card-tone st-next' . ( $is_next ? '' : ' is-prev' ) . '" href="' . esc_url( get_permalink( $p ) ) . '" rel="' . ( $is_next ? 'next' : 'prev' ) . '">'
+			. ( $is_next ? '' : stubli_icon( 'back', 20 ) )
+			. ( $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'alt' => '' ) ) : '' )
+			. '<span><span class="st-muted">' . esc_html( $label ) . '</span><span>' . esc_html( stubli_post_label( $p ) ) . '</span></span>'
+			. ( $is_next ? stubli_icon( 'chev', 20 ) : '' ) . '</a>';
+	};
+	$cards = $card( $prev, false ) . $card( $next, true );
+	if ( '' !== $cards ) {
+		echo wp_kses( '<nav class="st-adjacent" aria-label="' . esc_attr__( 'More posts', 'stubli' ) . '">' . $cards . '</nav>', stubli_allowed_html() );
 	}
 	echo '</div></article></main>';
 }
