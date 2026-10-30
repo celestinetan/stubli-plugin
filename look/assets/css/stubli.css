@@ -150,7 +150,7 @@ p { margin: 0 0 .75em; }
 }
 
 /* ── Profile and Latest cards ── */
-.st-cards { display: grid; gap: 10px; margin: 4px 0 18px; }
+.st-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 4px 0 18px; }
 .st-card {
 	border: 1px solid var(--st-field); border-radius: 16px; padding: 14px;
 	background: transparent;
@@ -452,9 +452,9 @@ p { margin: 0 0 .75em; }
 .st-footer a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; text-decoration: none; }
 /* stubli.app: the links on one line, the copyright underneath. */
 .st-footer-hub { flex-direction: column; gap: 0; }
-.st-footer-links { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.st-footer-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; white-space: nowrap; }
 .st-footer-copy { margin: 0; }
-@media (max-width: 380px) { .st-footer-links { gap: 5px; font-size: 12px; } }
+@media (max-width: 420px) { .st-footer-links { gap: 4px 5px; font-size: 12px; } }
 .st-footer .st-wordmark { font-size: 15px; }
 .st-footer-brand .st-wordmark { font-size: 20px; }
 
