@@ -61,6 +61,25 @@ class Posts {
 	}
 
 	/**
+	 * The site's title as plain text. WordPress stores it with characters like
+	 * ' and & as codes (&#039;, &amp;); the app and other sites want the text.
+	 *
+	 * @return string
+	 */
+	public static function site_name() {
+		return trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
+	}
+
+	/**
+	 * The site's tagline as plain text, like site_name().
+	 *
+	 * @return string
+	 */
+	public static function site_tagline() {
+		return trim( wp_specialchars_decode( (string) get_bloginfo( 'description' ), ENT_QUOTES ) );
+	}
+
+	/**
 	 * Public profile data, served at /og/v1/profile.
 	 *
 	 * @return array
@@ -69,8 +88,8 @@ class Posts {
 		$avatar = Avatar::current();
 
 		return array(
-			'name'        => get_bloginfo( 'name' ),
-			'description' => get_bloginfo( 'description' ),
+			'name'        => self::site_name(),
+			'description' => self::site_tagline(),
 			'pronouns'    => (string) get_option( 'stubli_pronouns', '' ),
 			'url'         => home_url( '/' ),
 			'feed'        => get_feed_link( 'rss2' ),
@@ -79,7 +98,7 @@ class Posts {
 			'on_break'    => Settings::on_break(),
 			'avatar'      => (string) $avatar,
 			'cover'       => Setup::cover_url(),
-			'bio'         => '' !== (string) get_option( 'stubli_bio', '' ) ? (string) get_option( 'stubli_bio', '' ) : get_bloginfo( 'description' ),
+			'bio'         => '' !== (string) get_option( 'stubli_bio', '' ) ? (string) get_option( 'stubli_bio', '' ) : self::site_tagline(),
 			'recent'      => self::recent_photos( 3 ),
 			'prompts'     => Prompts::get(),
 			'generator'   => 'stubli/' . VERSION,

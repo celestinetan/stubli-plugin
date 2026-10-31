@@ -25,10 +25,10 @@ class Bundle {
 	public static function profile() {
 		$icon = (int) get_option( 'site_icon' );
 		return array(
-			'name'      => get_bloginfo( 'name' ),
+			'name'      => Posts::site_name(),
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
-			'tagline'   => get_bloginfo( 'description' ),
+			'tagline'   => Posts::site_tagline(),
 			'url'       => home_url( '/' ),
 			'avatar'    => $icon ? self::media( $icon ) : null,
 			'smiley'    => Avatar::look(),

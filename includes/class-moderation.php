@@ -82,7 +82,7 @@ class Moderation {
 		if ( Settings::on_break() ) {
 			return new WP_Error(
 				'stubli_on_break',
-				sprintf( /* translators: %s: site name */ __( '%s is taking a break from comments. Nothing you wrote is lost; try again another time.', 'stubli' ), get_bloginfo( 'name' ) ),
+				sprintf( /* translators: %s: site name */ __( '%s is taking a break from comments. Nothing you wrote is lost; try again another time.', 'stubli' ), Posts::site_name() ),
 				array( 'status' => 403 )
 			);
 		}

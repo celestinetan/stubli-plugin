@@ -171,7 +171,7 @@ class Invites {
 		update_option( self::OPTION, $all, false );
 		return array(
 			'followed' => true,
-			'name'     => get_bloginfo( 'name' ),
+			'name'     => Posts::site_name(),
 		);
 	}
 

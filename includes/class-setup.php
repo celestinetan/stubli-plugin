@@ -196,7 +196,7 @@ class Setup {
 		return array(
 			'done'      => (bool) get_option( 'stubli_setup_done' ),
 			'step'      => (int) get_option( 'stubli_setup_step', 0 ),
-			'name'      => get_bloginfo( 'name' ),
+			'name'      => Posts::site_name(),
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
 			'avatar'    => Avatar::current(),
@@ -312,7 +312,7 @@ class Setup {
 			return new \WP_Error( 'stubli_not_photo', __( 'That file isn\'t a photo. Try a JPEG or PNG.', 'stubli' ), array( 'status' => 400 ) );
 		}
 		Posts::$fresh = true;
-		$id           = media_handle_upload( 'photo', 0, array( 'post_title' => get_bloginfo( 'name' ) ) );
+		$id           = media_handle_upload( 'photo', 0, array( 'post_title' => Posts::site_name() ) );
 		Posts::$fresh = false;
 		if ( is_wp_error( $id ) ) {
 			return new \WP_Error( 'stubli_upload', __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ), array( 'status' => 400 ) );

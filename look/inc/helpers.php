@@ -77,7 +77,8 @@ function stubli_is_owner() {
 }
 
 /**
- * Tax query that keeps journal entries (status format) out.
+ * Meta query for posts that have a photo (or are journal entries filed into a
+ * collection).
  *
  * @return array
  */
@@ -182,6 +183,7 @@ function stubli_collections() {
 				'fields'         => 'ids',
 				'no_found_rows'  => false,
 				'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				'meta_query'     => stubli_has_photos_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			)
 		);
 		if ( $q->found_posts > 0 ) {
@@ -243,6 +245,8 @@ function stubli_has_all() {
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
 			'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			// Only posts with a photo: WordPress's sample "Hello world!" doesn't count.
+			'meta_query'     => stubli_has_photos_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		)
 	);
 	$has = (bool) $q->posts;
