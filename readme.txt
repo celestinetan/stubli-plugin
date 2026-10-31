@@ -100,7 +100,7 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 == Changelog ==
 
 = 0.45.6 =
-* Fixed: a site name with an apostrophe or & (like "Mia's Stubli") showed codes such as &#039; in the setup and the app.
+* Fixed: a site name with an apostrophe or & (like "Mia's Stubli") showed odd codes instead of those characters in the setup and the app.
 * Fixed: on a brand-new site, WordPress's sample "Hello world!" post made an empty "All" tab. Tabs now only count posts with a photo.
 
 = 0.45.5 =
