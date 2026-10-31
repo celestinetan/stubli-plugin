@@ -948,3 +948,13 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-adjacent .st-next > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-next.is-prev > .st-icon { flex: none; }
 .st-post-grid.is-wide .st-adjacent { grid-column: 1; margin-top: 12px; }
+
+/* Make your Stubli, WordPress.com: address first, then one Install link for that site (theme 0.2.107). */
+.st-gs-label { display: block; flex-basis: 100%; font-weight: 600; font-size: 15px; margin: 0 0 2px; }
+.st-gs-found { margin-top: 12px; display: grid; gap: 10px; }
+.st-gs-found p { margin: 0; }
+.st-gs-site-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; overflow-wrap: anywhere; }
+.st-gs-found [data-gs-state] { display: grid; gap: 10px; }
+.st-gs-found [data-gs-state][hidden] { display: none; }
+.st-gs-on { font-weight: 600; color: var(--st-green); }
+.st-link { background: none; border: 0; padding: 0; font: inherit; color: var(--st-green); text-decoration: underline; cursor: pointer; }

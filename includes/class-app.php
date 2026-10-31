@@ -237,6 +237,12 @@ class App {
 			if ( '' === $d || preg_match( '/^(your|my|the)\b/i', $d ) || preg_match( '/^(stubli|wordpress|my blog|site title)$/i', $d ) ) {
 				return '';
 			}
+			// "Mia's Stubli" → "Mia". A longer name is likely a club or shop
+			// ("Pink Pony Social Club"), not a person: then no name at all.
+			$d = trim( (string) preg_replace( "/['’]s\b.*$/u", '', $d ) );
+			if ( '' === $d || count( preg_split( '/\s+/', $d ) ) > 2 ) {
+				return '';
+			}
 		}
 		if ( preg_match( '/\s/', $d ) ) {
 			return (string) strtok( $d, ' ' );

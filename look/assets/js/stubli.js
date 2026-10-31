@@ -170,6 +170,57 @@
 				window.open( base + '/' + path, '_blank', 'noopener' );
 			} );
 		} );
+		// WordPress.com: ask the address once, then link to that site's own Install
+		// button (no site picker) and notice by itself when Stubli has arrived.
+		var wp = gs.querySelector( '[data-gs-wpcom]' );
+		var siteOf = function ( v ) {
+			v = String( v || '' ).trim();
+			if ( ! v ) { return null; }
+			if ( ! /^https?:\/\//i.test( v ) ) { v = 'https://' + v; }
+			var u; try { u = new URL( v ); } catch ( x ) { return null; }
+			if ( u.hostname.indexOf( '.' ) < 1 ) { return null; }
+			return { host: u.hostname.replace( /^www\./, '' ), base: u.protocol + '//' + u.host + u.pathname.replace( /\/(wp-admin|wp-login\.php|app).*$/, '' ).replace( /\/+$/, '' ) };
+		};
+		var savedSite = siteOf( mem.get( 'stubli-gs-site' ) );
+		if ( savedSite ) { gs.querySelectorAll( '[data-gs-site] input[name="addr"]' ).forEach( function ( i ) { if ( ! i.value ) { i.value = savedSite.host; } } ); }
+		if ( wp ) {
+			var find = wp.querySelector( '[data-gs-find]' ), found = wp.querySelector( '[data-gs-found]' ), site = null, checking = false;
+			var setState = function ( on ) {
+				found.querySelector( '[data-gs-state="add"]' ).hidden = on;
+				found.querySelector( '[data-gs-state="on"]' ).hidden = ! on;
+			};
+			// Is Stubli on that site yet? Its public REST index lists stubli/v1.
+			var check = function () {
+				if ( ! site || checking ) { return; }
+				checking = true;
+				fetch( site.base + '/wp-json/', { credentials: 'omit' } ).then( function ( r ) { return r.json(); } ).then( function ( j ) {
+					setState( !! ( j && j.namespaces && j.namespaces.indexOf( 'stubli/v1' ) > -1 ) );
+				} ).catch( function () {} ).then( function () { checking = false; } );
+			};
+			var paintSite = function () {
+				find.hidden = !! site; found.hidden = ! site;
+				if ( ! site ) { return; }
+				found.querySelector( '[data-gs-host]' ).textContent = site.host;
+				found.querySelector( '[data-gs-add]' ).href = 'https://wordpress.com/plugins/stubli/' + encodeURIComponent( site.host );
+				var open = site.base + '/app/' + ( invite ? '?stubli_invite=' + encodeURIComponent( invite.url ) : '' ) + '#setup';
+				found.querySelector( '[data-gs-open]' ).href = open;
+				setState( false );
+				check();
+			};
+			find.addEventListener( 'submit', function ( e ) {
+				e.preventDefault();
+				var err = find.querySelector( '.st-error' ), s = siteOf( find.addr.value );
+				if ( ! s ) { err.textContent = T.badAddress || 'That doesn\'t look like a web address. Try something like yourname.wordpress.com.'; err.hidden = false; find.addr.focus(); return; }
+				err.hidden = true; site = s; mem.set( 'stubli-gs-site', s.base );
+				gs.querySelectorAll( '[data-gs-site] input[name="addr"]' ).forEach( function ( i ) { i.value = s.host; } );
+				paintSite();
+			} );
+			found.querySelector( '[data-gs-change]' ).addEventListener( 'click', function () { site = null; paintSite(); find.addr.focus(); } );
+			// Back from WordPress.com (tab switch or the Back button): look again.
+			document.addEventListener( 'visibilitychange', function () { if ( 'visible' === document.visibilityState ) { check(); } } );
+			window.addEventListener( 'pageshow', check );
+			if ( savedSite ) { site = savedSite; find.addr.value = savedSite.host; paintSite(); }
+		}
 	}
 
 	/* Carousel: "1 of N", dots, arrow keys. */

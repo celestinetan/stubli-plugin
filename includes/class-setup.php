@@ -43,6 +43,7 @@ class Setup {
 	public static function init() {
 		add_action( 'rest_api_init', array( self::class, 'routes' ) );
 		add_action( 'admin_init', array( self::class, 'maybe_open' ) );
+		add_action( 'admin_notices', array( self::class, 'notice' ) );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_accent' ), 100 );
 	}
 
@@ -69,6 +70,23 @@ class Setup {
 		}
 		wp_safe_redirect( home_url( '/app/#setup' ) );
 		exit;
+	}
+
+	/**
+	 * Until the setup is done, a banner on every dashboard page leads to it.
+	 * WordPress.com installs plugins without the usual redirect, so the setup
+	 * can't open by itself there (found on a phone, 31 Oct 2026).
+	 */
+	public static function notice() {
+		if ( get_option( 'stubli_setup_done' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		?>
+		<div class="notice notice-info stubli-setup-notice" style="border-left-color:#3E5E3F;padding:12px 14px">
+			<p style="margin:0 0 8px;font-size:15px"><strong><?php esc_html_e( 'Stubli is on.', 'stubli' ); ?></strong> <?php esc_html_e( 'Next: your Stubli setup, about three minutes.', 'stubli' ); ?></p>
+			<p style="margin:0"><a class="button button-primary" style="background:#3E5E3F;border-color:#3E5E3F" href="<?php echo esc_url( home_url( '/app/#setup' ) ); ?>"><?php esc_html_e( 'Open your Stubli setup', 'stubli' ); ?></a></p>
+		</div>
+		<?php
 	}
 
 	/**

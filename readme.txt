@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.6
+Stable tag: 0.45.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.7 =
+* Until your Stubli setup is done, a button at the top of your dashboard opens it. On WordPress.com the setup couldn't open by itself after installing.
+* Home greets you by your first name. Without one, it uses your page's name only when that looks like a person's ("Ana Keller" or "Mia's Stubli"), and otherwise just says good morning.
 
 = 0.45.6 =
 * Fixed: a site name with an apostrophe or & (like "Mia's Stubli") showed odd codes instead of those characters in the setup and the app.
