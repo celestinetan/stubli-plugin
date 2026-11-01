@@ -30,6 +30,8 @@ class Replies {
 		add_action( 'init', array( self::class, 'register_post_type' ) );
 		add_action( 'template_redirect', array( self::class, 'render_reply_page' ) );
 		add_action( Install::CRON_HOOK, array( self::class, 'retry' ), 36 );
+		// Replies you write in the WordPress dashboard travel too (0.45.9).
+		add_action( 'comment_post', array( self::class, 'dashboard_reply' ), 20, 2 );
 	}
 
 	/**
@@ -103,7 +105,8 @@ class Replies {
 					'slug'       => 'replies',
 					'with_front' => false,
 				),
-				'supports'            => array( 'editor', 'author' ),
+				// Webmentions: so someone can answer your comment from their own Stubli (0.45.9).
+				'supports'            => array( 'editor', 'author', 'webmentions' ),
 			)
 		);
 	}
@@ -119,15 +122,20 @@ class Replies {
 		$target = (string) get_post_meta( $post->ID, '_stubli_in_reply_to', true );
 		$name   = get_the_author_meta( 'display_name', (int) $post->post_author );
 		if ( ! $name ) {
-			$name = get_bloginfo( 'name' );
+			$name = Posts::site_name();
 		}
 
 		status_header( 200 );
 		header( 'Content-Type: text/html; charset=utf-8' );
+		// Where an answer to this comment can be delivered (0.45.9).
+		$endpoint = function_exists( 'get_webmention_endpoint' ) ? (string) get_webmention_endpoint() : '';
+		if ( $endpoint ) {
+			header( 'Link: <' . esc_url_raw( $endpoint ) . '>; rel="webmention"', false );
+		}
 		?>
 <!doctype html>
 <html lang="<?php echo esc_attr( get_bloginfo( 'language' ) ); ?>">
-<head><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?php echo esc_html( sprintf( /* translators: %s: author name */ __( 'A comment by %s', 'stubli' ), $name ) ); ?></title></head>
+<head><meta charset="utf-8"><?php if ( $endpoint ) : ?><link rel="webmention" href="<?php echo esc_url( $endpoint ); ?>"><?php endif; ?><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?php echo esc_html( sprintf( /* translators: %s: author name */ __( 'A comment by %s', 'stubli' ), $name ) ); ?></title></head>
 <body>
 <article class="h-entry">
 	<p class="p-author h-card"><img class="u-photo" src="<?php echo esc_url( Posts::profile()['avatar'] ); ?>" alt="" width="48" height="48"> <a class="u-url p-name" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( $name ); ?></a></p>
@@ -187,12 +195,9 @@ class Replies {
 	private static function send( $target, $text, $item_id ) {
 		// A friend's key never goes on a public reply page (design Q44).
 		$target = remove_query_arg( Friends::PARAM, html_entity_decode( (string) $target, ENT_QUOTES ) );
-		$text = trim( sanitize_textarea_field( (string) $text ) );
-		if ( '' === $text ) {
-			return new WP_Error( 'stubli_empty', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );
-		}
-		if ( mb_strlen( $text ) > self::MAX_LENGTH ) {
-			return new WP_Error( 'stubli_comment_too_long', __( 'That comment is over 1,000 characters. Trim a little and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+		$text = self::clean( $text );
+		if ( is_wp_error( $text ) ) {
+			return $text;
 		}
 
 		$reply_id = wp_insert_post(
@@ -229,6 +234,202 @@ class Replies {
 			// The other site decides whether it shows now or after their OK.
 			'status'    => $status,
 		);
+	}
+
+	/**
+	 * Answer a comment on your own post or guest book (0.45.9). The answer
+	 * shows under their comment on your page, and goes to their Stubli the way
+	 * your comments on their posts do, so they see it there too.
+	 *
+	 * @param int    $comment_id The comment you're answering.
+	 * @param string $text       Your answer.
+	 * @return array|WP_Error
+	 */
+	public static function reply_to_comment( $comment_id, $text ) {
+		$parent = get_comment( (int) $comment_id );
+		if ( ! $parent || '1' !== (string) $parent->comment_approved || self::POST_TYPE === get_post_type( (int) $parent->comment_post_ID ) ) {
+			return new WP_Error( 'stubli_not_found', __( 'That comment isn\'t on your page any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		$text = self::clean( $text );
+		if ( is_wp_error( $text ) ) {
+			return $text;
+		}
+		$id = wp_insert_comment(
+			array(
+				'comment_post_ID'      => (int) $parent->comment_post_ID,
+				'comment_parent'       => (int) $parent->comment_ID,
+				'comment_content'      => $text,
+				'comment_author'       => Posts::site_name(),
+				'comment_author_url'   => home_url( '/' ),
+				'comment_author_email' => (string) get_option( 'admin_email' ),
+				'user_id'              => get_current_user_id(),
+				'comment_approved'     => 1,
+				'comment_type'         => 'comment',
+			)
+		);
+		if ( ! $id ) {
+			return new WP_Error( 'stubli_reply_failed', __( 'That didn\'t work. Try again.', 'stubli' ), array( 'status' => 500 ) );
+		}
+		$sent = self::pass_on( get_comment( $id ) );
+		return array(
+			'id'      => (int) $id,
+			'comment' => Moderation::public_comment( get_comment( $id ) ),
+			// "local": they wrote it without a Stubli, so it only shows on your page.
+			'status'  => is_array( $sent ) ? $sent['status'] : 'local',
+		);
+	}
+
+	/**
+	 * Comments on one of your posts, oldest first, for the app's Comments
+	 * screen (0.45.9). Each says whether you've answered it.
+	 *
+	 * @param int $post_id Your post.
+	 * @return array|WP_Error
+	 */
+	public static function for_own_post( $post_id ) {
+		$post = self::own_post( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+		$owner = get_current_user_id();
+		$out   = array();
+		foreach ( Moderation::for_post( $post->ID ) as $c ) {
+			$c['replied'] = $owner && ! $c['author']['owner'] && (bool) get_comments(
+				array(
+					'parent'  => (int) $c['id'],
+					'user_id' => $owner,
+					'count'   => true,
+				)
+			);
+			$out[] = $c;
+		}
+		return array(
+			'post'     => array(
+				'id'    => (int) $post->ID,
+				'title' => html_entity_decode( get_the_title( $post ), ENT_QUOTES, 'UTF-8' ),
+				'url'   => get_permalink( $post ),
+				'thumb' => self::thumb( $post ),
+			),
+			'comments' => $out,
+		);
+	}
+
+	/**
+	 * Write the first comment (or any comment) on your own post (Celestine,
+	 * 1 Nov: "I want the option to add my comment anyway"). It shows under the
+	 * post on your page; there's nobody else to send it to.
+	 *
+	 * @param int    $post_id Your post.
+	 * @param string $text    Your comment.
+	 * @return array|WP_Error
+	 */
+	public static function comment_on_own_post( $post_id, $text ) {
+		$post = self::own_post( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+		$text = self::clean( $text );
+		if ( is_wp_error( $text ) ) {
+			return $text;
+		}
+		$id = wp_insert_comment(
+			array(
+				'comment_post_ID'      => (int) $post->ID,
+				'comment_content'      => $text,
+				'comment_author'       => Posts::site_name(),
+				'comment_author_url'   => home_url( '/' ),
+				'comment_author_email' => (string) get_option( 'admin_email' ),
+				'user_id'              => get_current_user_id(),
+				'comment_approved'     => 1,
+				'comment_type'         => 'comment',
+			)
+		);
+		if ( ! $id ) {
+			return new WP_Error( 'stubli_reply_failed', __( 'That didn\'t work. Try again.', 'stubli' ), array( 'status' => 500 ) );
+		}
+		return array(
+			'id'      => (int) $id,
+			'comment' => Moderation::public_comment( get_comment( $id ) ),
+		);
+	}
+
+	/**
+	 * A small picture for a post: its first photo, as in the You tab.
+	 *
+	 * @param \WP_Post $post Post.
+	 * @return string
+	 */
+	private static function thumb( $post ) {
+		$photos = Mine::photos( $post->ID );
+		if ( $photos ) {
+			return (string) $photos[0]['src'];
+		}
+		return (string) get_the_post_thumbnail_url( $post, 'thumbnail' );
+	}
+
+	/**
+	 * One of your published posts.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return \WP_Post|WP_Error
+	 */
+	private static function own_post( $post_id ) {
+		$post = get_post( (int) $post_id );
+		if ( ! $post || 'post' !== $post->post_type || 'publish' !== $post->post_status ) {
+			return new WP_Error( 'stubli_not_found', __( 'That post isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		return $post;
+	}
+
+	/**
+	 * A reply typed in the WordPress dashboard: pass it on like one from the app.
+	 *
+	 * @param int        $id       Comment ID.
+	 * @param int|string $approved 1 when approved.
+	 */
+	public static function dashboard_reply( $id, $approved ) {
+		$c = get_comment( $id );
+		if ( 1 === (int) $approved && $c && $c->comment_parent && (int) $c->user_id > 0 && user_can( (int) $c->user_id, 'manage_options' ) ) {
+			self::pass_on( $c );
+		}
+	}
+
+	/**
+	 * Send your answer to the Stubli the original comment came from.
+	 *
+	 * @param \WP_Comment|null $c Your answer.
+	 * @return array|WP_Error|null Null when there's nowhere to send it.
+	 */
+	private static function pass_on( $c ) {
+		if ( ! $c || ! $c->comment_parent || get_comment_meta( $c->comment_ID, 'stubli_reply_page', true ) ) {
+			return null;
+		}
+		$target = (string) get_comment_meta( (int) $c->comment_parent, 'webmention_source_url', true );
+		if ( ! $target || Follows::origin( $target ) === Follows::origin( home_url() ) ) {
+			return null;
+		}
+		$sent = self::send( $target, $c->comment_content, 0 );
+		if ( is_array( $sent ) ) {
+			update_comment_meta( $c->comment_ID, 'stubli_reply_page', (int) $sent['id'] );
+		}
+		return $sent;
+	}
+
+	/**
+	 * Comment text, tidied and checked.
+	 *
+	 * @param string $text Text.
+	 * @return string|WP_Error
+	 */
+	private static function clean( $text ) {
+		$text = trim( sanitize_textarea_field( (string) $text ) );
+		if ( '' === $text ) {
+			return new WP_Error( 'stubli_empty', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( mb_strlen( $text ) > self::MAX_LENGTH ) {
+			return new WP_Error( 'stubli_comment_too_long', __( 'That comment is over 1,000 characters. Trim a little and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		return $text;
 	}
 
 	/**

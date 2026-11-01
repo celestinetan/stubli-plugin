@@ -408,6 +408,9 @@ function stubli_comments( $post_id ) {
 		<?php elseif ( ! stubli_is_owner() ) : ?>
 			<?php echo wp_kses( stubli_pill( stubli_remote_url( 'comment', get_permalink( $post_id ) ), __( 'Comment from your own Stubli', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
 		<?php endif; ?>
+		<?php if ( stubli_is_owner() && 'post' === get_post_type( $post_id ) ) : ?>
+			<?php echo wp_kses( stubli_pill( home_url( '/app/#comments/' . (int) $post_id ), __( 'Add a comment', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
+		<?php endif; ?>
 		<?php if ( stubli_is_owner() && in_array( get_post_format( $post_id ), array( 'image', 'gallery' ), true ) ) : ?>
 			<?php echo wp_kses( stubli_pill( home_url( '/app/#edit/' . (int) $post_id ), __( 'Edit in the app', 'stubli' ), 'quiet' ), stubli_allowed_html() ); ?>
 		<?php endif; ?>

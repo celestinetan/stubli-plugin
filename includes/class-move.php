@@ -31,6 +31,14 @@ class Move {
 	const HEADER  = 'X-Stubli-Move';
 
 	/**
+	 * Videos the last copied post had to leave behind, because this site
+	 * takes no video files (WordPress.com's Personal plan, for one).
+	 *
+	 * @var int
+	 */
+	private static $novid = 0;
+
+	/**
 	 * Hooks.
 	 */
 	public static function init() {
@@ -202,6 +210,7 @@ class Move {
 			'done'    => (int) $j['total'] - count( $j['queue'] ),
 			'total'   => (int) $j['total'],
 			'skipped' => (int) $j['skipped'],
+			'novid'   => (int) ( $j['novid'] ?? 0 ),
 			'told'    => ! empty( $j['told'] ),
 		);
 	}
@@ -448,7 +457,11 @@ class Move {
 		$until = time() + 20;
 		while ( $j['queue'] && time() < $until ) {
 			list( $kind, $what ) = $j['queue'][0];
+			self::$novid         = 0;
 			$res                 = 'follow' === $kind ? self::copy_follow( (array) $what ) : self::copy_post( $j, (int) $what );
+			if ( self::$novid && ! is_wp_error( $res ) && false !== $res ) {
+				$j['novid'] = (int) ( $j['novid'] ?? 0 ) + self::$novid;
+			}
 			if ( is_wp_error( $res ) && in_array( $res->get_error_code(), array( 'stubli_move_link', 'stubli_move_offline' ), true ) ) {
 				update_option( self::IN, $j, false );
 				return $res;
@@ -532,6 +545,7 @@ class Move {
 		}
 		$time = (int) strtotime( (string) $p['date'] );
 		if ( 'photo' === $p['type'] ) {
+			$takes   = Posts::video_types_allowed();
 			$files   = array();
 			$alts    = array();
 			$posters = array();
@@ -542,7 +556,11 @@ class Move {
 					continue;
 				}
 				$temp[] = $photo['tmp_name'];
-				if ( ! empty( $ph['video']['url'] ) ) {
+
+				if ( ! empty( $ph['video']['url'] ) && ! self::takes_video( $ph['video'], $takes ) ) {
+					// This site can't take the video: keep its cover picture as a photo, and say so at the end.
+					++self::$novid;
+				} elseif ( ! empty( $ph['video']['url'] ) ) {
 					$video = self::download( (string) $ph['video']['url'], (string) $ph['video']['name'] );
 					if ( ! is_wp_error( $video ) ) {
 						$temp[]                          = $video['tmp_name'];
@@ -637,6 +655,26 @@ class Move {
 		}
 		self::import_comments( $new, (array) ( $p['comments'] ?? array() ), 'p' . $id );
 		return $new;
+	}
+
+	/**
+	 * Whether this site can take a video from the old site.
+	 *
+	 * @param array    $video Video (url, name).
+	 * @param string[] $takes Video types this site accepts.
+	 * @return bool
+	 */
+	private static function takes_video( array $video, array $takes ) {
+		$name = (string) ( $video['name'] ?? '' );
+		if ( '' === $name ) {
+			$name = wp_basename( (string) wp_parse_url( (string) ( $video['url'] ?? '' ), PHP_URL_PATH ) );
+		}
+		$type = wp_check_filetype( $name )['type'];
+		if ( ! $type ) {
+			// Type unknown from the name: try it as before when the site takes any video.
+			return (bool) $takes;
+		}
+		return in_array( (string) $type, $takes, true );
 	}
 
 	/**

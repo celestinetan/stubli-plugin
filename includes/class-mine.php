@@ -73,7 +73,7 @@ class Mine {
 	 * @param int $post_id Post ID.
 	 * @return array
 	 */
-	private static function photos( $post_id ) {
+	public static function photos( $post_id ) {
 		$out = array();
 		foreach ( Posts::photo_ids( $post_id ) as $aid ) {
 			$src   = wp_get_attachment_image_src( $aid, 'medium_large' );
@@ -560,6 +560,24 @@ class Mine {
 				array(
 					'methods'             => \WP_REST_Server::DELETABLE,
 					'callback'            => static fn( \WP_REST_Request $r ) => $wrap( self::delete( (int) $r['id'] ) ),
+					'permission_callback' => $owner,
+					'args'                => $id,
+				),
+			)
+		);
+		// A post's comments, and writing your own (0.45.9).
+		Rest::register(
+			'/mine/(?P<id>\d+)/comments',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => static fn( \WP_REST_Request $r ) => $wrap( Replies::for_own_post( (int) $r['id'] ) ),
+					'permission_callback' => $owner,
+					'args'                => $id,
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => static fn( \WP_REST_Request $r ) => $wrap( Replies::comment_on_own_post( (int) $r['id'], (string) $r['text'] ) ),
 					'permission_callback' => $owner,
 					'args'                => $id,
 				),

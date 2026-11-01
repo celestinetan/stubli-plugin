@@ -284,14 +284,16 @@ class Moderation {
 	 * @return array
 	 */
 	public static function public_comment( $comment ) {
+		// Your own replies wear your page's picture, not a stand-in face (0.45.9).
+		$own = (int) $comment->user_id > 0 && user_can( (int) $comment->user_id, 'manage_options' );
 		return array(
 			'id'     => (int) $comment->comment_ID,
 			'parent' => (int) $comment->comment_parent,
 			'author' => array(
 				'name'   => $comment->comment_author,
 				'url'    => $comment->comment_author_url ? Follows::origin( $comment->comment_author_url ) : home_url(),
-				'avatar' => get_avatar_url( $comment ),
-				'owner'  => (int) $comment->user_id > 0 && user_can( (int) $comment->user_id, 'manage_options' ),
+				'avatar' => $own ? (string) Avatar::current() : get_avatar_url( $comment ),
+				'owner'  => $own,
 			),
 			'text'   => wp_strip_all_tags( $comment->comment_content ),
 			'date'   => gmdate( 'c', (int) strtotime( $comment->comment_date_gmt . ' UTC' ) ),

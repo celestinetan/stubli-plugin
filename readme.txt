@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.7
+Stable tag: 0.45.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,13 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.9 =
+* Reply to comments on your posts and guest book: in the app, What's new → On your page → Reply. Your reply shows under their comment on your page and goes to their Stubli, which shows it in their What's new.
+* Add a comment to your own post, even before anyone else has: the Comments screen in the app (from Edit post, or Add a comment under the post on your page) lists a post's comments with Reply under each.
+
+= 0.45.8 =
+* Fixed: moving your Stubli to a site that can't take videos (like WordPress.com's Personal plan) left out every post with a video. Those posts now arrive with their cover picture, and the app says how many videos stayed behind.
 
 = 0.45.7 =
 * Until your Stubli setup is done, a button at the top of your dashboard opens it. On WordPress.com the setup couldn't open by itself after installing.

@@ -402,6 +402,13 @@ class Rest {
 		self::route( '/replies/(?P<id>\d+)', WP_REST_Server::DELETABLE, static fn( WP_REST_Request $r ) => self::respond( Replies::delete( (int) $r['id'] ) ), false, $id );
 
 		// ——— Comments you receive ———
+		self::route(
+			'/comments/(?P<id>\d+)/reply',
+			WP_REST_Server::CREATABLE,
+			static fn( WP_REST_Request $r ) => self::respond( Replies::reply_to_comment( (int) $r['id'], (string) $r['text'] ) ),
+			false,
+			$id + array( 'text' => $text )
+		);
 		self::route( '/queue', WP_REST_Server::READABLE, static fn() => rest_ensure_response( Moderation::queue() ) );
 		self::route(
 			'/queue/(?P<id>\d+)',
@@ -579,6 +586,20 @@ class Rest {
 			$item['status'] = wp_get_comment_status( $comment );
 			$item['where']  = (int) $comment->comment_post_ID === $guestbook ? 'guestbook' : 'post';
 			$item['post']   = (int) $comment->comment_post_ID;
+			// Someone answered a comment you left on their post (0.45.9).
+			if ( Replies::POST_TYPE === get_post_type( (int) $comment->comment_post_ID ) ) {
+				$item['where']      = 'reply';
+				$item['post_url']   = (string) get_post_meta( (int) $comment->comment_post_ID, '_stubli_in_reply_to', true );
+				$item['post_title'] = html_entity_decode( (string) get_post_field( 'post_content', (int) $comment->comment_post_ID ), ENT_QUOTES, 'UTF-8' );
+			}
+			// Have you answered it already?
+			$item['replied'] = $owner && (bool) get_comments(
+				array(
+					'parent'  => (int) $comment->comment_ID,
+					'user_id' => $owner,
+					'count'   => true,
+				)
+			);
 			$out[]          = $item;
 		}
 		return rest_ensure_response( $out );

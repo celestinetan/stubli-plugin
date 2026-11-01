@@ -299,6 +299,11 @@ label.a-tool { position: relative; }
 .a-wn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .a-wn-list a { text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 .a-wn-quote { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+/* Reply to a comment on your page (0.45.9). */
+.a-wn-act { display: block; margin-top: 6px; }
+button.a-wn-act, a.a-wn-act { display: inline-block; padding: 6px 0; }
+.a-wn-act .a-row { gap: 12px; margin-top: 8px; justify-content: flex-start; }
+.a-wn-act .a-textarea { width: 100%; box-sizing: border-box; }
 
 /* Discover */
 .a-disc { margin: 0 0 12px; }
@@ -832,3 +837,13 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-fav .a-icon-btn:disabled { opacity: .3; }
 .a-fav-sure { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .a-lk-btns.a-lk-row { flex-direction: row; }
+
+/* A post's comments in the app (0.45.9). */
+.a-cm-list { list-style: none; margin: 16px 0 20px; padding: 0; display: grid; gap: 12px; }
+.a-cm { display: flex; gap: 10px; align-items: flex-start; }
+.a-cm > div { flex: 1; min-width: 0; }
+.a-cm.is-reply { margin-left: 32px; }
+.a-cm-meta { margin: 0; font-size: 14px; }
+.a-cm-text { margin: 2px 0 4px; overflow-wrap: anywhere; }
+.a-cm .a-comment-box .a-row { gap: 12px; margin-top: 8px; justify-content: flex-start; }
+.a-cm .a-textarea { width: 100%; box-sizing: border-box; }

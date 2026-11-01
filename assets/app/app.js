@@ -493,6 +493,7 @@
 		if ( h === 'whatsnew' ) { return viewWhatsNew(); }
 		if ( h === 'setup' ) { return viewSetup(); }
 		if ( /^edit\/\d+$/.test( h ) ) { return viewEdit( +h.split( '/' )[ 1 ] ); }
+		if ( /^comments\/\d+$/.test( h ) ) { return viewComments( +h.split( '/' )[ 1 ] ); }
 		if ( ! location.hash && ! B.setupDone && ! store.get( 'stubli-setup-later' ) ) { location.replace( '#setup' ); return; }
 		return viewHome();
 	}
@@ -1224,7 +1225,7 @@
 		if ( st.state === 'moving' ) {
 			return '<p class="a-ds-status" role="status">' + _f( __( 'Copying from %s… %s of %s', 'stubli' ), esc( hostOf( st.from ) ), st.done, st.total ) + '</p><div class="a-progress" aria-hidden="true"><span style="width:' + ( st.total ? Math.round( 100 * st.done / st.total ) : 5 ) + ( '%"></span></div><p class="a-help">' + __( 'Photos and videos arrive at full size, so this can take a while. Keep this screen open.', 'stubli' ) + '</p>' );
 		}
-		return '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + ( st.skipped ? ( st.skipped > 1 ? _f( __( 'Everything from %s is here (%s items couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ), st.skipped ) : _f( __( 'Everything from %s is here (one item couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ) ) ) : _f( __( 'Everything from %s is here.', 'stubli' ), esc( hostOf( st.from ) ) ) ) + '</p><p class="a-help">' + ( st.told ? __( 'Your old site now points here, and the people who follow you switch to this address within a few hours.', 'stubli' ) : __( 'Your old site couldn\'t be told about the move. Your followers can follow you here by your new address.', 'stubli' ) ) + '</p>';
+		return '<p class="a-ds-status" role="status">' + icon( 'check', 16 ) + ( st.skipped ? ( st.skipped > 1 ? _f( __( 'Everything from %s is here (%s items couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ), st.skipped ) : _f( __( 'Everything from %s is here (one item couldn\'t be copied).', 'stubli' ), esc( hostOf( st.from ) ) ) ) : _f( __( 'Everything from %s is here.', 'stubli' ), esc( hostOf( st.from ) ) ) ) + ( st.novid ? ' ' + ( st.novid === 1 ? __( 'One video stayed behind, because your site can\'t take videos.', 'stubli' ) : _f( __( '%s videos stayed behind, because your site can\'t take videos.', 'stubli' ), st.novid ) ) : '' ) + '</p><p class="a-help">' + ( st.told ? __( 'Your old site now points here, and the people who follow you switch to this address within a few hours.', 'stubli' ) : __( 'Your old site couldn\'t be told about the move. Your followers can follow you here by your new address.', 'stubli' ) ) + '</p>';
 	}
 	function moveCard() {
 		var o = mv.out || {}, out;
@@ -1341,6 +1342,67 @@
 			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit post', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' ) + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#you">' + __( 'Back to your posts', 'stubli' ) + '</a></div></main>' );
 		} );
 	}
+	/* A post's comments: answer each, or add your own (0.45.9). */
+	var cm = null;
+	function viewComments( id ) {
+		if ( ! cm || cm.id !== id ) { cm = { id: id, d: null, open: {}, text: {}, msg: {}, own: '', ownMsg: '', busy: false }; }
+		if ( cm.d ) { return renderComments(); }
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#edit/' + id + '">' + __( 'Back', 'stubli' ) + '</a><h1>' + __( 'Comments', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:120px"></span></div></main>';
+		send( 'GET', 'mine/' + id + '/comments', null ).then( function ( d ) { if ( cm && cm.id === id ) { cm.d = d; renderComments(); } }, function ( e ) {
+			root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Comments', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' + esc( e.message ) + '</p></div></main>';
+		} );
+	}
+	function renderComments() {
+		var d = cm.d, p = d.post;
+		var list = d.comments.length ? d.comments.map( function ( c ) {
+			var mine = c.author.owner, k = c.id, box = '';
+			if ( ! mine && ! c.parent ) {
+				if ( cm.msg[ k ] && cm.msg[ k ].done ) { box = '<p class="a-help" role="status">' + esc( cm.msg[ k ].done ) + '</p>'; }
+				else if ( c.replied ) { box = '<span class="muted small">' + __( 'You replied', 'stubli' ) + '</span>'; }
+				else if ( ! cm.open[ k ] ) { box = '<button type="button" class="a-text-btn" data-cm-reply="' + k + '">' + __( 'Reply', 'stubli' ) + '</button>'; }
+				else {
+					box = '<div class="a-comment-box"><label class="sr" for="a-cr-' + k + '">' + esc( _f( /* translators: %s: the commenter's name */ __( 'Your reply to %s', 'stubli' ), unent( c.author.name ) ) ) + '</label><textarea id="a-cr-' + k + '" class="a-textarea" maxlength="1000" rows="3">' + esc( cm.text[ k ] || '' ) + '</textarea>' +
+						'<div class="a-row"><button type="button" class="a-btn" data-cm-send="' + k + '"' + ( cm.busy ? ' disabled' : '' ) + '>' + __( 'Send', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-cm-reply="' + k + '">' + __( 'Cancel', 'stubli' ) + '</button></div>' +
+						( cm.msg[ k ] && cm.msg[ k ].err ? '<p class="a-help" role="alert">' + esc( cm.msg[ k ].err ) + '</p>' : '' ) + '</div>';
+				}
+			}
+			return '<li class="a-cm' + ( c.parent ? ' is-reply' : '' ) + '">' + face( c.author.avatar, c.author.name, 32 ) + '<div><p class="a-cm-meta"><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">· ' + esc( gentle( c.date ) ) + '</span></p><p class="a-cm-text">' + esc( c.text ) + '</p>' + box + '</div></li>';
+		} ).join( '' ) : '';
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#edit/' + p.id + '">' + __( 'Back', 'stubli' ) + '</a><h1>' + __( 'Comments', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main">' +
+			'<a class="a-latest" href="' + esc( p.url ) + '">' + ( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="a-latest-t">' + esc( p.title || __( 'Photo post', 'stubli' ) ) + '</span><span class="muted">' + __( 'See the post', 'stubli' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' +
+			( list ? '<ul class="a-cm-list">' + list + '</ul>' : '<p class="muted">' + __( 'No comments yet. You can write the first one.', 'stubli' ) + '</p>' ) +
+			'<label class="a-label" for="a-cm-own">' + __( 'Add a comment', 'stubli' ) + '</label><textarea id="a-cm-own" class="a-textarea" maxlength="1000" rows="3">' + esc( cm.own ) + '</textarea>' +
+			'<div class="a-actions"><button type="button" class="a-btn" data-cm-own' + ( cm.busy ? ' disabled' : '' ) + '>' + __( 'Post comment', 'stubli' ) + '</button></div>' +
+			( cm.ownMsg ? '<p class="a-help" role="status">' + esc( cm.ownMsg ) + '</p>' : '' ) +
+			'<p class="a-help">' + __( 'Your comment shows under the post on your page, with your picture.', 'stubli' ) + '</p></main>';
+		$$( '[data-cm-reply]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var k = b.dataset.cmReply; cm.open[ k ] = ! cm.open[ k ]; cm.msg[ k ] = null; renderComments(); var t = $( '#a-cr-' + k ); if ( t ) { t.focus(); } } ); } );
+		$$( '.a-cm textarea' ).forEach( function ( t ) { t.addEventListener( 'input', function () { cm.text[ t.id.replace( 'a-cr-', '' ) ] = t.value; } ); } );
+		var own = $( '#a-cm-own' ); own.addEventListener( 'input', function () { cm.own = own.value; } );
+		$$( '[data-cm-send]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var k = b.dataset.cmSend, v = ( cm.text[ k ] || '' ).trim();
+				if ( ! v ) { cm.msg[ k ] = { err: __( 'Write a few words first.', 'stubli' ) }; renderComments(); return; }
+				cm.busy = true; b.disabled = true;
+				send( 'POST', 'comments/' + k + '/reply', { text: v } ).then( function ( res ) {
+					cm.busy = false; cm.open[ k ] = false; cm.text[ k ] = '';
+					cm.msg[ k ] = { done: res.status === 'sent' ? __( 'Replied. It\'s under their comment on your page, and on its way to their Stubli.', 'stubli' ) : res.status === 'local' ? __( 'Replied. It\'s under their comment on your page.', 'stubli' ) : __( 'Replied. It\'s under their comment on your page. Their Stubli didn\'t answer yet; we\'ll keep trying.', 'stubli' ) };
+					var at = -1; cm.d.comments.forEach( function ( x, i ) { if ( String( x.id ) === String( k ) ) { x.replied = true; at = i; } } );
+					if ( at > -1 && res.comment ) { cm.d.comments.splice( at + 1, 0, res.comment ); }
+					renderComments();
+				}, function ( e ) { cm.busy = false; cm.msg[ k ] = { err: ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ) }; renderComments(); } );
+			} );
+		} );
+		$( '[data-cm-own]' ).addEventListener( 'click', function () {
+			var v = cm.own.trim();
+			if ( ! v ) { cm.ownMsg = __( 'Write a few words first.', 'stubli' ); renderComments(); $( '#a-cm-own' ).focus(); return; }
+			cm.busy = true; renderComments();
+			send( 'POST', 'mine/' + cm.id + '/comments', { text: v } ).then( function ( res ) {
+				cm.busy = false; cm.own = ''; cm.ownMsg = __( 'Posted. It\'s under the post on your page.', 'stubli' );
+				if ( res.comment ) { cm.d.comments.push( res.comment ); }
+				renderComments();
+			}, function ( e ) { cm.busy = false; cm.ownMsg = ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ); renderComments(); } );
+		} );
+	}
 	/* Who can see a post: Everyone or Friends (design Q44). */
 	function audienceChips( on, attr ) {
 		var friends = on === 'friends';
@@ -1390,7 +1452,7 @@
 			( ed.noteOn ? ( '<div class="a-inline"><label class="sr" for="a-ed-notetext">' + __( 'Content note', 'stubli' ) + '</label><input id="a-ed-notetext" class="a-field" maxlength="' ) + B.maxNote + '" placeholder="e.g. Flashing lights" value="' + esc( d.note ) + '"></div>' : '' ) +
 			( ed.error ? '<div class="a-notice" role="alert"><p>' + esc( ed.error ) + '</p></div>' : '' ) +
 			( '<p class="a-help" style="margin-top:16px">' + __( 'Changes reach your followers\' feeds the next time their Stubli checks for news, usually within 15 minutes.', 'stubli' ) + '</p>' ) +
-			'<p style="margin:16px 0"><a href="' + esc( d.url ) + ( '">' + __( 'See the post', 'stubli' ) + '</a></p>' ) +
+			'<p style="margin:16px 0"><a href="' + esc( d.url ) + ( '">' + __( 'See the post', 'stubli' ) + '</a> · <a href="#comments/' ) + ed.id + ( '">' + __( 'Comments', 'stubli' ) + '</a></p>' ) +
 			'<section class="a-ed-delete">' + ( ed.sure ?
 				( '<p><strong>' + __( 'Delete this post?', 'stubli' ) + '</strong> ' + __( 'It leaves your page, and your followers\' feeds the next time they check. You can undo right after.', 'stubli' ) + '</p><div class="a-actions"><button type="button" class="a-btn a-danger" data-ed-del-yes>' + __( 'Delete post', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-ed-del-no>' + __( 'Keep it', 'stubli' ) + '</button></div>' ) :
 				( '<button type="button" class="a-text-btn a-danger-text" data-ed-del>' + __( 'Delete post…', 'stubli' ) + '</button>' ) ) + '</section>' +
@@ -1892,11 +1954,13 @@
 			var recent = wn.activity.filter( function ( a ) { return a.status === 'approved' && Date.parse( a.date ) > Date.now() - 14 * 86400000; } ).slice( 0, 12 );
 			body += ( '<h2 class="a-label">' + __( 'On your page', 'stubli' ) + '</h2>' );
 			body += recent.length ? '<ul class="a-wn-list">' + recent.map( function ( a ) {
-				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + ( a.where === 'guestbook' ? __( 'signed your guest book', 'stubli' ) : _f( __( 'commented on %s', 'stubli' ), '<a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || __( 'your post', 'stubli' ) ) + '</a>' ) ) + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span></li>';
+				var what = a.where === 'guestbook' ? __( 'signed your guest book', 'stubli' ) : a.where === 'reply' ? __( 'replied to your comment', 'stubli' ) : _f( __( 'commented on %s', 'stubli' ), '<a href="' + esc( a.post_url ) + '">' + esc( unent( a.post_title ) || __( 'your post', 'stubli' ) ) + '</a>' );
+				return '<li><strong>' + esc( unent( a.author.name ) ) + '</strong> ' + what + ' <span class="muted">· ' + esc( gentle( a.date ) ) + '</span><span class="a-wn-quote">' + esc( String( a.text || '' ).slice( 0, 140 ) ) + '</span>' + replyBits( a ) + '</li>';
 			} ).join( '' ) + '</ul>' : ( '<p class="muted">' + __( 'No new comments or guest book entries in the last two weeks.', 'stubli' ) + '</p>' );
 		}
 		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
+		bindReplies();
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
 		$$( '[data-open-list]' ).forEach( function ( a ) { a.addEventListener( 'click', function () { feed.list = a.dataset.openList; feed.loaded = false; } ); } );
@@ -1915,6 +1979,34 @@
 					B.waiting = wn.queue.filter( function ( x ) { return ! x.later && ! wn.done[ x.id ]; } ).length;
 					renderWhatsNew();
 				}, function ( e ) { $$( '[data-id="' + id + '"]' ).forEach( function ( x ) { x.disabled = false; } ); alertIn( id, ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ) ); } );
+			} );
+		} );
+	}
+	// Answer a comment on your page (0.45.9): it shows under theirs, and goes to their Stubli.
+	function replyBits( a ) {
+		if ( a.where === 'reply' ) { return a.post_url ? '<a class="a-text-btn a-wn-act" href="' + esc( a.post_url ) + '">' + __( 'See their post', 'stubli' ) + '</a>' : ''; }
+		var r = ( wn.rep = wn.rep || {} )[ a.id ];
+		if ( r && r.done ) { return '<p class="a-help a-wn-act" role="status">' + esc( r.done ) + '</p>'; }
+		if ( a.replied ) { return '<span class="muted small a-wn-act">' + __( 'You replied', 'stubli' ) + '</span>'; }
+		if ( ! r || ! r.open ) { return '<button type="button" class="a-text-btn a-wn-act" data-wn-reply="' + a.id + '">' + __( 'Reply', 'stubli' ) + '</button>'; }
+		return '<div class="a-comment-box a-wn-act"><label class="sr" for="a-wr-' + a.id + '">' + esc( _f( /* translators: %s: the commenter's name */ __( 'Your reply to %s', 'stubli' ), unent( a.author.name ) ) ) + '</label><textarea id="a-wr-' + a.id + '" class="a-textarea" maxlength="1000" rows="3">' + esc( r.text || '' ) + '</textarea>' +
+			'<div class="a-row"><button type="button" class="a-btn" data-wn-send="' + a.id + '"' + ( r.busy ? ' disabled' : '' ) + '>' + __( 'Send', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-wn-reply="' + a.id + '">' + __( 'Cancel', 'stubli' ) + '</button></div>' +
+			( r.msg ? '<p class="a-help" role="alert">' + esc( r.msg ) + '</p>' : '' ) + '</div>';
+	}
+	function bindReplies() {
+		$$( '[data-wn-reply]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var id = b.dataset.wnReply, r = wn.rep[ id ] = wn.rep[ id ] || {}; r.open = ! r.open; r.msg = ''; renderWhatsNew(); var t = $( '#a-wr-' + id ); if ( t ) { t.focus(); } } ); } );
+		$$( '.a-wn-act textarea' ).forEach( function ( t ) { t.addEventListener( 'input', function () { wn.rep[ t.id.replace( 'a-wr-', '' ) ].text = t.value; } ); } );
+		$$( '[data-wn-send]' ).forEach( function ( b ) {
+			b.addEventListener( 'click', function () {
+				var id = b.dataset.wnSend, r = wn.rep[ id ], t = $( '#a-wr-' + id );
+				if ( ! t.value.trim() ) { r.msg = __( 'Write a few words first.', 'stubli' ); renderWhatsNew(); return; }
+				r.busy = true; b.disabled = true;
+				send( 'POST', 'comments/' + id + '/reply', { text: t.value.trim() } ).then( function ( res ) {
+					r.busy = false; r.open = false;
+					r.done = res.status === 'sent' ? __( 'Replied. It\'s under their comment on your page, and on its way to their Stubli.', 'stubli' ) : res.status === 'local' ? __( 'Replied. It\'s under their comment on your page.', 'stubli' ) : __( 'Replied. It\'s under their comment on your page. Their Stubli didn\'t answer yet; we\'ll keep trying.', 'stubli' );
+					wn.activity.forEach( function ( x ) { if ( String( x.id ) === String( id ) ) { x.replied = true; } } );
+					renderWhatsNew();
+				}, function ( e ) { r.busy = false; r.msg = ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ); renderWhatsNew(); } );
 			} );
 		} );
 	}
