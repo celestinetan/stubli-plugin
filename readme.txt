@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.9
+Stable tag: 0.45.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.10 =
+* Change or delete your own comments on your posts: Edit and Delete sit under each one on the post's Comments screen in the app. If it was a reply that went to someone's Stubli, the change reaches theirs too. Deleted comments go to the WordPress Trash for 30 days.
+* At the end of setup, an optional box (unticked) lets you say hello to Stubli's maker. If you tick it, your Stubli sends your site's address to stubli.app once. Nothing else is sent.
 
 = 0.45.9 =
 * Reply to comments on your posts and guest book: in the app, What's new → On your page → Reply. Your reply shows under their comment on your page and goes to their Stubli, which shows it in their What's new.

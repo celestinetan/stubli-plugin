@@ -1345,7 +1345,7 @@
 	/* A post's comments: answer each, or add your own (0.45.9). */
 	var cm = null;
 	function viewComments( id ) {
-		if ( ! cm || cm.id !== id ) { cm = { id: id, d: null, open: {}, text: {}, msg: {}, own: '', ownMsg: '', busy: false }; }
+		if ( ! cm || cm.id !== id ) { cm = { id: id, d: null, top: '', open: {}, text: {}, msg: {}, edit: {}, etext: {}, del: {}, own: '', ownMsg: '', busy: false }; }
 		if ( cm.d ) { return renderComments(); }
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#edit/' + id + '">' + __( 'Back', 'stubli' ) + '</a><h1>' + __( 'Comments', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:120px"></span></div></main>';
 		send( 'GET', 'mine/' + id + '/comments', null ).then( function ( d ) { if ( cm && cm.id === id ) { cm.d = d; renderComments(); } }, function ( e ) {
@@ -1366,11 +1366,24 @@
 						( cm.msg[ k ] && cm.msg[ k ].err ? '<p class="a-help" role="alert">' + esc( cm.msg[ k ].err ) + '</p>' : '' ) + '</div>';
 				}
 			}
-			return '<li class="a-cm' + ( c.parent ? ' is-reply' : '' ) + '">' + face( c.author.avatar, c.author.name, 32 ) + '<div><p class="a-cm-meta"><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">· ' + esc( gentle( c.date ) ) + '</span></p><p class="a-cm-text">' + esc( c.text ) + '</p>' + box + '</div></li>';
+			// Your own comments: change the words, or delete them (0.45.10).
+			var body = '<p class="a-cm-text">' + esc( c.text ) + '</p>';
+			if ( mine ) {
+				if ( cm.edit[ k ] ) {
+					body = '<div class="a-comment-box"><label class="sr" for="a-ce-' + k + '">' + __( 'Your comment', 'stubli' ) + '</label><textarea id="a-ce-' + k + '" class="a-textarea" maxlength="1000" rows="3">' + esc( cm.etext[ k ] ) + '</textarea>' +
+						'<div class="a-row"><button type="button" class="a-btn" data-cm-save="' + k + '"' + ( cm.busy ? ' disabled' : '' ) + '>' + __( 'Save', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-cm-edit="' + k + '">' + __( 'Cancel', 'stubli' ) + '</button></div></div>';
+				} else if ( cm.del[ k ] ) {
+					box = '<div class="a-cm-sure"><p><strong>' + __( 'Delete this comment?', 'stubli' ) + '</strong> ' + ( c.parent ? __( 'It leaves your page, and their Stubli if it went there.', 'stubli' ) : __( 'It leaves your page.', 'stubli' ) ) + '</p><div class="a-row"><button type="button" class="a-btn a-danger" data-cm-del-yes="' + k + '"' + ( cm.busy ? ' disabled' : '' ) + '>' + __( 'Delete comment', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-cm-del="' + k + '">' + __( 'Keep it', 'stubli' ) + '</button></div></div>';
+				} else {
+					box = '<span class="a-cm-acts"><button type="button" class="a-text-btn" data-cm-edit="' + k + '">' + __( 'Edit', 'stubli' ) + '</button><button type="button" class="a-text-btn a-danger-text" data-cm-del="' + k + '">' + __( 'Delete', 'stubli' ) + '</button></span>';
+				}
+				if ( cm.msg[ k ] && ( cm.msg[ k ].done || cm.msg[ k ].err ) ) { box += '<p class="a-help" role="' + ( cm.msg[ k ].err ? 'alert' : 'status' ) + '">' + esc( cm.msg[ k ].done || cm.msg[ k ].err ) + '</p>'; }
+			}
+			return '<li class="a-cm' + ( c.parent ? ' is-reply' : '' ) + '">' + face( c.author.avatar, c.author.name, 32 ) + '<div><p class="a-cm-meta"><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">· ' + esc( gentle( c.date ) ) + '</span></p>' + body + box + '</div></li>';
 		} ).join( '' ) : '';
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#edit/' + p.id + '">' + __( 'Back', 'stubli' ) + '</a><h1>' + __( 'Comments', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main">' +
 			'<a class="a-latest" href="' + esc( p.url ) + '">' + ( p.thumb ? '<img src="' + esc( p.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="a-latest-t">' + esc( p.title || __( 'Photo post', 'stubli' ) ) + '</span><span class="muted">' + __( 'See the post', 'stubli' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' +
-			( list ? '<ul class="a-cm-list">' + list + '</ul>' : '<p class="muted">' + __( 'No comments yet. You can write the first one.', 'stubli' ) + '</p>' ) +
+			( cm.top ? '<p class="a-help" role="status" tabindex="-1" data-cm-top>' + esc( cm.top ) + '</p>' : '' ) + ( list ? '<ul class="a-cm-list">' + list + '</ul>' : '<p class="muted">' + __( 'No comments yet. You can write the first one.', 'stubli' ) + '</p>' ) +
 			'<label class="a-label" for="a-cm-own">' + __( 'Add a comment', 'stubli' ) + '</label><textarea id="a-cm-own" class="a-textarea" maxlength="1000" rows="3">' + esc( cm.own ) + '</textarea>' +
 			'<div class="a-actions"><button type="button" class="a-btn" data-cm-own' + ( cm.busy ? ' disabled' : '' ) + '>' + __( 'Post comment', 'stubli' ) + '</button></div>' +
 			( cm.ownMsg ? '<p class="a-help" role="status">' + esc( cm.ownMsg ) + '</p>' : '' ) +
@@ -1378,6 +1391,37 @@
 		$$( '[data-cm-reply]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { var k = b.dataset.cmReply; cm.open[ k ] = ! cm.open[ k ]; cm.msg[ k ] = null; renderComments(); var t = $( '#a-cr-' + k ); if ( t ) { t.focus(); } } ); } );
 		$$( '.a-cm textarea' ).forEach( function ( t ) { t.addEventListener( 'input', function () { cm.text[ t.id.replace( 'a-cr-', '' ) ] = t.value; } ); } );
 		var own = $( '#a-cm-own' ); own.addEventListener( 'input', function () { cm.own = own.value; } );
+		var fail = function ( k ) { return function ( e ) { cm.busy = false; cm.msg[ k ] = { err: ( e && e.message ) || __( 'That didn\'t work. Try again.', 'stubli' ) }; renderComments(); }; };
+		var find = function ( k ) { var at = -1; cm.d.comments.forEach( function ( x, i ) { if ( String( x.id ) === String( k ) ) { at = i; } } ); return at; };
+		$$( '[data-cm-edit]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var k = b.dataset.cmEdit, at = find( k ); cm.edit[ k ] = ! cm.edit[ k ]; cm.del[ k ] = false; cm.msg[ k ] = null;
+			if ( cm.edit[ k ] && at > -1 ) { cm.etext[ k ] = cm.d.comments[ at ].text; }
+			renderComments(); var t = $( '#a-ce-' + k ); if ( t ) { t.focus(); } else { var e = $( '[data-cm-edit="' + k + '"]' ); if ( e ) { e.focus(); } }
+		} ); } );
+		$$( '[id^="a-ce-"]' ).forEach( function ( t ) { t.addEventListener( 'input', function () { cm.etext[ t.id.replace( 'a-ce-', '' ) ] = t.value; } ); } );
+		$$( '[data-cm-save]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var k = b.dataset.cmSave, v = ( cm.etext[ k ] || '' ).trim();
+			if ( ! v ) { cm.msg[ k ] = { err: __( 'Write a few words first, or delete the comment instead.', 'stubli' ) }; renderComments(); return; }
+			cm.busy = true; b.disabled = true;
+			send( 'POST', 'comments/' + k + '/own', { text: v } ).then( function ( res ) {
+				cm.busy = false; cm.edit[ k ] = false; var at = find( k );
+				if ( at > -1 && res.comment ) { cm.d.comments[ at ] = res.comment; }
+				cm.msg[ k ] = { done: res.status === 'sent' ? __( 'Saved. Their Stubli has the new words too.', 'stubli' ) : res.status === 'local' ? __( 'Saved.', 'stubli' ) : __( 'Saved on your page. Their Stubli didn\'t answer yet; we\'ll keep trying.', 'stubli' ) };
+				renderComments();
+			}, fail( k ) );
+		} ); } );
+		$$( '[data-cm-del]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var k = b.dataset.cmDel; cm.del[ k ] = ! cm.del[ k ]; cm.msg[ k ] = null; renderComments();
+			var f = $( cm.del[ k ] ? '[data-cm-del-yes="' + k + '"]' : '[data-cm-del="' + k + '"]' ); if ( f ) { f.focus(); }
+		} ); } );
+		$$( '[data-cm-del-yes]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var k = b.dataset.cmDelYes; cm.busy = true; b.disabled = true;
+			send( 'DELETE', 'comments/' + k + '/own', null ).then( function () {
+				cm.busy = false; cm.del[ k ] = false; var at = find( k );
+				if ( at > -1 ) { var gone = cm.d.comments[ at ]; cm.d.comments.splice( at, 1 ); cm.d.comments.forEach( function ( x ) { if ( gone.parent && String( x.id ) === String( gone.parent ) ) { x.replied = cm.d.comments.some( function ( y ) { return String( y.parent ) === String( x.id ) && y.author.owner; } ); } } ); }
+				cm.top = __( 'Comment deleted. It\'s off your page.', 'stubli' ); renderComments(); var tp = $( '[data-cm-top]' ); if ( tp ) { tp.focus(); }
+			}, fail( k ) );
+		} ); } );
 		$$( '[data-cm-send]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var k = b.dataset.cmSend, v = ( cm.text[ k ] || '' ).trim();
@@ -2421,6 +2465,7 @@
 				( '<label class="a-check"><span><strong>' + __( 'Ask AI crawlers to stay away', 'stubli' ) + '</strong><span class="muted small">' + __( 'A request that respectable bots honour.', 'stubli' ) + '</span></span><input type="checkbox" data-su-ai' ) + ( d.block_ai ? ' checked' : '' ) + '></label>' +
 				'<p class="a-help">' + ( d.helper === 'active' ? __( 'Stubli also turns on comments, so replies from friends\' sites can arrive.', 'stubli' ) : __( 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.', 'stubli' ) ) + ( ' ' + __( 'You can change all of this later in Settings → Stubli.', 'stubli' ) + '</p>' ) +
 				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + ( '">' + __( 'Add Webmention in Plugins', 'stubli' ) + '</a></p></div>' ) : '' ) +
+				( d.hello ? '' : '<label class="a-check"><span><strong>' + __( 'Say hello to Celestine', 'stubli' ) + '</strong><span class="muted small">' + __( 'Sends your site\'s address to stubli.app so he knows you\'ve joined. Nothing else, and only this once.', 'stubli' ) + '</span></span><input type="checkbox" data-su-hello' + ( su.hello ? ' checked' : '' ) + '></label>' ) +
 				'<p class="a-su-note">' + _f( __( 'Your first photo can wait. When you\'re ready, tap %s at the bottom.', 'stubli' ), icon( 'plus', 18 ) ) + '</p>' +
 				setupFoot( su.helperFail ? __( 'Open my feed anyway', 'stubli' ) : ( su.busy && su.helperBusy ? __( 'Adding Webmention…', 'stubli' ) : __( 'Open my feed', 'stubli' ) ) );
 		}
@@ -2555,6 +2600,7 @@
 			var hid = $( '[data-su-hidden]' ), ai = $( '[data-su-ai]' );
 			hid.addEventListener( 'change', function () { d.hidden = hid.checked; } );
 			ai.addEventListener( 'change', function () { d.block_ai = ai.checked; } );
+			var hi = $( '[data-su-hello]' ); if ( hi ) { hi.addEventListener( 'change', function () { su.hello = hi.checked; } ); }
 			var sp = $( '[data-su-push]' );
 			if ( sp ) {
 				sp.addEventListener( 'click', function () {
@@ -2564,7 +2610,7 @@
 			}
 			next.addEventListener( 'click', function () {
 				var finish = function () {
-					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, hello: !! su.hello, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
 				};
 				if ( d.helper === 'active' || su.helperFail ) { return finish(); }
 				// Add the Webmention plugin (from WordPress.org) so comments can travel between sites.

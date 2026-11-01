@@ -230,6 +230,7 @@ class Setup {
 			'digest'    => (string) get_option( 'stubli_digest_time', '08:00' ),
 			'hidden'    => ! get_option( 'blog_public', 1 ) || ! get_option( 'stubli_setup_done' ),
 			'block_ai'  => (bool) get_option( 'stubli_block_ai', 1 ),
+			'hello'     => (bool) get_option( 'stubli_hello' ),
 			'seasonal'  => Seasonal::on(),
 			// Asked as a yes/no in setup: null until the owner answers (WordPress.org guideline 10: credits are opt-in).
 			'credit'    => false === get_option( 'stubli_credit', false ) ? null : (bool) get_option( 'stubli_credit' ),
@@ -303,6 +304,9 @@ class Setup {
 			}
 			update_option( 'stubli_setup_done', 1 );
 			delete_option( 'stubli_setup_step' );
+			if ( ! empty( $c['hello'] ) ) {
+				Feedback::queue_hello();
+			}
 			// A small "Your first day" card on Home, only for a Stubli that starts empty.
 			if ( false === get_option( 'stubli_firstday', false ) ) {
 				update_option( 'stubli_firstday', App::has_photos() ? 'off' : time(), false );

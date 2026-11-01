@@ -845,5 +845,7 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-cm.is-reply { margin-left: 32px; }
 .a-cm-meta { margin: 0; font-size: 14px; }
 .a-cm-text { margin: 2px 0 4px; overflow-wrap: anywhere; }
+.a-cm-acts { display: inline-flex; gap: 18px; }
+.a-cm-sure p { margin: 4px 0 8px; font-size: 14px; }
 .a-cm .a-comment-box .a-row { gap: 12px; margin-top: 8px; justify-content: flex-start; }
 .a-cm .a-textarea { width: 100%; box-sizing: border-box; }

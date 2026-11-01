@@ -30,7 +30,8 @@ class Feedback {
 
 	const HUB      = 'https://stubli.app';
 	const TYPE     = 'stubli_feedback';
-	const KINDS    = array( 'idea', 'broken', 'love', 'host' );
+	const KINDS    = array( 'idea', 'broken', 'love', 'host', 'joined' );
+	const HELLO    = 'stubli_say_hello';
 	const MAX_TEXT = 4000;
 
 	/**
@@ -57,6 +58,7 @@ class Feedback {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', array( self::class, 'routes' ) );
+		add_action( self::HELLO, array( self::class, 'say_hello' ) );
 		if ( self::is_hub() ) {
 			add_action( 'init', array( self::class, 'register_type' ) );
 			add_filter( 'manage_' . self::TYPE . '_posts_columns', array( self::class, 'columns' ) );
@@ -197,6 +199,50 @@ class Feedback {
 	}
 
 	/**
+	 * The owner ticked "Say hello to Celestine" at the end of setup (0.45.10,
+	 * opt-in, off unless ticked). Sent in the background so setup never waits.
+	 */
+	public static function queue_hello() {
+		if ( get_option( 'stubli_hello' ) ) {
+			return; // Only ever once.
+		}
+		update_option( 'stubli_hello', 'pending', false );
+		wp_schedule_single_event( time(), self::HELLO );
+	}
+
+	/**
+	 * Send the hello: only the site's address. Tries again later if stubli.app
+	 * doesn't answer (three times at most), and never after it got through.
+	 */
+	public static function say_hello() {
+		if ( 'pending' !== get_option( 'stubli_hello' ) ) {
+			return;
+		}
+		$note = array(
+			'kind'     => 'joined',
+			'message'  => 'Hello! A new Stubli.',
+			'reply_to' => home_url( '/' ),
+			'device'   => '',
+			'version'  => '',
+			'source'   => 'app',
+		);
+		$res = self::is_hub() ? self::store( $note ) : self::forward_note( $note );
+		if ( ! is_wp_error( $res ) ) {
+			update_option( 'stubli_hello', 'sent', false );
+			delete_option( 'stubli_hello_tries' );
+			return;
+		}
+		$tries = (int) get_option( 'stubli_hello_tries', 0 ) + 1;
+		if ( $tries >= 3 ) {
+			update_option( 'stubli_hello', 'gave_up', false );
+			delete_option( 'stubli_hello_tries' );
+			return;
+		}
+		update_option( 'stubli_hello_tries', $tries, false );
+		wp_schedule_single_event( time() + $tries * HOUR_IN_SECONDS, self::HELLO );
+	}
+
+	/**
 	 * Pass a note on to the hub without a screenshot (host reports).
 	 *
 	 * @param array $note Fields.
@@ -297,6 +343,7 @@ class Feedback {
 			'broken' => __( 'Not working', 'stubli' ),
 			'love'   => __( 'Kind words', 'stubli' ),
 			'host'   => __( 'Host report', 'stubli' ),
+			'joined' => __( 'New Stubli', 'stubli' ),
 		);
 		$reply   = trim( mb_substr( sanitize_text_field( (string) $note['reply_to'] ), 0, 200 ) );
 		$post_id = wp_insert_post(

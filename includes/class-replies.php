@@ -354,6 +354,93 @@ class Replies {
 	}
 
 	/**
+	 * One of your own comments on your own page (yours, on a post or a reply).
+	 *
+	 * @param int $comment_id Comment ID.
+	 * @return \WP_Comment|WP_Error
+	 */
+	private static function own_comment( $comment_id ) {
+		$c = get_comment( (int) $comment_id );
+		if ( ! $c || 'trash' === $c->comment_approved || ! get_current_user_id() || (int) $c->user_id !== get_current_user_id() || self::POST_TYPE === get_post_type( (int) $c->comment_post_ID ) ) {
+			return new WP_Error( 'stubli_not_found', __( 'That comment isn\'t on your page any more.', 'stubli' ), array( 'status' => 404 ) );
+		}
+		return $c;
+	}
+
+	/**
+	 * Change the words of a comment you wrote on your page (Celestine, 1 Nov).
+	 * If it was a reply that went to someone's Stubli, the new words go there too.
+	 *
+	 * @param int    $comment_id Your comment.
+	 * @param string $text       New words.
+	 * @return array|WP_Error
+	 */
+	public static function edit_own_comment( $comment_id, $text ) {
+		$c = self::own_comment( $comment_id );
+		if ( is_wp_error( $c ) ) {
+			return $c;
+		}
+		$text = self::clean( $text );
+		if ( is_wp_error( $text ) ) {
+			return $text;
+		}
+		wp_update_comment(
+			array(
+				'comment_ID'      => (int) $c->comment_ID,
+				'comment_content' => $text,
+			)
+		);
+		$status = 'local';
+		$page   = (int) get_comment_meta( $c->comment_ID, 'stubli_reply_page', true );
+		if ( $page && self::POST_TYPE === get_post_type( $page ) ) {
+			wp_update_post(
+				array(
+					'ID'           => $page,
+					'post_content' => $text,
+					'post_title'   => wp_trim_words( $text, 8, '…' ),
+				)
+			);
+			$target = (string) get_post_meta( $page, '_stubli_in_reply_to', true );
+			$result = ( $target && Helper::active() ) ? send_webmention( get_permalink( $page ), $target ) : null;
+			$status = self::delivered_status( $result );
+			if ( 'sent' !== $status ) {
+				self::schedule_retry( $page, $status );
+			}
+		}
+		return array(
+			'id'      => (int) $c->comment_ID,
+			'comment' => Moderation::public_comment( get_comment( $c->comment_ID ) ),
+			'status'  => $status,
+		);
+	}
+
+	/**
+	 * Delete a comment you wrote on your page. It goes to the WordPress Trash
+	 * (kept 30 days), and a reply that went to someone's Stubli is taken back there.
+	 *
+	 * @param int $comment_id Your comment.
+	 * @return array|WP_Error
+	 */
+	public static function delete_own_comment( $comment_id ) {
+		$c = self::own_comment( $comment_id );
+		if ( is_wp_error( $c ) ) {
+			return $c;
+		}
+		$page = (int) get_comment_meta( $c->comment_ID, 'stubli_reply_page', true );
+		wp_trash_comment( (int) $c->comment_ID );
+		$out = array(
+			'deleted' => true,
+			'status'  => 'local',
+		);
+		if ( $page && self::POST_TYPE === get_post_type( $page ) ) {
+			$gone          = self::delete( $page );
+			$out['status'] = ( is_array( $gone ) && $gone['delivered'] ) ? 'sent' : 'not_sent';
+			delete_comment_meta( $c->comment_ID, 'stubli_reply_page' );
+		}
+		return $out;
+	}
+
+	/**
 	 * A small picture for a post: its first photo, as in the You tab.
 	 *
 	 * @param \WP_Post $post Post.

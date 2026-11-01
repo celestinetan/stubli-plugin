@@ -409,6 +409,21 @@ class Rest {
 			false,
 			$id + array( 'text' => $text )
 		);
+		// Your own comments on your page: change the words, or delete (0.45.10).
+		self::route(
+			'/comments/(?P<id>\d+)/own',
+			WP_REST_Server::CREATABLE,
+			static fn( WP_REST_Request $r ) => self::respond( Replies::edit_own_comment( (int) $r['id'], (string) $r['text'] ) ),
+			false,
+			$id + array( 'text' => $text )
+		);
+		self::route(
+			'/comments/(?P<id>\d+)/own',
+			WP_REST_Server::DELETABLE,
+			static fn( WP_REST_Request $r ) => self::respond( Replies::delete_own_comment( (int) $r['id'] ) ),
+			false,
+			$id
+		);
 		self::route( '/queue', WP_REST_Server::READABLE, static fn() => rest_ensure_response( Moderation::queue() ) );
 		self::route(
 			'/queue/(?P<id>\d+)',
