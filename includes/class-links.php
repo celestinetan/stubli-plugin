@@ -164,7 +164,8 @@ class Links {
 			$label = trim( sanitize_text_field( (string) ( $l['label'] ?? '' ) ) );
 			$url   = trim( (string) ( $l['url'] ?? '' ) );
 			$note  = trim( sanitize_text_field( (string) ( $l['note'] ?? '' ) ) );
-			$group = trim( sanitize_text_field( (string) ( $l['group'] ?? '' ) ) );
+			// Same 30-letter cut as the group list, so a long name matches its group (every-screen check, 1 Nov).
+			$group = trim( mb_substr( sanitize_text_field( (string) ( $l['group'] ?? '' ) ), 0, 30 ) );
 			if ( '' === $label && '' === $url && '' === $note ) {
 				continue;
 			}

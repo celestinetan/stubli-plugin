@@ -320,7 +320,7 @@ p { margin: 0 0 .75em; }
 .st-card-tone { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--st-surface); text-decoration: none; }
 .st-next { margin-top: 20px; min-height: 64px; }
 .st-next img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
-.st-next > span { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
+.st-next > span { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
 
 /* ── Comments ── */
 .st-comments { margin-top: 20px; }
@@ -337,7 +337,8 @@ p { margin: 0 0 .75em; }
 .st-entry { max-width: 640px; margin: 0 auto 28px; }
 .st-entry + .st-entry { padding-top: 22px; box-shadow: 0 -1px 0 0 transparent; }
 .st-entry-date { font: 600 14px/1.4 var(--st-sans); color: var(--st-muted); margin: 0 0 8px; }
-.st-entry-text { font: 400 17px/1.65 var(--st-serif); }
+.st-entry-text { font: 400 17px/1.65 var(--st-serif); overflow-wrap: anywhere; }
+.st-caption, .st-prose, .st-entry-title { overflow-wrap: anywhere; }
 .st-entry.is-long .st-entry-text { max-height: 18em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .st-entry.is-full { margin-top: 12px; }
 .st-entry.is-full .st-entry-date { font-size: 13px; }

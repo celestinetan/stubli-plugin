@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.10
+Stable tag: 0.45.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,13 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.11 =
+* Fixed: sharing a photo without a caption failed with "Content, title, and excerpt are empty." A caption is optional again, and you can take one off a post.
+* Fixed: a long web address in a journal entry made the page wider than a phone screen.
+* Fixed: under a post, the Next or Previous card could stick out past the edge of a small phone when the other post's title was long.
+* Fixed: when a page's name has an apostrophe, like Zoë's Café, empty pages now say "Zoë is still choosing the good ones" instead of "Zoë's is…".
+* Fixed: a favourites group name longer than 30 characters could stop favourites from saving.
 
 = 0.45.10 =
 * Change or delete your own comments on your posts: Edit and Delete sit under each one on the post's Comments screen in the app. If it was a reply that went to someone's Stubli, the change reaches theirs too. Deleted comments go to the WordPress Trash for 30 days.

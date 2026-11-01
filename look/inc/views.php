@@ -982,7 +982,7 @@ function stubli_view_note( $name ) {
 	$i      = isset( $_GET['p'] ) ? (int) $_GET['p'] : -1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$p      = stubli_profile();
 	$card   = ( $i >= 0 && isset( $p['prompts'][ $i ] ) ) ? $p['prompts'][ $i ] : null;
-	$first  = (string) strtok( $name, ' ' );
+	$first  = stubli_first_name( $name );
 	$paused = ! empty( $p['on_break'] );
 	stubli_topbar( home_url( '/' ), $name );
 	?>

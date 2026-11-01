@@ -40,6 +40,34 @@ class Posts {
 		add_filter( 'wp_handle_sideload_prefilter', array( self::class, 'fresh_name' ) );
 		add_filter( 'wp_handle_upload_prefilter', array( self::class, 'fresh_name' ) );
 		add_filter( 'wp_handle_upload', array( self::class, 'strip_video_upload' ) );
+		add_filter( 'wp_insert_post_empty_content', array( self::class, 'photo_needs_no_words' ), 10, 2 );
+	}
+
+	/**
+	 * Set while Stubli itself saves a photo post.
+	 *
+	 * @var bool
+	 */
+	private static $saving_photos = false;
+
+	/**
+	 * A photo post needs no caption. WordPress refuses a post with no title
+	 * and no text ("Content, title, and excerpt are empty."), so sharing a
+	 * photo without a caption failed (found by the every-screen check, 1 Nov).
+	 *
+	 * @param bool  $maybe_empty WordPress's verdict.
+	 * @param array $postarr     The post being saved.
+	 * @return bool
+	 */
+	public static function photo_needs_no_words( $maybe_empty, $postarr ) {
+		if ( ! $maybe_empty ) {
+			return $maybe_empty;
+		}
+		if ( self::$saving_photos ) {
+			return false;
+		}
+		$id = (int) ( $postarr['ID'] ?? 0 );
+		return $id && get_post_meta( $id, '_stubli_photos', true ) ? false : $maybe_empty;
 	}
 
 	/**
@@ -251,7 +279,8 @@ class Posts {
 			return new WP_Error( 'stubli_caption_too_long', __( 'That caption is a little long. Trim it to 2,200 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
 		}
 
-		$post_id = wp_insert_post(
+		self::$saving_photos = true;
+		$post_id             = wp_insert_post(
 			array(
 				'post_status'   => 'publish',
 				'post_title'    => wp_trim_words( wp_strip_all_tags( $caption ), 8, '…' ),
@@ -261,6 +290,7 @@ class Posts {
 			) + self::date_fields( $extra['date'] ?? 0 ),
 			true
 		);
+		self::$saving_photos = false;
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}

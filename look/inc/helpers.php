@@ -672,6 +672,24 @@ function stubli_img_src( $src ) {
 
 
 /**
+ * The owner's first name from the page's name, as the app's greeting reads it:
+ * "Ana Keller" → "Ana", "Zoë's Café" → "Zoë". A longer name is likely a club or
+ * shop ("Pink Pony Social Club"): then the whole name (found by the every-screen
+ * check, 1 Nov: "Zoë's is still choosing the good ones").
+ *
+ * @param string $name Page name; defaults to the site's.
+ * @return string
+ */
+function stubli_first_name( $name = null ) {
+	$full = trim( wp_specialchars_decode( (string) ( null === $name ? get_bloginfo( 'name' ) : $name ), ENT_QUOTES ) );
+	$d    = trim( (string) preg_replace( "/['’]s\\b.*$/u", '', $full ) );
+	if ( '' === $d || count( preg_split( '/\\s+/u', $d ) ) > 2 ) {
+		return $full;
+	}
+	return (string) strtok( $d, ' ' );
+}
+
+/**
  * A friendly empty state in Stubli's voice: the smiling ü (with a wink), one
  * line that changes each day, and for the owner a way to fill it.
  *
@@ -679,7 +697,7 @@ function stubli_img_src( $src ) {
  * @return string
  */
 function stubli_empty( $where ) {
-	$name  = (string) strtok( (string) get_bloginfo( 'name' ), ' ' );
+	$name  = stubli_first_name();
 	$name  = '' !== $name ? $name : __( 'They', 'stubli' );
 	$owner = function_exists( 'stubli_is_owner' ) && stubli_is_owner();
 	if ( 'journal' === $where ) {
