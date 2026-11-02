@@ -181,10 +181,33 @@ p { margin: 0 0 .75em; }
 /* Phones: just the newest post, in one row. */
 .st-latest-row:nth-of-type(n+2), .st-latest-when { display: none; }
 .st-latest-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+/* A photo with a content note stays blurred in Latest and This week too, as on the grid (2 Nov). */
+.st-latest-img.is-noted { filter: blur(6px) saturate(.7); clip-path: inset(0 round 8px); }
 .st-latest-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
 .st-latest-text > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-latest .st-muted { font-size: 13px; }
 .st-latest-row:hover, .st-site-row:hover, .st-link-row:hover { background: var(--st-surface); }
+/* Phones: "and 4 more this week" opens the This week panel (2 Nov). */
+.st-latest-more { margin: -6px 0 0; padding: 0 14px 10px 66px; font-size: 13px; }
+.st-latest-more a { display: inline-block; padding: 6px 0; color: var(--st-ink); font-weight: 600; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.st-week {
+	position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 560px; max-height: 80vh; max-height: 80dvh;
+	padding: 6px 0 calc(12px + env(safe-area-inset-bottom)); border: 0; border-radius: 20px 20px 0 0;
+	background: var(--st-bg); color: var(--st-ink); box-shadow: 0 -8px 30px rgba(0, 0, 0, .18); overflow-y: auto;
+}
+.st-week[open] { animation: st-week-up .22s ease-out; }
+.st-week::backdrop { background: rgba(20, 18, 16, .4); }
+@keyframes st-week-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .st-week[open] { animation: none; } }
+.st-week-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 4px 20px; }
+.st-week-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+.st-week-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--st-ink); cursor: pointer; }
+.st-week-close:hover { background: var(--st-surface); }
+.st-week-list { list-style: none; margin: 0; padding: 0 6px; }
+.st-week .st-latest-row { display: flex; }
+.st-week .st-latest-text > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-week-all { margin: 4px 0 0; padding: 6px 20px; font-size: 14px; }
+.st-week-all a { display: inline-block; padding: 8px 0; color: var(--st-ink); font-weight: 600; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 
 /* ── Folder tabs ── */
 .st-tabs { display: flex; align-items: flex-end; gap: 8px; }
@@ -478,6 +501,7 @@ p { margin: 0 0 .75em; }
 	/* Wider screens: up to three of the newest posts fill the card. */
 	.st-latest.has-more { justify-content: flex-start; padding-bottom: 6px; }
 	.st-latest.has-more .st-latest-h { display: block; }
+	.st-latest-more { display: none; }
 	
 	.st-latest.has-more .st-latest-first { display: none; }
 	.st-latest.has-more .st-latest-when { display: inline; }

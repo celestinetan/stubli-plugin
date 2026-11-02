@@ -539,3 +539,27 @@
 	window.addEventListener( 'load', fit );
 	if ( window.ResizeObserver ) { new ResizeObserver( fit ).observe( box ); }
 }() );
+
+
+/* "and 4 more this week" under Latest opens the This week panel (2 Nov 2026).
+   Closes with the ✕, a tap outside it, Escape, or the phone's Back button. */
+( function () {
+	var open = document.querySelector( '[data-st-week-open]' ), box = document.getElementById( 'st-week' );
+	if ( ! open || ! box || typeof box.showModal !== 'function' ) { return; }
+	var pushed = false;
+	open.addEventListener( 'click', function ( e ) {
+		e.preventDefault();
+		box.showModal();
+		try { history.pushState( { stWeek: 1 }, '' ); pushed = true; } catch ( err ) { pushed = false; }
+	} );
+	var shut = function () { if ( box.open ) { box.close(); } };
+	box.querySelector( '[data-st-week-close]' ).addEventListener( 'click', shut );
+	box.addEventListener( 'click', function ( e ) { if ( e.target === box ) { shut(); } } );
+	box.addEventListener( 'close', function () {
+		open.focus();
+		if ( pushed ) { pushed = false; history.back(); }
+	} );
+	window.addEventListener( 'popstate', function () { if ( box.open ) { pushed = false; box.close(); } } );
+	// Coming back from a post with the browser's Back button: start closed.
+	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && box.open ) { pushed = false; box.close(); } } );
+}() );

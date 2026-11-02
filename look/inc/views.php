@@ -227,7 +227,7 @@ function stubli_profile_cards() {
 					$coll = stubli_post_collection( $r->ID );
 					?>
 					<a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
-						<?php echo wp_kses( $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img', 'alt' => '', 'loading' => $k ? 'lazy' : 'eager' ) ) : '', stubli_allowed_html() ); ?>
+						<?php echo wp_kses( $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img' . ( get_post_meta( $r->ID, '_stubli_content_note', true ) ? ' is-noted' : '' ), 'alt' => '', 'loading' => $k ? 'lazy' : 'eager' ) ) : '', stubli_allowed_html() ); ?>
 						<span class="st-latest-text">
 							<span class="st-muted"><?php if ( 0 === $k ) : ?><span class="st-latest-first"><?php /* translators: %s: when */ printf( esc_html__( 'Latest · %s', 'stubli' ), esc_html( stubli_gentle_date( $r ) ) ); ?></span><span class="st-latest-when"><?php echo esc_html( stubli_gentle_date( $r ) ); ?></span><?php else : ?><?php echo esc_html( stubli_gentle_date( $r ) ); ?><?php endif; ?></span>
 							<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
@@ -236,6 +236,43 @@ function stubli_profile_cards() {
 					</a>
 				<?php endforeach; ?>
 				</div>
+				<?php
+				// Phones only (wider screens list the newest posts above): "and 4 more this week" opens a panel with them.
+				$more = stubli_latest_more( $latest );
+				if ( $more['count'] > 0 ) :
+					?>
+					<p class="st-latest-more"><a href="#st-week" data-st-week-open aria-haspopup="dialog">
+					<?php
+					/* translators: %s: how many more posts this week */
+					echo esc_html( sprintf( _n( 'and %s more this week', 'and %s more this week', $more['count'], 'stubli' ), number_format_i18n( $more['count'] ) ) );
+					?>
+					</a></p>
+					<dialog class="st-week" id="st-week" aria-labelledby="st-week-h">
+						<div class="st-week-head">
+							<h2 id="st-week-h"><?php esc_html_e( 'This week', 'stubli' ); ?></h2>
+							<button type="button" class="st-week-close" data-st-week-close aria-label="<?php esc_attr_e( 'Close', 'stubli' ); ?>"><?php echo wp_kses( stubli_icon( 'close', 20 ), stubli_allowed_html() ); ?></button>
+						</div>
+						<ul class="st-week-list">
+						<?php foreach ( array_slice( $more['posts'], 0, 5 ) as $r ) : ?>
+							<?php
+							$ids  = stubli_photo_ids( $r->ID );
+							$coll = stubli_post_collection( $r->ID );
+							?>
+							<li><a class="st-latest-row" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
+								<?php echo wp_kses( $ids ? wp_get_attachment_image( $ids[0], 'thumbnail', false, array( 'class' => 'st-latest-img' . ( get_post_meta( $r->ID, '_stubli_content_note', true ) ? ' is-noted' : '' ), 'alt' => '', 'loading' => 'lazy' ) ) : '', stubli_allowed_html() ); ?>
+								<span class="st-latest-text">
+									<span class="st-muted"><?php echo esc_html( ucfirst( stubli_gentle_date( $r ) ) ); ?></span>
+									<span><?php echo esc_html( stubli_post_label( $r ) ); ?><?php if ( $coll ) : ?> <span class="st-muted"><?php /* translators: %s: collection */ printf( esc_html__( 'in %s', 'stubli' ), esc_html( stubli_collection_name( $coll ) ) ); ?></span><?php endif; ?></span>
+								</span>
+								<?php echo wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ); ?>
+							</a></li>
+						<?php endforeach; ?>
+						</ul>
+						<?php if ( $more['count'] > 5 && stubli_has_all() ) : ?>
+							<p class="st-week-all"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'See everything in All', 'stubli' ); ?></a></p>
+						<?php endif; ?>
+					</dialog>
+				<?php endif; ?>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -276,7 +313,7 @@ function stubli_tabs( $active ) {
 		);
 	};
 	?>
-	<nav class="st-tabs" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: name */ __( '%s\'s page', 'stubli' ), get_bloginfo( 'name' ) ) ); ?>">
+	<nav class="st-tabs" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: name */ __( '%s\'s page', 'stubli' ), stubli_first_name() ) ); ?>">
 		<div class="st-tabs-left">
 			<div class="st-tabs-scroll" data-st-scroll>
 				<?php if ( stubli_has_all() ) : ?>

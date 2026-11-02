@@ -401,6 +401,32 @@ function stubli_latest_photos( $n = 3 ) {
 }
 
 /**
+ * The rest of this week's posts, for "and 4 more this week" under the Latest
+ * card on a phone and the "This week" panel it opens (Celestine, 2 Nov 2026).
+ *
+ * @param WP_Post $first The post the Latest card shows.
+ * @return array{count:int,posts:WP_Post[]}
+ */
+function stubli_latest_more( $first ) {
+	$q      = new WP_Query(
+		array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => 50,
+			'no_found_rows'  => true,
+			'post__not_in'   => array( (int) $first->ID ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- one post.
+			'date_query'     => array( array( 'after' => '7 days ago', 'inclusive' => true ) ),
+			'tax_query'      => stubli_photo_tax_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			'meta_query'     => stubli_has_photos_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		)
+	);
+	return array(
+		'count' => count( $q->posts ),
+		'posts' => $q->posts,
+	);
+}
+
+/**
  * Photo attachment IDs of a post, in order.
  *
  * @param int $post_id Post ID.
@@ -582,6 +608,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'place'   => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
 		'back'    => '<path d="M15 5l-7 7 7 7"/>',
 		'chev'    => '<path d="M9 6l6 6-6 6"/>',
+		'close'   => '<path d="M6 6l12 12M18 6L6 18"/>',
 		'stack'   => '<rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
 		'page'    => '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 11h6M9 15h4"/>',
 		'link'    => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
