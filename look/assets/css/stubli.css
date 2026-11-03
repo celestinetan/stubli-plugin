@@ -678,6 +678,14 @@ html.st-lb-open, html.st-lb-open body { overflow: hidden; }
 .st-welcome strong { color: var(--st-ink); font-weight: 650; }
 .st-welcome-h { margin: 0 0 4px; font-size: 17px; font-weight: 650; color: var(--st-ink); }
 .st-welcome-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.st-welcome-card { margin: 0 0 14px; padding: 16px 18px; border-radius: 16px; background: var(--st-surface); color: var(--st-ink); font-size: 15px; }
+.st-welcome-card p { margin: 0; }
+.st-welcome-card .st-welcome-actions { margin-top: 14px; }
+.st-welcome-fine { margin-top: 10px !important; font-size: 13px; color: var(--st-muted); }
+.st-welcome-end { margin: 22px 0 8px; }
+.st-top-pages a.st-top-join { transition: opacity .2s ease; }
+.st-top-pages a.st-top-join.is-quiet { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
+@media (prefers-reduced-motion: reduce) { .st-top-pages a.st-top-join, .st-top-pages a.st-top-join.is-quiet { transition: none; } }
 .st-faq { margin: 32px 0 0; }
 .st-faq-q { border-top: 1px solid var(--st-field); }
 .st-faq-q:last-child { border-bottom: 1px solid var(--st-field); }
@@ -956,8 +964,19 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 
 /* Favourites as tiles (0.2.103, Celestine 30 Oct): one tile per group. Side by side on bigger screens, filling the
    columns so a short tile leaves no gap; one under another on a phone. Rows inside a tile are separated by hairlines. */
-.st-fav-tiles { columns: 3 260px; column-gap: 14px; margin-top: 10px; }
-.st-fav-tile { break-inside: avoid; display: inline-block; width: 100%; box-sizing: border-box; margin: 0 0 14px; padding: 12px 12px 8px; background: var(--st-bg); border-radius: 18px; box-shadow: 0 1px 0 rgba(0,0,0,.05); }
+.st-fav-tiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 10px; align-items: start; }
+/* A computer: rows of up to three tiles; a shorter last row shares the width (3 Nov). */
+@media (min-width: 820px) {
+	.st-fav-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+	.st-fav-tile.span-2 { grid-column: span 2; }
+	.st-fav-tile.span-3 { grid-column: span 3; }
+	.st-fav-tile.span-6 { grid-column: span 6; }
+}
+.st-links .st-fav-tile .st-site-row { background: transparent; box-shadow: none; padding: 10px 6px; border-radius: 10px; }
+.st-links .st-fav-tile .st-site-row:hover { background: var(--st-surface); }
+.st-links .st-fav-tile .st-site-row + .st-site-row { border-top: 1px solid color-mix(in srgb, var(--st-ink) 8%, transparent); border-radius: 0; }
+.st-fav-tile.is-sites .st-empty { margin: 4px 6px 10px; padding: 0; background: none; text-align: left; align-items: flex-start; }
+.st-fav-tile { box-sizing: border-box; margin: 0; padding: 12px 12px 8px; background: var(--st-bg); border-radius: 18px; box-shadow: 0 1px 0 rgba(0,0,0,.05); }
 .st-fav-tile.is-loose { padding-top: 8px; }
 .st-links .st-fav-tile .st-links-h { margin: 4px 6px 6px; }
 .st-links .st-fav-tile .st-link-list { gap: 0; }

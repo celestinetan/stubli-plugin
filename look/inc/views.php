@@ -542,6 +542,9 @@ function stubli_view_profile() {
 	}
 	stubli_grid( stubli_photos( $active ) );
 	echo '</section>';
+	if ( function_exists( 'stubli_hub_invite' ) && ! is_category() ) {
+		stubli_hub_invite();
+	}
 	stubli_make_your_own();
 	echo '</main>';
 }
@@ -905,12 +908,22 @@ function stubli_view_links() {
 	echo '<section class="st-panel st-links is-last">';
 	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Favourites', 'stubli' ) . '</h2></div></div>';
 	// One tile per group, side by side on bigger screens (Celestine, 30 Oct); favourites without a group come first, in a tile with no heading.
-	$secs = stubli_favourite_sections();
-	if ( $secs ) {
-		echo '<div class="st-fav-tiles">';
-	}
-	foreach ( $secs as $sec ) {
-		echo '' !== $sec['group'] ? '<section class="st-fav-tile" aria-label="' . esc_attr( $sec['group'] ) . '"><h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>' : '<section class="st-fav-tile is-loose" aria-label="' . esc_attr__( 'Favourites', 'stubli' ) . '">';
+	// Sites I follow is the last tile (Celestine, 3 Nov), so one group doesn't sit alone in a third of the width.
+	$secs  = stubli_favourite_sections();
+	$sites = stubli_has_plugin() ? \Stubli\Follows::public_list() : array();
+	// On a computer: rows of up to three tiles; tiles in a shorter last row share its width, so no row has an empty gap.
+	$count = count( $secs ) + 1;
+	$last  = $count > 3 ? $count % 3 : 0;
+	$span  = static function ( $i ) use ( $count, $last ) {
+		if ( $count <= 3 ) {
+			return 6 / $count;
+		}
+		return ( $last && $i >= $count - $last ) ? 6 / $last : 2;
+	};
+	echo '<div class="st-fav-tiles">';
+	foreach ( array_values( $secs ) as $i => $sec ) {
+		$cls = 'st-fav-tile span-' . (int) $span( $i );
+		echo '' !== $sec['group'] ? '<section class="' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $sec['group'] ) . '"><h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>' : '<section class="' . esc_attr( $cls ) . ' is-loose" aria-label="' . esc_attr__( 'Favourites', 'stubli' ) . '">';
 		echo '<div class="st-link-list">';
 		foreach ( $sec['items'] as $l ) {
 			$sub  = '' !== $l['note'] ? $l['note'] : ( '' !== $l['url'] ? preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $l['url'] ) ) : '' );
@@ -924,10 +937,7 @@ function stubli_view_links() {
 		}
 		echo '</div></section>';
 	}
-	if ( $secs ) {
-		echo '</div>';
-	}
-	$sites = stubli_has_plugin() ? \Stubli\Follows::public_list() : array();
+	echo '<section class="st-fav-tile is-sites span-' . (int) $span( $count - 1 ) . '" aria-label="' . esc_attr__( 'Sites I follow', 'stubli' ) . '">';
 	echo '<h3 class="st-links-h">' . esc_html__( 'Sites I follow', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '· people I like to visit', 'stubli' ) . '</span></h3>';
 	echo '<div class="st-link-list">';
 	if ( ! $sites ) {
@@ -942,7 +952,7 @@ function stubli_view_links() {
 		}
 		echo '</span></a>';
 	}
-	echo '</div></section></main>';
+	echo '</div></section></div></section></main>';
 }
 
 /**

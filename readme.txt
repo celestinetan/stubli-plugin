@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.12
+Stable tag: 0.45.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.13 =
+* On a computer, your Favourites page looks balanced: Sites I follow is a tile like your favourite groups, and each row of tiles fills the width, so one group no longer sits alone in a third of the page.
 
 = 0.45.12 =
 * On a phone, when you've posted more than once this week, the Latest card says "and 3 more this week". Tapping it opens a This week panel with those posts, newest first.

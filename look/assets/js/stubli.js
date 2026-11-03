@@ -563,3 +563,19 @@
 	// Coming back from a post with the browser's Back button: start closed.
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && box.open ) { pushed = false; box.close(); } } );
 }() );
+
+/* stubli.app's home page: while a "Make your Stubli" card is on screen,
+ * the same button in the top bar steps aside, so it's never shown twice. */
+( function () {
+	var join = document.querySelector( '.st-top-join' );
+	var cards = document.querySelectorAll( '.st-welcome-card' );
+	if ( ! join || ! cards.length || ! ( 'IntersectionObserver' in window ) ) {
+		return;
+	}
+	var seen = new Set();
+	var io = new IntersectionObserver( function ( entries ) {
+		entries.forEach( function ( e ) { if ( e.isIntersecting ) { seen.add( e.target ); } else { seen.delete( e.target ); } } );
+		join.classList.toggle( 'is-quiet', seen.size > 0 );
+	} );
+	Array.prototype.forEach.call( cards, function ( c ) { io.observe( c ); } );
+}() );
