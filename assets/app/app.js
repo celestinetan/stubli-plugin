@@ -1546,6 +1546,8 @@
 				return ( ph.video ? stripLocation( ph.file ) : cropped( ph.file, ed.ratio ) ).then( function ( b ) { total += b.size + ( ph.video ? ph.poster.size : 0 ); return b; } );
 			} ) ).then( function ( blobs ) {
 				if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: _f( __( 'Together these are %s, and your host accepts up to %s at once. Add the videos one at a time, or choose a shorter clip.', 'stubli' ), fmtMB( total ), fmtMB( B.maxPost ) ) } ); }
+				var nfiles = news.length + news.filter( function ( ph ) { return ph.video; } ).length;
+				if ( B.maxFiles && nfiles > B.maxFiles ) { return Promise.reject( { message: tooManyFiles( nfiles ) } ); }
 				var fd = new FormData();
 				blobs.forEach( function ( b, i ) {
 					var ph = news[ i ];
@@ -2055,18 +2057,24 @@
 		} );
 	}
 	function alertIn( id, text ) { var card = $( '[data-card="' + id + '"]' ); if ( card ) { card.insertAdjacentHTML( 'beforeend', '<p class="a-help" role="alert">' + esc( text ) + '</p>' ); } }
+	// Hosts take a set number of files per upload (usually 20) and each video sends a cover picture too (0.45.15).
+	function tooManyFiles( n ) {
+		return _f( __( 'Your host takes up to %s files at once, and each video sends a cover picture as well, so this is %s. Remove a few, or share some videos in a separate post.', 'stubli' ), B.maxFiles, n );
+	}
 	function waitCard( c ) {
 		var d = wn.done[ c.id ], host = hostOf( c.author.url );
-		var ctx = ( c.where === 'guestbook' ? __( 'Guest book', 'stubli' ) : ( c.post && c.post.title ? _f( __( 'Comment on %s', 'stubli' ), unent( c.post.title ) ) : __( 'Comment on your post', 'stubli' ) ) ) + ( c.via ? ' ' + _f( __( '· followed by %s', 'stubli' ), c.via ) : '' );
+		// Signed without a Stubli (0.45.15): no site to name or block, so it's blocked by a one-way code instead.
+		var guest = !! c.author.guest;
+		var ctx = ( c.where === 'guestbook' ? __( 'Guest book', 'stubli' ) : ( c.post && c.post.title ? _f( __( 'Comment on %s', 'stubli' ), unent( c.post.title ) ) : __( 'Comment on your post', 'stubli' ) ) ) + ( guest ? ' · ' + ( c.author.from ? _f( __( 'from %s, signed without a Stubli', 'stubli' ), c.author.from ) : __( 'signed without a Stubli', 'stubli' ) ) : '' ) + ( c.via ? ' ' + _f( __( '· followed by %s', 'stubli' ), c.via ) : '' );
 		if ( d ) {
-			var msg = d.status === 'show' ? __( 'Shown on your page.', 'stubli' ) : d.status === 'later' ? __( 'Set aside. It stays hidden; you\'ll find it under Set aside.', 'stubli' ) : _f( __( 'Blocked quietly. Nothing from %s will show here, and they aren\'t told.', 'stubli' ), host );
-			return '<div class="a-card a-wait is-done" data-card="' + c.id + '"><p role="status" style="margin:0">' + esc( msg ) + '</p>' + ( d.status === 'block' ? '<button type="button" class="a-text-btn" data-wn="undo" data-id="' + c.id + ( '">' + __( 'Undo', 'stubli' ) + '</button>' ) : '' ) + '</div>';
+			var msg = d.status === 'show' ? __( 'Shown on your page.', 'stubli' ) : d.status === 'later' ? __( 'Set aside. It stays hidden; you\'ll find it under Set aside.', 'stubli' ) : guest ? __( 'Blocked quietly. Nothing more from them will arrive, and they aren\'t told.', 'stubli' ) : _f( __( 'Blocked quietly. Nothing from %s will show here, and they aren\'t told.', 'stubli' ), host );
+			return '<div class="a-card a-wait is-done" data-card="' + c.id + '"><p role="status" style="margin:0">' + esc( msg ) + '</p>' + ( d.status === 'block' && ! guest ? '<button type="button" class="a-text-btn" data-wn="undo" data-id="' + c.id + ( '">' + __( 'Undo', 'stubli' ) + '</button>' ) : '' ) + '</div>';
 		}
 		return '<div class="a-card a-wait" data-card="' + c.id + '"><div class="a-wait-head">' + face( c.author.avatar, c.author.name, 36 ) +
 			'<span><strong>' + esc( unent( c.author.name ) ) + '</strong> <span class="muted">' + esc( host ) + '</span><span class="muted small a-ctx">' + esc( ctx ) + '</span></span></div>' +
 			'<p class="a-wait-text">' + esc( c.text ) + '</p>' +
 			'<div class="a-wait-acts"><button type="button" class="a-btn" data-wn="show" data-id="' + c.id + ( '">' + __( 'Show it', 'stubli' ) + '</button>' ) + ( c.later ? '' : '<button type="button" class="a-btn quiet" data-wn="later" data-id="' + c.id + ( '">' + __( 'Not now', 'stubli' ) + '</button>' ) ) +
-			'<button type="button" class="a-text-btn a-block" data-wn="block" data-id="' + c.id + ( '">' + __( 'Block this site', 'stubli' ) + '</button></div></div>' );
+			'<button type="button" class="a-text-btn a-block" data-wn="block" data-id="' + c.id + '">' + ( guest ? __( 'Block', 'stubli' ) : __( 'Block this site', 'stubli' ) ) + '</button></div></div>';
 	}
 
 	/* ── Setup wizard (DESIGN §13): Hello · Interests · Look · Your people · Ready ── */
@@ -2869,6 +2877,8 @@
 			return job.then( function ( b ) { done++; total += b.size + ( ph.video ? ph.poster.size : 0 ); bar( 0.3 * done / p.photos.length ); return b; } );
 		} ) ).then( function ( blobs ) {
 			if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: _f( __( 'Together these are %s, and your host accepts up to %s at once. Share the videos in separate posts, or choose a shorter clip.', 'stubli' ), fmtMB( total ), fmtMB( B.maxPost ) ) } ); }
+			var nfiles = p.photos.length + p.photos.filter( function ( ph ) { return ph.video; } ).length;
+			if ( B.maxFiles && nfiles > B.maxFiles ) { return Promise.reject( { message: tooManyFiles( nfiles ) } ); }
 			var fd = new FormData();
 			blobs.forEach( function ( b, i ) {
 				var ph = p.photos[ i ];

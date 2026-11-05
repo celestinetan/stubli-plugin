@@ -118,6 +118,7 @@ class Admin {
 							<label><input type="radio" name="who_can_comment" value="following" <?php checked( $s['who_can_comment'], 'following' ); ?>> <?php esc_html_e( 'Only people you follow show straight away', 'stubli' ); ?></label>
 						</td>
 					</tr>
+					<?php $row( 'guest_sign', __( 'Visitors without a Stubli', 'stubli' ), __( 'Let them sign your guest book with a name and a message. Each entry waits for your OK.', 'stubli' ), $s['guest_sign'] ); ?>
 				</table>
 				<h2><?php esc_html_e( 'Your profile', 'stubli' ); ?></h2>
 				<table class="form-table" role="presentation">
@@ -156,6 +157,7 @@ class Admin {
 				'credit'          => ! empty( $_POST['credit'] ),
 				'block_ai'        => ! empty( $_POST['block_ai'] ),
 				'on_break'        => ! empty( $_POST['on_break'] ),
+				'guest_sign'      => ! empty( $_POST['guest_sign'] ),
 				'who_can_comment' => isset( $_POST['who_can_comment'] ) ? sanitize_key( wp_unslash( $_POST['who_can_comment'] ) ) : 'friends_of_friends',
 				'pronouns'        => isset( $_POST['pronouns'] ) ? sanitize_text_field( wp_unslash( $_POST['pronouns'] ) ) : '',
 		);

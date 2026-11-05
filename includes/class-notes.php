@@ -603,7 +603,7 @@ class Notes {
 	 *
 	 * @return string
 	 */
-	private static function guest_hash() {
+	public static function guest_hash() {
 		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 		return substr( wp_hash( 'stubli-note|' . $ip ), 0, 20 );
 	}
@@ -616,7 +616,7 @@ class Notes {
 	 * @param int    $window Seconds.
 	 * @return bool
 	 */
-	private static function under_limit( $key, $max, $window ) {
+	public static function under_limit( $key, $max, $window ) {
 		$t = 'stubli_nl_' . md5( $key );
 		$n = (int) get_transient( $t );
 		if ( $n >= $max ) {

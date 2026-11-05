@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class Guestbook {
 
-	const OPTION = 'stubli_guestbook_page';
+	const OPTION    = 'stubli_guestbook_page';
+	const GUEST_MAX = 500;
 
 	/**
 	 * Register hooks.
@@ -99,6 +100,71 @@ class Guestbook {
 			}
 		);
 		return $out;
+	}
+
+	/**
+	 * Sign the guest book without a Stubli (0.45.15, Celestine 4 Nov): a name,
+	 * a message and, if they like, where they're from. No email, no address,
+	 * no links. Every entry waits for the owner's OK. Kept out of spam the way
+	 * guest notes are: a trap field, a limit per visitor and per day, and only
+	 * a one-way code of the visitor's network address.
+	 *
+	 * @param array $in name, text, from, website (the trap).
+	 * @return array|\WP_Error
+	 */
+	public static function sign_as_guest( array $in ) {
+		if ( '' !== trim( (string) ( $in['website'] ?? '' ) ) ) {
+			return array( 'ok' => true );
+		}
+		$page = self::page_id();
+		if ( ! $page || ! get_option( 'stubli_guest_sign', 1 ) ) {
+			return new \WP_Error( 'stubli_gb_closed', __( 'This guest book can only be signed from a Stubli.', 'stubli' ), array( 'status' => 403 ) );
+		}
+		if ( Settings::on_break() ) {
+			return new \WP_Error( 'stubli_on_break', __( 'The guest book is paused for now.', 'stubli' ), array( 'status' => 403 ) );
+		}
+		$name = mb_substr( trim( sanitize_text_field( (string) ( $in['name'] ?? '' ) ) ), 0, 60 );
+		$from = mb_substr( trim( sanitize_text_field( (string) ( $in['from'] ?? '' ) ) ), 0, 40 );
+		$text = trim( sanitize_textarea_field( (string) ( $in['text'] ?? '' ) ) );
+		if ( '' === $text ) {
+			return new \WP_Error( 'stubli_gb_text', __( 'Write a few words first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( mb_strlen( $text ) > self::GUEST_MAX ) {
+			return new \WP_Error( 'stubli_gb_long', __( 'That\'s a little long for a guest book. Trim it to 500 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		if ( '' === $name ) {
+			return new \WP_Error( 'stubli_gb_name', __( 'Add your name, so they know who signed.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$who = Notes::guest_hash();
+		if ( in_array( $who, (array) get_option( Notes::BLOCKED_GUEST, array() ), true ) ) {
+			return array( 'ok' => true );
+		}
+		if ( ! Notes::under_limit( 'gbguest_' . $who, 3, HOUR_IN_SECONDS ) || ! Notes::under_limit( 'gbguests', 30, DAY_IN_SECONDS ) ) {
+			return new \WP_Error( 'stubli_gb_limit', __( 'Lots of people have signed recently. Please try again later.', 'stubli' ), array( 'status' => 429 ) );
+		}
+		$id = wp_insert_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => $page,
+					'comment_author'       => $name,
+					'comment_author_email' => '',
+					'comment_author_url'   => '',
+					'comment_author_IP'    => '',
+					'comment_agent'        => '',
+					'comment_content'      => $text,
+					'comment_approved'     => 0,
+					'comment_type'         => 'comment',
+					'comment_meta'         => array(
+						'stubli_guest' => $who,
+						'stubli_from'  => $from,
+					),
+				)
+			)
+		);
+		if ( ! $id ) {
+			return new \WP_Error( 'stubli_gb_failed', __( 'That didn\'t go through. Try again in a moment.', 'stubli' ), array( 'status' => 500 ) );
+		}
+		return array( 'ok' => true );
 	}
 
 	/**

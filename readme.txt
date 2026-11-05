@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.13
+Stable tag: 0.45.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 
 **On your site**
 
-* Photo posts and carousels of up to 10 photos or videos (videos up to a minute), with optional descriptions.
+* Photo posts and carousels of up to 20 photos or videos (videos up to a minute), with optional descriptions.
 * Collections as folder tabs, captions with clickable links, and content notes that keep a photo softly blurred until someone chooses to see it.
 * A journal (for everyone, or only you) and a guest book that people sign from their own Stubli.
 * Your colour and reading mode (Automatic, Light, Paper, Dark). The look works with any theme.
@@ -98,6 +98,14 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.15 =
+* Visitors without a Stubli can sign your guest book with their name, a message and, if they like, where they're from. Each entry waits for your OK in What's new. You can turn this off in Settings → Stubli.
+* Visitors can also write to you privately: from the guest book (Write privately) or the envelope next to Follow on your page. Only you see these notes, in Letters.
+* A post can now hold up to 20 photos (it was 10). Each video also sends a small cover picture, and most hosts take 20 files at once, so if a post with videos would go past that, the app tells you before sending instead of losing any.
+
+= 0.45.14 =
+* Move to another site now brings your cover photo and the people you ticked as friends, so you don't have to set them again on the new site.
 
 = 0.45.13 =
 * On a computer, your Favourites page looks balanced: Sites I follow is a tile like your favourite groups, and each row of tiles fills the width, so one group no longer sits alone in a third of the page.

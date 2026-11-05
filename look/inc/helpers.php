@@ -609,6 +609,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'back'    => '<path d="M15 5l-7 7 7 7"/>',
 		'chev'    => '<path d="M9 6l6 6-6 6"/>',
 		'close'   => '<path d="M6 6l12 12M18 6L6 18"/>',
+		'mail'    => '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4.5 7.5l7.5 6 7.5-6"/>',
 		'stack'   => '<rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
 		'page'    => '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 11h6M9 15h4"/>',
 		'link'    => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',

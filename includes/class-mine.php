@@ -323,8 +323,8 @@ class Mine {
 		if ( ! $wanted ) {
 			return new \WP_Error( 'stubli_no_photo', __( 'A post keeps at least one photo. To remove them all, delete the post instead.', 'stubli' ), array( 'status' => 400 ) );
 		}
-		if ( count( $wanted ) > Posts::MAX_PHOTOS ) {
-			return new \WP_Error( 'stubli_too_many_photos', __( 'A post can hold up to 10 photos.', 'stubli' ), array( 'status' => 400 ) );
+		if ( count( $wanted ) > Posts::max_photos() ) {
+			return new \WP_Error( 'stubli_too_many_photos', /* translators: %d: how many photos a post can hold */ sprintf( __( 'A post can hold up to %d photos.', 'stubli' ), Posts::max_photos() ), array( 'status' => 400 ) );
 		}
 		if ( ! $files && $wanted === $mine ) {
 			return null;
@@ -542,6 +542,10 @@ class Mine {
 							$changes = (array) json_decode( $r->get_param( 'data' ), true );
 						}
 						$alts = $r->get_param( 'new_alts' );
+						$short = is_array( $alts ) ? Posts::short_upload( count( $alts ), count( Rest::file_list( $files, 'photos' ) ) ) : null;
+						if ( $short ) {
+							return $short;
+						}
 						return $wrap(
 							self::update(
 								(int) $r['id'],

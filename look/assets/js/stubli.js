@@ -579,3 +579,31 @@
 	} );
 	Array.prototype.forEach.call( cards, function ( c ) { io.observe( c ); } );
 }() );
+
+
+/* Sign the guest book without a Stubli (0.2.115). Messages come from the page, so they're translated. */
+( function () {
+	var form = document.querySelector( '[data-st-gb-sign]' );
+	if ( ! form ) { return; }
+	var err = form.querySelector( '.st-error' ), btn = form.querySelector( 'button[type=submit]' ), label = btn.textContent;
+	form.addEventListener( 'submit', function ( e ) {
+		e.preventDefault();
+		var get = function ( n ) { return ( form.elements[ n ] && form.elements[ n ].value || '' ).trim(); };
+		var missing = ! get( 'text' ) ? 'text' : ! get( 'name' ) ? 'name' : '';
+		if ( missing ) {
+			err.textContent = form.getAttribute( 'data-need-' + missing ); err.hidden = false; form.elements[ missing ].focus(); return;
+		}
+		err.hidden = true; btn.disabled = true; btn.textContent = form.getAttribute( 'data-sending' );
+		fetch( form.getAttribute( 'data-url' ), {
+			method: 'POST', headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify( { text: get( 'text' ), name: get( 'name' ), from: get( 'from' ), website: get( 'website' ) } )
+		} ).then( function ( r ) { return r.json().then( function ( d ) { return { ok: r.ok, d: d }; } ); } ).then( function ( res ) {
+			if ( ! res.ok ) { throw new Error( ( res.d && res.d.message ) || '' ); }
+			form.hidden = true;
+			var done = form.parentNode.querySelector( '[data-st-gb-done]' ); done.hidden = false; done.focus();
+		} ).catch( function ( x ) {
+			btn.disabled = false; btn.textContent = label;
+			err.textContent = x.message || form.getAttribute( 'data-failed' ); err.hidden = false;
+		} );
+	} );
+}() );

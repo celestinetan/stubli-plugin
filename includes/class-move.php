@@ -341,7 +341,17 @@ class Move {
 				update_option( 'site_icon', (int) $id );
 			}
 		}
-		$keep = array_intersect_key( $s, array_flip( array( 'who_can_comment', 'on_break', 'block_ai', 'credit', 'digest_time', 'digest_email' ) ) );
+		if ( ! empty( $p['cover']['url'] ) ) {
+			$id = self::fetch( (string) $p['cover']['url'], 0, (string) ( $p['cover']['name'] ?? 'cover.jpg' ) );
+			if ( ! is_wp_error( $id ) ) {
+				$old = (int) get_option( 'stubli_cover', 0 );
+				update_option( 'stubli_cover', (int) $id );
+				if ( $old && $old !== (int) $id ) {
+					wp_delete_attachment( $old, true );
+				}
+			}
+		}
+		$keep = array_intersect_key( $s, array_flip( array( 'who_can_comment', 'guest_sign', 'on_break', 'block_ai', 'credit', 'digest_time', 'digest_email' ) ) );
 		if ( $keep ) {
 			Settings::update( $keep );
 		}
@@ -497,6 +507,7 @@ class Move {
 			return false;
 		}
 		if ( Follows::find_by_site( $url ) ) {
+			self::copy_friend( $url, $f );
 			return true;
 		}
 		$res = Follows::add( $url, (string) ( $f['interest'] ?? '' ) );
@@ -513,7 +524,22 @@ class Move {
 				)
 			);
 		}
+		self::copy_friend( $url, $f );
 		return true;
+	}
+
+	/**
+	 * Someone ticked as a friend on the old site is a friend here too. This
+	 * gives their site a new key, as ticking them in the app does; if it
+	 * can't be reached now, it's retried for a week.
+	 *
+	 * @param string $url Their site.
+	 * @param array  $f   Follow from the old site.
+	 */
+	private static function copy_friend( $url, array $f ) {
+		if ( ! empty( $f['friend'] ) && ! Friends::is_friend( $url ) ) {
+			Friends::set( $url, true );
+		}
 	}
 
 	/**

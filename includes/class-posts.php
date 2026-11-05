@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Posts {
 
-	const MAX_PHOTOS         = 10;
+	const MAX_PHOTOS         = 20; // Was 10 until 0.45.15 (Celestine 5 Nov: like Instagram).
 	const MAX_CAPTION_LENGTH = 2200;
 	const MAX_NOTE_LENGTH    = 80;
 	const NS                 = 'urn:stubli:1';
@@ -267,8 +267,8 @@ class Posts {
 		if ( ! $files ) {
 			return new WP_Error( 'stubli_no_photo', __( 'Choose at least one photo.', 'stubli' ), array( 'status' => 400 ) );
 		}
-		if ( count( $files ) > self::MAX_PHOTOS ) {
-			return new WP_Error( 'stubli_too_many_photos', __( 'A post can hold up to 10 photos.', 'stubli' ), array( 'status' => 400 ) );
+		if ( count( $files ) > self::max_photos() ) {
+			return new WP_Error( 'stubli_too_many_photos', /* translators: %d: how many photos a post can hold */ sprintf( __( 'A post can hold up to %d photos.', 'stubli' ), self::max_photos() ), array( 'status' => 400 ) );
 		}
 		$posters = isset( $extra['posters'] ) && is_array( $extra['posters'] ) ? $extra['posters'] : array();
 		$videos  = self::check_media( $files, $posters );
@@ -326,6 +326,42 @@ class Posts {
 			'photos' => count( $ids ),
 			'videos' => count( $videos ),
 		);
+	}
+
+	/**
+	 * How many files this host takes in one upload (PHP's max_file_uploads, 20 unless the host changed it).
+	 * Each video also sends its cover picture, so a post can hold fewer items when it has videos (0.45.15).
+	 *
+	 * @return int
+	 */
+	public static function max_files() {
+		$n = (int) ini_get( 'max_file_uploads' );
+		return $n > 0 ? $n : self::MAX_PHOTOS;
+	}
+
+	/**
+	 * The most photos a post can hold here: 20, or fewer if the host takes fewer files at once.
+	 *
+	 * @return int
+	 */
+	public static function max_photos() {
+		return min( self::MAX_PHOTOS, self::max_files() );
+	}
+
+	/**
+	 * Refuse an upload that arrived short: hosts drop files past their limit without saying so,
+	 * which would otherwise save a post with photos quietly missing.
+	 *
+	 * @param int $expected Photos the app sent (one description each, which always arrives).
+	 * @param int $arrived  Photos that arrived.
+	 * @return WP_Error|null
+	 */
+	public static function short_upload( $expected, $arrived ) {
+		if ( $expected > $arrived ) {
+			/* translators: 1: photos sent, 2: photos that arrived, 3: files the host takes at once */
+			return new WP_Error( 'stubli_upload_short', sprintf( __( 'Only %2$d of your %1$d photos and videos arrived: your host takes up to %3$d files at once, and each video sends a cover picture too. Nothing was saved. Try fewer at a time.', 'stubli' ), $expected, $arrived, self::max_files() ), array( 'status' => 400 ) );
+		}
+		return null;
 	}
 
 	/**

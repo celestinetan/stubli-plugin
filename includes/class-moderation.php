@@ -285,15 +285,19 @@ class Moderation {
 	 */
 	public static function public_comment( $comment ) {
 		// Your own replies wear your page's picture, not a stand-in face (0.45.9).
-		$own = (int) $comment->user_id > 0 && user_can( (int) $comment->user_id, 'manage_options' );
+		$own   = (int) $comment->user_id > 0 && user_can( (int) $comment->user_id, 'manage_options' );
+		$guest = '' !== (string) get_comment_meta( $comment->comment_ID, 'stubli_guest', true );
 		return array(
 			'id'     => (int) $comment->comment_ID,
 			'parent' => (int) $comment->comment_parent,
 			'author' => array(
 				'name'   => $comment->comment_author,
-				'url'    => $comment->comment_author_url ? Follows::origin( $comment->comment_author_url ) : home_url(),
+				'url'    => $guest ? '' : ( $comment->comment_author_url ? Follows::origin( $comment->comment_author_url ) : home_url() ),
 				'avatar' => $own ? (string) Avatar::current() : get_avatar_url( $comment ),
 				'owner'  => $own,
+				// Signed without a Stubli (0.45.15): no address, and maybe where they're from.
+				'guest'  => $guest,
+				'from'   => $guest ? (string) get_comment_meta( $comment->comment_ID, 'stubli_from', true ) : '',
 			),
 			'text'   => wp_strip_all_tags( $comment->comment_content ),
 			'date'   => gmdate( 'c', (int) strtotime( $comment->comment_date_gmt . ' UTC' ) ),
@@ -380,6 +384,14 @@ class Moderation {
 				update_comment_meta( $comment->comment_ID, 'stubli_later', 1 );
 				return array( 'status' => 'later' );
 			case 'block':
+				$hash = (string) get_comment_meta( $comment->comment_ID, 'stubli_guest', true );
+				if ( '' !== $hash ) {
+					$blocked = (array) get_option( Notes::BLOCKED_GUEST, array() );
+					$blocked[] = $hash;
+					update_option( Notes::BLOCKED_GUEST, array_values( array_unique( $blocked ) ), false );
+					wp_trash_comment( $comment->comment_ID );
+					return array( 'status' => 'blocked', 'guest' => true );
+				}
 				$url = (string) get_comment_meta( $comment->comment_ID, 'webmention_source_url', true );
 				$res = self::block( $url ? $url : $comment->comment_author_url );
 				return is_wp_error( $res ) ? $res : array( 'status' => 'blocked' ) + $res;

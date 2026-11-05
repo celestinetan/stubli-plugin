@@ -31,6 +31,7 @@ class Bundle {
 			'tagline'   => Posts::site_tagline(),
 			'url'       => home_url( '/' ),
 			'avatar'    => $icon ? self::media( $icon ) : null,
+			'cover'     => self::media( (int) get_option( 'stubli_cover', 0 ) ),
 			'smiley'    => Avatar::look(),
 			'accent'    => Setup::accent(),
 			'mode'      => Setup::mode(),
@@ -73,6 +74,7 @@ class Bundle {
 				'interest'  => (string) $f['list_name'],
 				'is_public' => (bool) $f['is_public'],
 				'muted'     => (bool) $f['muted'],
+				'friend'    => Friends::is_friend( (string) $f['site_url'] ),
 				'since'     => (string) $f['created'],
 			),
 			Follows::all()

@@ -171,6 +171,22 @@ class Rest {
 			$id
 		);
 		self::route( '/guestbook', WP_REST_Server::READABLE, static fn() => rest_ensure_response( Guestbook::entries() ), true );
+		// Visitors without a Stubli sign with a name and a message; it waits for the owner's OK (0.45.15).
+		self::route(
+			'/guestbook/sign',
+			WP_REST_Server::CREATABLE,
+			static fn( WP_REST_Request $r ) => self::respond(
+				Guestbook::sign_as_guest(
+					array(
+						'name'    => (string) $r['name'],
+						'text'    => (string) $r['text'],
+						'from'    => (string) $r['from'],
+						'website' => (string) $r['website'],
+					)
+				)
+			),
+			true
+		);
 
 		// ——— Invites (follow each other) ———
 		self::route( '/invites', WP_REST_Server::CREATABLE, static fn() => rest_ensure_response( Invites::create() ) );
@@ -532,7 +548,7 @@ class Rest {
 
 	/**
 	 * Publish a photo or carousel. Files arrive as "photo" (one) or
-	 * "photos[]" (up to ten), with "alts[]" in the same order.
+	 * "photos[]" (up to Posts::max_photos()), with "alts[]" in the same order.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return \WP_REST_Response|WP_Error
@@ -549,6 +565,10 @@ class Rest {
 		}
 		$alts = $request->get_param( 'alts' );
 		$alts = is_array( $alts ) ? array_values( $alts ) : array( (string) $request['alt'] );
+		$short = Posts::short_upload( count( $alts ), count( $files ) );
+		if ( $short ) {
+			return $short;
+		}
 
 		return self::respond(
 			Posts::create_photo_post(
