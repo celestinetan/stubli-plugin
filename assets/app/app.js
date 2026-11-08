@@ -648,7 +648,7 @@
 		root.innerHTML = '<main class="a-main" id="main">' + topRow( '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a>' ) +
 			( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1>' ) +
 			'<div data-you-stack>' + ( p ? stackHtml( deckOf( p ), me.i, bio, null ) : '<div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span></div>' ) + '</div>' +
-			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
+			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || ( latest.kind === 'entry' ? __( 'Journal entry', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
 			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'All', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
@@ -717,7 +717,7 @@
 	}
 	function tabEditHtml() {
 		var list = ar.list;
-		return '<section class="a-card a-tabedit" aria-labelledby="a-te-h"><div class="a-tabedit-head"><h2 id="a-te-h" tabindex="-1" data-tabedit-title>' + __( 'Your collections', 'stubli' ) + '</h2><button type="button" class="a-btn" data-tabedit-done>' + __( 'Done', 'stubli' ) + '</button></div>' +
+		return '<section class="a-card a-tabedit" aria-labelledby="a-te-h"><div class="a-tabedit-head"><h2 id="a-te-h" tabindex="-1" data-tabedit-title>' + __( 'Your collections', 'stubli' ) + '</h2><button type="button" class="a-btn' + ( me.renaming ? ' quiet' : '' ) + '" data-tabedit-done>' + __( 'Done', 'stubli' ) + '</button></div>' +
 			'<p class="muted">' + __( 'Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one or give it a short line.', 'stubli' ) + '</p>' +
 			( ! list ? '<p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' : '<ul class="a-tabedit-list" data-te-list>' + list.map( function ( c, i ) {
 				if ( me.renaming === c.id ) {
@@ -744,7 +744,9 @@
 	}
 	function bindTabEdit() {
 		var te = $( '[data-tabedit]' ); if ( te ) { te.addEventListener( 'click', function () { if ( me.edit ) { me.edit = false; viewYou(); } else { openTabEdit(); } } ); te.setAttribute( 'aria-pressed', me.edit ? 'true' : 'false' ); }
-		var done = $( '[data-tabedit-done]' ); if ( done ) { done.addEventListener( 'click', function () { me.edit = false; me.renaming = 0; viewYou(); var b = $( '[data-tabedit]' ); if ( b ) { b.focus(); } } ); }
+		var closeEdit = function () { me.edit = false; me.renaming = 0; viewYou(); var b = $( '[data-tabedit]' ); if ( b ) { b.focus(); } };
+		// Done also saves a rename that's still open, so nothing typed is lost (0.45.20, Celestine 8 Nov).
+		var done = $( '[data-tabedit-done]' ); if ( done ) { done.addEventListener( 'click', function () { var sb = $( '[data-te-save]' ); if ( sb && sb.saveThen ) { done.disabled = true; sb.saveThen( closeEdit, function () { done.disabled = false; } ); } else { closeEdit(); } } ); }
 		$$( '[data-te-move]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
 			var i = +b.dataset.teMove, j = i + ( +b.dataset.dir ), ids = ar.list.map( function ( c ) { return c.id; } ), t = ids[ i ]; ids[ i ] = ids[ j ]; ids[ j ] = t;
 			saveTabOrder( ids ); var again = $( '[data-te-move="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-te-move="' + j + '"]' ); if ( again ) { again.focus(); }
@@ -753,18 +755,22 @@
 		var cancel = $( '[data-te-cancel]' ); if ( cancel ) { cancel.addEventListener( 'click', function () { me.renaming = 0; viewYou(); } ); }
 		var sv = $( '[data-te-save]' );
 		if ( sv ) {
-			var go = function () {
+			var go = function ( after, failed ) {
 				var id = +sv.dataset.teSave, name = $( '#a-te-name' ).value.trim(), desc = $( '#a-te-desc' ).value.trim();
-				if ( ! name ) { me.editMsg = __( 'Give the collection a name.', 'stubli' ); viewYou(); return; }
+				var was = ar.list.filter( function ( c ) { return c.id === id; } )[ 0 ] || {};
+				if ( after && name === was.name && desc === ( was.description || '' ) ) { after(); return; } // Nothing changed.
+				if ( ! name ) { me.editMsg = __( 'Give the collection a name.', 'stubli' ); viewYou(); if ( failed ) { failed(); } return; }
 				sv.disabled = true;
 				send( 'POST', 'arrange/' + id, { name: name, description: desc } ).then( function () {
 					return send( 'GET', 'arrange', null );
 				} ).then( function ( r ) {
 					ar.list = r.collections; B.collOrder = r.collections.map( function ( c ) { return c.name; } ); B.collections = r.collections.map( function ( c ) { return c.name; } );
-					me.renaming = 0; me.editMsg = __( 'Saved. Your page shows it now.', 'stubli' ); me.coll = ''; mine.loaded = false; me.p = null; viewYou();
-				}, function ( e ) { sv.disabled = false; me.editMsg = e.message; viewYou(); } );
+					me.renaming = 0; me.editMsg = __( 'Saved. Your page shows it now.', 'stubli' ); me.coll = ''; mine.loaded = false; me.p = null;
+					if ( after ) { after(); } else { viewYou(); }
+				}, function ( e ) { sv.disabled = false; me.editMsg = e.message; viewYou(); if ( failed ) { failed(); } } );
 			};
-			sv.addEventListener( 'click', go );
+			sv.saveThen = go;
+			sv.addEventListener( 'click', function () { go(); } );
 			$( '#a-te-name' ).addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { e.preventDefault(); go(); } if ( e.key === 'Escape' ) { me.renaming = 0; viewYou(); } } );
 		}
 		// Drag by the grip, or anywhere on the row on a touch screen.

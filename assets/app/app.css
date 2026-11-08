@@ -672,7 +672,7 @@ button.a-wn-act, a.a-wn-act { display: inline-block; padding: 6px 0; }
 .a-te-name small { font-size: 12px; }
 .a-tabedit-list .a-icon-btn { width: 36px; height: 36px; background: var(--surface); }
 .a-tabedit-list .a-icon-btn:disabled { opacity: .35; }
-.a-ctab[data-tabedit][aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.a-ctab[data-tabedit][aria-pressed="true"] { background: var(--surface); color: var(--accent-text, var(--accent)); min-height: 44px; } /* An open folder, not a second green button (0.45.20). */
 /* Photo sheet. */
 .a-sheet-back { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.35); }
 .a-sheet { position: fixed; left: 50%; bottom: 0; z-index: 21; width: min(100%, 520px); transform: translateX(-50%); padding: 10px 12px calc(14px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; background: var(--bg); display: grid; gap: 6px; animation: a-sheet-in .22s cubic-bezier(.2,.7,.2,1); }
