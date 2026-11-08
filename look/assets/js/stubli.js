@@ -13,6 +13,62 @@
 	   was before. When you're signed in, reload it so changes from the app show. */
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && document.body && document.body.classList.contains( 'logged-in' ) ) { location.reload(); } } );
 
+	/* Stacked folders (0.2.118, Celestine 8 Nov): when the folder tabs don't fit in one row, stack them in rows
+	   (CSS .is-stacked) instead of letting them slide under the icon tabs. The open folder's row moves to the
+	   bottom, against the photos; the rows behind it are marked .is-back. */
+	function stackTabs() {
+		document.querySelectorAll( '.st-tabs' ).forEach( function ( nav ) {
+			var scroll = nav.querySelector( '[data-st-scroll]' );
+			var tabs = Array.prototype.slice.call( nav.querySelectorAll( '.st-tab' ) );
+			if ( ! scroll ) { return; }
+			nav.classList.remove( 'is-stacked' );
+			nav.querySelectorAll( '.st-tabs-break' ).forEach( function ( b ) { b.remove(); } );
+			tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.classList.remove( 'is-back' ); } );
+			if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
+			// Pack the folders into rows by their widths, in their own order.
+			var gap = 4, room = nav.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
+			var icons = tabs.filter( function ( t ) { return t.classList.contains( 'st-tab-icon' ); } );
+			var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
+			var iconsW = icons.reduce( function ( s, t ) { return s + width( t ) + gap; }, gap );
+			var rows = [ [] ], used = 0;
+			plain.forEach( function ( t ) {
+				var w = width( t );
+				if ( rows[ rows.length - 1 ].length && used + gap + w > room ) { rows.push( [] ); used = 0; }
+				used += ( rows[ rows.length - 1 ].length ? gap : 0 ) + w;
+				rows[ rows.length - 1 ].push( t );
+			} );
+			// The open folder's row goes last, against the photos; the others keep their order behind it.
+			var active = nav.querySelector( '.st-tab.is-active' );
+			var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
+			if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
+			// Journal, Guest book and Favourites stay together at the right of the bottom row, as on a
+			// computer; when that row has no room for them, they sit together at the right of a row of their own on top.
+			var lastW = rows[ rows.length - 1 ].reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 );
+			var iconsOnTop = lastW + iconsW > room;
+			if ( iconsOnTop ) { rows.unshift( [] ); }
+			nav.classList.add( 'is-stacked' );
+			var brk = function ( order ) {
+				var b = document.createElement( 'span' );
+				b.className = 'st-tabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = order;
+				nav.appendChild( b );
+			};
+			rows.forEach( function ( r, n ) {
+				var last = n === rows.length - 1;
+				r.forEach( function ( t ) { t.style.order = n * 2; if ( ! last ) { t.classList.add( 'is-back' ); } } );
+				if ( ! last ) { brk( n * 2 + 1 ); }
+			} );
+			var at = iconsOnTop ? 0 : ( rows.length - 1 ) * 2;
+			icons.forEach( function ( t, i ) {
+				t.style.order = at; t.style.marginLeft = 0 === i ? 'auto' : '';
+				if ( iconsOnTop ) { t.classList.add( 'is-back' ); }
+			} );
+		} );
+	}
+	stackTabs();
+	window.addEventListener( 'load', stackTabs );
+	var stackWait;
+	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackWait ); stackWait = requestAnimationFrame( stackTabs ); } );
+
 	/* Reading mode: Light ↔ Paper. No dark mode since 0.2.117 (Celestine 8 Nov); a saved Auto or Dark reads as Light. */
 	var order = [ 'light', 'paper' ];
 	function apply( pref ) {

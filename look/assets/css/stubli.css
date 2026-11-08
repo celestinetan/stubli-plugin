@@ -1027,3 +1027,15 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 
 /* A guest's "from …, signed without a Stubli" wraps instead of being cut off (0.2.115). */
 .st-gb-sig .st-gb-ini + span .st-muted { white-space: normal; }
+
+/* Stacked folders (0.2.118, Celestine 8 Nov): when the folders don't fit in one row, they stack in rows instead of
+   sliding under Journal, Guest book and Favourites. The row with the open folder sits against the photos; the rows
+   behind it are a little shorter and a shade darker, like folders further back. Nothing changes when they fit. */
+.st-tabs.is-stacked { flex-wrap: wrap; column-gap: 4px; row-gap: 0; }
+.st-tabs.is-stacked .st-tabs-left,
+.st-tabs.is-stacked .st-tabs-scroll,
+.st-tabs.is-stacked .st-tabs-right { display: contents; }
+.st-tabs.is-stacked .st-tab { margin-top: 4px; }
+.st-tabs.is-stacked .st-tab.is-back { height: 38px; }
+.st-tabs.is-stacked .st-tab.is-back .st-tab-face { height: 32px; filter: brightness(.965); }
+.st-tabs-break { flex-basis: 100%; height: 0; }

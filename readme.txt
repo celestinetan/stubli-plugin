@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.18
+Stable tag: 0.45.19
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.19 =
+* On a phone, when your collections don't fit in one row, their folder tabs now stack in rows instead of sliding out of sight behind Journal, Guest book and Favourites. The open folder always sits right above the photos. With room to spare, nothing changes.
 
 = 0.45.18 =
 * In the app, You now shows a tab for every collection, and each tab shows all its posts. Before, collections whose posts were older than your newest 24 were missing until you scrolled.
