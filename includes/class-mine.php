@@ -131,21 +131,33 @@ class Mine {
 	}
 
 	/**
-	 * A page of the owner's photo posts, newest first.
+	 * A page of the owner's photo posts, newest first; or of one collection's (since 0.45.18).
 	 *
-	 * @param int $page Page number.
-	 * @return array { items, more, missing }.
+	 * @param int    $page Page number.
+	 * @param string $coll Only this collection (its name as the tabs show it), or '' for all.
+	 * @return array { items, more, missing, colls }.
 	 */
-	public static function page( $page = 1 ) {
-		$q     = new \WP_Query(
-			array(
-				'post_type'      => 'post',
-				'post_status'    => array( 'publish', 'private' ),
-				'posts_per_page' => self::PER_PAGE,
-				'paged'          => max( 1, (int) $page ),
-				'tax_query'      => Posts::tile_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-			)
+	public static function page( $page = 1, $coll = '' ) {
+		$args = array(
+			'post_type'      => 'post',
+			'post_status'    => array( 'publish', 'private' ),
+			'posts_per_page' => self::PER_PAGE,
+			'paged'          => max( 1, (int) $page ),
+			'tax_query'      => Posts::tile_tax(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 		);
+		if ( '' !== $coll ) {
+			$args['cat'] = -1; // Nothing, unless the name matches a collection.
+			foreach ( get_categories( array( 'hide_empty' => false ) ) as $t ) {
+				if ( html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ) === $coll ) {
+					$args['cat'] = (int) $t->term_id;
+					break;
+				}
+			}
+			if ( -1 === $args['cat'] ) {
+				return array( 'items' => array(), 'more' => false, 'total' => 0, 'missing' => self::missing_count() );
+			}
+		}
+		$q     = new \WP_Query( $args );
 		$items = array();
 		foreach ( $q->posts as $p ) {
 			if ( Journal::is_filed( $p->ID ) ) {
@@ -194,6 +206,9 @@ class Mine {
 			'missing' => self::missing_count(),
 			'shapes'  => 1 === max( 1, (int) $page ) ? Arrange::shapes() : null,
 			'orders'  => 1 === max( 1, (int) $page ) ? (object) Arrange::hand_orders() : null,
+			// Every collection with posts, in your page's order, so You shows all its tabs even before
+			// older posts have loaded (0.45.18; Celestine 8 Nov: tabs were missing in the app).
+			'colls'   => 1 === max( 1, (int) $page ) && '' === $coll ? array_values( array_filter( array_column( Arrange::collections(), 'name' ), static fn( $n ) => __( 'All', 'stubli' ) !== $n ) ) : null,
 		);
 	}
 
@@ -516,7 +531,7 @@ class Mine {
 			'/mine',
 			array(
 				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response( self::page( (int) ( $r['page'] ? $r['page'] : 1 ) ) ),
+				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response( self::page( (int) ( $r['page'] ? $r['page'] : 1 ), sanitize_text_field( (string) $r['coll'] ) ) ),
 				'permission_callback' => $owner,
 			)
 		);

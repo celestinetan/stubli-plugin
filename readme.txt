@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.17
+Stable tag: 0.45.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.18 =
+* In the app, You now shows a tab for every collection, and each tab shows all its posts. Before, collections whose posts were older than your newest 24 were missing until you scrolled.
+* Renaming a collection to the name of an empty one now works: the empty one, which never shows as a tab, is folded in.
 
 = 0.45.17 =
 * Stubli now comes in two looks, Light and Paper. Dark mode and Automatic are gone: pages that used them show Light. The Aa button on your page switches between Light and Paper.

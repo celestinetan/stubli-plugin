@@ -54,6 +54,26 @@ class Arrange {
 	}
 
 	/**
+	 * Whether a collection holds nothing at all: no posts or journal entries, published or private.
+	 *
+	 * @param int $id Category ID.
+	 * @return bool
+	 */
+	private static function is_empty( $id ) {
+		$q = new \WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => array( 'publish', 'private', 'draft', 'future', 'pending' ),
+				'cat'            => $id,
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+			)
+		);
+		return ! $q->posts;
+	}
+
+	/**
 	 * A collection's name. The untouched default category reads "All", so
 	 * no collection can take the name of the All tab (0.44.0).
 	 *
@@ -340,10 +360,28 @@ class Arrange {
 									return new \WP_Error( 'stubli_collection_name', __( 'Give the collection a name.', 'stubli' ), array( 'status' => 400 ) );
 								}
 								$taken = false;
+								$spare = array();
 								foreach ( get_categories( array( 'hide_empty' => false ) ) as $o ) {
 									// Compare with what each tab shows, so "All" counts too.
 									if ( (int) $o->term_id !== $cat && 0 === strcasecmp( self::name( $o ), $name ) ) {
-										$taken = true;
+										// An empty collection never shows as a tab, so its name shouldn't block a rename
+										// (Celestine 8 Nov: couldn't rename to an emoji an empty one already had). It is folded in.
+										if ( self::is_empty( (int) $o->term_id ) && (int) $o->term_id !== (int) get_option( 'default_category' ) ) {
+											$spare[] = (int) $o->term_id;
+										} else {
+											$taken = true;
+										}
+									}
+								}
+								if ( ! $taken ) {
+									foreach ( $spare as $sid ) {
+										if ( ! empty( $args['description'] ) || '' !== trim( (string) get_term( $cat, 'category' )->description ) ) {
+											wp_delete_term( $sid, 'category' );
+											continue;
+										}
+										// Keep the empty one's short line if the renamed one has none.
+										$args['description'] = (string) get_term( $sid, 'category' )->description;
+										wp_delete_term( $sid, 'category' );
 									}
 								}
 								if ( $taken ) {

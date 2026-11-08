@@ -584,7 +584,11 @@
 	}
 	function youGrid() {
 		if ( ! mine.loaded ) { return '<div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div>'; }
-		var list = mine.items.filter( function ( i ) { return ! me.coll || i.coll === me.coll; } );
+		// A collection's own posts come from the server when not all posts are loaded yet (0.45.18).
+		var own = me.coll && ( mine.more || mine.page > 1 ) ? mine.by[ me.coll ] : null;
+		if ( me.coll && ( mine.more || mine.page > 1 ) && ! own ) { loadColl( me.coll ); return '<div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div>'; }
+		if ( own && own.loading && ! own.items.length ) { return '<div class="a-mine-grid" aria-hidden="true"><span></span><span></span><span></span></div>'; }
+		var list = own ? own.items.slice() : mine.items.filter( function ( i ) { return ! me.coll || i.coll === me.coll; } );
 		var hand = me.coll && mine.orders ? mine.orders[ me.coll ] : null;
 		if ( hand ) { list.sort( function ( a, b ) { return hand.indexOf( a.id ) - hand.indexOf( b.id ); } ); } // Arranged by hand: the page's order.
 		if ( ! list.length ) { return '<div class="a-empty-you">' + smile() + '<p>' + ( me.coll ? _f( __( 'Nothing in %s yet.', 'stubli' ), esc( me.coll ) ) : __( 'Your page is waiting for its first photo.', 'stubli' ) ) + ( '</p><a class="a-btn quiet" href="#new">' + __( 'Post a photo', 'stubli' ) + '</a></div>' ); }
@@ -598,7 +602,17 @@
 					( i.count > 1 ? '<span class="a-mine-n" aria-hidden="true">' + i.count + '</span>' : i.video ? '<span class="a-mine-n" aria-hidden="true">' + icon( 'play', 12 ) + '</span>' : '' ) +
 					( i.friends ? ( '<span class="a-mine-friends" aria-hidden="true">' + __( 'Friends only', 'stubli' ) + '</span>' ) : '' ) + '</a>';
 			} ).join( '' ) + '</div>' +
-			( mine.more && ! me.coll ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' );
+			( mine.more && ! me.coll ? ( '<button type="button" class="a-btn quiet wide" data-mine-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' ) +
+			( own && own.more ? ( '<button type="button" class="a-btn quiet wide" data-coll-more style="margin-top:12px">' + __( 'Show more', 'stubli' ) + '</button>' ) : '' );
+	}
+	function loadColl( c ) {
+		var o = mine.by[ c ] = mine.by[ c ] || { items: [], page: 0, more: false, loading: false };
+		if ( o.loading ) { return; }
+		o.loading = true;
+		send( 'GET', 'mine?coll=' + encodeURIComponent( c ) + '&page=' + ( o.page + 1 ), null ).then( function ( r ) {
+			o.page++; o.items = o.items.concat( r.items ); o.more = r.more; o.loading = false;
+			if ( location.hash === '#you' && me.coll === c ) { swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); }
+		}, function () { o.loading = false; o.more = false; } );
 	}
 	// A journal entry filed in a collection: its photo, or a paper tile with its title and first lines. It opens in the journal editor.
 	function entryTile( i ) {
@@ -626,7 +640,8 @@
 			( p.bio ? '<p class="a-you-bio">' + esc( unent( p.bio ) ) + '</p>' : ( '<p class="a-you-bio muted"><a href="#about">' + __( 'Add a line about you', 'stubli' ) + '</a></p>' ) ) +
 			( p.prompts && p.prompts.length ? '' : ( '<a class="a-text-btn a-you-add" href="#about">' + __( 'Add cards about you', 'stubli' ) + '</a>' ) ) ) : '';
 		var latest = mine.loaded && mine.items[ 0 ];
-		var colls = [];
+		// Every collection, not only those among the posts loaded so far (0.45.18).
+		var colls = ( mine.colls || [] ).slice();
 		mine.items.forEach( function ( i ) { if ( i.coll && colls.indexOf( i.coll ) < 0 ) { colls.push( i.coll ); } } );
 		// Same order as your page (Arrange); new ones at the end.
 		var ord = B.collOrder || []; colls.sort( function ( a, b ) { var x = ord.indexOf( a ), y = ord.indexOf( b ); return ( x < 0 ? 999 : x ) - ( y < 0 ? 999 : y ); } );
@@ -667,6 +682,8 @@
 		} );
 		var m = $( '[data-mine-more]' );
 		if ( m ) { m.addEventListener( 'click', function () { m.disabled = true; m.textContent = __( 'Loading…', 'stubli' ); mine.page++; loadMine( false ).then( function () { if ( location.hash === '#you' ) { viewYou(); } } ); } ); }
+		var cm = $( '[data-coll-more]' );
+		if ( cm ) { cm.addEventListener( 'click', function () { cm.disabled = true; cm.textContent = __( 'Loading…', 'stubli' ); loadColl( me.coll ); } ); }
 	}
 
 	// The short line of the collection you're looking at, as on your page.
@@ -1299,12 +1316,12 @@
 	}
 
 	/* ── Your posts: grid on You, edit and delete ── */
-	var mine = { loaded: false, items: [], page: 1, more: false, total: 0, missing: 0, toast: null };
+	var mine = { loaded: false, items: [], page: 1, more: false, total: 0, missing: 0, toast: null, colls: null, by: {} };
 	function loadMine( reset ) {
 		if ( reset ) { mine.page = 1; }
 		return send( 'GET', 'mine?page=' + mine.page, null ).then( function ( r ) {
 			mine.items = reset ? r.items : mine.items.concat( r.items );
-			mine.more = r.more; mine.total = r.total; mine.missing = r.missing; mine.loaded = true; if ( r.shapes ) { mine.shapes = r.shapes; } if ( r.orders ) { mine.orders = r.orders; }
+			mine.more = r.more; mine.total = r.total; mine.missing = r.missing; mine.loaded = true; if ( r.shapes ) { mine.shapes = r.shapes; } if ( r.orders ) { mine.orders = r.orders; } if ( r.colls ) { mine.colls = r.colls; } if ( reset ) { mine.by = {}; }
 		}, function () { mine.loaded = true; } );
 	}
 	function mineSection() {
