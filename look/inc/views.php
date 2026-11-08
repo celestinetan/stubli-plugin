@@ -349,14 +349,14 @@ function stubli_grid( WP_Query $q ) {
 		echo wp_kses( stubli_empty( 'photos' ), stubli_allowed_html() );
 		return;
 	}
-	// The collection takes the shape of its first photo: landscape, square or portrait (the default).
+	// The collection takes the shape of its first photo: landscape, square, portrait (the default) or tall (2:3, since 0.2.116).
 	$shape = 'portrait';
 	$first = stubli_tile_ids( $q->posts[0]->ID );
 	if ( $first ) {
 		$meta = wp_get_attachment_metadata( $first[0] );
 		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
 			$r     = (float) $meta['width'] / (float) $meta['height'];
-			$shape = $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : 'portrait' );
+			$shape = $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : ( $r < 0.72 ? 'tall' : 'portrait' ) );
 		}
 	}
 	$size = 'portrait' === $shape ? 'stubli-tile' : 'medium_large';

@@ -94,8 +94,16 @@ img { display: block; max-width: 100%; }
 .a-preview-frame img { width: 100%; height: 100%; object-fit: cover; }
 .a-preview-empty { text-align: center; color: var(--muted); padding: 24px 8px; }
 .a-preview-empty .a-btn { margin-top: 12px; }
-.a-ratios { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
-@media (max-width: 380px) { .a-ratios .a-chip { padding: 0 12px; } }
+.a-ratios { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 18px; }
+/* Four shapes since 0.45.16: one row on a phone, each shape an equal share. */
+.a-ratios .a-chip { flex: 1 1 0; justify-content: center; gap: 5px; padding: 0 6px; min-width: 0; }
+.a-ratios .a-chip svg { flex: none; }
+/* Phones: words only, so the four fit in one row (the icon is a nicety); two rows of two on the smallest. */
+@media (max-width: 430px) { .a-ratios .a-chip svg { display: none; } }
+.a-shape-t { display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.a-shape-t small { font-size: 11px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.a-ratios .a-chip { padding-top: 4px; padding-bottom: 4px; }
+@media (max-width: 340px) { .a-ratios .a-chip { flex-basis: calc(50% - 3px); } }
 .a-chip {
 	min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--surface); color: var(--ink);
 	display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500;
@@ -391,6 +399,7 @@ button.a-wn-act, a.a-wn-act { display: inline-block; padding: 6px 0; }
 /* A tab takes the shape of its first photo, the same as on your page. */
 .a-mine-grid.is-landscape > a { aspect-ratio: 3 / 2; }
 .a-mine-grid.is-square > a { aspect-ratio: 1; }
+.a-mine-grid.is-tall > a { aspect-ratio: 2 / 3; }
 .a-mine-grid img.is-noted { filter: blur(12px); transform: scale(1.1); }
 .a-mine-n { position: absolute; top: 6px; right: 6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: rgba(28,25,22,.62); color: #fff; font-size: 12px; font-weight: 650; display: flex; align-items: center; justify-content: center; }
 .a-mine-dot { position: absolute; left: 6px; bottom: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }

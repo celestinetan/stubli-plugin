@@ -123,7 +123,7 @@ class Arrange {
 
 	/**
 	 * The shape a collection's tiles take, from its first photo (the first
-	 * pinned post, or else the newest): landscape, square or portrait.
+	 * pinned post, or else the newest): landscape, square, portrait or tall (2:3, since 0.45.16).
 	 * Matches what the page shows.
 	 *
 	 * @param int $cat Category ID.
@@ -155,7 +155,7 @@ class Arrange {
 			$m = wp_get_attachment_metadata( $ids[0] );
 			if ( ! empty( $m['width'] ) && ! empty( $m['height'] ) ) {
 				$r = (float) $m['width'] / (float) $m['height'];
-				return $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : 'portrait' );
+				return $r > 1.15 ? 'landscape' : ( $r >= 0.9 ? 'square' : ( $r < 0.72 ? 'tall' : 'portrait' ) );
 			}
 		}
 		return 'portrait';

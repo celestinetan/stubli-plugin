@@ -69,6 +69,7 @@
 		lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>',
 		check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
 		portrait: '<rect x="7" y="4" width="10" height="16" rx="2"/>',
+		tall: '<rect x="7.5" y="2.5" width="9" height="19" rx="2"/>',
 		square: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
 		landscape: '<rect x="3" y="7.5" width="18" height="9" rx="2"/>',
 		play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
@@ -240,7 +241,10 @@
 	}
 
 	/* ── Photos: load, thumbnail, crop (re-encoding drops location data) ── */
-	var RATIOS = { portrait: 4 / 5, square: 1, landscape: 3 / 2 };
+	// Tall (2:3, the shape most cameras take) since 0.45.16 (Celestine 5 Nov: a camera photo lost its top and bottom in Portrait).
+	var RATIOS = { portrait: 4 / 5, tall: 2 / 3, square: 1, landscape: 3 / 2 };
+	// Shown small under each shape's name (Celestine 5 Nov).
+	var RATIO_TEXT = { portrait: '4:5', tall: '2:3', square: '1:1', landscape: '3:2' };
 	function loadImage( file ) {
 		if ( window.createImageBitmap ) {
 			return createImageBitmap( file, { imageOrientation: 'from-image' } ).catch( function () { return loadViaImg( file ); } );
@@ -1479,8 +1483,8 @@
 			( d.photos.length < B.maxPhotos ? '<label class="a-btn quiet a-ed-add">' + icon( 'plus', 18 ) + ( ( B.videoTypes || [] ).length ? __( 'Add photos or videos', 'stubli' ) : __( 'Add photos', 'stubli' ) ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-ed-add></label>' : '' ) +
 			( ed.loading ? '<p class="muted" role="status">' + __( 'Opening your video…', 'stubli' ) + '</p>' : '' ) +
 			( d.photos.some( function ( ph ) { return ph.nu && ! ph.video; } ) ? '<h2 class="a-label" id="a-ed-shape">' + __( 'Shape for new photos', 'stubli' ) + '</h2><div class="a-ratios" role="radiogroup" aria-labelledby="a-ed-shape">' + Object.keys( RATIOS ).map( function ( k ) {
-				var lab = { portrait: __( 'Portrait', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
-				return '<button type="button" class="a-chip" role="radio" data-ed-ratio="' + k + '" aria-checked="' + ( ed.ratio === k ) + '">' + icon( k, 16 ) + lab[ k ] + '</button>';
+				var lab = { portrait: __( 'Portrait', 'stubli' ), tall: __( 'Tall', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
+				return '<button type="button" class="a-chip" role="radio" data-ed-ratio="' + k + '" aria-checked="' + ( ed.ratio === k ) + '">' + icon( k, 16 ) + '<span class="a-shape-t">' + lab[ k ] + '<small>' + RATIO_TEXT[ k ] + '</small></span>' + '</button>';
 			} ).join( '' ) + '</div><p class="a-help">' + __( 'New photos are cropped to this shape, from the middle. The photos already in the post stay as they are.', 'stubli' ) + '</p>' : '' ) +
 			( ed.orig.some( function ( id ) { return ! d.photos.some( function ( ph ) { return ph.id === id; } ); } ) ? '<p class="a-help">' + __( 'Photos you take out are deleted from your site when you tap Save. You can undo straight after.', 'stubli' ) + '</p>' : '' ) +
 			( ed.photoMsg ? '<div class="a-notice calm" role="alert"><p>' + esc( ed.photoMsg ) + '</p></div>' : '' ) +
@@ -2721,7 +2725,7 @@
 	}
 	function viewPick() {
 		var p = post, cur = p.photos[ p.current ];
-		var ratioLabel = { portrait: __( 'Portrait', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
+		var ratioLabel = { portrait: __( 'Portrait', 'stubli' ), tall: __( 'Tall', 'stubli' ), square: __( 'Square', 'stubli' ), landscape: __( 'Landscape', 'stubli' ) };
 		root.innerHTML = ( '<header class="a-head"><button type="button" class="a-text-btn" data-cancel>' + __( 'Cancel', 'stubli' ) + '</button>' ) + seg( 'photo' ) +
 			'<button type="button" class="a-btn" data-next' + ( p.photos.length ? '' : ' disabled' ) + ( '>' + __( 'Next', 'stubli' ) + '</button></header>' ) +
 			( '<main class="a-compose" id="main"><h1 class="sr">' + __( 'New photo post', 'stubli' ) + '</h1>' ) +
@@ -2730,7 +2734,7 @@
 					'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos or videos for one post. Videos can be up to a minute.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos or videos', 'stubli' ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-files></label></div>' ) :
 					'<div class="a-preview-empty"><p>' + _f( __( 'Choose up to %s photos for one post.', 'stubli' ), B.maxPhotos ) + '</p><label class="a-btn">' + icon( 'photo', 18 ) + ( __( 'Choose photos', 'stubli' ) + '<input class="a-file" type="file" accept="' + pickAccept() + '" multiple data-files></label><p class="a-help" data-novideo>' ) + esc( B.noVideo || '' ) + '</p></div>' ) ) + '</div>' +
 			( p.photos.length ? '<div class="a-ratios" role="group" aria-label="' + esc( __( 'Shape', 'stubli' ) ) + '">' + Object.keys( RATIOS ).map( function ( k ) {
-				return '<button type="button" class="a-chip" data-ratio="' + k + '" aria-pressed="' + ( p.ratio === k ) + '">' + icon( k, 16 ) + ratioLabel[ k ] + '</button>';
+				return '<button type="button" class="a-chip" data-ratio="' + k + '" aria-pressed="' + ( p.ratio === k ) + '">' + icon( k, 16 ) + '<span class="a-shape-t">' + ratioLabel[ k ] + '<small>' + RATIO_TEXT[ k ] + '</small></span>' + '</button>';
 			} ).join( '' ) + '</div>' : '' ) +
 			( p.photos.some( function ( x ) { return x.video; } ) ? ( '<p class="a-help" style="margin:-8px 0 12px">' + __( 'The shape applies to photos. Videos keep their own shape.', 'stubli' ) + '</p>' ) : '' ) +
 			( '<div class="a-row"><h2 class="a-label">' + __( 'Your photos', 'stubli' ) + '</h2><span class="muted small" aria-live="polite">' ) + ( p.photos.length ? _f( __( '%s selected · up to %s', 'stubli' ), p.photos.length, B.maxPhotos ) : _f( __( 'up to %s', 'stubli' ), B.maxPhotos ) ) + '</span></div>' +

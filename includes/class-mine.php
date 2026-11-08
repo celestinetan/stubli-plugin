@@ -110,7 +110,7 @@ class Mine {
 	}
 
 	/**
-	 * The post's shape, from its first photo: portrait, square or landscape.
+	 * The post's shape, from its first photo: portrait (4:5), tall (2:3, since 0.45.16), square or landscape.
 	 * New photos added in the editor are cropped to it unless the owner picks another.
 	 *
 	 * @param int $post_id Post ID.
@@ -124,7 +124,7 @@ class Mine {
 			$meta = wp_get_attachment_metadata( $aid );
 			if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
 				$r = $meta['width'] / $meta['height'];
-				return $r > 1.2 ? 'landscape' : ( $r > 0.9 ? 'square' : 'portrait' );
+				return $r > 1.2 ? 'landscape' : ( $r > 0.9 ? 'square' : ( $r < 0.72 ? 'tall' : 'portrait' ) );
 			}
 		}
 		return 'portrait';

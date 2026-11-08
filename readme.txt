@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.15
+Stable tag: 0.45.16
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.16 =
+* A new photo shape, Tall (2:3), next to Portrait, Square and Landscape. It's the shape most cameras take, so those photos keep their top and bottom. A collection that starts with a Tall post shows tall tiles. Each shape now shows its ratio underneath (4:5, 2:3, 1:1, 3:2).
 
 = 0.45.15 =
 * Visitors without a Stubli can sign your guest book with their name, a message and, if they like, where they're from. Each entry waits for your OK in What's new. You can turn this off in Settings → Stubli.

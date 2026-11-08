@@ -282,6 +282,7 @@ p { margin: 0 0 .75em; }
 /* A collection whose first photo is landscape (or square) shows all its tiles that way. */
 .st-grid.is-landscape .st-tile-photo { aspect-ratio: 3 / 2; }
 .st-grid.is-square .st-tile-photo { aspect-ratio: 1; }
+.st-grid.is-tall .st-tile-photo { aspect-ratio: 2 / 3; }
 .st-tile-photo.has-note img { filter: blur(22px) saturate(.7); transform: scale(1.15); }
 .st-tile-note {
 	position: absolute; inset: auto 8px 8px; padding: 6px 10px; border-radius: 10px;
