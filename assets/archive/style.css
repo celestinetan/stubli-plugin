@@ -23,11 +23,3 @@ figcaption{color:#6b6157;font-size:14px}
 .cap{white-space:normal}
 ul.c{list-style:none;padding:0}
 ul.c li{padding:6px 0}
-@media (prefers-color-scheme:dark){body{background:#1c1916;color:#eee6da}
-.m,figcaption{color:#b3a899}
-nav{border-color:#3a342d}
-nav a{color:#eee6da}
-article{border-color:#3a342d}
-a{color:#9fc29a}
-.av,.grid a{background:#2a2520}
-}

@@ -139,7 +139,7 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 				<?php endif; ?>
 			</nav>
 		<?php endif; ?>
-		<button type="button" class="st-mode" data-st-mode aria-label="<?php esc_attr_e( 'Reading mode', 'stubli' ); ?>"><span class="st-mode-aa" aria-hidden="true">Aa</span> <span class="st-mode-label"><?php esc_html_e( 'Auto', 'stubli' ); ?></span></button>
+		<button type="button" class="st-mode" data-st-mode aria-label="<?php esc_attr_e( 'Reading mode', 'stubli' ); ?>"><span class="st-mode-aa" aria-hidden="true">Aa</span> <span class="st-mode-label"><?php esc_html_e( 'Light', 'stubli' ); ?></span></button>
 	</header>
 	<?php
 }

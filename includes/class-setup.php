@@ -30,7 +30,8 @@ class Setup {
 		'gold'   => array( 'Gold', '#e0b65a', '#1d2433', '#e0b65a' ),
 	);
 
-	const MODES = array( 'auto', 'light', 'paper', 'dark' );
+	// Light and Paper only since 0.45.17 (Celestine 8 Nov: "no need dark mode"). A saved 'auto' or 'dark' reads as Light.
+	const MODES = array( 'light', 'paper' );
 
 	/** Interest ideas offered as chips. */
 	const IDEAS = array( 'Hikes', 'Food', 'Coffee', 'City', 'Travel', 'Friends', 'Family', 'Pets', 'Art', 'Nature', 'Books', 'Music' );
@@ -105,8 +106,8 @@ class Setup {
 	 * @return string
 	 */
 	public static function mode() {
-		$m = (string) get_option( 'stubli_mode', 'auto' );
-		return in_array( $m, self::MODES, true ) ? $m : 'auto';
+		$m = (string) get_option( 'stubli_mode', 'light' );
+		return in_array( $m, self::MODES, true ) ? $m : 'light';
 	}
 
 	/**

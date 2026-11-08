@@ -284,8 +284,7 @@ class App {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbfaf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stubli">
@@ -294,7 +293,7 @@ class App {
 <link rel="manifest" href="<?php echo esc_url( home_url( '/app/manifest.webmanifest' ) ); ?>">
 <link rel="apple-touch-icon" href="<?php echo esc_url( $assets . 'icon-180.png' ); ?>">
 <link rel="icon" type="image/png" sizes="192x192" href="<?php echo esc_url( $assets . 'icon-192.png' ); ?>">
-<?php wp_print_inline_script_tag( "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( Setup::mode() ) . ";var m=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-mode',m);}catch(e){}})();" ); ?>
+<?php wp_print_inline_script_tag( "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( Setup::mode() ) . ";var m=p==='paper'?'paper':'light';document.documentElement.setAttribute('data-mode',m);}catch(e){}})();" ); ?>
 <?php wp_print_styles( array( 'stubli-app' ) ); ?>
 </head>
 <body>

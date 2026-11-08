@@ -532,7 +532,7 @@
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Settings and more', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' ) +
 			( '<section class="a-card"><h2>' + __( 'Your page', 'stubli' ) + '</h2><p class="muted">' ) + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a><a class="a-btn quiet" href="' ) + esc( B.settings ) + ( '">' + __( 'Advanced settings', 'stubli' ) + '</a></div><p class="a-help">' + __( 'Your name, photo and bio are under Edit page. Advanced settings open your WordPress dashboard.', 'stubli' ) + '</p></section>' ) +
 			summaryCard() +
-			( '<section class="a-card"><h2>' + __( 'Colour and reading mode', 'stubli' ) + '</h2><p class="muted">' + __( 'The colour of your page and how it opens for visitors: Automatic, Light, Paper or Dark.', 'stubli' ) + '</p><a class="a-btn quiet" href="#look">' + __( 'Change', 'stubli' ) + '</a></section>' ) +
+			( '<section class="a-card"><h2>' + __( 'Colour and reading mode', 'stubli' ) + '</h2><p class="muted">' + __( 'The colour of your page and how it opens for visitors: Light or Paper.', 'stubli' ) + '</p><a class="a-btn quiet" href="#look">' + __( 'Change', 'stubli' ) + '</a></section>' ) +
 			( '<section class="a-card"><h2>' + __( 'Bring your photos from Instagram', 'stubli' ) ) + helpLink( 'posting/instagram', __( 'bringing photos from Instagram', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Your posts arrive with their original dates and captions.', 'stubli' ) + '</p><a class="a-btn quiet" href="#import">' + __( 'Start', 'stubli' ) + '</a></section>' ) +
 			keepCard() +
 			( '<section class="a-card"><h2>' + __( 'Tell us what you think', 'stubli' ) + '</h2><p class="muted">' + __( 'Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.', 'stubli' ) + '</p><a class="a-btn quiet" href="#feedback">' + __( 'Send feedback', 'stubli' ) + '</a></section>' ) +
@@ -2084,10 +2084,8 @@
 	/* ── Setup wizard (DESIGN §13): Hello · Interests · Look · Your people · Ready ── */
 	var STEPS = [ __( 'Hello', 'stubli' ), __( 'Interests', 'stubli' ), __( 'Look', 'stubli' ), __( 'Your people', 'stubli' ), __( 'Ready', 'stubli' ) ];
 	var MODE_HINTS = {
-		auto: __( 'Follows the phone: light by day, dark at night.', 'stubli' ),
 		light: __( 'Bright linen and ink, like a fresh page.', 'stubli' ),
-		paper: __( 'Warm paper with a book font for reading.', 'stubli' ),
-		dark: __( 'A dark, quiet ground that\'s easy on the eyes at night.', 'stubli' )
+		paper: __( 'Warm paper with a book font for reading.', 'stubli' )
 	};
 	var su = { loaded: false, d: null, step: 0, busy: false, error: '', picked: [], own: '', sugg: null, ticks: {}, photoBusy: false, photoMsg: '' };
 	function viewSetup() {
@@ -2114,7 +2112,7 @@
 		if ( ! s ) { s = document.createElement( 'style' ); s.id = 'stubli-accent'; document.head.appendChild( s ); }
 		s.textContent = accentCss( accentOf( su.d.accent ) );
 		if ( ! store.get( 'stubli-mode' ) ) {
-			var m = su.d.mode === 'auto' ? ( matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light' ) : su.d.mode;
+			var m = su.d.mode === 'paper' ? 'paper' : 'light';
 			document.documentElement.setAttribute( 'data-mode', m );
 		}
 	}
@@ -2293,14 +2291,14 @@
 			send( 'GET', 'setup', null ).then( function ( d ) { su.d = d; if ( location.hash === '#look' ) { viewLook(); } }, function ( e ) { toast( e.message ); } );
 			return;
 		}
-		var d = su.d, a = accentOf( d.accent ), pm = document.documentElement.getAttribute( 'data-mode' ) === 'dark' ? 'dark' : 'light';
+		var d = su.d, a = accentOf( d.accent ), pm = 'light';
 		root.innerHTML = arrangeHead( '#more', __( 'Colour and reading mode', 'stubli' ) ) + '<main class="a-main" id="main">' +
 			'<p class="a-label" id="a-lk-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p><div class="a-swatches" role="radiogroup" aria-labelledby="a-lk-col">' + d.accents.map( function ( c ) {
 				var on = c.key === d.accent;
 				return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
 			} ).join( '' ) + '</div>' +
-			( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is made for dark pages. On a light page your tabs blend in a little; Dark mode suits it best.', 'stubli' ) + '</p>' ) : '' ) +
-			'<p class="a-label" id="a-lk-mode" style="margin-top:20px">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-lk-mode">' + [ [ 'auto', __( 'Automatic', 'stubli' ) ], [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ], [ 'dark', __( 'Dark', 'stubli' ) ] ].map( function ( m ) {
+			( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is a soft colour, so your tabs blend in a little.', 'stubli' ) + '</p>' ) : '' ) +
+			'<p class="a-label" id="a-lk-mode" style="margin-top:20px">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-lk-mode">' + [ [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ] ].map( function ( m ) {
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 			} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ' ' + __( 'This is how your page opens for visitors. They can still switch with the Aa button.', 'stubli' ) + '</p>' +
 			'<label class="a-check" style="margin-top:26px"><span><strong>' + __( 'Little surprises on special days', 'stubli' ) + '</strong><span class="muted small">' + __( 'On a few days a year, the Stubli logo joins in: confetti at New Year, heart eyes on Valentine\'s Day, a pumpkin at Halloween, fairy lights at Christmas, a Swiss flag on 1 August (on Swiss Stublis) and a cupcake on your Stubli\'s birthday.', 'stubli' ) + '</span></span><input type="checkbox" data-lk-season' + ( d.seasonal ? ' checked' : '' ) + '></label>' +
@@ -2424,7 +2422,7 @@
 				'<p class="a-help" aria-live="polite" data-su-int-msg>' + _f( __( '%s of %s chosen', 'stubli' ), su.picked.length, d.max ) + '</p>' +
 				setupFoot( su.picked.length ? __( 'Next', 'stubli' ) : __( 'Skip for now', 'stubli' ) );
 		} else if ( n === 2 ) {
-			var a = accentOf( d.accent ), pm = d.mode === 'auto' ? ( matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light' ) : d.mode;
+			var a = accentOf( d.accent ), pm = d.mode === 'paper' ? 'paper' : 'light';
 			var tabs = ( su.picked.length ? su.picked : [ 'Photos' ] ).slice( 0, 3 );
 			body = ( '<h2 class="a-su-title">' + __( 'Make it look like you', 'stubli' ) + '</h2><p class="muted">' + __( 'Choose a colour for buttons and tabs, and how your page reads.', 'stubli' ) + '</p>' ) +
 				'<div class="a-su-preview" data-mode="' + pm + '" style="--accent:' + ( pm === 'dark' ? a.dark : a.hex ) + ';--accent-ink:' + ( pm === 'dark' ? '#1c1916' : a.ink ) + '" aria-hidden="true">' +
@@ -2435,8 +2433,8 @@
 					var on = c.key === d.accent;
 					return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
 				} ).join( '' ) + '</div>' +
-				( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is made for dark pages. On a light page your tabs blend in a little; Dark mode suits it best.', 'stubli' ) + '</p>' ) : '' ) +
-				( '<p class="a-label" id="a-su-mode">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' ) + [ [ 'auto', __( 'Automatic', 'stubli' ) ], [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ], [ 'dark', __( 'Dark', 'stubli' ) ] ].map( function ( m ) {
+				( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is a soft colour, so your tabs blend in a little.', 'stubli' ) + '</p>' ) : '' ) +
+				( '<p class="a-label" id="a-su-mode">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' ) + [ [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ] ].map( function ( m ) {
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
 				} ).join( '' ) + '</div><p class="a-help">' + esc( MODE_HINTS[ d.mode ] ) + ( ' ' + __( 'Visitors can still switch with the Aa button.', 'stubli' ) + '</p>' ) +
 				( '<p class="a-label" id="a-su-cr" style="margin-top:22px">' + __( 'Help friends find Stubli?', 'stubli' ) + '</p><p class="a-help" style="margin:-2px 0 10px">' + __( 'Show one small line on your page, “Made with Stubli · Make your own”, so visitors can see how to get their own. You can change it any time in Settings.', 'stubli' ) + '</p>' ) +

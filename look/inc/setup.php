@@ -42,10 +42,8 @@ add_action(
 			'stubliText',
 			array(
 				'modes'       => array(
-					'auto'  => __( 'Auto', 'stubli' ),
 					'light' => __( 'Light', 'stubli' ),
 					'paper' => __( 'Paper', 'stubli' ),
-					'dark'  => __( 'Dark', 'stubli' ),
 				),
 				'readingMode' => __( 'Reading mode', 'stubli' ),
 				/* translators: 1: current photo, 2: number of photos */
@@ -84,8 +82,7 @@ add_action(
 	'wp_head',
 	static function () {
 		?>
-<meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbfaf8">
 		<?php
 	},
 	1
@@ -98,11 +95,11 @@ add_action(
 add_action(
 	'wp_enqueue_scripts',
 	static function () {
-		$pref = get_option( 'stubli_mode', 'auto' );
-		$pref = in_array( $pref, array( 'auto', 'light', 'paper', 'dark' ), true ) ? $pref : 'auto';
+		$pref = get_option( 'stubli_mode', 'light' );
+		$pref = 'paper' === $pref ? 'paper' : 'light'; // No dark mode since 0.2.117 (Celestine 8 Nov).
 		wp_register_script( 'stubli-mode', false, array(), (string) filemtime( stubli_look_dir() . '/assets/js/stubli.js' ), false );
 		wp_enqueue_script( 'stubli-mode' );
-		wp_add_inline_script( 'stubli-mode', "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( $pref ) . ";var m=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',p);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();" );
+		wp_add_inline_script( 'stubli-mode', "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( $pref ) . ";var m=p==='paper'?'paper':'light';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',m);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();" );
 	},
 	1
 );

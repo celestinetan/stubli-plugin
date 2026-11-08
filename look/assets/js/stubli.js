@@ -13,12 +13,10 @@
 	   was before. When you're signed in, reload it so changes from the app show. */
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && document.body && document.body.classList.contains( 'logged-in' ) ) { location.reload(); } } );
 
-	/* Reading mode: Auto → Light → Paper → Dark. */
-	var order = [ 'auto', 'light', 'paper', 'dark' ];
-	var dark = window.matchMedia ? matchMedia( '(prefers-color-scheme: dark)' ) : null;
+	/* Reading mode: Light ↔ Paper. No dark mode since 0.2.117 (Celestine 8 Nov); a saved Auto or Dark reads as Light. */
+	var order = [ 'light', 'paper' ];
 	function apply( pref ) {
-		var mode = pref === 'auto' ? ( dark && dark.matches ? 'dark' : 'light' ) : pref;
-		root.setAttribute( 'data-mode', mode );
+		root.setAttribute( 'data-mode', pref );
 		root.setAttribute( 'data-mode-pref', pref );
 		document.querySelectorAll( '[data-st-mode]' ).forEach( function ( b ) {
 			var label = ( T.modes && T.modes[ pref ] ) || pref;
@@ -27,12 +25,9 @@
 		} );
 	}
 	// The owner's default (set in the head) applies until a visitor picks their own.
-	var pref = store.get( 'stubli-mode' ) || root.getAttribute( 'data-mode-pref' ) || 'auto';
-	if ( order.indexOf( pref ) < 0 ) { pref = 'auto'; }
+	var pref = store.get( 'stubli-mode' ) || root.getAttribute( 'data-mode-pref' ) || 'light';
+	if ( order.indexOf( pref ) < 0 ) { pref = 'light'; }
 	apply( pref );
-	if ( dark && dark.addEventListener ) {
-		dark.addEventListener( 'change', function () { if ( pref === 'auto' ) { apply( pref ); } } );
-	}
 	document.addEventListener( 'click', function ( e ) {
 		var b = e.target.closest( '[data-st-mode]' );
 		if ( ! b ) { return; }
