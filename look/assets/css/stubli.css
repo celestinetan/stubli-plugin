@@ -1031,11 +1031,23 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 /* Stacked folders (0.2.118, Celestine 8 Nov): when the folders don't fit in one row, they stack in rows instead of
    sliding under Journal, Guest book and Favourites. The row with the open folder sits against the photos; the rows
    behind it are a little shorter and a shade darker, like folders further back. Nothing changes when they fit. */
-.st-tabs.is-stacked { flex-wrap: wrap; column-gap: 4px; row-gap: 0; }
+/* Stacked folders as an index-card box (0.2.119): rows behind tuck under the one in front, showing a 26px strip,
+   each a shade darker, with a full-width card edge. A back folder lifts on touch (JS .is-lift) or hover. */
+.st-tabs.is-stacked { position: relative; flex-wrap: wrap; column-gap: 4px; row-gap: 0; }
 .st-tabs.is-stacked .st-tabs-left,
 .st-tabs.is-stacked .st-tabs-scroll,
 .st-tabs.is-stacked .st-tabs-right { display: contents; }
-.st-tabs.is-stacked .st-tab { margin-top: 4px; }
-.st-tabs.is-stacked .st-tab.is-back { height: 38px; }
-.st-tabs.is-stacked .st-tab.is-back .st-tab-face { height: 32px; filter: brightness(.965); }
+.st-tabs.is-stacked .st-tab { position: relative; pointer-events: none; }
+.st-tabs.is-stacked .st-tab-face { pointer-events: auto; box-shadow: 0 -3px 5px -3px rgba(40, 36, 30, .16); transition: transform .16s ease-out, filter .16s ease-out; }
+.st-tabs.is-stacked .st-tab.is-back { margin-bottom: -18px; }
+.st-tabs.is-stacked .st-tab.is-back .st-tab-face { align-items: flex-start; padding-top: 4px; box-sizing: border-box; filter: brightness(calc(1 - .035 * var(--depth, 1))); }
+.st-tabs.is-stacked .st-tab.is-back.is-lift .st-tab-face,
+.st-tabs.is-stacked .st-tab.is-back:active .st-tab-face { transform: translateY(-7px); filter: none; }
+@media (hover: hover) {
+	.st-tabs.is-stacked .st-tab.is-back:hover .st-tab-face { transform: translateY(-5px); filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.st-tabs.is-stacked .st-tab-face { transition: none; }
+}
 .st-tabs-break { flex-basis: 100%; height: 0; }
+.st-tabs-card { position: absolute; left: 0; right: 0; pointer-events: none; background: var(--st-tab-off); filter: brightness(calc(1 - .035 * var(--depth, 1))); box-shadow: 0 -3px 5px -3px rgba(40, 36, 30, .16); }

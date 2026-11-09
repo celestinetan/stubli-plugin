@@ -13,23 +13,25 @@
 	   was before. When you're signed in, reload it so changes from the app show. */
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && document.body && document.body.classList.contains( 'logged-in' ) ) { location.reload(); } } );
 
-	/* Stacked folders (0.2.118, Celestine 8 Nov): when the folder tabs don't fit in one row, stack them in rows
-	   (CSS .is-stacked) instead of letting them slide under the icon tabs. The open folder's row moves to the
-	   bottom, against the photos; the rows behind it are marked .is-back. */
+	/* Stacked folders as an index-card box (0.2.119, Celestine 9 Nov; first stacked in 0.2.118): when the folder tabs
+	   don't fit in one row they wrap into rows. The open folder's row is in front, against the photos, with Journal,
+	   Guest book and Favourites at its right (folders that don't fit beside them move back). Rows behind tuck under
+	   the one in front (CSS .is-stacked .is-back) and each gets a card edge (.st-tabs-card), a shade darker per row. */
 	function stackTabs() {
 		document.querySelectorAll( '.st-tabs' ).forEach( function ( nav ) {
 			var scroll = nav.querySelector( '[data-st-scroll]' );
 			var tabs = Array.prototype.slice.call( nav.querySelectorAll( '.st-tab' ) );
 			if ( ! scroll ) { return; }
 			nav.classList.remove( 'is-stacked' );
-			nav.querySelectorAll( '.st-tabs-break' ).forEach( function ( b ) { b.remove(); } );
-			tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.classList.remove( 'is-back' ); } );
+			nav.querySelectorAll( '.st-tabs-break, .st-tabs-card' ).forEach( function ( b ) { b.remove(); } );
+			tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.style.zIndex = ''; t.style.removeProperty( '--depth' ); t.classList.remove( 'is-back' ); } );
 			if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
-			// Pack the folders into rows by their widths, in their own order.
 			var gap = 4, room = nav.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
+			var rowW = function ( r ) { return r.reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 ); };
 			var icons = tabs.filter( function ( t ) { return t.classList.contains( 'st-tab-icon' ); } );
 			var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
-			var iconsW = icons.reduce( function ( s, t ) { return s + width( t ) + gap; }, gap );
+			var iconsW = rowW( icons ) + gap;
+			// Pack the folders into rows by their widths, in their own order.
 			var rows = [ [] ], used = 0;
 			plain.forEach( function ( t ) {
 				var w = width( t );
@@ -37,30 +39,46 @@
 				used += ( rows[ rows.length - 1 ].length ? gap : 0 ) + w;
 				rows[ rows.length - 1 ].push( t );
 			} );
-			// The open folder's row goes last, against the photos; the others keep their order behind it.
+			// The open folder's row goes in front; the others keep their order behind it.
 			var active = nav.querySelector( '.st-tab.is-active' );
 			var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
 			if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
-			// Journal, Guest book and Favourites stay together at the right of the bottom row, as on a
-			// computer; when that row has no room for them, they sit together at the right of a row of their own on top.
-			var lastW = rows[ rows.length - 1 ].reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 );
-			var iconsOnTop = lastW + iconsW > room;
-			if ( iconsOnTop ) { rows.unshift( [] ); }
+			// Make room for the icon tabs in the front row: the other folders there move to a row just behind it.
+			var front = rows[ rows.length - 1 ], moved = [];
+			while ( front.length > 1 && rowW( front ) + iconsW > room ) {
+				moved.unshift( front.splice( front[ front.length - 1 ] === active ? 0 : front.length - 1, 1 )[ 0 ] );
+			}
+			if ( moved.length ) { rows.splice( rows.length - 1, 0, moved ); }
+			// Only when even the open folder alone has no room beside them do they get a back row of their own.
+			var iconsOwnRow = icons.length && rowW( front ) + iconsW > room;
+			if ( iconsOwnRow ) { rows.unshift( icons.slice() ); }
 			nav.classList.add( 'is-stacked' );
-			var brk = function ( order ) {
-				var b = document.createElement( 'span' );
-				b.className = 'st-tabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = order;
-				nav.appendChild( b );
-			};
 			rows.forEach( function ( r, n ) {
 				var last = n === rows.length - 1;
-				r.forEach( function ( t ) { t.style.order = n * 2; if ( ! last ) { t.classList.add( 'is-back' ); } } );
-				if ( ! last ) { brk( n * 2 + 1 ); }
+				r.forEach( function ( t ) {
+					t.style.order = n * 2; t.style.zIndex = n * 2 + 2;
+					if ( ! last ) { t.classList.add( 'is-back' ); t.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) ); }
+				} );
+				if ( ! last ) {
+					var b = document.createElement( 'span' );
+					b.className = 'st-tabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = n * 2 + 1;
+					nav.appendChild( b );
+				}
 			} );
-			var at = iconsOnTop ? 0 : ( rows.length - 1 ) * 2;
-			icons.forEach( function ( t, i ) {
-				t.style.order = at; t.style.marginLeft = 0 === i ? 'auto' : '';
-				if ( iconsOnTop ) { t.classList.add( 'is-back' ); }
+			if ( ! iconsOwnRow ) {
+				icons.forEach( function ( t, i ) { t.style.order = ( rows.length - 1 ) * 2; t.style.zIndex = rows.length * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; } );
+			} else if ( icons.length ) { icons[ 0 ].style.marginLeft = 'auto'; }
+			// Each back row's card edge: a full-width band from the bottom of its tabs to the bottom of the row in front.
+			var navTop = nav.getBoundingClientRect().top;
+			var bottom = function ( r ) { return Math.max.apply( null, r.map( function ( t ) { return t.getBoundingClientRect().bottom; } ) ); };
+			rows.forEach( function ( r, n ) {
+				if ( n === rows.length - 1 ) { return; }
+				var top = bottom( r ), below = bottom( rows[ n + 1 ] );
+				var card = document.createElement( 'span' );
+				card.className = 'st-tabs-card'; card.setAttribute( 'aria-hidden', 'true' );
+				card.style.top = ( top - navTop - 1 ) + 'px'; card.style.height = ( below - top + 1 ) + 'px';
+				card.style.zIndex = n * 2 + 1; card.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) );
+				nav.appendChild( card );
 			} );
 		} );
 	}
@@ -68,6 +86,14 @@
 	window.addEventListener( 'load', stackTabs );
 	var stackWait;
 	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackWait ); stackWait = requestAnimationFrame( stackTabs ); } );
+	// Lift on touch (Celestine 9 Nov): a folder in a back row rises as soon as a finger (or the mouse button) goes down, before it opens.
+	document.addEventListener( 'pointerdown', function ( e ) {
+		var t = e.target.closest && e.target.closest( '.st-tabs.is-stacked .st-tab.is-back' );
+		if ( t ) { t.classList.add( 'is-lift' ); }
+	} );
+	[ 'pointerup', 'pointercancel' ].forEach( function ( ev ) {
+		document.addEventListener( ev, function () { document.querySelectorAll( '.st-tab.is-lift' ).forEach( function ( t ) { t.classList.remove( 'is-lift' ); } ); }, true );
+	} );
 
 	/* Reading mode: Light ↔ Paper. No dark mode since 0.2.117 (Celestine 8 Nov); a saved Auto or Dark reads as Light. */
 	var order = [ 'light', 'paper' ];

@@ -624,21 +624,23 @@
 	function smile() {
 		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
 	}
-	// Stacked tabs in You (0.45.21, Celestine 8 Nov), as on the page since theme 0.2.118: when the collection tabs
-	// don't fit in one row, they stack in rows instead of sliding behind the icons. The open one's row sits against
-	// the photos; Journal, arrange, guest book and Favourites stay together.
+	// Stacked tabs in You as an index-card box (0.45.22, Celestine 9 Nov; first stacked in 0.45.21), as on the page
+	// since theme 0.2.119: when the collection tabs don't fit in one row they wrap into rows. The open one's row is in
+	// front with Journal, arrange, guest book and Favourites at its right (others move back to make room); rows
+	// behind tuck under it, a shade darker each, with a full-width card edge (.a-ctabs-card).
 	function stackAppTabs() {
 		var row = $( '.a-ctabs-row' ), scroll = row && row.querySelector( '.a-ctabs' );
 		if ( ! scroll ) { return; }
 		var tabs = Array.prototype.slice.call( row.querySelectorAll( '.a-ctab' ) );
 		row.classList.remove( 'is-stacked' );
-		$$( '.a-ctabs-break' ).forEach( function ( b ) { b.remove(); } );
-		tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.classList.remove( 'is-back' ); } );
+		$$( '.a-ctabs-break, .a-ctabs-card' ).forEach( function ( b ) { b.remove(); } );
+		tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.style.zIndex = ''; t.style.removeProperty( '--depth' ); t.classList.remove( 'is-back' ); } );
 		if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
 		var gap = 4, room = row.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
+		var rowW = function ( r ) { return r.reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 ); };
 		var icons = tabs.filter( function ( t ) { return t.classList.contains( 'a-ctab-icon' ); } );
 		var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
-		var iconsW = icons.reduce( function ( s, t ) { return s + width( t ) + gap; }, gap );
+		var iconsW = rowW( icons ) + gap;
 		var rows = [ [] ], used = 0;
 		plain.forEach( function ( t ) {
 			var w = width( t );
@@ -649,17 +651,44 @@
 		var active = plain.filter( function ( t ) { return t.getAttribute( 'aria-pressed' ) === 'true'; } )[ 0 ];
 		var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
 		if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
-		var lastW = rows[ rows.length - 1 ].reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 );
-		var iconsOnTop = lastW + iconsW > room;
-		if ( iconsOnTop ) { rows.unshift( [] ); }
+		var front = rows[ rows.length - 1 ], moved = [];
+		while ( front.length > 1 && rowW( front ) + iconsW > room ) {
+			moved.unshift( front.splice( front[ front.length - 1 ] === active ? 0 : front.length - 1, 1 )[ 0 ] );
+		}
+		if ( moved.length ) { rows.splice( rows.length - 1, 0, moved ); }
+		var iconsOwnRow = icons.length && rowW( front ) + iconsW > room;
+		if ( iconsOwnRow ) { rows.unshift( icons.slice() ); }
 		row.classList.add( 'is-stacked' );
 		rows.forEach( function ( r, n ) {
 			var last = n === rows.length - 1;
-			r.forEach( function ( t ) { t.style.order = n * 2; if ( ! last ) { t.classList.add( 'is-back' ); } } );
+			r.forEach( function ( t ) {
+				t.style.order = n * 2; t.style.zIndex = n * 2 + 2;
+				if ( ! last ) { t.classList.add( 'is-back' ); t.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) ); }
+			} );
 			if ( ! last ) { var b = document.createElement( 'span' ); b.className = 'a-ctabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = n * 2 + 1; row.appendChild( b ); }
 		} );
-		icons.forEach( function ( t, i ) { t.style.order = iconsOnTop ? 0 : ( rows.length - 1 ) * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; if ( iconsOnTop ) { t.classList.add( 'is-back' ); } } );
+		if ( ! iconsOwnRow ) {
+			icons.forEach( function ( t, i ) { t.style.order = ( rows.length - 1 ) * 2; t.style.zIndex = rows.length * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; } );
+		} else if ( icons.length ) { icons[ 0 ].style.marginLeft = 'auto'; }
+		var rowTop = row.getBoundingClientRect().top;
+		var bottom = function ( r ) { return Math.max.apply( null, r.map( function ( t ) { return t.getBoundingClientRect().bottom; } ) ); };
+		rows.forEach( function ( r, n ) {
+			if ( n === rows.length - 1 ) { return; }
+			var top = bottom( r ), below = bottom( rows[ n + 1 ] ), card = document.createElement( 'span' );
+			card.className = 'a-ctabs-card'; card.setAttribute( 'aria-hidden', 'true' );
+			card.style.top = ( top - rowTop - 1 ) + 'px'; card.style.height = ( below - top + 1 ) + 'px';
+			card.style.zIndex = n * 2 + 1; card.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) );
+			row.appendChild( card );
+		} );
 	}
+	// Lift on touch (Celestine 9 Nov): a tab in a back row rises as soon as a finger goes down, before it opens.
+	document.addEventListener( 'pointerdown', function ( e ) {
+		var t = e.target.closest && e.target.closest( '.a-ctabs-row.is-stacked .a-ctab.is-back' );
+		if ( t ) { t.classList.add( 'is-lift' ); }
+	} );
+	[ 'pointerup', 'pointercancel' ].forEach( function ( ev ) {
+		document.addEventListener( ev, function () { $$( '.a-ctab.is-lift' ).forEach( function ( t ) { t.classList.remove( 'is-lift' ); } ); }, true );
+	} );
 	var stackAppWait;
 	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackAppWait ); stackAppWait = requestAnimationFrame( stackAppTabs ); } );
 	function viewYou() {
