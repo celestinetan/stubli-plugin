@@ -858,3 +858,11 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-cm-sure p { margin: 4px 0 8px; font-size: 14px; }
 .a-cm .a-comment-box .a-row { gap: 12px; margin-top: 8px; justify-content: flex-start; }
 .a-cm .a-textarea { width: 100%; box-sizing: border-box; }
+
+/* Stacked tabs in You (0.45.21), as on the page: rows instead of a sliding row. */
+.a-ctabs-row.is-stacked { flex-wrap: wrap; column-gap: 4px; row-gap: 0; }
+.a-ctabs-row.is-stacked .a-ctabs { display: contents; }
+.a-ctabs-row.is-stacked .a-ctabs-gap { display: none; }
+.a-ctabs-row.is-stacked .a-ctab { margin-top: 4px; }
+.a-ctabs-row.is-stacked .a-ctab.is-back { min-height: 36px; filter: brightness(.965); }
+.a-ctabs-break { flex-basis: 100%; height: 0; }

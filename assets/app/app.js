@@ -624,6 +624,44 @@
 	function smile() {
 		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
 	}
+	// Stacked tabs in You (0.45.21, Celestine 8 Nov), as on the page since theme 0.2.118: when the collection tabs
+	// don't fit in one row, they stack in rows instead of sliding behind the icons. The open one's row sits against
+	// the photos; Journal, arrange, guest book and Favourites stay together.
+	function stackAppTabs() {
+		var row = $( '.a-ctabs-row' ), scroll = row && row.querySelector( '.a-ctabs' );
+		if ( ! scroll ) { return; }
+		var tabs = Array.prototype.slice.call( row.querySelectorAll( '.a-ctab' ) );
+		row.classList.remove( 'is-stacked' );
+		$$( '.a-ctabs-break' ).forEach( function ( b ) { b.remove(); } );
+		tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.classList.remove( 'is-back' ); } );
+		if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
+		var gap = 4, room = row.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
+		var icons = tabs.filter( function ( t ) { return t.classList.contains( 'a-ctab-icon' ); } );
+		var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
+		var iconsW = icons.reduce( function ( s, t ) { return s + width( t ) + gap; }, gap );
+		var rows = [ [] ], used = 0;
+		plain.forEach( function ( t ) {
+			var w = width( t );
+			if ( rows[ rows.length - 1 ].length && used + gap + w > room ) { rows.push( [] ); used = 0; }
+			used += ( rows[ rows.length - 1 ].length ? gap : 0 ) + w;
+			rows[ rows.length - 1 ].push( t );
+		} );
+		var active = plain.filter( function ( t ) { return t.getAttribute( 'aria-pressed' ) === 'true'; } )[ 0 ];
+		var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
+		if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
+		var lastW = rows[ rows.length - 1 ].reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 );
+		var iconsOnTop = lastW + iconsW > room;
+		if ( iconsOnTop ) { rows.unshift( [] ); }
+		row.classList.add( 'is-stacked' );
+		rows.forEach( function ( r, n ) {
+			var last = n === rows.length - 1;
+			r.forEach( function ( t ) { t.style.order = n * 2; if ( ! last ) { t.classList.add( 'is-back' ); } } );
+			if ( ! last ) { var b = document.createElement( 'span' ); b.className = 'a-ctabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = n * 2 + 1; row.appendChild( b ); }
+		} );
+		icons.forEach( function ( t, i ) { t.style.order = iconsOnTop ? 0 : ( rows.length - 1 ) * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; if ( iconsOnTop ) { t.classList.add( 'is-back' ); } } );
+	}
+	var stackAppWait;
+	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackAppWait ); stackAppWait = requestAnimationFrame( stackAppTabs ); } );
 	function viewYou() {
 		if ( ! me.p || ! mine.loaded ) {
 			root.innerHTML = '<main class="a-main" id="main">' + topRow( '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a>' ) + ( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' ) + bar( 'you' );
@@ -672,7 +710,8 @@
 		} ); }
 		bindTabEdit();
 		$$( '[data-coll]' ).forEach( function ( b ) { longPress( b, function () { if ( b.dataset.coll ) { openTabEdit(); } } ); } );
-		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); } ); } );
+		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); stackAppTabs(); } ); } );
+		stackAppTabs();
 		bindYouGrid();
 	}
 	function bindYouGrid() {
