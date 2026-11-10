@@ -13,87 +13,100 @@
 	   was before. When you're signed in, reload it so changes from the app show. */
 	window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted && document.body && document.body.classList.contains( 'logged-in' ) ) { location.reload(); } } );
 
-	/* Stacked folders as an index-card box (0.2.119, Celestine 9 Nov; first stacked in 0.2.118): when the folder tabs
-	   don't fit in one row they wrap into rows. The open folder's row is in front, against the photos, with Journal,
-	   Guest book and Favourites at its right (folders that don't fit beside them move back). Rows behind tuck under
-	   the one in front (CSS .is-stacked .is-back) and each gets a card edge (.st-tabs-card), a shade darker per row. */
-	function stackTabs() {
+	/* Folder tabs on one row (0.2.120, Celestine 10 Nov; replaces the stacked rows of 0.2.118–0.2.119). When the
+	   collections don't fit, the open one stays in front in full and the others overlap like folders in a drawer,
+	   each showing its start (and its colour edge, if the owner chose one). Press and slide along the row to see each
+	   full name; let go to open the one under your finger. A quick tap opens straight away; a mouse shows it on hover. */
+	function fanTabs() {
 		document.querySelectorAll( '.st-tabs' ).forEach( function ( nav ) {
 			var scroll = nav.querySelector( '[data-st-scroll]' );
-			var tabs = Array.prototype.slice.call( nav.querySelectorAll( '.st-tab' ) );
 			if ( ! scroll ) { return; }
-			nav.classList.remove( 'is-stacked' );
-			nav.querySelectorAll( '.st-tabs-break, .st-tabs-card' ).forEach( function ( b ) { b.remove(); } );
-			tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.style.zIndex = ''; t.style.removeProperty( '--depth' ); t.classList.remove( 'is-back' ); } );
-			if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
-			var gap = 4, room = nav.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
-			var rowW = function ( r ) { return r.reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 ); };
-			var icons = tabs.filter( function ( t ) { return t.classList.contains( 'st-tab-icon' ); } );
-			var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
-			var iconsW = rowW( icons ) + gap;
-			// Pack the folders into rows by their widths, in their own order.
-			var rows = [ [] ], used = 0;
-			plain.forEach( function ( t ) {
-				var w = width( t );
-				if ( rows[ rows.length - 1 ].length && used + gap + w > room ) { rows.push( [] ); used = 0; }
-				used += ( rows[ rows.length - 1 ].length ? gap : 0 ) + w;
-				rows[ rows.length - 1 ].push( t );
+			var tabs = Array.prototype.slice.call( scroll.querySelectorAll( '.st-tab' ) );
+			nav.classList.remove( 'is-fan' );
+			tabs.forEach( function ( t ) { t.classList.remove( 'is-peek' ); t.style.marginLeft = ''; t.style.marginRight = ''; t.style.zIndex = ''; delete t.dataset.slot; delete t.dataset.full; var f = t.querySelector( '.st-tab-face' ); if ( f ) { f.style.maxWidth = ''; } } );
+			if ( tabs.length < 2 || scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
+			var room = scroll.clientWidth, ov = 10;
+			var active = scroll.querySelector( '.st-tab.is-active' ) || tabs[ 0 ];
+			var full = tabs.map( function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); } );
+			nav.classList.add( 'is-fan' );
+			// Each folder tucks its left edge under the one before it; the folder right after the open one starts at
+			// its edge instead, so it isn't hidden behind it.
+			// Every other folder keeps a strip of at least 12px (enough to press and slide from); a very long open name gives way (with …) to make room.
+			var ai = tabs.indexOf( active ), aw = Math.ceil( active.getBoundingClientRect().width ), n = tabs.length - 1;
+			var most = Math.max( 64, room - n * 12 - ( ai < n ? ov : 0 ) );
+			if ( aw > most ) { aw = most; active.querySelector( '.st-tab-face' ).style.maxWidth = aw + 'px'; active.dataset.slot = aw; active.dataset.full = full[ ai ]; }
+			var tucks = n - ( ai < n ? 1 : 0 ), slot = Math.max( 14, Math.floor( ( room - aw + ov * tucks ) / n ) );
+			tabs.forEach( function ( t, i ) {
+				if ( t !== active ) { t.querySelector( '.st-tab-face' ).style.maxWidth = slot + 'px'; t.dataset.slot = slot; t.dataset.full = full[ i ]; }
+				if ( i > 0 && i !== ai + 1 ) { t.style.marginLeft = -ov + 'px'; }
+				t.style.zIndex = t === active ? 100 : i + 1;
 			} );
-			// The open folder's row goes in front; the others keep their order behind it.
-			var active = nav.querySelector( '.st-tab.is-active' );
-			var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
-			if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
-			// Make room for the icon tabs in the front row: the other folders there move to a row just behind it.
-			var front = rows[ rows.length - 1 ], moved = [];
-			while ( front.length > 1 && rowW( front ) + iconsW > room ) {
-				moved.unshift( front.splice( front[ front.length - 1 ] === active ? 0 : front.length - 1, 1 )[ 0 ] );
+			// A one-time hint for touch screens, so visitors know the names are there.
+			if ( window.matchMedia && window.matchMedia( '(hover: none)' ).matches && ! store.get( 'stubli-fan-tip' ) && ! ( nav.nextElementSibling && nav.nextElementSibling.classList.contains( 'st-fan-tip' ) ) && T.fanTip ) {
+				var tip = document.createElement( 'p' ); tip.className = 'st-fan-tip'; tip.textContent = T.fanTip;
+				nav.parentNode.insertBefore( tip, nav.nextSibling ); store.set( 'stubli-fan-tip', '1' );
 			}
-			if ( moved.length ) { rows.splice( rows.length - 1, 0, moved ); }
-			// Only when even the open folder alone has no room beside them do they get a back row of their own.
-			var iconsOwnRow = icons.length && rowW( front ) + iconsW > room;
-			if ( iconsOwnRow ) { rows.unshift( icons.slice() ); }
-			nav.classList.add( 'is-stacked' );
-			rows.forEach( function ( r, n ) {
-				var last = n === rows.length - 1;
-				r.forEach( function ( t ) {
-					t.style.order = n * 2; t.style.zIndex = n * 2 + 2;
-					if ( ! last ) { t.classList.add( 'is-back' ); t.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) ); }
-				} );
-				if ( ! last ) {
-					var b = document.createElement( 'span' );
-					b.className = 'st-tabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = n * 2 + 1;
-					nav.appendChild( b );
-				}
-			} );
-			if ( ! iconsOwnRow ) {
-				icons.forEach( function ( t, i ) { t.style.order = ( rows.length - 1 ) * 2; t.style.zIndex = rows.length * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; } );
-			} else if ( icons.length ) { icons[ 0 ].style.marginLeft = 'auto'; }
-			// Each back row's card edge: a full-width band from the bottom of its tabs to the bottom of the row in front.
-			var navTop = nav.getBoundingClientRect().top;
-			var bottom = function ( r ) { return Math.max.apply( null, r.map( function ( t ) { return t.getBoundingClientRect().bottom; } ) ); };
-			rows.forEach( function ( r, n ) {
-				if ( n === rows.length - 1 ) { return; }
-				var top = bottom( r ), below = bottom( rows[ n + 1 ] );
-				var card = document.createElement( 'span' );
-				card.className = 'st-tabs-card'; card.setAttribute( 'aria-hidden', 'true' );
-				card.style.top = ( top - navTop - 1 ) + 'px'; card.style.height = ( below - top + 1 ) + 'px';
-				card.style.zIndex = n * 2 + 1; card.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) );
-				nav.appendChild( card );
-			} );
 		} );
 	}
-	stackTabs();
-	window.addEventListener( 'load', stackTabs );
-	var stackWait;
-	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackWait ); stackWait = requestAnimationFrame( stackTabs ); } );
-	// Lift on touch (Celestine 9 Nov): a folder in a back row rises as soon as a finger (or the mouse button) goes down, before it opens.
+	fanTabs();
+	window.addEventListener( 'load', fanTabs );
+	var fanWait;
+	window.addEventListener( 'resize', function () { cancelAnimationFrame( fanWait ); fanWait = requestAnimationFrame( fanTabs ); } );
+	// Raise one folder with its whole name, without moving the others: it grows over its neighbours.
+	function peekTab( t, on ) {
+		if ( ! t ) { return; }
+		t.classList.toggle( 'is-peek', on );
+		if ( ! t.dataset.slot ) { return; }
+		t.querySelector( '.st-tab-face' ).style.maxWidth = on ? 'none' : t.dataset.slot + 'px';
+		t.style.marginRight = on ? ( t.dataset.slot - t.dataset.full ) + 'px' : '';
+	}
+	// Press and slide: the folder under your finger shows its whole name; letting go opens it.
+	var fan = null;
+	function fanTabAt( nav, x ) {
+		var tabs = Array.prototype.slice.call( nav.querySelectorAll( '[data-st-scroll] .st-tab' ) ), hit = null;
+		var active = nav.querySelector( '[data-st-scroll] .st-tab.is-active' );
+		// Measure the open folder at its resting width, even while it is raised.
+		if ( active ) { var box = active.getBoundingClientRect(), right = active.dataset.slot ? box.left + ( +active.dataset.slot ) : box.right; if ( x >= box.left && x <= right ) { return active; } }
+		tabs.forEach( function ( t ) { if ( t.getBoundingClientRect().left <= x ) { hit = t; } } );
+		return hit;
+	}
+	function fanPeek( t ) {
+		if ( fan.peek === t ) { return; }
+		peekTab( fan.peek, false );
+		fan.peek = t; peekTab( t, true );
+	}
 	document.addEventListener( 'pointerdown', function ( e ) {
-		var t = e.target.closest && e.target.closest( '.st-tabs.is-stacked .st-tab.is-back' );
-		if ( t ) { t.classList.add( 'is-lift' ); }
+		var t = e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll] .st-tab' );
+		if ( ! t || e.button > 0 ) { return; }
+		fan = { nav: t.closest( '.st-tabs' ), start: t, peek: null };
+		fanPeek( t );
 	} );
-	[ 'pointerup', 'pointercancel' ].forEach( function ( ev ) {
-		document.addEventListener( ev, function () { document.querySelectorAll( '.st-tab.is-lift' ).forEach( function ( t ) { t.classList.remove( 'is-lift' ); } ); }, true );
+	document.addEventListener( 'pointermove', function ( e ) {
+		if ( ! fan ) { return; }
+		var r = fan.nav.getBoundingClientRect();
+		fanPeek( e.clientY > r.top - 40 && e.clientY < r.bottom + 40 ? fanTabAt( fan.nav, e.clientX ) : null );
 	} );
+	document.addEventListener( 'pointerup', function () {
+		if ( ! fan ) { return; }
+		var go = fan.peek, start = fan.start; fanPeek( null ); fan = null;
+		if ( go && go !== start && go.href ) { location.href = go.href; } // Same tab: the normal tap opens it.
+	} );
+	document.addEventListener( 'pointercancel', function () { if ( fan ) { fanPeek( null ); fan = null; } } );
+	// A mouse shows the name on hover; the keyboard on focus.
+	document.addEventListener( 'pointerover', function ( e ) {
+		if ( fan || 'mouse' !== e.pointerType ) { return; }
+		var t = e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll] .st-tab' );
+		if ( t && ! t.contains( e.relatedTarget ) ) { peekTab( t, true ); }
+	} );
+	document.addEventListener( 'pointerout', function ( e ) {
+		if ( fan || 'mouse' !== e.pointerType ) { return; }
+		var t = e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll] .st-tab' );
+		if ( t && ! t.contains( e.relatedTarget ) ) { peekTab( t, false ); }
+	} );
+	document.addEventListener( 'focusin', function ( e ) { var t = e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll] .st-tab' ); if ( t ) { peekTab( t, true ); } } );
+	document.addEventListener( 'focusout', function ( e ) { var t = e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll] .st-tab' ); if ( t ) { peekTab( t, false ); } } );
+	// A mouse would otherwise start dragging the link away.
+	document.addEventListener( 'dragstart', function ( e ) { if ( e.target.closest && e.target.closest( '.st-tabs.is-fan [data-st-scroll]' ) ) { e.preventDefault(); } } );
 
 	/* Reading mode: Light ↔ Paper. No dark mode since 0.2.117 (Celestine 8 Nov); a saved Auto or Dark reads as Light. */
 	var order = [ 'light', 'paper' ];

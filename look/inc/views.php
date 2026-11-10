@@ -326,7 +326,7 @@ function stubli_tabs( $active ) {
 				<?php endif; ?>
 				<?php foreach ( $collections as $term ) : ?>
 					<?php $is = ( (int) $active === (int) $term->term_id ); ?>
-					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $term ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?>><span class="st-tab-face"><span class="st-tab-label"><?php echo esc_html( stubli_collection_name( $term ) ); ?></span></span></a>
+					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $term ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?><?php echo stubli_tab_colour_attr( $term ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the helper. ?>><span class="st-tab-face"><span class="st-tab-label"><?php echo esc_html( stubli_collection_name( $term ) ); ?></span></span></a>
 				<?php endforeach; ?>
 			</div>
 			<?php $icon_tab( 'journal', false ); ?>

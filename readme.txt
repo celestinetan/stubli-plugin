@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.22
+Stable tag: 0.45.23
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.23 =
+* Collection tabs now stay on one neat row, on your page and in the app. When they don't all fit, the open one shows in full and the others tuck behind it like folders in a drawer. Press and slide along the row to see each name, and let go to open it; a quick tap opens a tab straight away, and on a computer hovering shows the name.
+* Give a collection's tab a colour: in the app, open Your collections and pick one of six soft colours for its top edge, or none.
 
 = 0.45.22 =
 * When your collections don't fit in one row, on your page and in the app, they now stack like cards in a box: the rows behind peek out above the one in front, and a tab lifts as soon as you touch it. On your page, Journal, guest book and Favourites stay beside the open collection instead of floating in a row of their own.

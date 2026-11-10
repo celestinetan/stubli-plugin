@@ -624,73 +624,90 @@
 	function smile() {
 		return '<svg class="a-smile" viewBox="0 0 60 80" width="26" height="35" aria-hidden="true" focusable="false"><path d="M10.5 35.5V52a19.5 19.5 0 0 0 39 0V35.5" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="19" cy="15" r="6.2" fill="currentColor"/><circle cx="41" cy="15" r="6.2" fill="currentColor"/></svg>';
 	}
-	// Stacked tabs in You as an index-card box (0.45.22, Celestine 9 Nov; first stacked in 0.45.21), as on the page
-	// since theme 0.2.119: when the collection tabs don't fit in one row they wrap into rows. The open one's row is in
-	// front with Journal, arrange, guest book and Favourites at its right (others move back to make room); rows
-	// behind tuck under it, a shade darker each, with a full-width card edge (.a-ctabs-card).
-	function stackAppTabs() {
+	// Collection tabs in You on one row (0.45.23, Celestine 10 Nov; replaces the stacked rows of 0.45.21–0.45.22), as on
+	// the page since theme 0.2.120: when they don't fit, the open one stays in front in full and the others overlap,
+	// each showing its start (and its colour edge). Press and slide to see each name; let go to open that one.
+	function fanAppTabs() {
 		var row = $( '.a-ctabs-row' ), scroll = row && row.querySelector( '.a-ctabs' );
 		if ( ! scroll ) { return; }
-		var tabs = Array.prototype.slice.call( row.querySelectorAll( '.a-ctab' ) );
-		row.classList.remove( 'is-stacked' );
-		$$( '.a-ctabs-break, .a-ctabs-card' ).forEach( function ( b ) { b.remove(); } );
-		tabs.forEach( function ( t ) { t.style.order = ''; t.style.marginLeft = ''; t.style.zIndex = ''; t.style.removeProperty( '--depth' ); t.classList.remove( 'is-back' ); } );
-		if ( scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
-		var gap = 4, room = row.clientWidth, width = function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); };
-		var rowW = function ( r ) { return r.reduce( function ( s, t ) { return s + width( t ) + gap; }, 0 ); };
-		var icons = tabs.filter( function ( t ) { return t.classList.contains( 'a-ctab-icon' ); } );
-		var plain = tabs.filter( function ( t ) { return icons.indexOf( t ) < 0; } );
-		var iconsW = rowW( icons ) + gap;
-		var rows = [ [] ], used = 0;
-		plain.forEach( function ( t ) {
-			var w = width( t );
-			if ( rows[ rows.length - 1 ].length && used + gap + w > room ) { rows.push( [] ); used = 0; }
-			used += ( rows[ rows.length - 1 ].length ? gap : 0 ) + w;
-			rows[ rows.length - 1 ].push( t );
-		} );
-		var active = plain.filter( function ( t ) { return t.getAttribute( 'aria-pressed' ) === 'true'; } )[ 0 ];
-		var ri = rows.findIndex( function ( r ) { return r.indexOf( active ) >= 0; } );
-		if ( ri >= 0 ) { rows.push( rows.splice( ri, 1 )[ 0 ] ); }
-		var front = rows[ rows.length - 1 ], moved = [];
-		while ( front.length > 1 && rowW( front ) + iconsW > room ) {
-			moved.unshift( front.splice( front[ front.length - 1 ] === active ? 0 : front.length - 1, 1 )[ 0 ] );
-		}
-		if ( moved.length ) { rows.splice( rows.length - 1, 0, moved ); }
-		var iconsOwnRow = icons.length && rowW( front ) + iconsW > room;
-		if ( iconsOwnRow ) { rows.unshift( icons.slice() ); }
-		row.classList.add( 'is-stacked' );
-		rows.forEach( function ( r, n ) {
-			var last = n === rows.length - 1;
-			r.forEach( function ( t ) {
-				t.style.order = n * 2; t.style.zIndex = n * 2 + 2;
-				if ( ! last ) { t.classList.add( 'is-back' ); t.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) ); }
-			} );
-			if ( ! last ) { var b = document.createElement( 'span' ); b.className = 'a-ctabs-break'; b.setAttribute( 'aria-hidden', 'true' ); b.style.order = n * 2 + 1; row.appendChild( b ); }
-		} );
-		if ( ! iconsOwnRow ) {
-			icons.forEach( function ( t, i ) { t.style.order = ( rows.length - 1 ) * 2; t.style.zIndex = rows.length * 2; t.style.marginLeft = 0 === i ? 'auto' : ''; } );
-		} else if ( icons.length ) { icons[ 0 ].style.marginLeft = 'auto'; }
-		var rowTop = row.getBoundingClientRect().top;
-		var bottom = function ( r ) { return Math.max.apply( null, r.map( function ( t ) { return t.getBoundingClientRect().bottom; } ) ); };
-		rows.forEach( function ( r, n ) {
-			if ( n === rows.length - 1 ) { return; }
-			var top = bottom( r ), below = bottom( rows[ n + 1 ] ), card = document.createElement( 'span' );
-			card.className = 'a-ctabs-card'; card.setAttribute( 'aria-hidden', 'true' );
-			card.style.top = ( top - rowTop - 1 ) + 'px'; card.style.height = ( below - top + 1 ) + 'px';
-			card.style.zIndex = n * 2 + 1; card.style.setProperty( '--depth', Math.min( 3, rows.length - 1 - n ) );
-			row.appendChild( card );
+		var tabs = Array.prototype.slice.call( scroll.querySelectorAll( '.a-ctab' ) );
+		row.classList.remove( 'is-fan' );
+		tabs.forEach( function ( t ) { t.classList.remove( 'is-peek' ); t.style.marginLeft = ''; t.style.marginRight = ''; t.style.zIndex = ''; t.style.maxWidth = ''; delete t.dataset.slot; delete t.dataset.full; } );
+		if ( tabs.length < 2 || scroll.scrollWidth <= scroll.clientWidth + 1 ) { return; }
+		var room = scroll.clientWidth, ov = 10;
+		var active = tabs.filter( function ( t ) { return t.getAttribute( 'aria-pressed' ) === 'true'; } )[ 0 ] || tabs[ 0 ];
+		var full = tabs.map( function ( t ) { return Math.ceil( t.getBoundingClientRect().width ); } );
+		row.classList.add( 'is-fan' );
+		// Each tab tucks its left edge under the one before it; the tab right after the open one starts at its edge.
+		// Every other tab keeps a strip of at least 12px (enough to press and slide from); a very long open name gives way (with …) to make room.
+		var ai = tabs.indexOf( active ), aw = Math.ceil( active.getBoundingClientRect().width ), n = tabs.length - 1;
+		var most = Math.max( 64, room - n * 12 - ( ai < n ? ov : 0 ) );
+		if ( aw > most ) { aw = most; active.style.maxWidth = aw + 'px'; active.dataset.slot = aw; active.dataset.full = full[ ai ]; }
+		var tucks = n - ( ai < n ? 1 : 0 ), slot = Math.max( 14, Math.floor( ( room - aw + ov * tucks ) / n ) );
+		tabs.forEach( function ( t, i ) {
+			if ( t !== active ) { t.style.maxWidth = slot + 'px'; t.dataset.slot = slot; t.dataset.full = full[ i ]; }
+			if ( i > 0 && i !== ai + 1 ) { t.style.marginLeft = -ov + 'px'; }
+			t.style.zIndex = t === active ? 100 : i + 1;
 		} );
 	}
-	// Lift on touch (Celestine 9 Nov): a tab in a back row rises as soon as a finger goes down, before it opens.
+	// Raise one tab with its whole name, without moving the others: it grows over its neighbours.
+	function peekAppTab( t, on ) {
+		if ( ! t ) { return; }
+		t.classList.toggle( 'is-peek', on );
+		if ( ! t.dataset.slot ) { return; }
+		t.style.maxWidth = on ? 'none' : t.dataset.slot + 'px';
+		t.style.marginRight = on ? ( t.dataset.slot - t.dataset.full ) + 'px' : '';
+	}
+	var appFan = null, fanTab = '.a-ctabs-row.is-fan .a-ctabs .a-ctab';
+	function appFanPeek( t ) {
+		if ( appFan.peek === t ) { return; }
+		peekAppTab( appFan.peek, false );
+		appFan.peek = t; peekAppTab( t, true );
+	}
 	document.addEventListener( 'pointerdown', function ( e ) {
-		var t = e.target.closest && e.target.closest( '.a-ctabs-row.is-stacked .a-ctab.is-back' );
-		if ( t ) { t.classList.add( 'is-lift' ); }
+		var t = e.target.closest && e.target.closest( fanTab );
+		if ( ! t || e.button > 0 ) { return; }
+		appFan = { row: t.closest( '.a-ctabs-row' ), start: t, peek: null };
+		appFanPeek( t );
 	} );
-	[ 'pointerup', 'pointercancel' ].forEach( function ( ev ) {
-		document.addEventListener( ev, function () { $$( '.a-ctab.is-lift' ).forEach( function ( t ) { t.classList.remove( 'is-lift' ); } ); }, true );
+	document.addEventListener( 'pointermove', function ( e ) {
+		if ( ! appFan ) { return; }
+		var tabs = $$( fanTab ), hit = null, x = e.clientX, r = appFan.row.getBoundingClientRect();
+		var active = tabs.filter( function ( t ) { return t.getAttribute( 'aria-pressed' ) === 'true'; } )[ 0 ];
+		// Measure the open tab at its resting width, even while it is raised.
+		if ( active ) { var box = active.getBoundingClientRect(), right = active.dataset.slot ? box.left + ( +active.dataset.slot ) : box.right; if ( x >= box.left && x <= right ) { hit = active; } }
+		if ( ! hit ) { tabs.forEach( function ( t ) { if ( t.getBoundingClientRect().left <= x ) { hit = t; } } ); }
+		appFanPeek( e.clientY > r.top - 40 && e.clientY < r.bottom + 40 ? hit : null );
 	} );
-	var stackAppWait;
-	window.addEventListener( 'resize', function () { cancelAnimationFrame( stackAppWait ); stackAppWait = requestAnimationFrame( stackAppTabs ); } );
+	document.addEventListener( 'pointerup', function () {
+		if ( ! appFan ) { return; }
+		var go = appFan.peek, start = appFan.start; appFanPeek( null ); appFan = null;
+		if ( go && go !== start && go.isConnected ) { go.click(); } // Same tab: the normal tap opens it.
+	} );
+	document.addEventListener( 'pointercancel', function () { if ( appFan ) { appFanPeek( null ); appFan = null; } } );
+	// A mouse shows the name on hover; the keyboard on focus.
+	document.addEventListener( 'pointerover', function ( e ) {
+		if ( appFan || 'mouse' !== e.pointerType ) { return; }
+		var t = e.target.closest && e.target.closest( fanTab );
+		if ( t && ! t.contains( e.relatedTarget ) ) { peekAppTab( t, true ); }
+	} );
+	document.addEventListener( 'pointerout', function ( e ) {
+		if ( appFan || 'mouse' !== e.pointerType ) { return; }
+		var t = e.target.closest && e.target.closest( fanTab );
+		if ( t && ! t.contains( e.relatedTarget ) ) { peekAppTab( t, false ); }
+	} );
+	document.addEventListener( 'focusin', function ( e ) { var t = e.target.closest && e.target.closest( fanTab ); if ( t ) { peekAppTab( t, true ); } } );
+	document.addEventListener( 'focusout', function ( e ) { var t = e.target.closest && e.target.closest( fanTab ); if ( t ) { peekAppTab( t, false ); } } );
+	var fanAppWait;
+	window.addEventListener( 'resize', function () { cancelAnimationFrame( fanAppWait ); fanAppWait = requestAnimationFrame( fanAppTabs ); } );
+	// The colour edge of each collection tab, once the list of collections (with their colours) is here.
+	function paintTabColours() {
+		if ( ! ar.list ) { return; }
+		$$( '.a-ctabs [data-coll]' ).forEach( function ( b ) {
+			var c = ar.list.filter( function ( x ) { return x.name === b.dataset.coll; } )[ 0 ];
+			if ( c && c.colour ) { b.dataset.colour = c.colour; } else { delete b.dataset.colour; }
+		} );
+	}
 	function viewYou() {
 		if ( ! me.p || ! mine.loaded ) {
 			root.innerHTML = '<main class="a-main" id="main">' + topRow( '<a class="a-text-btn" href="#more" aria-label="' + esc( __( 'Settings and more', 'stubli' ) ) + '">' + icon( 'menu', 22 ) + '</a>' ) + ( '<h1 class="sr">' + __( 'You', 'stubli' ) + '</h1><div class="a-feed-skel" aria-hidden="true"><span style="height:150px"></span><span style="height:220px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>' ) + bar( 'you' );
@@ -718,7 +735,7 @@
 			( '<div class="a-you-btns"><a class="a-btn quiet" href="#about">' + __( 'Edit page', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-share>' + __( 'Share', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-invite-toggle aria-expanded="' ) + me.inviteOpen + ( '">' + __( 'Invite', 'stubli' ) + '</button></div>' ) +
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || ( latest.kind === 'entry' ? __( 'Journal entry', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
-			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '">' + esc( c || __( 'All', 'stubli' ) ) + '</button>'; } ).join( '' ) + '</div>' +
+			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '"><span class="a-ctab-l">' + esc( c || __( 'All', 'stubli' ) ) + '</span></button>'; } ).join( '' ) + '</div>' +
 				'<a class="a-ctab a-ctab-icon" href="#journals" aria-label="' + esc( __( 'Your journal', 'stubli' ) ) + '" title="' + esc( __( 'Your journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
 				'<span class="a-ctabs-gap"></span>' +
@@ -739,8 +756,9 @@
 		} ); }
 		bindTabEdit();
 		$$( '[data-coll]' ).forEach( function ( b ) { longPress( b, function () { if ( b.dataset.coll ) { openTabEdit(); } } ); } );
-		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); stackAppTabs(); } ); } );
-		stackAppTabs();
+		$$( '[data-coll]' ).forEach( function ( b ) { b.addEventListener( 'click', function ( e ) { if ( b.dataset.lp ) { delete b.dataset.lp; e.preventDefault(); return; } me.coll = b.dataset.coll; swap( '[data-you-grid]', '<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>', bindYouGrid ); $$( '[data-coll]' ).forEach( function ( x ) { x.setAttribute( 'aria-pressed', x.dataset.coll === me.coll ); } ); fanAppTabs(); } ); } );
+		paintTabColours();
+		fanAppTabs();
 		bindYouGrid();
 	}
 	function bindYouGrid() {
@@ -756,7 +774,7 @@
 
 	// The short line of the collection you're looking at, as on your page.
 	function youLine() {
-		if ( ! ar.list ) { if ( ! ar.loading ) { ar.loading = true; send( 'GET', 'arrange', null ).then( function ( r ) { ar.list = r.collections; ar.loading = false; var yl = $( '[data-you-line]' ); if ( yl && location.hash === '#you' ) { yl.innerHTML = youLine(); } }, function () { ar.loading = false; } ); } return ''; }
+		if ( ! ar.list ) { if ( ! ar.loading ) { ar.loading = true; send( 'GET', 'arrange', null ).then( function ( r ) { ar.list = r.collections; ar.loading = false; paintTabColours(); var yl = $( '[data-you-line]' ); if ( yl && location.hash === '#you' ) { yl.innerHTML = youLine(); } }, function () { ar.loading = false; } ); } return ''; }
 		if ( ! me.coll ) { return ''; }
 		var name = me.coll;
 		var c = ar.list.filter( function ( x ) { return x.name === name; } )[ 0 ];
@@ -786,7 +804,7 @@
 	function tabEditHtml() {
 		var list = ar.list;
 		return '<section class="a-card a-tabedit" aria-labelledby="a-te-h"><div class="a-tabedit-head"><h2 id="a-te-h" tabindex="-1" data-tabedit-title>' + __( 'Your collections', 'stubli' ) + '</h2><button type="button" class="a-btn' + ( me.renaming ? ' quiet' : '' ) + '" data-tabedit-done>' + __( 'Done', 'stubli' ) + '</button></div>' +
-			'<p class="muted">' + __( 'Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one or give it a short line.', 'stubli' ) + '</p>' +
+			'<p class="muted">' + __( 'Drag to change the order of your tabs; the first one is what visitors see first. Tap the pencil to rename one or give it a short line. Pick a colour for a tab\'s top edge, or none.', 'stubli' ) + '</p>' +
 			( ! list ? '<p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' : '<ul class="a-tabedit-list" data-te-list>' + list.map( function ( c, i ) {
 				if ( me.renaming === c.id ) {
 					return '<li data-id="' + c.id + '" class="is-renaming"><div class="a-te-form"><label class="a-label" for="a-te-name">' + __( 'Name', 'stubli' ) + '</label><input id="a-te-name" class="a-field" maxlength="40" value="' + esc( c.name ) + '">' +
@@ -797,10 +815,17 @@
 				return '<li data-id="' + c.id + '"><span class="a-te-grip" data-te-grip aria-hidden="true">' + icon( 'grip', 18 ) + '</span><span class="a-te-name"><strong>' + esc( c.name ) + '</strong><small class="muted">' + esc( c.description || ( c.count === 1 ? __( '1 post', 'stubli' ) : _f( __( '%s posts', 'stubli' ), c.count ) ) ) + '</small></span>' +
 					'<button type="button" class="a-icon-btn" data-te-ren="' + c.id + '" aria-label="' + esc( _f( __( 'Edit the name and line of %s', 'stubli' ), c.name ) ) + '">' + icon( 'pen', 17 ) + '</button>' +
 					'<button type="button" class="a-icon-btn" data-te-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), c.name ) ) + '">' + icon( 'up', 18 ) + '</button>' +
-					'<button type="button" class="a-icon-btn" data-te-move="' + i + '" data-dir="1"' + ( i === list.length - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), c.name ) ) + '">' + icon( 'down', 18 ) + '</button></li>';
+					'<button type="button" class="a-icon-btn" data-te-move="' + i + '" data-dir="1"' + ( i === list.length - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), c.name ) ) + '">' + icon( 'down', 18 ) + '</button>' +
+					'<span class="a-te-colours" role="group" aria-label="' + esc( _f( __( 'Colour of the %s tab', 'stubli' ), c.name ) ) + '">' + tabColours().map( function ( k ) {
+						return '<button type="button" class="a-te-dot' + ( k[ 0 ] ? '' : ' is-none' ) + '"' + ( k[ 0 ] ? ' data-colour="' + k[ 0 ] + '"' : '' ) + ' data-te-colour="' + c.id + '" data-c="' + k[ 0 ] + '" aria-pressed="' + ( ( c.colour || '' ) === k[ 0 ] ) + '" aria-label="' + esc( k[ 1 ] ) + '" title="' + esc( k[ 1 ] ) + '"></button>';
+					} ).join( '' ) + '</span></li>';
 			} ).join( '' ) + '</ul>' ) +
 			'<p class="a-help" aria-live="polite" data-te-msg>' + esc( me.editMsg || '' ) + '</p>' +
 			'<p class="a-help">' + __( 'Tip: hold a photo to pin it to the top of its collection, or to put the whole collection in your own order.', 'stubli' ) + '</p></section>';
+	}
+	// The colours a tab's top edge can have (Celestine 10 Nov), and none.
+	function tabColours() {
+		return [ [ '', __( 'No colour', 'stubli' ) ], [ 'ochre', __( 'Ochre', 'stubli' ) ], [ 'clay', __( 'Clay', 'stubli' ) ], [ 'slate', __( 'Slate', 'stubli' ) ], [ 'heather', __( 'Heather', 'stubli' ) ], [ 'sage', __( 'Sage', 'stubli' ) ], [ 'rose', __( 'Rose', 'stubli' ) ] ];
 	}
 	function saveTabOrder( ids ) {
 		var before = ar.list.map( function ( c ) { return c.id; } ).join( ',' );
@@ -820,6 +845,13 @@
 			saveTabOrder( ids ); var again = $( '[data-te-move="' + j + '"][data-dir="' + b.dataset.dir + '"]' ) || $( '[data-te-move="' + j + '"]' ); if ( again ) { again.focus(); }
 		} ); } );
 		$$( '[data-te-ren]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { me.renaming = +b.dataset.teRen; viewYou(); var f = $( '#a-te-name' ); if ( f ) { f.focus(); f.select(); } } ); } );
+		$$( '[data-te-colour]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var id = +b.dataset.teColour, c = b.dataset.c;
+			ar.list.forEach( function ( x ) { if ( x.id === id ) { x.colour = c; } } );
+			me.editMsg = __( 'Saving…', 'stubli' ); viewYou();
+			var again = $( '[data-te-colour="' + id + '"][data-c="' + c + '"]' ); if ( again ) { again.focus(); }
+			send( 'POST', 'arrange/' + id, { colour: c } ).then( function ( r ) { ar.list = r.collections; me.editMsg = __( 'Saved. Your page shows it now.', 'stubli' ); if ( location.hash === '#you' ) { viewYou(); var f = $( '[data-te-colour="' + id + '"][data-c="' + c + '"]' ); if ( f ) { f.focus(); } } }, function ( e ) { me.editMsg = e.message; viewYou(); } );
+		} ); } );
 		var cancel = $( '[data-te-cancel]' ); if ( cancel ) { cancel.addEventListener( 'click', function () { me.renaming = 0; viewYou(); } ); }
 		var sv = $( '[data-te-save]' );
 		if ( sv ) {

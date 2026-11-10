@@ -267,6 +267,18 @@ function stubli_collection_name( $term ) {
 }
 
 /**
+ * The colour edge an owner chose for a collection's tab (Celestine 10 Nov), as a data attribute, or nothing.
+ * Stored by the Stubli plugin as term meta; only the six named colours are allowed.
+ *
+ * @param WP_Term $term Collection.
+ * @return string
+ */
+function stubli_tab_colour_attr( $term ) {
+	$c = (string) get_term_meta( (int) $term->term_id, 'stubli_tab_colour', true );
+	return in_array( $c, array( 'ochre', 'clay', 'slate', 'heather', 'sage', 'rose' ), true ) ? ' data-colour="' . esc_attr( $c ) . '"' : '';
+}
+
+/**
  * Photo posts in a collection (or all), newest first. A page shows every
  * one of them, no cut-off (Celestine, 29 Oct); images load lazily as they
  * scroll into view. Pass $per to take only the newest few.

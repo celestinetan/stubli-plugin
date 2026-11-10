@@ -115,6 +115,7 @@ class Arrange {
 					'name'        => self::name( $t ),
 					'count'       => (int) $q->found_posts,
 					'description' => self::plain( (string) $t->description ),
+					'colour'      => self::colour( (int) $t->term_id ),
 				);
 			}
 		}
@@ -311,6 +312,20 @@ class Arrange {
 		);
 	}
 
+	/** The six colours a collection's tab edge may have (Celestine 10 Nov), by name; the look draws them. */
+	const COLOURS = array( 'ochre', 'clay', 'slate', 'heather', 'sage', 'rose' );
+
+	/**
+	 * A collection's tab colour, or '' for none.
+	 *
+	 * @param int $cat Category ID.
+	 * @return string
+	 */
+	public static function colour( $cat ) {
+		$c = (string) get_term_meta( $cat, 'stubli_tab_colour', true );
+		return in_array( $c, self::COLOURS, true ) ? $c : '';
+	}
+
 	/**
 	 * REST routes, owner only.
 	 */
@@ -347,6 +362,22 @@ class Arrange {
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => static function ( \WP_REST_Request $r ) {
 						$cat = (int) $r['cat'];
+						// The colour edge of its tab, or none.
+						if ( null !== $r['colour'] ) {
+							$term = get_term( $cat, 'category' );
+							if ( ! $term || is_wp_error( $term ) ) {
+								return new \WP_Error( 'stubli_no_collection', __( 'That collection isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
+							}
+							$c = (string) $r['colour'];
+							if ( in_array( $c, self::COLOURS, true ) ) {
+								update_term_meta( $cat, 'stubli_tab_colour', $c );
+							} else {
+								delete_term_meta( $cat, 'stubli_tab_colour' );
+							}
+							if ( null === $r['name'] && null === $r['description'] && null === $r['pins'] && null === $r['hand'] ) {
+								return rest_ensure_response( array( 'collections' => self::collections() ) );
+							}
+						}
 						// The collection's name and the short line shown under its tab.
 						if ( null !== $r['name'] || null !== $r['description'] ) {
 							$term = get_term( $cat, 'category' );

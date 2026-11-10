@@ -1028,26 +1028,28 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 /* A guest's "from …, signed without a Stubli" wraps instead of being cut off (0.2.115). */
 .st-gb-sig .st-gb-ini + span .st-muted { white-space: normal; }
 
-/* Stacked folders (0.2.118, Celestine 8 Nov): when the folders don't fit in one row, they stack in rows instead of
-   sliding under Journal, Guest book and Favourites. The row with the open folder sits against the photos; the rows
-   behind it are a little shorter and a shade darker, like folders further back. Nothing changes when they fit. */
-/* Stacked folders as an index-card box (0.2.119): rows behind tuck under the one in front, showing a 26px strip,
-   each a shade darker, with a full-width card edge. A back folder lifts on touch (JS .is-lift) or hover. */
-.st-tabs.is-stacked { position: relative; flex-wrap: wrap; column-gap: 4px; row-gap: 0; }
-.st-tabs.is-stacked .st-tabs-left,
-.st-tabs.is-stacked .st-tabs-scroll,
-.st-tabs.is-stacked .st-tabs-right { display: contents; }
-.st-tabs.is-stacked .st-tab { position: relative; pointer-events: none; }
-.st-tabs.is-stacked .st-tab-face { pointer-events: auto; box-shadow: 0 -3px 5px -3px rgba(40, 36, 30, .16); transition: transform .16s ease-out, filter .16s ease-out; }
-.st-tabs.is-stacked .st-tab.is-back { margin-bottom: -18px; }
-.st-tabs.is-stacked .st-tab.is-back .st-tab-face { align-items: flex-start; padding-top: 4px; box-sizing: border-box; filter: brightness(calc(1 - .035 * var(--depth, 1))); }
-.st-tabs.is-stacked .st-tab.is-back.is-lift .st-tab-face,
-.st-tabs.is-stacked .st-tab.is-back:active .st-tab-face { transform: translateY(-7px); filter: none; }
-@media (hover: hover) {
-	.st-tabs.is-stacked .st-tab.is-back:hover .st-tab-face { transform: translateY(-5px); filter: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-	.st-tabs.is-stacked .st-tab-face { transition: none; }
-}
-.st-tabs-break { flex-basis: 100%; height: 0; }
-.st-tabs-card { position: absolute; left: 0; right: 0; pointer-events: none; background: var(--st-tab-off); filter: brightness(calc(1 - .035 * var(--depth, 1))); box-shadow: 0 -3px 5px -3px rgba(40, 36, 30, .16); }
+/* Folder tabs on one row (0.2.120, Celestine 10 Nov; replaces the stacked rows of 0.2.118–0.2.119). When they
+   don't fit, the open folder is in front in full and the others overlap, each showing its start. The tab under
+   a finger (JS .is-peek), the mouse or the keyboard rises and shows its full name. */
+.st-tabs.is-fan .st-tabs-scroll { overflow: visible; gap: 0; touch-action: pan-y; }
+.st-tabs.is-fan [data-st-scroll] .st-tab-face { overflow: hidden; box-sizing: border-box; transition: transform .14s ease-out; box-shadow: -3px 0 5px -2px rgba(40, 36, 30, .18); }
+.st-tabs.is-fan [data-st-scroll] .st-tab:first-child .st-tab-face { box-shadow: none; }
+.st-tabs.is-fan [data-st-scroll] .st-tab:not(.is-active) .st-tab-face { padding: 0 0 0 10px; }
+.st-tabs.is-fan [data-st-scroll] .st-tab:not(.is-active) .st-tab-label { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); }
+.st-tabs.is-fan [data-st-scroll] .st-tab.is-active .st-tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek { z-index: 200 !important; }
+.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek .st-tab-face { padding: 0 14px; transform: translateY(-6px); box-shadow: 0 -2px 10px rgba(40, 36, 30, .22); }
+.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek .st-tab-label { -webkit-mask-image: none; mask-image: none; }
+@media (prefers-reduced-motion: reduce) { .st-tabs.is-fan [data-st-scroll] .st-tab-face { transition: none; } }
+.st-fan-tip { margin: 6px 4px 0; font-size: 13px; color: var(--st-muted); }
+/* A collection's colour edge (Celestine 10 Nov): a thin line on top of its tab, chosen in the app. */
+.st-tab[data-colour="ochre"] { --st-edge: #d1a54a; }
+.st-tab[data-colour="clay"] { --st-edge: #c9826a; }
+.st-tab[data-colour="slate"] { --st-edge: #7c9db3; }
+.st-tab[data-colour="heather"] { --st-edge: #a98cb2; }
+.st-tab[data-colour="sage"] { --st-edge: #8fae86; }
+.st-tab[data-colour="rose"] { --st-edge: #c98a9a; }
+.st-tab[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge); }
+.st-tabs.is-fan [data-st-scroll] .st-tab[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge), -3px 0 5px -2px rgba(40, 36, 30, .18); }
+.st-tabs.is-fan [data-st-scroll] .st-tab[data-colour]:first-child .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge); }
+.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge), 0 -2px 10px rgba(40, 36, 30, .22); }

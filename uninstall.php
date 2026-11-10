@@ -33,6 +33,9 @@ foreach ( array( 'stubli_', 'og_' ) as $stubli_prefix ) {
 	}
 }
 
+// Tab colours of collections (0.45.23).
+delete_metadata( 'term', 0, 'stubli_tab_colour', '', true );
+
 // Archives made with "Download everything".
 $stubli_up = wp_upload_dir( null, false );
 foreach ( (array) glob( trailingslashit( $stubli_up['basedir'] ) . 'stubli-export/*' ) as $stubli_file ) {
