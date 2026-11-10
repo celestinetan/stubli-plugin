@@ -2596,7 +2596,7 @@
 				} ).join( '' ) + '</ol>';
 			} ).join( '' ) +
 			'<div class="a-actions">' + ( full ? '<p class="a-help">' + __( 'That\'s 100 favourites, the most a page can keep.', 'stubli' ) + '</p>' : '<a class="a-btn" href="#links/new">' + icon( 'plus', 18 ) + __( 'Add a favourite', 'stubli' ) + '</a>' ) +
-			( fav.groups.length > 1 ? '<a class="a-btn quiet" href="#links/groups">' + __( 'Arrange groups', 'stubli' ) + '</a>' : '' ) + '</div>' +
+			( fav.groups.length ? '<a class="a-btn quiet" href="#links/groups">' + __( 'Edit groups', 'stubli' ) + '</a>' : '' ) + '</div>' +
 			'<p class="a-help" aria-live="polite" data-fav-msg>' + esc( fav.msg ) + '</p></section>' +
 			'<section class="a-card"><h2>' + __( 'Sites you follow', 'stubli' ) + '</h2><p class="muted">' + __( 'The ones you follow publicly show under your favourites. Change who you follow in People.', 'stubli' ) + '</p>' +
 			( pp.list.length ? '<ul class="a-lk-sites">' + pp.list.map( function ( f ) { return '<li><strong>' + esc( f.name || hostOf( f.site_url ) ) + '</strong> <span class="muted">' + esc( hostOf( f.site_url ) ) + '</span></li>'; } ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'You don\'t follow anyone yet.', 'stubli' ) + '</p>' ) +
@@ -2664,7 +2664,7 @@
 		if ( ! fav.loaded ) { favLoad( function () { if ( location.hash === '#links/groups' ) { viewFavGroups(); } } ); return; }
 		if ( ! fav.gdraft ) { fav.gdraft = fav.groups.map( function ( g ) { return { from: g, name: g }; } ); }
 		var gd = fav.gdraft, n = gd.length;
-		root.innerHTML = arrangeHead( '#links', __( 'Arrange groups', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card"><p class="muted" style="margin-top:0">' + __( 'Rename a group or change the order of the headings on your Favourites tab. Removing a group keeps its favourites; they move to the top, without a group.', 'stubli' ) + '</p>' +
+		root.innerHTML = arrangeHead( '#links', __( 'Edit groups', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card"><p class="muted" style="margin-top:0">' + __( 'Rename a group, or change the order of the headings on your Favourites tab. Removing a group keeps its favourites; they move to the top, without a group.', 'stubli' ) + '</p>' +
 			'<ol class="a-lk">' + gd.map( function ( g, i ) {
 				return '<li><div class="a-lk-fields"><label class="sr" for="a-fg-' + i + '">' + _f( __( 'Name of group %s', 'stubli' ), i + 1 ) + '</label><input id="a-fg-' + i + '" class="a-field" maxlength="30" value="' + esc( g.name ) + '" data-fg="' + i + '"></div>' +
 					'<div class="a-lk-btns a-lk-row"><button type="button" class="a-icon-btn" data-fg-move="' + i + '" data-dir="-1"' + ( i === 0 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s up', 'stubli' ), g.name ) ) + '">' + icon( 'up', 18 ) + '</button><button type="button" class="a-icon-btn" data-fg-move="' + i + '" data-dir="1"' + ( i === n - 1 ? ' disabled' : '' ) + ' aria-label="' + esc( _f( __( 'Move %s down', 'stubli' ), g.name ) ) + '">' + icon( 'down', 18 ) + '</button><button type="button" class="a-icon-btn" data-fg-rm="' + i + '" aria-label="' + esc( _f( __( 'Remove the group %s', 'stubli' ), g.name ) ) + '">' + icon( 'x', 18 ) + '</button></div></li>';
