@@ -290,8 +290,7 @@ function stubli_profile_cards() {
  * @param int|string $active Term ID, or journal | guest | links.
  */
 function stubli_tabs( $active ) {
-	$collections = stubli_collections();
-	$tabs        = array(
+	$tabs = array(
 		'journal' => array( home_url( '/journal/' ), __( 'Journal', 'stubli' ), 'book' ),
 		'guest'   => array( stubli_has_plugin() ? \Stubli\Guestbook::url() : '', __( 'Guest book', 'stubli' ), 'pen' ),
 		'links'   => array( home_url( '/favourites/' ), __( 'Favourites', 'stubli' ), 'heart' ),
@@ -324,9 +323,10 @@ function stubli_tabs( $active ) {
 					<?php $is = ( 0 === $active ); ?>
 					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?>><span class="st-tab-face"><span class="st-tab-label"><?php esc_html_e( 'All', 'stubli' ); ?></span></span></a>
 				<?php endif; ?>
-				<?php foreach ( $collections as $term ) : ?>
+				<?php foreach ( stubli_tab_collections() as $term ) : ?>
 					<?php $is = ( (int) $active === (int) $term->term_id ); ?>
-					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $term ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?><?php echo stubli_tab_colour_attr( $term ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the helper. ?>><span class="st-tab-face"><span class="st-tab-label"><?php echo esc_html( stubli_collection_name( $term ) ); ?></span></span></a>
+					<?php $label = stubli_tab_label( $term ); ?>
+					<a class="st-tab st-tab-plain<?php echo $is ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $term ) ); ?>"<?php echo $is ? ' aria-current="page"' : ''; ?><?php echo ' aria-label="' . esc_attr( stubli_collection_name( $term ) ) . '" title="' . esc_attr( stubli_collection_name( $term ) ) . '"'; ?>><span class="st-tab-face"><span class="st-tab-label"><span class="st-tab-long"><?php echo esc_html( $label ); ?></span><span class="st-tab-short" aria-hidden="true"><?php $short = stubli_tab_short( $label ); echo esc_html( stubli_chars( $short, 1 ) ); ?><span class="st-tab-2"><?php echo esc_html( (string) substr( $short, strlen( stubli_chars( $short, 1 ) ) ) ); ?></span></span></span></span></a>
 				<?php endforeach; ?>
 			</div>
 			<?php $icon_tab( 'journal', false ); ?>
@@ -541,6 +541,10 @@ function stubli_view_profile() {
 	stubli_tabs( $active );
 	$first = stubli_has_all() ? 0 === $active : ( $collections && (int) $collections[0]->term_id === $active );
 	echo '<section class="st-panel' . ( $first ? ' is-first' : '' ) . '">';
+	// The full name, when the tab shows a shorter label.
+	if ( $term && ! is_wp_error( $term ) && stubli_tab_label( $term ) !== stubli_collection_name( $term ) ) {
+		echo '<h2 class="st-wall-name">' . esc_html( stubli_collection_name( $term ) ) . '</h2>';
+	}
 	if ( $term && ! is_wp_error( $term ) && '' !== trim( $term->description ) ) {
 		echo '<p class="st-wall-label">' . esc_html( wp_strip_all_tags( $term->description ) ) . '</p>';
 	}

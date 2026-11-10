@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.23
+Stable tag: 0.45.24
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.45.24 =
+* Collection tabs are simpler again: up to five, each with a name of up to five characters (an emoji counts as one), in one plain row beside Journal, Guest book and Favourites. On a phone each collection tab shows its first two characters, or its emoji, so everything fits. The overlapping tabs and tab colours from 0.45.23 are gone.
+* Have more than five collections, or longer names? Nothing is lost: your first five are your tabs, posts in the others show in All, and a long name stays as the title above its photos. In the app, Your collections lets you choose your five and give each tab a short name.
 
 = 0.45.23 =
 * Collection tabs now stay on one neat row, on your page and in the app. When they don't all fit, the open one shows in full and the others tuck behind it like folders in a drawer. Press and slide along the row to see each name, and let go to open it; a quick tap opens a tab straight away, and on a computer hovering shows the name.

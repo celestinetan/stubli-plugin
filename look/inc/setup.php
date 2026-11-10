@@ -46,7 +46,6 @@ add_action(
 					'paper' => __( 'Paper', 'stubli' ),
 				),
 				'readingMode' => __( 'Reading mode', 'stubli' ),
-				'fanTip'      => __( 'Press and slide along the tabs to see every collection.', 'stubli' ),
 				/* translators: 1: current photo, 2: number of photos */
 				'of'          => __( '%1$d of %2$d', 'stubli' ),
 				'close'       => __( 'Close', 'stubli' ),

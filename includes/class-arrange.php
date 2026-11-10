@@ -115,7 +115,7 @@ class Arrange {
 					'name'        => self::name( $t ),
 					'count'       => (int) $q->found_posts,
 					'description' => self::plain( (string) $t->description ),
-					'colour'      => self::colour( (int) $t->term_id ),
+					'label'       => self::label( (int) $t->term_id ),
 				);
 			}
 		}
@@ -312,18 +312,31 @@ class Arrange {
 		);
 	}
 
-	/** The six colours a collection's tab edge may have (Celestine 10 Nov), by name; the look draws them. */
-	const COLOURS = array( 'ochre', 'clay', 'slate', 'heather', 'sage', 'rose' );
+	/** At most this many collections show as tabs (Celestine 10 Nov); posts in the others show in All. */
+	const MAX_TABS = 5;
 
 	/**
-	 * A collection's tab colour, or '' for none.
+	 * Cut text to a number of characters, counting an emoji (even one made of several parts) as one.
+	 *
+	 * @param string $text Text.
+	 * @param int    $max  Characters.
+	 * @return string
+	 */
+	public static function chars( $text, $max ) {
+		if ( preg_match_all( '/\X/u', (string) $text, $m ) ) {
+			return implode( '', array_slice( $m[0], 0, $max ) );
+		}
+		return mb_substr( (string) $text, 0, $max );
+	}
+
+	/**
+	 * A collection's short tab label as set by the owner, or ''.
 	 *
 	 * @param int $cat Category ID.
 	 * @return string
 	 */
-	public static function colour( $cat ) {
-		$c = (string) get_term_meta( $cat, 'stubli_tab_colour', true );
-		return in_array( $c, self::COLOURS, true ) ? $c : '';
+	public static function label( $cat ) {
+		return self::chars( trim( (string) get_term_meta( $cat, 'stubli_tab_label', true ) ), 5 );
 	}
 
 	/**
@@ -362,17 +375,17 @@ class Arrange {
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => static function ( \WP_REST_Request $r ) {
 						$cat = (int) $r['cat'];
-						// The colour edge of its tab, or none.
-						if ( null !== $r['colour'] ) {
+						// The short label on its tab: up to five characters, or '' for the first five of its name.
+						if ( null !== $r['label'] ) {
 							$term = get_term( $cat, 'category' );
 							if ( ! $term || is_wp_error( $term ) ) {
 								return new \WP_Error( 'stubli_no_collection', __( 'That collection isn\'t here any more.', 'stubli' ), array( 'status' => 404 ) );
 							}
-							$c = (string) $r['colour'];
-							if ( in_array( $c, self::COLOURS, true ) ) {
-								update_term_meta( $cat, 'stubli_tab_colour', $c );
+							$label = trim( sanitize_text_field( (string) $r['label'] ) );
+							if ( '' === $label ) {
+								delete_term_meta( $cat, 'stubli_tab_label' );
 							} else {
-								delete_term_meta( $cat, 'stubli_tab_colour' );
+								update_term_meta( $cat, 'stubli_tab_label', self::chars( $label, 5 ) );
 							}
 							if ( null === $r['name'] && null === $r['description'] && null === $r['pins'] && null === $r['hand'] ) {
 								return rest_ensure_response( array( 'collections' => self::collections() ) );

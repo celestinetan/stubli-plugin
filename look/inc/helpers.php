@@ -222,8 +222,8 @@ function stubli_is_unsorted( $term ) {
 }
 
 /**
- * Whether this Stubli has public photos without a collection. Then the page
- * gets an "All" tab first, showing every photo (Celestine, 29 Oct 2026).
+ * Whether this Stubli has public photos without a collection, or more collections than show as tabs. Then the
+ * page gets an "All" tab first, showing every photo (Celestine, 29 Oct 2026; and 10 Nov 2026).
  *
  * @return bool
  */
@@ -231,6 +231,10 @@ function stubli_has_all() {
 	static $has = null;
 	if ( null !== $has ) {
 		return $has;
+	}
+	// Collections beyond the first five: their posts show in All.
+	if ( count( stubli_collections() ) > STUBLI_MAX_TABS ) {
+		return ( $has = true );
 	}
 	$def = get_term( (int) get_option( 'default_category' ), 'category' );
 	if ( ! stubli_is_unsorted( $def ) ) {
@@ -267,15 +271,55 @@ function stubli_collection_name( $term ) {
 }
 
 /**
- * The colour edge an owner chose for a collection's tab (Celestine 10 Nov), as a data attribute, or nothing.
- * Stored by the Stubli plugin as term meta; only the six named colours are allowed.
+ * At most this many collections show as tabs (Celestine 10 Nov 2026); posts in the others show in All.
+ */
+const STUBLI_MAX_TABS = 5;
+
+/**
+ * The collections that show as tabs: the first five in the owner's order.
+ *
+ * @return WP_Term[]
+ */
+function stubli_tab_collections() {
+	return array_slice( stubli_collections(), 0, STUBLI_MAX_TABS );
+}
+
+/**
+ * Cut text to a number of characters, counting an emoji (even one made of several parts) as one.
+ *
+ * @param string $text Text.
+ * @param int    $max  Characters.
+ * @return string
+ */
+function stubli_chars( $text, $max ) {
+	if ( preg_match_all( '/\X/u', (string) $text, $m ) ) {
+		return implode( '', array_slice( $m[0], 0, $max ) );
+	}
+	return mb_substr( (string) $text, 0, $max );
+}
+
+/**
+ * The shorter name a collection's tab shows on a phone (Celestine 10 Nov): its emoji, if it starts with one, or else
+ * its first two characters.
+ *
+ * @param string $label The tab's label.
+ * @return string
+ */
+function stubli_tab_short( $label ) {
+	$first = stubli_chars( $label, 1 );
+	return ( strlen( $first ) > 1 && ! preg_match( '/[\p{L}\p{N}]/u', $first ) ) ? $first : stubli_chars( $label, 2 );
+}
+
+/**
+ * What a collection's tab says: its short label (up to five characters, set in the app), or else the first five
+ * characters of its name.
  *
  * @param WP_Term $term Collection.
  * @return string
  */
-function stubli_tab_colour_attr( $term ) {
-	$c = (string) get_term_meta( (int) $term->term_id, 'stubli_tab_colour', true );
-	return in_array( $c, array( 'ochre', 'clay', 'slate', 'heather', 'sage', 'rose' ), true ) ? ' data-colour="' . esc_attr( $c ) . '"' : '';
+function stubli_tab_label( $term ) {
+	$label = trim( (string) get_term_meta( (int) $term->term_id, 'stubli_tab_label', true ) );
+	return stubli_chars( '' !== $label ? $label : stubli_collection_name( $term ), 5 );
 }
 
 /**

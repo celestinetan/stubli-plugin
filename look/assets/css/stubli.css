@@ -1028,28 +1028,17 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 /* A guest's "from …, signed without a Stubli" wraps instead of being cut off (0.2.115). */
 .st-gb-sig .st-gb-ini + span .st-muted { white-space: normal; }
 
-/* Folder tabs on one row (0.2.120, Celestine 10 Nov; replaces the stacked rows of 0.2.118–0.2.119). When they
-   don't fit, the open folder is in front in full and the others overlap, each showing its start. The tab under
-   a finger (JS .is-peek), the mouse or the keyboard rises and shows its full name. */
-.st-tabs.is-fan .st-tabs-scroll { overflow: visible; gap: 0; touch-action: pan-y; }
-.st-tabs.is-fan [data-st-scroll] .st-tab-face { overflow: hidden; box-sizing: border-box; transition: transform .14s ease-out; box-shadow: -3px 0 5px -2px rgba(40, 36, 30, .18); }
-.st-tabs.is-fan [data-st-scroll] .st-tab:first-child .st-tab-face { box-shadow: none; }
-.st-tabs.is-fan [data-st-scroll] .st-tab:not(.is-active) .st-tab-face { padding: 0 0 0 10px; }
-.st-tabs.is-fan [data-st-scroll] .st-tab:not(.is-active) .st-tab-label { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); }
-.st-tabs.is-fan [data-st-scroll] .st-tab.is-active .st-tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek { z-index: 200 !important; }
-.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek .st-tab-face { padding: 0 14px; transform: translateY(-6px); box-shadow: 0 -2px 10px rgba(40, 36, 30, .22); }
-.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek .st-tab-label { -webkit-mask-image: none; mask-image: none; }
-@media (prefers-reduced-motion: reduce) { .st-tabs.is-fan [data-st-scroll] .st-tab-face { transition: none; } }
-.st-fan-tip { margin: 6px 4px 0; font-size: 13px; color: var(--st-muted); }
-/* A collection's colour edge (Celestine 10 Nov): a thin line on top of its tab, chosen in the app. */
-.st-tab[data-colour="ochre"] { --st-edge: #d1a54a; }
-.st-tab[data-colour="clay"] { --st-edge: #c9826a; }
-.st-tab[data-colour="slate"] { --st-edge: #7c9db3; }
-.st-tab[data-colour="heather"] { --st-edge: #a98cb2; }
-.st-tab[data-colour="sage"] { --st-edge: #8fae86; }
-.st-tab[data-colour="rose"] { --st-edge: #c98a9a; }
-.st-tab[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge); }
-.st-tabs.is-fan [data-st-scroll] .st-tab[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge), -3px 0 5px -2px rgba(40, 36, 30, .18); }
-.st-tabs.is-fan [data-st-scroll] .st-tab[data-colour]:first-child .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge); }
-.st-tabs.is-fan [data-st-scroll] .st-tab.is-peek[data-colour] .st-tab-face { box-shadow: inset 0 3px 0 var(--st-edge), 0 -2px 10px rgba(40, 36, 30, .22); }
+/* Collection tabs (0.2.121, Celestine 10 Nov): at most five, labels of up to five characters, one plain row with
+   Journal, Guest book and Favourites as tabs beside them. On phones each collection tab shows a shorter name (its first
+   two characters, or its emoji) so everything fits; the full name is in its title and shows above its photos. */
+.st-tab-short { display: none; }
+@media (max-width: 640px) {
+	.st-tabs-scroll .st-tab-plain .st-tab-long { display: none; }
+	.st-tabs-scroll .st-tab-plain .st-tab-short { display: inline; }
+	.st-tabs-scroll, .st-tabs-right { gap: 3px; }
+	.st-tabs-scroll .st-tab-face { padding: 0 7px; }
+	.st-tabs .st-tab-icon .st-tab-face { padding: 0 8px; min-width: 0; }
+}
+/* The smallest phones: one character (or the emoji). */
+@media (max-width: 370px) { .st-tabs-scroll .st-tab-plain .st-tab-2 { display: none; } }
+.st-wall-name { margin: 2px 4px 8px; font-size: 18px; font-weight: 700; }

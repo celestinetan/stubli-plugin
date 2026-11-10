@@ -33,8 +33,9 @@ foreach ( array( 'stubli_', 'og_' ) as $stubli_prefix ) {
 	}
 }
 
-// Tab colours of collections (0.45.23).
+// Tab colours (0.45.23 only) and short tab labels (0.45.24) of collections.
 delete_metadata( 'term', 0, 'stubli_tab_colour', '', true );
+delete_metadata( 'term', 0, 'stubli_tab_label', '', true );
 
 // Archives made with "Download everything".
 $stubli_up = wp_upload_dir( null, false );
