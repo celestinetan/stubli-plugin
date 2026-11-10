@@ -235,6 +235,66 @@ class Library {
 	}
 
 	/**
+	 * Covers for a book found on Open Library by title (and author), for the owner to pick from (0.47.1, Celestine 10 Nov:
+	 * for books whose barcode finds no cover). Your site asks; the title and author are all it sends.
+	 *
+	 * @param string $title  Title.
+	 * @param string $author Author, optional.
+	 * @return array|\WP_Error List of { url, title, author, year }.
+	 */
+	public static function covers( $title, $author = '' ) {
+		$title  = trim( mb_substr( sanitize_text_field( $title ), 0, 200 ) );
+		$author = trim( mb_substr( sanitize_text_field( $author ), 0, 200 ) );
+		if ( '' === $title ) {
+			return new \WP_Error( 'stubli_covers_title', __( 'Type the title first.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$key    = 'stubli_covers_' . md5( strtolower( $title . '|' . $author ) );
+		$cached = get_transient( $key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+		$q   = array(
+			'title'  => $title,
+			'fields' => 'title,author_name,first_publish_year,cover_i',
+			'limit'  => 24,
+		);
+		if ( '' !== $author ) {
+			$q['author'] = $author;
+		}
+		$res = wp_remote_get(
+			add_query_arg( array_map( 'rawurlencode', $q ), 'https://openlibrary.org/search.json' ),
+			array(
+				'timeout'    => 10,
+				'user-agent' => 'Stubli/' . VERSION . '; ' . home_url( '/' ),
+			)
+		);
+		if ( is_wp_error( $res ) || 200 !== wp_remote_retrieve_response_code( $res ) ) {
+			return new \WP_Error( 'stubli_lookup', __( 'Couldn\'t reach Open Library just now. Try again in a moment, or take a photo of the cover.', 'stubli' ), array( 'status' => 502 ) );
+		}
+		$data = json_decode( wp_remote_retrieve_body( $res ), true );
+		$out  = array();
+		$seen = array();
+		foreach ( (array) ( $data['docs'] ?? array() ) as $d ) {
+			$c = (int) ( $d['cover_i'] ?? 0 );
+			if ( $c <= 0 || isset( $seen[ $c ] ) ) {
+				continue;
+			}
+			$seen[ $c ] = true;
+			$out[]      = array(
+				'url'    => 'https://covers.openlibrary.org/b/id/' . $c . '-M.jpg',
+				'title'  => mb_substr( sanitize_text_field( (string) ( $d['title'] ?? '' ) ), 0, 200 ),
+				'author' => mb_substr( sanitize_text_field( implode( ', ', array_slice( (array) ( $d['author_name'] ?? array() ), 0, 2 ) ) ), 0, 200 ),
+				'year'   => (string) (int) ( $d['first_publish_year'] ?? 0 ),
+			);
+			if ( count( $out ) >= 12 ) {
+				break;
+			}
+		}
+		set_transient( $key, $out, DAY_IN_SECONDS );
+		return $out;
+	}
+
+	/**
 	 * Copy a cover from Open Library into your media, so visitors load it from your site.
 	 *
 	 * @param string $url     Cover address (covers.openlibrary.org only).
@@ -315,7 +375,8 @@ class Library {
 		update_post_meta( $id, '_stubli_book_note', mb_substr( sanitize_textarea_field( (string) ( $f['note'] ?? '' ) ), 0, self::NOTE_MAX ) );
 		if ( ! empty( $f['coverId'] ) && current_user_can( 'edit_post', (int) $f['coverId'] ) ) {
 			update_post_meta( $id, '_stubli_cover', (int) $f['coverId'] );
-		} elseif ( ! empty( $f['coverUrl'] ) && ! get_post_meta( $id, '_stubli_cover', true ) ) {
+		} elseif ( ! empty( $f['coverUrl'] ) && ( ! empty( $f['coverPick'] ) || ! get_post_meta( $id, '_stubli_cover', true ) ) ) {
+			// A cover picked from Open Library replaces the one there was (0.47.1).
 			$c = self::sideload_cover( (string) $f['coverUrl'], $id );
 			if ( $c ) {
 				update_post_meta( $id, '_stubli_cover', $c );
@@ -593,6 +654,17 @@ class Library {
 				'callback'            => static function ( \WP_REST_Request $r ) {
 					$files = $r->get_file_params();
 					$res   = Journal::upload_photo( $files['photo'] ?? array() );
+					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
+				},
+				'permission_callback' => array( Rest::class, 'is_owner' ),
+			)
+		);
+		Rest::register(
+			'/library/covers',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$res = self::covers( (string) $r->get_param( 'title' ), (string) $r->get_param( 'author' ) );
 					return is_wp_error( $res ) ? $res : rest_ensure_response( $res );
 				},
 				'permission_callback' => array( Rest::class, 'is_owner' ),

@@ -2437,12 +2437,12 @@
 		if ( ! lib.draft || lib.draft.key !== ( id || kind ) ) { lib.draft = { key: id || kind, friends: !! b.friends, just: false, photo: null, f: null }; }
 		var d = lib.draft;
 		if ( d.f ) { b = Object.assign( {}, b, d.f ); }
-		var cover = d.photo ? d.photo.url : ( id ? b.cover : b.coverUrl );
+		var cover = d.photo ? d.photo.url : ( d.pick ? d.pick : ( id ? b.cover : b.coverUrl ) );
 		var addLabel = { book: __( 'Add a book', 'stubli' ), game: __( 'Add a game', 'stubli' ), tool: __( 'Add a tool', 'stubli' ), other: __( 'Add something else', 'stubli' ) }[ kind ];
 		root.innerHTML = arrangeHead( id ? '#library/' + id : ( isBook ? '#library/add/book' : '#library/add' ), id ? __( 'Change details', 'stubli' ) : addLabel ) + '<main class="a-main" id="main">' +
 			( lib.msg ? '<div class="a-notice" role="status">' + esc( lib.msg ) + '</div>' : '' ) +
 			'<section class="a-card">' +
-			( isBook ? ( cover ? '<img class="a-lib-cover a-lib-cover-big" src="' + esc( cover ) + '" alt="">' + ( id ? '' : '<p class="a-help">' + __( 'Cover from Open Library. Your Stubli keeps a copy, so visitors load it from your site.', 'stubli' ) + '</p>' ) : '' ) :
+			( isBook ? '' :
 				'<div class="a-lib-photo">' + ( cover ? '<img src="' + esc( cover ) + '" alt="">' : '<span aria-hidden="true">' + k[ 5 ] + '</span>' ) + '</div>' +
 				'<label class="a-btn quiet a-lib-photo-btn">' + icon( 'camera', 18 ) + ( cover ? __( 'Change the photo', 'stubli' ) : __( 'Take a photo or choose one', 'stubli' ) ) + '<input type="file" accept="image/*" class="sr" data-lib-photo></label>' +
 				'<p class="a-help" data-lib-photo-msg>' + __( 'Tip: check what else is in the picture before you add it.', 'stubli' ) + '</p>' ) +
@@ -2450,6 +2450,12 @@
 			( isBook ? '<label class="a-label" for="a-lb-author">' + __( 'Author (optional)', 'stubli' ) + '</label><input id="a-lb-author" class="a-field" maxlength="200" value="' + esc( b.author ) + '">' +
 				'<label class="a-label" for="a-lb-year">' + __( 'Year (optional)', 'stubli' ) + '</label><input id="a-lb-year" class="a-field" inputmode="numeric" maxlength="4" value="' + esc( b.year ) + '">' : '' ) +
 			'<label class="a-label" for="a-lb-note">' + __( 'A note for borrowers (optional)', 'stubli' ) + '</label><textarea id="a-lb-note" class="a-field" maxlength="280" rows="3" placeholder="' + esc( isBook ? __( 'e.g. Lovely for a slow weekend', 'stubli' ) : ( kind === 'tool' ? __( 'e.g. Comes with two batteries', 'stubli' ) : ( kind === 'game' ? __( 'e.g. 2–5 players, ages 8 and up', 'stubli' ) : __( 'e.g. Fits in a backpack', 'stubli' ) ) ) ) + '">' + esc( b.note ) + '</textarea></section>' +
+			( isBook ? '<section class="a-card"><h2 class="a-label">' + __( 'Cover', 'stubli' ) + '</h2>' + ( cover ? '<img class="a-lib-cover a-lib-cover-big" src="' + esc( cover ) + '" alt="">' + ( id || d.photo ? '' : '<p class="a-help">' + __( 'Cover from Open Library. Your Stubli keeps a copy, so visitors load it from your site.', 'stubli' ) + '</p>' ) : '' ) +
+				'<label class="a-btn quiet a-lib-photo-btn">' + icon( 'camera', 18 ) + ( d.photo ? __( 'Change the photo', 'stubli' ) : ( cover ? __( 'Use my own photo of the cover', 'stubli' ) : __( 'Take a photo of the cover', 'stubli' ) ) ) + '<input type="file" accept="image/*" class="sr" data-lib-photo></label>' +
+				'<p class="a-help" data-lib-photo-msg>' + ( cover ? '' : ( ! id && lib.found ? __( 'Open Library has no cover for this one. A photo of the front works well.', 'stubli' ) : __( 'Optional. A photo of the front works well.', 'stubli' ) ) ) + '</p>' +
+				'<button type="button" class="a-btn quiet" data-lib-covers>' + icon( 'shelf', 18 ) + __( 'Pick a cover from Open Library', 'stubli' ) + '</button>' +
+				( d.covers ? ( d.covers.length ? '<p class="a-help">' + __( 'Tap the cover that looks like your copy.', 'stubli' ) + '</p><ul class="a-lib-grid a-lib-covers">' + d.covers.map( function ( c, i ) { return '<li><button type="button" class="a-lib-pick" data-lib-cover="' + i + '" aria-pressed="' + ( d.pick === c.url ) + '" aria-label="' + esc( [ c.title, c.author, c.year !== '0' ? c.year : '' ].filter( Boolean ).join( ', ' ) ) + '"><img class="a-lib-cover" src="' + esc( c.url ) + '" alt="" loading="lazy">' + ( c.year !== '0' ? '<span class="muted">' + esc( c.year ) + '</span>' : '' ) + '</button></li>'; } ).join( '' ) + '</ul>' : '<p class="a-help">' + __( 'Open Library found no covers for this title. Check the spelling, add the author, or take a photo.', 'stubli' ) + '</p>' ) : '' ) +
+				'<p class="a-help" role="status" data-lib-covers-msg></p>' + '</section>' : '' ) +
 			( isBook && ! id ? '<section class="a-card"><h2 class="a-label" id="a-lb-is">' + __( 'This book is', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-lb-is">' +
 				'<button type="button" class="a-chip" role="radio" aria-checked="' + ! d.just + '" data-lb-just="0">' + ( ! d.just ? icon( 'check', 16 ) : '' ) + __( 'On my shelf to lend', 'stubli' ) + '</button>' +
 				'<button type="button" class="a-chip" role="radio" aria-checked="' + d.just + '" data-lb-just="1">' + ( d.just ? icon( 'check', 16 ) : '' ) + __( 'Just reading it', 'stubli' ) + '</button></div>' +
@@ -2465,15 +2471,25 @@
 			var f = pick.files && pick.files[ 0 ]; if ( ! f ) { return; }
 			keep(); $( '[data-lib-photo-msg]' ).textContent = __( 'Adding the photo…', 'stubli' );
 			resized( f ).then( function ( blob ) { var fd = new FormData(); fd.append( 'photo', blob, 'library.jpg' ); return send( 'POST', 'library/photo', fd ); } ).then( function ( r ) {
-				d.photo = r; viewLibraryBookForm( id, kind );
+				d.photo = r; d.pick = null; viewLibraryBookForm( id, kind );
 			}, function ( e ) { $( '[data-lib-photo-msg]' ).textContent = ( e && e.message ) || __( 'That photo didn\'t upload. Try again in a moment.', 'stubli' ); } );
 		} ); }
+		var findCovers = $( '[data-lib-covers]' );
+		if ( findCovers ) { findCovers.addEventListener( 'click', function () {
+			var t = $( '#a-lb-title' ).value.trim();
+			if ( ! t ) { $( '#a-lb-title' ).focus(); $( '[data-lib-covers-msg]' ).textContent = __( 'Type the title first.', 'stubli' ); return; }
+			keep(); findCovers.disabled = true; $( '[data-lib-covers-msg]' ).textContent = __( 'Looking on Open Library…', 'stubli' );
+			send( 'GET', 'library/covers?title=' + encodeURIComponent( t ) + '&author=' + encodeURIComponent( $( '#a-lb-author' ).value.trim() ) ).then( function ( r ) {
+				d.covers = r; viewLibraryBookForm( id, kind ); var g = $( '.a-lib-covers' ); if ( g ) { g.scrollIntoView( { block: 'nearest' } ); }
+			}, function ( e ) { findCovers.disabled = false; $( '[data-lib-covers-msg]' ).textContent = e.message; } );
+		} ); }
+		$$( '[data-lib-cover]' ).forEach( function ( c ) { c.addEventListener( 'click', function () { keep(); d.pick = d.covers[ +c.dataset.libCover ].url; d.photo = null; viewLibraryBookForm( id, kind ); var cv = $( '.a-lib-cover-big' ); if ( cv ) { cv.scrollIntoView( { block: 'center' } ); } } ); } );
 		$( '[data-lb-save]' ).addEventListener( 'click', function ( e ) {
 			var title = $( '#a-lb-title' ).value.trim();
 			if ( ! title ) { $( '#a-lb-title' ).focus(); return; }
 			e.target.disabled = true; e.target.textContent = __( 'Saving…', 'stubli' );
 			var f = { kind: kind, title: title, author: isBook ? $( '#a-lb-author' ).value.trim() : '', year: isBook ? $( '#a-lb-year' ).value.trim() : '', note: $( '#a-lb-note' ).value.trim(), isbn: b.isbn || '', coverUrl: id || ! isBook ? '' : ( b.coverUrl || '' ) };
-			if ( d.photo ) { f.coverId = d.photo.id; }
+			if ( d.photo ) { f.coverId = d.photo.id; } else if ( d.pick ) { f.coverUrl = d.pick; f.coverPick = true; }
 			if ( ! id ) { f.friends = d.friends; if ( isBook ) { f.just = d.just; } }
 			send( 'POST', id ? 'library/' + id : 'library', f ).then( function ( saved ) {
 				if ( id ) { lib.books = lib.books.map( function ( x ) { return x.id === id ? saved : x; } ); } else { lib.books.unshift( saved ); }

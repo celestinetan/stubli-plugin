@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.47.0
+Stable tag: 0.47.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -88,7 +88,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **Notes (only when you send one, or someone leaves one).** A note you write goes from your site to the other person's Stubli site, which fetches it back from yours to check it really came from you; it gets your site's address, name and photo with it. Visitors without a Stubli can leave you a note with their name and a way to reach them; it's stored only on your site, seen only by you, and deleted after 90 days. Suggested privacy-policy text is added under Settings → Privacy.
 * **Libraries of people you follow (only when you open one).** When you tap Library next to someone under People, your site asks their Stubli site for its Library (with their friend key, if they gave you one). Their site sees your site's address.
 * **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
-* **Open Library (only when you add a book to your Library by its barcode or ISBN).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, and keeps a copy of the cover in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
+* **Open Library (only when you add a book to your Library by its barcode or ISBN, or tap Pick a cover from Open Library).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, or, to pick a cover, the title and author you typed. While you choose, your own browser shows the covers straight from covers.openlibrary.org. Your site keeps a copy of the cover you pick in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
@@ -104,6 +104,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.47.1 =
+* Library: give a book a cover when the barcode finds none. Take a photo of it, or search Open Library by title and tap the cover that looks like your copy.
 
 = 0.47.0 =
 * Library: lend games, tools and anything else, not just books. Tap Add something and pick what it is; books still fill in from Open Library, everything else gets a photo, a name and a note.
