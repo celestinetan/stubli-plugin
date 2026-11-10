@@ -870,6 +870,11 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 	.a-ctabs .a-ctab { padding: 0 7px; }
 	.a-ctabs-row .a-ctab-icon { padding: 0 8px; min-width: 0; }
 }
+/* With a Library tab as well (0.46.0), phones up to 420 px get slightly tighter tabs. */
+@media (max-width: 420px) {
+	.a-ctabs-row.has-library .a-ctab-icon { padding: 0 5px; }
+	.a-ctabs-row.has-library .a-ctabs .a-ctab { padding: 0 6px; }
+}
 /* The smallest phones: one character (or the emoji). */
 @media (max-width: 370px) { .a-ctabs .a-ctab .a-ctab-2 { display: none; } }
 .a-tabedit-list li:not(.is-renaming) { flex-wrap: wrap; }
@@ -877,3 +882,21 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-tabs-nudge p { margin: 0; flex: 1; font-size: 14px; }
 .a-tabs-nudge[hidden] { display: none; }
 .a-te-extra { flex-basis: 100%; padding: 0 0 2px 40px; font-size: 12px; color: var(--muted); }
+
+/* Library (0.46.0, Celestine 9–10 Nov): your shelf, a book, the camera. */
+.a-lib-where { margin: 0 0 12px; }
+.a-lib-grid { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+.a-lib-grid a { display: flex; flex-direction: column; gap: 4px; color: var(--ink); text-decoration: none; position: relative; font-size: 13px; line-height: 1.25; }
+.a-lib-grid .muted { font-size: 12px; }
+.a-lib-cover { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; background: var(--field); }
+.a-lib-nocover { display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: var(--muted); }
+.a-lib-cover-big { width: 120px; flex-shrink: 0; }
+.a-lib-t { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.a-lib-badge { position: absolute; top: 6px; left: 6px; right: 6px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a-lib-book { display: flex; gap: 14px; align-items: flex-start; }
+.a-lib-book h2 { margin: 0 0 4px; }
+.a-lib-cam { position: relative; background: #222; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
+.a-lib-cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.a-lib-frame { position: absolute; left: 12%; right: 12%; top: 30%; bottom: 30%; border: 3px solid #fff; border-radius: 12px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .25); }
+.a-lib-row { display: flex; gap: 8px; align-items: center; }
+.a-lib-row .a-field { flex: 1; }

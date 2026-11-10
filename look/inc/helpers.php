@@ -271,6 +271,15 @@ function stubli_collection_name( $term ) {
 }
 
 /**
+ * Whether the owner has put a Library on their page (Stubli plugin 0.46.0+).
+ *
+ * @return bool
+ */
+function stubli_library_on() {
+	return class_exists( '\\Stubli\\Library' ) && \Stubli\Library::is_on();
+}
+
+/**
  * At most this many collections show as tabs (Celestine 10 Nov 2026); posts in the others show in All.
  */
 const STUBLI_MAX_TABS = 5;
@@ -660,6 +669,7 @@ function stubli_icon( $name, $size = 18 ) {
 		'book'    => '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		'pen'     => '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		'mark'    => '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
+		'shelf'   => '<path d="M5 4v16M9 4v16M13.5 5l4 15M3 20h18"/>',
 		'heart'   => '<path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
 		'place'   => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
 		'back'    => '<path d="M15 5l-7 7 7 7"/>',

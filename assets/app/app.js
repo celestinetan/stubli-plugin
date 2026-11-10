@@ -83,6 +83,8 @@
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
 		mark: '<path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/>',
+		shelf: '<path d="M5 4v16M9 4v16M13.5 5l4 15M3 20h18"/>',
+		camera: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
 		heart: '<path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
 		people: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M15.5 14.2c2.6-.3 4.6 1.3 5.2 4.3"/>',
 		sort: '<path d="M8 4v16M4.5 7.5 8 4l3.5 3.5M16 20V4M12.5 16.5 16 20l3.5-3.5"/>',
@@ -482,6 +484,14 @@
 		if ( h === 'about' ) { return viewAbout(); }
 		if ( h === 'look' ) { return viewLook(); }
 		if ( h === 'guestbook' ) { return viewGuestbook(); }
+		if ( h !== 'library/scan' ) { libStopScan(); }
+		if ( h === 'library' ) { return viewLibrary(); }
+		if ( h === 'library/where' ) { return viewLibraryWhere(); }
+		if ( h === 'library/add' ) { return viewLibraryAdd(); }
+		if ( h === 'library/scan' ) { return viewLibraryScan(); }
+		if ( h === 'library/new' ) { return viewLibraryBookForm( 0 ); }
+		if ( /^library\/\d+$/.test( h ) ) { return viewLibraryBook( +h.split( '/' )[ 1 ] ); }
+		if ( /^library\/\d+\/edit$/.test( h ) ) { return viewLibraryBookForm( +h.split( '/' )[ 1 ] ); }
 		if ( h === 'links' ) { fav.draft = null; fav.gdraft = null; return viewLinks(); }
 		if ( h === 'links/new' ) { return viewFavEdit( -1 ); }
 		if ( /^links\/\d+$/.test( h ) ) { return viewFavEdit( +h.split( '/' )[ 1 ] ); }
@@ -532,6 +542,7 @@
 		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#you" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + ( '</a><h1>' + __( 'Settings and more', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' ) +
 			( '<section class="a-card"><h2>' + __( 'Your page', 'stubli' ) + '</h2><p class="muted">' ) + esc( host ) + '</p><div class="a-actions"><a class="a-btn" href="' + esc( B.home ) + ( '">' + __( 'See your page', 'stubli' ) + '</a><a class="a-btn quiet" href="' ) + esc( B.settings ) + ( '">' + __( 'Advanced settings', 'stubli' ) + '</a></div><p class="a-help">' + __( 'Your name, photo and bio are under Edit page. Advanced settings open your WordPress dashboard.', 'stubli' ) + '</p></section>' ) +
 			summaryCard() +
+			'<section class="a-card"><h2>' + __( 'Library', 'stubli' ) + '</h2><p class="muted">' + ( B.library ? __( 'The books you lend, on a tab of your page.', 'stubli' ) : __( 'Lend your books to people nearby: add a Library tab to your page.', 'stubli' ) ) + '</p><a class="a-btn quiet" href="#library">' + ( B.library ? __( 'Open', 'stubli' ) : __( 'Have a look', 'stubli' ) ) + '</a></section>' +
 			( '<section class="a-card"><h2>' + __( 'Colour and reading mode', 'stubli' ) + '</h2><p class="muted">' + __( 'The colour of your page and how it opens for visitors: Light or Paper.', 'stubli' ) + '</p><a class="a-btn quiet" href="#look">' + __( 'Change', 'stubli' ) + '</a></section>' ) +
 			( '<section class="a-card"><h2>' + __( 'Bring your photos from Instagram', 'stubli' ) ) + helpLink( 'posting/instagram', __( 'bringing photos from Instagram', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Your posts arrive with their original dates and captions.', 'stubli' ) + '</p><a class="a-btn quiet" href="#import">' + __( 'Start', 'stubli' ) + '</a></section>' ) +
 			keepCard() +
@@ -692,12 +703,13 @@
 			'<section class="a-card" data-invite-card' + ( me.inviteOpen ? '' : ' hidden' ) + ( '><p class="muted" style="margin-top:0">' + __( 'Send a friend a link. Once they\'ve set up their own Stubli, you follow each other automatically. Each link works once, for 30 days.', 'stubli' ) + '</p><div data-invite-out></div><button type="button" class="a-btn quiet" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			( latest ? '<a class="a-latest" href="' + esc( latest.url || ( '#edit/' + latest.id ) ) + '">' + ( latest.thumb ? '<img src="' + esc( latest.thumb ) + '" alt="" width="44" height="44">' : '' ) + '<span><span class="muted">' + _f( __( 'Latest · %s', 'stubli' ), esc( gentle( latest.date ) ) ) + '</span><span class="a-latest-t">' + esc( latest.title || ( latest.kind === 'entry' ? __( 'Journal entry', 'stubli' ) : __( 'Photo post', 'stubli' ) ) ) + ( latest.coll ? ' <span class="muted">' + _f( __( 'in %s', 'stubli' ), esc( latest.coll ) ) + '</span>' : '' ) + '</span></span>' + icon( 'chev', 18 ) + '</a>' : '' ) +
 			( allColls.length && ! me.edit ? '<div class="a-notice calm a-tabs-nudge" data-tabs-nudge' + ( tabsNeedChoosing() ? '' : ' hidden' ) + '><p>' + __( 'Your page shows up to 5 collection tabs, each with a name of up to 5 characters. Choose your 5 and their short names.', 'stubli' ) + '</p><button type="button" class="a-btn quiet" data-tabs-choose>' + __( 'Choose', 'stubli' ) + '</button></div>' : '' ) +
-			'<div class="a-ctabs-row"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '"><span class="a-ctab-l">' + ( c ? tabLabelHtml( c ) : esc( __( 'All', 'stubli' ) ) ) + '</span></button>'; } ).join( '' ) + '</div>' +
+			'<div class="a-ctabs-row' + ( B.library ? ' has-library' : '' ) + '"><div class="a-ctabs" role="group" aria-label="' + esc( __( 'Collections', 'stubli' ) ) + '">' + [ '' ].concat( colls ).map( function ( c ) { return '<button type="button" class="a-ctab" aria-pressed="' + ( me.coll === c ) + '" data-coll="' + esc( c ) + '"><span class="a-ctab-l">' + ( c ? tabLabelHtml( c ) : esc( __( 'All', 'stubli' ) ) ) + '</span></button>'; } ).join( '' ) + '</div>' +
 				'<a class="a-ctab a-ctab-icon" href="#journals" aria-label="' + esc( __( 'Your journal', 'stubli' ) ) + '" title="' + esc( __( 'Your journal', 'stubli' ) ) + '">' + icon( 'book', 18 ) + '</a>' +
 				( colls.length ? '<button type="button" class="a-ctab a-ctab-icon" data-tabedit aria-label="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '" title="' + esc( __( 'Arrange and rename collections', 'stubli' ) ) + '">' + icon( 'sort', 18 ) + '</button>' : '' ) +
 				'<span class="a-ctabs-gap"></span>' +
 				( p.guestbook ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="#guestbook" aria-label="' + esc( __( 'Guest book', 'stubli' ) ) + '" title="' + esc( __( 'Guest book', 'stubli' ) ) + '">' + icon( 'pen', 18 ) + '</a>' : '' ) +
-				'<a class="a-ctab a-ctab-icon a-ctab-green" href="#links" aria-label="' + esc( __( 'Favourites', 'stubli' ) ) + '" title="' + esc( __( 'Favourites', 'stubli' ) ) + '">' + icon( 'heart', 18 ) + '</a></div>' +
+				'<a class="a-ctab a-ctab-icon a-ctab-green" href="#links" aria-label="' + esc( __( 'Favourites', 'stubli' ) ) + '" title="' + esc( __( 'Favourites', 'stubli' ) ) + '">' + icon( 'heart', 18 ) + '</a>' +
+				( B.library ? '<a class="a-ctab a-ctab-icon a-ctab-green" href="#library" aria-label="' + esc( __( 'Library', 'stubli' ) ) + '" title="' + esc( __( 'Library', 'stubli' ) ) + '">' + icon( 'shelf', 18 ) + '</a>' : '' ) + '</div>' +
 			( me.edit ? tabEditHtml() : '' ) +
 			'<div class="a-you-grid" data-you-grid><div data-you-line>' + youLine() + '</div>' + youGrid() + '</div>' +
 			( me.sheet ? sheetHtml() : '' ) +
@@ -2243,6 +2255,184 @@
 		var out = [ { group: '', idx: [] } ].concat( fav.groups.map( function ( g ) { return { group: g, idx: [] }; } ) );
 		fav.items.forEach( function ( it, i ) { var k = fav.groups.indexOf( it.group ) + 1; out[ k ].idx.push( i ); } );
 		return out.filter( function ( s ) { return s.idx.length; } );
+	}
+	/* ── Library (0.46.0, Celestine 9–10 Nov): the books you're happy to lend ── */
+	var lib = { loaded: false, settings: { on: false, area: '', handover: '' }, books: [], people: [], msg: '', found: null, scanning: null };
+	function libLoad( then ) {
+		send( 'GET', 'library' ).then( function ( r ) { lib.loaded = true; lib.settings = r.settings; lib.books = r.books || []; lib.people = r.people || []; B.library = !! r.settings.on; then(); }, function ( e ) { root.innerHTML = arrangeHead( '#you', __( 'Library', 'stubli' ) ) + '<main class="a-main" id="main"><div class="a-notice">' + esc( e.message ) + '</div></main>'; } );
+	}
+	function libBook( id ) { return lib.books.filter( function ( b ) { return b.id === id; } )[ 0 ]; }
+	function libCover( b, cls ) {
+		return b.cover ? '<img class="' + ( cls || 'a-lib-cover' ) + '" src="' + esc( b.cover ) + '" alt="">' : '<span class="' + ( cls || 'a-lib-cover' ) + ' a-lib-nocover" aria-hidden="true">' + esc( chars( b.title, 1 ) ) + '</span>';
+	}
+	function libSaveSettings( change, msg, then ) {
+		return send( 'POST', 'library/settings', change ).then( function ( s ) { lib.settings = s; B.library = !! s.on; lib.msg = msg || ''; if ( then ) { then(); } }, function ( e ) { lib.msg = e.message; viewLibrary(); } );
+	}
+	function viewLibrary() {
+		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library' ) { viewLibrary(); } } ); return; }
+		var s = lib.settings, body;
+		if ( ! s.on ) {
+			body = '<section class="a-card"><h2>' + __( 'Lend your books?', 'stubli' ) + '</h2><p>' + __( 'Add a Library tab to your page: the books you\'re happy to lend, so people nearby can see them. Visitors see when a book is on loan, never who has it.', 'stubli' ) + '</p>' +
+				'<div class="a-actions"><button type="button" class="a-btn" data-lib-on>' + __( 'Add a Library', 'stubli' ) + '</button><a class="a-btn quiet" href="#you">' + __( 'Not now', 'stubli' ) + '</a></div></section>';
+		} else {
+			var out = lib.books.filter( function ( b ) { return b.onLoan; } ).length;
+			body = ( lib.msg ? '<div class="a-notice calm" role="status">' + esc( lib.msg ) + '</div>' : '' ) +
+				'<section class="a-card"><p class="a-lib-where">' + ( s.area || s.handover ? esc( [ s.area, s.handover ].filter( Boolean ).join( ' · ' ) ) : '<span class="muted">' + __( 'Add a rough area, like your town or district, so neighbours know you\'re near.', 'stubli' ) + '</span>' ) + ' <a href="#library/where">' + __( 'Change', 'stubli' ) + '</a></p>' +
+				'<div class="a-actions"><a class="a-btn" href="#library/add">' + icon( 'plus', 18 ) + __( 'Add a book', 'stubli' ) + '</a></div>' +
+				( lib.books.length ? '<p class="muted">' + ( lib.books.length === 1 ? __( '1 book', 'stubli' ) : _f( __( '%s books', 'stubli' ), lib.books.length ) ) + ( out ? ' · ' + _f( __( '%s on loan', 'stubli' ), out ) : '' ) + '</p>' +
+					'<ul class="a-lib-grid">' + lib.books.map( function ( b ) {
+						return '<li><a href="#library/' + b.id + '">' + libCover( b ) + ( b.loan ? '<span class="a-lib-badge">' + esc( _f( __( 'With %s', 'stubli' ), b.loan.name ) ) + '</span>' : '' ) + '<span class="a-lib-t">' + esc( b.title ) + '</span>' + ( b.author ? '<span class="muted">' + esc( b.author ) + '</span>' : '' ) + '</a></li>';
+					} ).join( '' ) + '</ul><p class="a-help">' + __( 'Only you see who has a book. Visitors see "On loan".', 'stubli' ) + '</p>' : '<p class="muted">' + __( 'No books yet. Scan the barcode on the back of one to start.', 'stubli' ) + '</p>' ) +
+				'</section>';
+		}
+		root.innerHTML = arrangeHead( '#you', __( 'Library', 'stubli' ) ) + '<main class="a-main" id="main">' + body + '</main>';
+		lib.msg = '';
+		var on = $( '[data-lib-on]' ); if ( on ) { on.addEventListener( 'click', function () { on.disabled = true; libSaveSettings( { on: true }, __( 'Your Library is on. Add your first book.', 'stubli' ), function () { location.hash = '#library/where'; } ); } ); }
+	}
+	function viewLibraryWhere() {
+		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library/where' ) { viewLibraryWhere(); } } ); return; }
+		var s = lib.settings;
+		root.innerHTML = arrangeHead( '#library', __( 'Where and how', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card">' +
+			'<label class="a-label" for="a-lib-area">' + __( 'Where you are, roughly (optional)', 'stubli' ) + '</label><input id="a-lib-area" class="a-field" maxlength="80" placeholder="' + esc( __( 'e.g. Zurich, Kreis 4', 'stubli' ) ) + '" value="' + esc( s.area ) + '">' +
+			'<p class="a-help">' + __( 'Never your address. It shows at the top of your Library.', 'stubli' ) + '</p>' +
+			'<label class="a-label" for="a-lib-hand">' + __( 'Handing over (optional)', 'stubli' ) + '</label><input id="a-lib-hand" class="a-field" maxlength="140" placeholder="' + esc( __( 'e.g. Pick up near the station, or I\'ll bring it', 'stubli' ) ) + '" value="' + esc( s.handover ) + '">' +
+			'<div class="a-actions"><button type="button" class="a-btn" data-lib-where-save>' + __( 'Save', 'stubli' ) + '</button><a class="a-btn quiet" href="#library">' + __( 'Cancel', 'stubli' ) + '</a></div></section>' +
+			'<section class="a-card"><h2>' + __( 'Your Library tab', 'stubli' ) + '</h2><p class="muted">' + __( 'Taking the tab off your page keeps your books here, ready if you add it again.', 'stubli' ) + '</p><button type="button" class="a-btn quiet" data-lib-off>' + __( 'Take the Library off my page', 'stubli' ) + '</button></section></main>';
+		$( '[data-lib-where-save]' ).addEventListener( 'click', function ( e ) {
+			e.target.disabled = true;
+			libSaveSettings( { area: $( '#a-lib-area' ).value.trim(), handover: $( '#a-lib-hand' ).value.trim() }, __( 'Saved.', 'stubli' ), function () { location.hash = '#library'; } );
+		} );
+		$( '[data-lib-off]' ).addEventListener( 'click', function ( e ) {
+			e.target.disabled = true;
+			libSaveSettings( { on: false }, '', function () { location.hash = '#you'; } );
+		} );
+	}
+	// Adding a book: scan the barcode, type its ISBN, or type it all in.
+	function viewLibraryAdd() {
+		libStopScan();
+		root.innerHTML = arrangeHead( '#library', __( 'Add a book', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			( lib.msg ? '<div class="a-notice" role="status">' + esc( lib.msg ) + '</div>' : '' ) +
+			'<section class="a-card"><div class="a-actions a-actions-col"><a class="a-btn" href="#library/scan">' + icon( 'camera', 18 ) + __( 'Scan the barcode', 'stubli' ) + '</a></div>' +
+			'<label class="a-label" for="a-lib-isbn">' + __( 'Or type the number under the barcode (ISBN)', 'stubli' ) + '</label><div class="a-lib-row"><input id="a-lib-isbn" class="a-field" inputmode="numeric" maxlength="17" placeholder="978…"><button type="button" class="a-btn quiet" data-lib-find>' + __( 'Find', 'stubli' ) + '</button></div>' +
+			'<p class="a-help">' + __( 'Your Stubli looks the book up on Open Library, a free book catalogue, using only this number.', 'stubli' ) + '</p>' +
+			'<p><a href="#library/new">' + __( 'No barcode? Type it in yourself', 'stubli' ) + '</a></p></section></main>';
+		lib.msg = '';
+		var find = function () { libFind( $( '#a-lib-isbn' ).value ); };
+		$( '[data-lib-find]' ).addEventListener( 'click', find );
+		$( '#a-lib-isbn' ).addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { find(); } } );
+	}
+	function libFind( isbn ) {
+		var digits = String( isbn ).replace( /[^0-9Xx]/g, '' );
+		if ( digits.length !== 10 && digits.length !== 13 ) { lib.msg = __( 'An ISBN has 13 digits (or 10 on older books).', 'stubli' ); viewLibraryAdd(); return; }
+		root.querySelector( '.a-main' ).insertAdjacentHTML( 'afterbegin', '<p class="a-help" role="status">' + __( 'Looking it up…', 'stubli' ) + '</p>' );
+		send( 'GET', 'library/isbn/' + digits ).then( function ( r ) {
+			lib.found = { isbn: r.isbn, title: r.title, author: r.author, year: r.year, coverUrl: r.coverUrl, note: '' };
+			location.hash = '#library/new';
+		}, function ( e ) {
+			lib.found = { isbn: digits, title: '', author: '', year: '', coverUrl: '', note: '' };
+			lib.msg = e.message; location.hash = '#library/new';
+		} );
+	}
+	// The camera: frames go to the phone's own barcode reader where there is one, or to Stubli's (isbn-scan.min.js).
+	function libStopScan() {
+		if ( lib.scanning ) { clearInterval( lib.scanning.timer ); lib.scanning.stream.getTracks().forEach( function ( t ) { t.stop(); } ); lib.scanning = null; }
+	}
+	function libLoadScanner() {
+		return new Promise( function ( ok, no ) {
+			if ( window.stubliScanISBN ) { ok(); return; }
+			var s = document.createElement( 'script' ); s.src = B.scanner; s.onload = ok; s.onerror = no; document.head.appendChild( s );
+		} );
+	}
+	function viewLibraryScan() {
+		libStopScan();
+		root.innerHTML = arrangeHead( '#library/add', __( 'Scan the barcode', 'stubli' ) ) + '<main class="a-main" id="main"><section class="a-card">' +
+			'<p class="muted">' + __( 'Hold the barcode on the back of the book inside the frame.', 'stubli' ) + '</p>' +
+			'<div class="a-lib-cam"><video playsinline muted autoplay data-lib-video></video><span class="a-lib-frame" aria-hidden="true"></span></div>' +
+			'<p class="a-help" role="status" data-lib-scan-msg>' + __( 'Starting the camera…', 'stubli' ) + '</p>' +
+			'<p><a href="#library/add">' + __( 'Type the number instead', 'stubli' ) + '</a></p></section></main>';
+		var msg = $( '[data-lib-scan-msg]' ), video = $( '[data-lib-video]' );
+		if ( ! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia ) { msg.textContent = __( 'This browser can\'t use the camera here. Type the number instead.', 'stubli' ); return; }
+		Promise.all( [ navigator.mediaDevices.getUserMedia( { video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false } ), libLoadScanner().catch( function () {} ) ] ).then( function ( res ) {
+			var stream = res[ 0 ]; video.srcObject = stream;
+			var canvas = document.createElement( 'canvas' ), ctx = canvas.getContext( '2d', { willReadFrequently: true } );
+			var native = 'BarcodeDetector' in window ? new window.BarcodeDetector( { formats: [ 'ean_13' ] } ) : null, busy = false;
+			msg.textContent = __( 'Looking for the barcode…', 'stubli' );
+			var got = function ( code ) {
+				if ( ! code || ! /^97[89]\d{10}$/.test( code ) ) { return; }
+				libStopScan(); if ( navigator.vibrate ) { navigator.vibrate( 60 ); }
+				msg.textContent = _f( __( 'Found %s. Looking it up…', 'stubli' ), code ); libFind( code );
+			};
+			lib.scanning = { stream: stream, timer: setInterval( function () {
+				if ( busy || video.readyState < 2 || location.hash !== '#library/scan' ) { if ( location.hash !== '#library/scan' ) { libStopScan(); } return; }
+				busy = true;
+				// The middle band of the picture, where the frame is.
+				var w = video.videoWidth, h = video.videoHeight, bh = Math.round( h * 0.45 );
+				canvas.width = w; canvas.height = bh; ctx.drawImage( video, 0, Math.round( ( h - bh ) / 2 ), w, bh, 0, 0, w, bh );
+				if ( native ) {
+					native.detect( canvas ).then( function ( r ) { busy = false; if ( r[ 0 ] ) { got( r[ 0 ].rawValue ); } }, function () { busy = false; native = null; } );
+				} else if ( window.stubliScanISBN ) {
+					got( window.stubliScanISBN( ctx.getImageData( 0, 0, w, bh ).data, w, bh ) ); busy = false;
+				} else { busy = false; }
+			}, 250 ) };
+		}, function () { msg.textContent = __( 'No camera, or the camera wasn\'t allowed. Type the number instead.', 'stubli' ); } );
+	}
+	// The book form: after a scan or lookup (filled in), by hand (empty), or to change a book.
+	function viewLibraryBookForm( id ) {
+		if ( ! lib.loaded ) { libLoad( function () { viewLibraryBookForm( id ); } ); return; }
+		var b = id ? libBook( id ) : ( lib.found || { isbn: '', title: '', author: '', year: '', coverUrl: '', note: '' } );
+		if ( ! b ) { location.replace( '#library' ); return; }
+		var cover = id ? b.cover : b.coverUrl;
+		root.innerHTML = arrangeHead( id ? '#library/' + id : '#library/add', id ? __( 'Change book', 'stubli' ) : __( 'Add a book', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			( lib.msg ? '<div class="a-notice" role="status">' + esc( lib.msg ) + '</div>' : '' ) +
+			'<section class="a-card">' + ( cover ? '<img class="a-lib-cover a-lib-cover-big" src="' + esc( cover ) + '" alt="">' + ( id ? '' : '<p class="a-help">' + __( 'Cover from Open Library. Your Stubli keeps a copy, so visitors load it from your site.', 'stubli' ) + '</p>' ) : '' ) +
+			'<label class="a-label" for="a-lb-title">' + __( 'Title', 'stubli' ) + '</label><input id="a-lb-title" class="a-field" maxlength="200" value="' + esc( b.title ) + '">' +
+			'<label class="a-label" for="a-lb-author">' + __( 'Author (optional)', 'stubli' ) + '</label><input id="a-lb-author" class="a-field" maxlength="200" value="' + esc( b.author ) + '">' +
+			'<label class="a-label" for="a-lb-year">' + __( 'Year (optional)', 'stubli' ) + '</label><input id="a-lb-year" class="a-field" inputmode="numeric" maxlength="4" value="' + esc( b.year ) + '">' +
+			'<label class="a-label" for="a-lb-note">' + __( 'A note for borrowers (optional)', 'stubli' ) + '</label><textarea id="a-lb-note" class="a-field" maxlength="280" rows="3" placeholder="' + esc( __( 'e.g. Lovely for a slow weekend', 'stubli' ) ) + '">' + esc( b.note ) + '</textarea>' +
+			'<div class="a-actions"><button type="button" class="a-btn" data-lb-save>' + ( id ? __( 'Save', 'stubli' ) : __( 'Add to my Library', 'stubli' ) ) + '</button><a class="a-btn quiet" href="' + ( id ? '#library/' + id : '#library' ) + '">' + __( 'Cancel', 'stubli' ) + '</a></div></section></main>';
+		lib.msg = '';
+		$( '[data-lb-save]' ).addEventListener( 'click', function ( e ) {
+			var title = $( '#a-lb-title' ).value.trim();
+			if ( ! title ) { $( '#a-lb-title' ).focus(); return; }
+			e.target.disabled = true; e.target.textContent = __( 'Saving…', 'stubli' );
+			var f = { title: title, author: $( '#a-lb-author' ).value.trim(), year: $( '#a-lb-year' ).value.trim(), note: $( '#a-lb-note' ).value.trim(), isbn: b.isbn || '', coverUrl: id ? '' : ( b.coverUrl || '' ) };
+			send( 'POST', id ? 'library/' + id : 'library', f ).then( function ( saved ) {
+				if ( id ) { lib.books = lib.books.map( function ( x ) { return x.id === id ? saved : x; } ); } else { lib.books.unshift( saved ); }
+				lib.found = null; lib.msg = id ? __( 'Saved.', 'stubli' ) : _f( __( 'Added %s to your Library.', 'stubli' ), saved.title );
+				location.hash = id ? '#library/' + id : '#library';
+			}, function ( err ) { lib.msg = err.message; viewLibraryBookForm( id ); } );
+		} );
+	}
+	// One book: lend it, it's back, change it, take it off the shelf.
+	function viewLibraryBook( id ) {
+		if ( ! lib.loaded ) { libLoad( function () { viewLibraryBook( id ); } ); return; }
+		var b = libBook( id );
+		if ( ! b ) { location.replace( '#library' ); return; }
+		var since = b.loan && b.loan.since ? new Date( b.loan.since + 'T12:00:00' ).toLocaleDateString( undefined, { day: 'numeric', month: 'short' } ) : '';
+		root.innerHTML = arrangeHead( '#library', __( 'Book', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			( lib.msg ? '<div class="a-notice calm" role="status">' + esc( lib.msg ) + '</div>' : '' ) +
+			'<section class="a-card"><div class="a-lib-book">' + libCover( b, 'a-lib-cover a-lib-cover-big' ) + '<div><h2>' + esc( b.title ) + '</h2>' + ( b.author || b.year ? '<p class="muted">' + esc( [ b.author, b.year ].filter( Boolean ).join( ' · ' ) ) + '</p>' : '' ) + ( b.note ? '<p>' + esc( b.note ) + '</p>' : '' ) + '</div></div></section>' +
+			( b.loan ? '<section class="a-card"><p><strong>' + esc( _f( __( 'With %s', 'stubli' ), b.loan.name ) ) + '</strong>' + ( since ? ' · ' + esc( _f( __( 'since %s', 'stubli' ), since ) ) : '' ) + '</p><p class="a-help">' + __( 'Only you see this. Visitors see "On loan".', 'stubli' ) + '</p><button type="button" class="a-btn" data-lb-back>' + __( 'It\'s back', 'stubli' ) + '</button></section>' :
+				'<section class="a-card"><h2>' + __( 'Lend it', 'stubli' ) + '</h2><label class="a-label" for="a-lb-who">' + __( 'Who has it? A first name is enough.', 'stubli' ) + '</label><input id="a-lb-who" class="a-field" maxlength="80" list="a-lb-people" autocomplete="off">' +
+				'<datalist id="a-lb-people">' + lib.people.map( function ( p ) { return '<option value="' + esc( p.name ) + '">'; } ).join( '' ) + '</datalist>' +
+				'<p class="a-help">' + __( 'Only you see the name. Visitors see "On loan".', 'stubli' ) + '</p><button type="button" class="a-btn" data-lb-lend>' + __( 'Mark as on loan', 'stubli' ) + '</button></section>' ) +
+			'<section class="a-card"><div class="a-actions"><a class="a-btn quiet" href="#library/' + id + '/edit">' + __( 'Change details', 'stubli' ) + '</a><button type="button" class="a-btn quiet" data-lb-remove>' + __( 'Take it off the shelf', 'stubli' ) + '</button></div></section></main>';
+		lib.msg = '';
+		var done = function ( saved, msg ) { lib.books = lib.books.map( function ( x ) { return x.id === id ? saved : x; } ); lib.msg = msg; viewLibraryBook( id ); };
+		var lend = $( '[data-lb-lend]' );
+		if ( lend ) { lend.addEventListener( 'click', function () {
+			var who = $( '#a-lb-who' ).value.trim(); if ( ! who ) { $( '#a-lb-who' ).focus(); return; }
+			var p = lib.people.filter( function ( x ) { return x.name === who; } )[ 0 ];
+			lend.disabled = true;
+			send( 'POST', 'library/' + id, { loan: { name: who, site: p ? p.site : '' } } ).then( function ( s ) { done( s, _f( __( 'On loan to %s.', 'stubli' ), who ) ); }, function ( e ) { lend.disabled = false; lib.msg = e.message; viewLibraryBook( id ); } );
+		} ); }
+		var back = $( '[data-lb-back]' );
+		if ( back ) { back.addEventListener( 'click', function () { back.disabled = true; send( 'POST', 'library/' + id, { loan: null } ).then( function ( s ) { done( s, __( 'Welcome back. It\'s on your shelf again.', 'stubli' ) ); } ); } ); }
+		$( '[data-lb-remove]' ).addEventListener( 'click', function ( e ) {
+			if ( e.target.dataset.sure !== '1' ) { e.target.dataset.sure = '1'; e.target.textContent = _f( __( 'Take %s off the shelf? Tap again', 'stubli' ), b.title ); return; }
+			e.target.disabled = true;
+			send( 'DELETE', 'library/' + id ).then( function () { lib.books = lib.books.filter( function ( x ) { return x.id !== id; } ); lib.msg = _f( __( 'Took %s off your shelf.', 'stubli' ), b.title ); location.hash = '#library'; } );
+		} );
 	}
 	function viewLinks() {
 		if ( ! fav.loaded ) { favLoad( function () { if ( location.hash === '#links' ) { viewLinks(); } } ); return; }

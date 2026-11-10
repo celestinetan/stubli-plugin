@@ -181,6 +181,8 @@ class App {
 			'collections' => array_values( array_unique( $collections ) ),
 			'noneOk'      => Posts::is_unsorted( get_term( $default, 'category' ) ),
 			'collOrder'   => array_column( Arrange::collections(), 'name' ),
+			'library'     => Library::is_on(),
+			'scanner'     => STUBLI_PLUGIN_URL . 'assets/app/isbn-scan.min.js?ver=' . VERSION,
 			'maxPhotos'   => Posts::max_photos(),
 			'maxFiles'    => Posts::max_files(),
 			'maxCaption'  => Posts::MAX_CAPTION_LENGTH,

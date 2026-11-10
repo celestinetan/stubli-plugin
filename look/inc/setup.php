@@ -108,6 +108,7 @@ add_filter(
 	'query_vars',
 	static function ( $vars ) {
 		$vars[] = 'stubli_links';
+		$vars[] = 'stubli_library';
 		$vars[] = 'stubli_remote';
 		$vars[] = 'stubli_invite';
 		return $vars;
@@ -115,7 +116,7 @@ add_filter(
 );
 
 /**
- * /favourites/ (and the old /links/), /from-your-stubli/ and /invite/ without rewrite rules, so they
+ * /favourites/ (and the old /links/), /library/, /from-your-stubli/ and /invite/ without rewrite rules, so they
  * work straight after an update with nothing to flush.
  */
 add_filter(
@@ -132,6 +133,7 @@ add_filter(
 		$map = array(
 			'links'            => 'stubli_links',
 			'favourites'       => 'stubli_links',
+			'library'          => 'stubli_library',
 			'from-your-stubli' => 'stubli_remote',
 			'invite'           => 'stubli_invite',
 		);
@@ -149,7 +151,7 @@ add_action(
 		if ( ! $query->is_main_query() || is_admin() ) {
 			return;
 		}
-		if ( $query->get( 'stubli_links' ) || $query->get( 'stubli_remote' ) || $query->get( 'stubli_invite' ) ) {
+		if ( $query->get( 'stubli_links' ) || $query->get( 'stubli_library' ) || $query->get( 'stubli_remote' ) || $query->get( 'stubli_invite' ) ) {
 			$query->set( 'posts_per_page', 1 );
 			$query->is_home = false;
 		}
@@ -162,7 +164,7 @@ add_action(
 add_action(
 	'template_redirect',
 	static function () {
-		if ( get_query_var( 'stubli_links' ) || get_query_var( 'stubli_remote' ) || get_query_var( 'stubli_invite' ) || get_query_var( 'stubli_journal' ) ) {
+		if ( get_query_var( 'stubli_links' ) || get_query_var( 'stubli_library' ) || get_query_var( 'stubli_remote' ) || get_query_var( 'stubli_invite' ) || get_query_var( 'stubli_journal' ) ) {
 			global $wp_query;
 			$wp_query->is_404 = false;
 			status_header( 200 );
@@ -196,6 +198,8 @@ add_filter(
 			$parts['title'] = __( 'Journal', 'stubli' );
 		} elseif ( get_query_var( 'stubli_links' ) ) {
 			$parts['title'] = __( 'Favourites', 'stubli' );
+		} elseif ( get_query_var( 'stubli_library' ) ) {
+			$parts['title'] = __( 'Library', 'stubli' );
 		} elseif ( get_query_var( 'stubli_remote' ) ) {
 			$parts['title'] = __( 'From your own Stubli', 'stubli' );
 		} elseif ( get_query_var( 'stubli_invite' ) ) {

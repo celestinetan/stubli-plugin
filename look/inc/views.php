@@ -31,6 +31,8 @@ function stubli_view_name( $view ) {
 		$view = 'journal';
 	} elseif ( get_query_var( 'stubli_links' ) ) {
 		$view = 'links';
+	} elseif ( get_query_var( 'stubli_library' ) && stubli_library_on() ) {
+		$view = 'library';
 	} elseif ( get_query_var( 'stubli_invite' ) ) {
 		$view = 'invite';
 	} elseif ( get_query_var( 'stubli_remote' ) ) {
@@ -60,6 +62,13 @@ function stubli_print_view( $view ) {
 			break;
 		case 'links':
 			stubli_view_links();
+			break;
+		case 'library':
+			if ( stubli_library_on() ) {
+				stubli_view_library();
+			} else {
+				stubli_view_profile();
+			}
 			break;
 		case 'remote':
 			stubli_view_remote();
@@ -287,13 +296,14 @@ function stubli_profile_cards() {
  * The folder tabs: collections and Journal on the left, Guest book and
  * Favourites (Stubli green) on the right.
  *
- * @param int|string $active Term ID, or journal | guest | links.
+ * @param int|string $active Term ID, or journal | guest | links | library.
  */
 function stubli_tabs( $active ) {
 	$tabs = array(
 		'journal' => array( home_url( '/journal/' ), __( 'Journal', 'stubli' ), 'book' ),
 		'guest'   => array( stubli_has_plugin() ? \Stubli\Guestbook::url() : '', __( 'Guest book', 'stubli' ), 'pen' ),
 		'links'   => array( home_url( '/favourites/' ), __( 'Favourites', 'stubli' ), 'heart' ),
+		'library' => array( stubli_library_on() ? home_url( '/library/' ) : '', __( 'Library', 'stubli' ), 'shelf' ),
 	);
 	$icon_tab    = static function ( $key, $green ) use ( $tabs, $active ) {
 		list( $url, $label, $icon ) = $tabs[ $key ];
@@ -316,7 +326,7 @@ function stubli_tabs( $active ) {
 		);
 	};
 	?>
-	<nav class="st-tabs" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: name */ __( '%s\'s page', 'stubli' ), stubli_first_name() ) ); ?>">
+	<nav class="st-tabs<?php echo stubli_library_on() ? ' has-library' : ''; ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: name */ __( '%s\'s page', 'stubli' ), stubli_first_name() ) ); ?>">
 		<div class="st-tabs-left">
 			<div class="st-tabs-scroll" data-st-scroll>
 				<?php if ( stubli_has_all() ) : ?>
@@ -334,6 +344,7 @@ function stubli_tabs( $active ) {
 		<div class="st-tabs-right" role="group" aria-label="<?php esc_attr_e( 'Visit and connect', 'stubli' ); ?>">
 			<?php $icon_tab( 'guest', true ); ?>
 			<?php $icon_tab( 'links', true ); ?>
+			<?php $icon_tab( 'library', true ); ?>
 		</div>
 	</nav>
 	<?php
@@ -971,6 +982,59 @@ function stubli_guestbook_ways( $page ) {
 	/* translators: %s: the owner's first name */
 	echo '<span class="st-muted">' . esc_html( sprintf( __( 'Only %s sees it. Leave a way to reach you if you\'d like a reply.', 'stubli' ), $first ) ) . '</span>' . wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ) . '</a>';
 	echo '</div>';
+}
+
+/**
+ * Library tab (0.2.122, Celestine 9–10 Nov): the books the owner is happy to lend, with a rough area and how they hand
+ * books over. Visitors see "On loan", never who has a book; tapping a book shows its note and how to ask for it.
+ */
+function stubli_view_library() {
+	stubli_topbar();
+	echo '<main class="st-main" id="main">';
+	stubli_profile_cards();
+	stubli_tabs( 'library' );
+	$s     = \Stubli\Library::settings();
+	$books = \Stubli\Library::books( false );
+	$first = stubli_first_name();
+	echo '<section class="st-panel st-library is-last">';
+	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Library', 'stubli' ) . '</h2>';
+	/* translators: %s: the owner's first name */
+	echo '<p class="st-muted">' . esc_html( sprintf( __( 'Books %s is happy to lend.', 'stubli' ), $first ) ) . '</p>';
+	$where = array_filter( array( $s['area'], $s['handover'] ) );
+	if ( $where ) {
+		echo '<p class="st-lib-where">' . wp_kses( stubli_icon( 'place', 16 ), stubli_allowed_html() ) . '<span>' . esc_html( implode( ' · ', $where ) ) . '</span></p>';
+	}
+	echo '</div></div>';
+	if ( ! $books ) {
+		echo '<p class="st-muted">' . esc_html__( 'No books on the shelf yet.', 'stubli' ) . '</p>';
+	} else {
+		$ask = add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
+		echo '<ul class="st-lib-grid">';
+		foreach ( $books as $b ) {
+			echo '<li><details class="st-lib-book"><summary>';
+			echo $b['cover'] ? '<img class="st-lib-cover" src="' . esc_url( $b['cover'] ) . '" alt="" loading="lazy">' : '<span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( stubli_chars( $b['title'], 1 ) ) . '</span>';
+			if ( $b['onLoan'] ) {
+				echo '<span class="st-lib-badge">' . esc_html__( 'On loan', 'stubli' ) . '</span>';
+			}
+			echo '<span class="st-lib-t">' . esc_html( $b['title'] ) . '</span>' . ( '' !== $b['author'] ? '<span class="st-muted st-small">' . esc_html( $b['author'] ) . '</span>' : '' ) . '</summary>';
+			echo '<div class="st-lib-more">';
+			if ( '' !== $b['year'] ) {
+				echo '<p class="st-muted st-small">' . esc_html( $b['year'] ) . '</p>';
+			}
+			if ( '' !== $b['note'] ) {
+				echo '<p>' . esc_html( $b['note'] ) . '</p>';
+			}
+			if ( $b['onLoan'] ) {
+				echo '<p class="st-muted st-small">' . esc_html__( 'On loan just now.', 'stubli' ) . '</p>';
+			} elseif ( ! stubli_is_owner() ) {
+				/* translators: %s: the owner's first name */
+				echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
+			}
+			echo '</div></details></li>';
+		}
+		echo '</ul>';
+	}
+	echo '</section></main>';
 }
 
 /**

@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.45.24
+Stable tag: 0.46.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Yes. Stubli brings its own look for your public pages and turns it on for new in
 
 Settings → Stubli has a check that tests everything Stubli needs in a few seconds.
 
+== Third-party code ==
+
+The Library's barcode reader (assets/app/isbn-scan.min.js) is built from parts of zxing-js/library (https://github.com/zxing-js/library), Apache License 2.0; the licence is in assets/app/isbn-scan-LICENSE.txt and the entry point in assets/app/isbn-scan-source.ts.txt.
+
 == External services ==
 
 Stubli connects to other websites only for the features below. Nothing is sent anywhere just because someone visits your site.
@@ -83,6 +87,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **Friends (only when you tick someone as a friend).** Your site gives that person's Stubli site a private key, and their site checks it back with yours. With the key, their reader can show your friends-only posts. Untick them and the key stops working.
 * **Notes (only when you send one, or someone leaves one).** A note you write goes from your site to the other person's Stubli site, which fetches it back from yours to check it really came from you; it gets your site's address, name and photo with it. Visitors without a Stubli can leave you a note with their name and a way to reach them; it's stored only on your site, seen only by you, and deleted after 90 days. Suggested privacy-policy text is added under Settings → Privacy.
 * **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
+* **Open Library (only when you add a book to your Library by its barcode or ISBN).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, and keeps a copy of the cover in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
 == Screenshots ==
@@ -98,6 +103,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.46.0 =
+* Library: lend your books to people nearby. In the app, open More → Library and add a Library tab to your page. Add books by scanning the barcode on the back, typing the number under it, or by hand; your Stubli fills in the title, author and cover from Open Library. Mark a book on loan (only you see who has it; visitors see "On loan") and tap It's back when it returns. Add a rough area and how you hand books over, so neighbours know you're near. Asking to borrow from another Stubli comes next.
 
 = 0.45.24 =
 * Collection tabs are simpler again: up to five, each with a name of up to five characters (an emoji counts as one), in one plain row beside Journal, Guest book and Favourites. On a phone each collection tab shows its first two characters, or its emoji, so everything fits. The overlapping tabs and tab colours from 0.45.23 are gone.

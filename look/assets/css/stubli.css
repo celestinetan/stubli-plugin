@@ -1037,8 +1037,27 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 	.st-tabs-scroll .st-tab-plain .st-tab-short { display: inline; }
 	.st-tabs-scroll, .st-tabs-right { gap: 3px; }
 	.st-tabs-scroll .st-tab-face { padding: 0 7px; }
-	.st-tabs .st-tab-icon .st-tab-face { padding: 0 8px; min-width: 0; }
+	.st-tabs .st-tab.st-tab-icon .st-tab-face { width: 38px; }
+}
+/* With a Library tab as well (0.2.122), phones up to 420 px get slightly tighter tabs. */
+@media (max-width: 420px) {
+	.st-tabs.has-library .st-tabs-scroll .st-tab-face { padding: 0 6px; }
+	.st-tabs.has-library .st-tab.st-tab-icon .st-tab-face { width: 34px; }
 }
 /* The smallest phones: one character (or the emoji). */
 @media (max-width: 370px) { .st-tabs-scroll .st-tab-plain .st-tab-2 { display: none; } }
 .st-wall-name { margin: 2px 4px 8px; font-size: 18px; font-weight: 700; }
+
+/* Library tab (0.2.122, Celestine 9–10 Nov): the books the owner lends. Visitors see "On loan", never who has a book. */
+.st-lib-where { display: flex; gap: 6px; align-items: center; margin: 6px 0 0; color: var(--st-muted); font-size: 14px; }
+.st-lib-grid { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 18px 12px; }
+.st-lib-book summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 4px; position: relative; font-size: 14px; line-height: 1.25; }
+.st-lib-book summary::-webkit-details-marker { display: none; }
+.st-lib-cover { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; background: var(--st-tab-off); }
+.st-lib-nocover { display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; color: var(--st-muted); }
+.st-lib-t { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.st-lib-badge { position: absolute; top: 6px; left: 6px; background: rgba(251, 250, 248, .94); color: var(--st-ink); font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
+.st-lib-more { padding: 8px 0 0; font-size: 14px; }
+.st-lib-more p { margin: 0 0 6px; }
+.st-lib-ask { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.st-lib-book[open] { grid-column: span 2; }

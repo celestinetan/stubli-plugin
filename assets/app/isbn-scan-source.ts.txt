@@ -1,0 +1,18 @@
+// Stubli book scanner: reads an EAN-13 (ISBN) barcode from camera frames. Built from zxing-js (Apache-2.0).
+import EAN13Reader from './zxlib/src/core/oned/EAN13Reader';
+import BinaryBitmap from './zxlib/src/core/BinaryBitmap';
+import HybridBinarizer from './zxlib/src/core/common/HybridBinarizer';
+import RGBLuminanceSource from './zxlib/src/core/RGBLuminanceSource';
+import DecodeHintType from './zxlib/src/core/DecodeHintType';
+const reader = new EAN13Reader();
+const hints = new Map(); hints.set(DecodeHintType.TRY_HARDER, true);
+// rgba: Uint8ClampedArray from canvas getImageData; returns the 13 digits or ''.
+function decode(rgba: Uint8ClampedArray, width: number, height: number): string {
+  const lum = new Uint8ClampedArray(width * height);
+  for (let i = 0, j = 0; i < lum.length; i++, j += 4) { lum[i] = (rgba[j] * 299 + rgba[j + 1] * 587 + rgba[j + 2] * 114) / 1000; }
+  try {
+    const bmp = new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(lum, width, height)));
+    return reader.decode(bmp, hints).getText();
+  } catch (e) { return ''; }
+}
+(window as any).stubliScanISBN = decode;
