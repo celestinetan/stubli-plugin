@@ -285,6 +285,17 @@ class Friends {
 	}
 
 	/**
+	 * The key a site gave us when it ticked us as a friend, or ''.
+	 *
+	 * @param string $site Their site.
+	 * @return string
+	 */
+	public static function key_from( $site ) {
+		$theirs = (array) get_option( self::THEIRS, array() );
+		return (string) ( $theirs[ Follows::origin( $site ) ] ?? '' );
+	}
+
+	/**
 	 * Feed address for a site we follow, with our key when they made us a friend.
 	 *
 	 * @param array $follow Follow row.

@@ -900,3 +900,19 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lib-frame { position: absolute; left: 12%; right: 12%; top: 30%; bottom: 30%; border: 3px solid #fff; border-radius: 12px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .25); }
 .a-lib-row { display: flex; gap: 8px; align-items: center; }
 .a-lib-row .a-field { flex: 1; }
+.a-lib-badge.is-light { background: rgba(251, 250, 248, .95); color: var(--ink); right: auto; }
+.a-lib-badge.is-friends { background: var(--bg); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); right: auto; }
+.a-lib-chips { margin: 10px 0 0; flex-wrap: wrap; }
+.a-lib-reading { grid-template-columns: repeat(3, minmax(0, 96px)); margin-top: 6px; }
+.a-lib-kinds { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.a-lib-kinds a { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none; min-height: 64px; }
+.a-lib-kinds strong, .a-lib-kinds small { display: block; }
+.a-lib-kind-i { font-size: 26px; width: 36px; text-align: center; flex-shrink: 0; }
+.a-lib-photo { aspect-ratio: 4 / 3; border-radius: 14px; background: var(--field); display: flex; align-items: center; justify-content: center; font-size: 52px; overflow: hidden; margin-bottom: 10px; }
+.a-lib-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.a-lib-photo-btn { position: relative; cursor: pointer; }
+.a-lib-photo-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.a-lib-pick { all: unset; display: flex; flex-direction: column; gap: 4px; color: var(--ink); position: relative; font-size: 13px; line-height: 1.25; cursor: pointer; width: 100%; }
+.a-lib-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.a-people-lib { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; font-weight: 600; margin-top: 2px; color: var(--accent); }
+.a-people-lib svg { width: 14px; height: 14px; }

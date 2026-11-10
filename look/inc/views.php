@@ -985,52 +985,110 @@ function stubli_guestbook_ways( $page ) {
 }
 
 /**
- * Library tab (0.2.122, Celestine 9–10 Nov): the books the owner is happy to lend, with a rough area and how they hand
- * books over. Visitors see "On loan", never who has a book; tapping a book shows its note and how to ask for it.
+ * Library tab (0.2.122, Celestine 9–10 Nov): the things the owner is happy to lend, with a rough area and how they hand
+ * them over. Visitors see "On loan", never who has something; tapping one shows its note and how to ask for it.
+ * 0.2.123 (10 Nov): games, tools and other things too, with filters once there's more than one kind; Now reading at the
+ * top; friends-only things never appear here (friends see them in their own Stubli app).
  */
 function stubli_view_library() {
 	stubli_topbar();
 	echo '<main class="st-main" id="main">';
 	stubli_profile_cards();
 	stubli_tabs( 'library' );
-	$s     = \Stubli\Library::settings();
-	$books = \Stubli\Library::books( false );
-	$first = stubli_first_name();
+	$s       = \Stubli\Library::settings();
+	$all     = \Stubli\Library::shown( '' !== \Stubli\Friends::viewer() );
+	$first   = stubli_first_name();
+	$reading = array_values( array_filter( $all, static fn( $b ) => '' !== $b['reading'] ) );
+	$shelf   = array_values( array_filter( $all, static fn( $b ) => ! $b['just'] && '' === $b['reading'] ) );
+	$kinds   = array(
+		'book'  => __( 'Books', 'stubli' ),
+		'game'  => __( 'Games', 'stubli' ),
+		'tool'  => __( 'Tools', 'stubli' ),
+		'other' => __( 'Other things', 'stubli' ),
+	);
+	$icons   = array(
+		'game'  => '🎲',
+		'tool'  => '🔧',
+		'other' => '✦',
+	);
+	$have    = array_values( array_intersect( array_keys( $kinds ), array_unique( array_column( $shelf, 'kind' ) ) ) );
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter.
+	$kind = isset( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : '';
+	$kind = in_array( $kind, $have, true ) && count( $have ) > 1 ? $kind : '';
 	echo '<section class="st-panel st-library is-last">';
 	echo '<div class="st-gb-head"><div><h2 class="st-gb-title">' . esc_html__( 'Library', 'stubli' ) . '</h2>';
 	/* translators: %s: the owner's first name */
-	echo '<p class="st-muted">' . esc_html( sprintf( __( 'Books %s is happy to lend.', 'stubli' ), $first ) ) . '</p>';
+	echo '<p class="st-muted">' . esc_html( sprintf( __( 'Things %s is happy to lend.', 'stubli' ), $first ) ) . '</p>';
 	$where = array_filter( array( $s['area'], $s['handover'] ) );
 	if ( $where ) {
 		echo '<p class="st-lib-where">' . wp_kses( stubli_icon( 'place', 16 ), stubli_allowed_html() ) . '<span>' . esc_html( implode( ' · ', $where ) ) . '</span></p>';
 	}
 	echo '</div></div>';
-	if ( ! $books ) {
-		echo '<p class="st-muted">' . esc_html__( 'No books on the shelf yet.', 'stubli' ) . '</p>';
+	$ask  = add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
+	$tile = static function ( $b, $lendable ) use ( $first, $ask, $icons ) {
+		echo '<li><details class="st-lib-book"><summary>';
+		if ( $b['cover'] ) {
+			echo '<img class="st-lib-cover" src="' . esc_url( $b['cover'] ) . '" alt="" loading="lazy">';
+		} else {
+			echo '<span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( $icons[ $b['kind'] ] ?? stubli_chars( $b['title'], 1 ) ) . '</span>';
+		}
+		if ( $lendable && $b['onLoan'] ) {
+			echo '<span class="st-lib-badge">' . esc_html__( 'On loan', 'stubli' ) . '</span>';
+		} elseif ( $lendable && '' !== $b['reading'] ) {
+			echo '<span class="st-lib-badge">' . esc_html__( 'Now reading', 'stubli' ) . '</span>';
+		}
+		echo '<span class="st-lib-t">' . esc_html( $b['title'] ) . '</span>';
+		if ( '' !== $b['author'] ) {
+			echo '<span class="st-muted st-small">' . esc_html( $b['author'] ) . '</span>';
+		} elseif ( 'book' !== $b['kind'] && $lendable ) {
+			echo '<span class="st-muted st-small">' . esc_html( array( 'game' => __( 'Game', 'stubli' ), 'tool' => __( 'Tool', 'stubli' ), 'other' => __( 'Something else', 'stubli' ) )[ $b['kind'] ] ?? '' ) . '</span>';
+		}
+		echo '</summary><div class="st-lib-more">';
+		if ( '' !== $b['year'] ) {
+			echo '<p class="st-muted st-small">' . esc_html( $b['year'] ) . '</p>';
+		}
+		if ( '' !== $b['note'] ) {
+			echo '<p>' . esc_html( $b['note'] ) . '</p>';
+		}
+		if ( $lendable && $b['onLoan'] ) {
+			echo '<p class="st-muted st-small">' . esc_html__( 'On loan just now.', 'stubli' ) . '</p>';
+		} elseif ( $lendable && '' !== $b['reading'] ) {
+			/* translators: %s: the owner's first name */
+			echo '<p class="st-muted st-small">' . esc_html( sprintf( __( '%s is reading it just now.', 'stubli' ), $first ) ) . '</p>';
+		} elseif ( $lendable && ! stubli_is_owner() ) {
+			/* translators: %s: the owner's first name */
+			echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
+		}
+		echo '</div></details></li>';
+	};
+	if ( $reading ) {
+		echo '<h3 class="st-lib-h">' . esc_html__( 'Now reading', 'stubli' ) . '</h3><ul class="st-lib-grid st-lib-reading">';
+		foreach ( $reading as $b ) {
+			$tile( $b, false );
+		}
+		echo '</ul>';
+	}
+	if ( ! $shelf ) {
+		if ( ! $reading ) {
+			echo '<p class="st-muted">' . esc_html__( 'Nothing on the shelf yet.', 'stubli' ) . '</p>';
+		}
 	} else {
-		$ask = add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
+		if ( $reading ) {
+			echo '<h3 class="st-lib-h">' . esc_html__( 'To borrow', 'stubli' ) . '</h3>';
+		}
+		if ( count( $have ) > 1 ) {
+			$base = home_url( '/library/' );
+			echo '<nav class="st-lib-kinds" aria-label="' . esc_attr__( 'Show', 'stubli' ) . '"><a href="' . esc_url( $base ) . '"' . ( '' === $kind ? ' aria-current="true"' : '' ) . '>' . esc_html__( 'All', 'stubli' ) . '</a>';
+			foreach ( $have as $k ) {
+				echo '<a href="' . esc_url( add_query_arg( 'kind', $k, $base ) ) . '"' . ( $k === $kind ? ' aria-current="true"' : '' ) . '>' . esc_html( $kinds[ $k ] ) . '</a>';
+			}
+			echo '</nav>';
+		}
 		echo '<ul class="st-lib-grid">';
-		foreach ( $books as $b ) {
-			echo '<li><details class="st-lib-book"><summary>';
-			echo $b['cover'] ? '<img class="st-lib-cover" src="' . esc_url( $b['cover'] ) . '" alt="" loading="lazy">' : '<span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( stubli_chars( $b['title'], 1 ) ) . '</span>';
-			if ( $b['onLoan'] ) {
-				echo '<span class="st-lib-badge">' . esc_html__( 'On loan', 'stubli' ) . '</span>';
+		foreach ( $shelf as $b ) {
+			if ( '' === $kind || $b['kind'] === $kind ) {
+				$tile( $b, true );
 			}
-			echo '<span class="st-lib-t">' . esc_html( $b['title'] ) . '</span>' . ( '' !== $b['author'] ? '<span class="st-muted st-small">' . esc_html( $b['author'] ) . '</span>' : '' ) . '</summary>';
-			echo '<div class="st-lib-more">';
-			if ( '' !== $b['year'] ) {
-				echo '<p class="st-muted st-small">' . esc_html( $b['year'] ) . '</p>';
-			}
-			if ( '' !== $b['note'] ) {
-				echo '<p>' . esc_html( $b['note'] ) . '</p>';
-			}
-			if ( $b['onLoan'] ) {
-				echo '<p class="st-muted st-small">' . esc_html__( 'On loan just now.', 'stubli' ) . '</p>';
-			} elseif ( ! stubli_is_owner() ) {
-				/* translators: %s: the owner's first name */
-				echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
-			}
-			echo '</div></details></li>';
 		}
 		echo '</ul>';
 	}

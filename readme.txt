@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.46.0
+Stable tag: 0.47.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -84,8 +84,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result to the Stubli team", the results, your site's address, your Stubli and PHP versions and the host name you typed are sent as a host report. Privacy: https://stubli.app/privacy/
 * **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
 * **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
-* **Friends (only when you tick someone as a friend).** Your site gives that person's Stubli site a private key, and their site checks it back with yours. With the key, their reader can show your friends-only posts. Untick them and the key stops working.
+* **Friends (only when you tick someone as a friend).** Your site gives that person's Stubli site a private key, and their site checks it back with yours. With the key, their reader can show your friends-only posts, and their app can show the things in your Library you keep for friends only. Untick them and the key stops working.
 * **Notes (only when you send one, or someone leaves one).** A note you write goes from your site to the other person's Stubli site, which fetches it back from yours to check it really came from you; it gets your site's address, name and photo with it. Visitors without a Stubli can leave you a note with their name and a way to reach them; it's stored only on your site, seen only by you, and deleted after 90 days. Suggested privacy-policy text is added under Settings → Privacy.
+* **Libraries of people you follow (only when you open one).** When you tap Library next to someone under People, your site asks their Stubli site for its Library (with their friend key, if they gave you one). Their site sees your site's address.
 * **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
 * **Open Library (only when you add a book to your Library by its barcode or ISBN).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, and keeps a copy of the cover in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
@@ -103,6 +104,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.47.0 =
+* Library: lend games, tools and anything else, not just books. Tap Add something and pick what it is; books still fill in from Open Library, everything else gets a photo, a name and a note.
+* Now reading: up to 3 books at the top of your Library, from your shelf or one you're just reading (a library book, an e-book). Tap Finished when you're done.
+* Friends only: keep some things off your page. The people you tick as Friend see them in their own Stubli app.
+* See what the people you follow lend: People → Library, next to their name.
 
 = 0.46.0 =
 * Library: lend your books to people nearby. In the app, open More → Library and add a Library tab to your page. Add books by scanning the barcode on the back, typing the number under it, or by hand; your Stubli fills in the title, author and cover from Open Library. Mark a book on loan (only you see who has it; visitors see "On loan") and tap It's back when it returns. Add a rough area and how you hand books over, so neighbours know you're near. Asking to borrow from another Stubli comes next.
