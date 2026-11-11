@@ -895,6 +895,7 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lib-badge { position: absolute; top: 6px; left: 6px; right: 6px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .a-lib-book { display: flex; gap: 14px; align-items: flex-start; }
 .a-lib-book h2 { margin: 0 0 4px; }
+.a-lib-book > .a-lib-cover:not(.a-lib-cover-big) { width: 96px; flex-shrink: 0; }
 .a-lib-cam { position: relative; background: #222; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
 .a-lib-cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .a-lib-frame { position: absolute; left: 12%; right: 12%; top: 30%; bottom: 30%; border: 3px solid #fff; border-radius: 12px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .25); }
@@ -919,3 +920,10 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lib-covers { margin-top: 8px; }
 .a-lib-covers .a-lib-pick { align-items: center; text-align: center; }
 .a-lib-covers .a-lib-pick[aria-pressed="true"] .a-lib-cover { outline: 3px solid var(--accent); outline-offset: 2px; }
+.a-lib-news, .a-lib-out { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.a-lib-req { display: flex; gap: 12px; background: var(--surface); border-radius: 16px; padding: 14px; }
+.a-lib-req.is-quiet { opacity: .85; }
+.a-lib-req > .a-lib-cover, .a-lib-out .a-lib-cover { width: 64px; flex-shrink: 0; align-self: flex-start; }
+.a-lib-req p { margin: 6px 0 0; }
+.a-lib-who { display: inline-flex; align-items: center; gap: 6px; }
+.a-lib-av { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }

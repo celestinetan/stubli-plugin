@@ -1061,6 +1061,15 @@ function stubli_view_library() {
 		}
 		echo '</div></details></li>';
 	};
+	// Borrowed through Stubli (0.2.124): no cover and no link, so who lent it stays private.
+	$borrowed = class_exists( '\\Stubli\\Borrow' ) ? \Stubli\Borrow::public_borrowed() : array();
+	if ( $borrowed ) {
+		echo '<h3 class="st-lib-h">' . esc_html__( 'Borrowed', 'stubli' ) . '</h3><ul class="st-lib-grid st-lib-reading">';
+		foreach ( $borrowed as $b ) {
+			echo '<li><div class="st-lib-borrowed"><span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( $icons[ $b['kind'] ] ?? stubli_chars( $b['title'], 1 ) ) . '</span><span class="st-lib-t">' . esc_html( $b['title'] ) . '</span><span class="st-muted st-small">' . esc_html__( 'borrowed from a neighbour', 'stubli' ) . '</span></div></li>';
+		}
+		echo '</ul>';
+	}
 	if ( $reading ) {
 		echo '<h3 class="st-lib-h">' . esc_html__( 'Now reading', 'stubli' ) . '</h3><ul class="st-lib-grid st-lib-reading">';
 		foreach ( $reading as $b ) {
@@ -1069,11 +1078,11 @@ function stubli_view_library() {
 		echo '</ul>';
 	}
 	if ( ! $shelf ) {
-		if ( ! $reading ) {
+		if ( ! $reading && ! $borrowed ) {
 			echo '<p class="st-muted">' . esc_html__( 'Nothing on the shelf yet.', 'stubli' ) . '</p>';
 		}
 	} else {
-		if ( $reading ) {
+		if ( $reading || $borrowed ) {
 			echo '<h3 class="st-lib-h">' . esc_html__( 'To borrow', 'stubli' ) . '</h3>';
 		}
 		if ( count( $have ) > 1 ) {

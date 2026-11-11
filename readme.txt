@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.47.2
+Stable tag: 0.48.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -86,6 +86,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
 * **Friends (only when you tick someone as a friend).** Your site gives that person's Stubli site a private key, and their site checks it back with yours. With the key, their reader can show your friends-only posts, and their app can show the things in your Library you keep for friends only. Untick them and the key stops working.
 * **Notes (only when you send one, or someone leaves one).** A note you write goes from your site to the other person's Stubli site, which fetches it back from yours to check it really came from you; it gets your site's address, name and photo with it. Visitors without a Stubli can leave you a note with their name and a way to reach them; it's stored only on your site, seen only by you, and deleted after 90 days. Suggested privacy-policy text is added under Settings → Privacy.
+* **Asking to borrow (only when you ask, or answer).** When you tap Ask to borrow, your site tells the lender's Stubli site that a request is waiting, and their site fetches it from yours: which thing, your note, your name, site address and profile photo. Their answers (yes with their hand-over line, not now, it's back) travel back the same way. Nothing goes anywhere else.
 * **Libraries of people you follow (only when you open one).** When you tap Library next to someone under People, your site asks their Stubli site for its Library (with their friend key, if they gave you one). Their site sees your site's address.
 * **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
 * **Open Library (only when you add a book to your Library by its barcode or ISBN, or tap Pick a cover from Open Library).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, or, to pick a cover, the title and author you typed. While you choose, your own browser shows the covers straight from covers.openlibrary.org. Your site keeps a copy of the cover you pick in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
@@ -104,6 +105,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.48.0 =
+* Library: ask to borrow. Open the Library of someone you follow (People → Library next to their name), tap something and tap Ask to borrow, with a note if you like. They answer Lend it or Not now in What's new. While you have it, it's in your Library under Borrowed, and your page says "borrowed from a neighbour", never who lent it. Tap I've given it back when you return it.
+* Only people the lender follows back can ask. Visitors without a Stubli can still write privately to ask.
 
 = 0.47.2 =
 * Favourites: Arrange groups is now Edit groups, and it's there as soon as you have one group, so you can rename it.

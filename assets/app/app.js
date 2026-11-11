@@ -494,6 +494,7 @@
 		if ( h === 'library/add/book' ) { return viewLibraryAdd(); }
 		if ( /^library\/new\/(game|tool|other)$/.test( h ) ) { return viewLibraryBookForm( 0, h.split( '/' )[ 2 ] ); }
 		if ( /^library\/of\/\d+$/.test( h ) ) { return viewLibraryOf( +h.split( '/' )[ 2 ] ); }
+		if ( /^library\/of\/\d+\/ask\/\d+$/.test( h ) ) { return viewLibraryAsk( +h.split( '/' )[ 2 ], +h.split( '/' )[ 4 ] ); }
 		if ( h === 'library/scan' ) { return viewLibraryScan(); }
 		if ( h === 'library/new' ) { return viewLibraryBookForm( 0, 'book' ); }
 		if ( /^library\/\d+$/.test( h ) ) { return viewLibraryBook( +h.split( '/' )[ 1 ] ); }
@@ -2044,6 +2045,7 @@
 			send( 'GET', 'queue', null ).then( function ( q ) { wn.queue = Array.isArray( q ) ? q : []; }, function () { wn.queue = []; } ),
 			send( 'GET', 'activity', null ).then( function ( a ) { wn.activity = Array.isArray( a ) ? a : []; }, function () { wn.activity = []; } ),
 			send( 'GET', 'feed?page=1', null ).then( function ( f ) { wn.items = Array.isArray( f ) ? f : []; }, function () { wn.items = []; } ),
+			libNews(),
 			loadNotes()
 		] ).then( function () {
 			wn.loaded = true; wn.since = wn.seen || ( Date.now() - 86400000 );
@@ -2058,6 +2060,7 @@
 		if ( ! wn.loaded ) {
 			body = ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' );
 		} else {
+			body += libNewsHtml();
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
 			var open = waiting.filter( function ( c ) { return ! wn.done[ c.id ]; } ).length;
@@ -2098,6 +2101,7 @@
 		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
 		bindReplies();
+		libBindNews();
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
 		$$( '[data-open-list]' ).forEach( function ( a ) { a.addEventListener( 'click', function () { feed.list = a.dataset.openList; feed.loaded = false; } ); } );
@@ -2263,7 +2267,12 @@
 		return out.filter( function ( s ) { return s.idx.length; } );
 	}
 	/* ── Library (0.46.0, Celestine 9–10 Nov): the things you're happy to lend. 0.47.0: games, tools and more; Now reading; friends only ── */
-	var lib = { loaded: false, settings: { on: false, area: '', handover: '' }, books: [], people: [], msg: '', found: null, scanning: null, kind: 'all', photo: null, of: null };
+	var lib = { loaded: false, settings: { on: false, area: '', handover: '' }, books: [], people: [], msg: '', found: null, scanning: null, kind: 'all', photo: null, of: null, news: { incoming: [], borrowed: [] } };
+	// Asking to borrow between Stublis (0.48.0): requests that came in, and what you asked for or have.
+	function libNews() {
+		return send( 'GET', 'library/news' ).then( function ( r ) { lib.news = r && r.incoming ? r : { incoming: [], borrowed: [] }; return lib.news; }, function () { return lib.news; } );
+	}
+	function libFirst( n ) { return unent( String( n || '' ).split( /\s+/ )[ 0 ] ); }
 	var LIB_READING = 3;
 	function libKinds() {
 		return [
@@ -2304,8 +2313,69 @@
 	function libTile( b, href, badge ) {
 		return '<li><a href="' + href + '">' + libCover( b ) + ( badge ? '<span class="a-lib-badge' + ( badge[ 1 ] ? ' ' + badge[ 1 ] : '' ) + '">' + esc( badge[ 0 ] ) + '</span>' : '' ) + '<span class="a-lib-t">' + esc( b.title ) + '</span>' + ( b.author ? '<span class="muted">' + esc( b.author ) + '</span>' : '' ) + '</a></li>';
 	}
+	function libBorrowedCard() {
+		var mine = lib.news.borrowed.filter( function ( e ) { return e.state === 'borrowed' || e.state === 'returning' || e.state === 'asked'; } );
+		if ( ! mine.length ) { return ''; }
+		var day = function ( d ) { return d ? new Date( d + 'T12:00:00' ).toLocaleDateString( undefined, { day: 'numeric', month: 'short' } ) : ''; };
+		return '<section class="a-card"><h2 class="a-caps">' + __( 'Borrowed', 'stubli' ) + '</h2><ul class="a-lib-out">' + mine.map( function ( e ) {
+			var who = libFirst( e.name ) || hostOf( e.site ), line, act = '';
+			if ( e.state === 'asked' ) { line = _f( __( 'You asked %s. Waiting for an answer.', 'stubli' ), who ); }
+			else if ( e.state === 'returning' ) { line = _f( __( 'You said you\'ve given it back. Waiting for %s to confirm.', 'stubli' ), who ); }
+			else { line = _f( __( 'From %s', 'stubli' ), who ) + ( e.since ? ' · ' + _f( __( 'since %s', 'stubli' ), day( e.since ) ) : '' ); act = '<button type="button" class="a-btn quiet" data-lib-given="' + esc( e.key ) + '">' + __( 'I\'ve given it back', 'stubli' ) + '</button>'; }
+			return '<li><div class="a-lib-book">' + libCover( e ) + '<div><strong>' + esc( e.title ) + '</strong><p class="muted">' + esc( line ) + '</p>' + act + '</div></div></li>';
+		} ).join( '' ) + '</ul><p class="a-help">' + __( 'Only you see who lent it. Your page says "borrowed from a neighbour".', 'stubli' ) + '</p></section>';
+	}
+	function libBindBorrowed( again ) {
+		$$( '[data-lib-given]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			b.disabled = true;
+			send( 'POST', 'library/borrowed/' + b.dataset.libGiven, { action: 'given' } ).then( function ( e ) {
+				lib.news.borrowed = lib.news.borrowed.map( function ( x ) { return x.key === e.key ? e : x; } ); lib.msg = _f( __( 'Thanks. %s will confirm it\'s back.', 'stubli' ), libFirst( e.name ) ); again();
+			}, function ( err ) { b.disabled = false; lib.msg = err.message; again(); } );
+		} ); } );
+	}
+	// What's new: requests to borrow your things, things given back, and answers to what you asked for (0.48.0).
+	function libNewsHtml() {
+		var n = lib.news, cards = [];
+		var who = function ( name, site ) { return '<span class="a-lib-who"><span class="a-lib-av" aria-hidden="true">' + esc( chars( libFirst( name ) || hostOf( site ), 1 ) ) + '</span><strong>' + esc( unent( name ) || hostOf( site ) ) + '</strong></span>'; };
+		n.incoming.forEach( function ( r ) {
+			if ( r.state === 'open' ) {
+				cards.push( '<li class="a-lib-req">' + libCover( r ) + '<div>' + who( r.name, r.site ) + ' ' + __( 'asks to borrow', 'stubli' ) + '<p><strong>' + esc( r.title ) + '</strong></p>' + ( r.note ? '<p class="a-wn-quote">' + esc( r.note ) + '</p>' : '' ) +
+					'<div class="a-actions"><button type="button" class="a-btn" data-lib-act="lend" data-lib-id="' + esc( r.id ) + '">' + __( 'Lend it', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-lib-act="decline" data-lib-id="' + esc( r.id ) + '">' + __( 'Not now', 'stubli' ) + '</button></div>' +
+					'<p class="a-help">' + esc( _f( __( 'Lend it marks it "With %s" and sends your hand-over line.', 'stubli' ), libFirst( r.name ) ) ) + '</p></div></li>' );
+			} else if ( r.returning ) {
+				cards.push( '<li class="a-lib-req">' + libCover( r ) + '<div>' + who( r.name, r.site ) + ' ' + __( 'says they\'ve given it back', 'stubli' ) + '<p><strong>' + esc( r.title ) + '</strong></p>' +
+					'<div class="a-actions"><button type="button" class="a-btn" data-lib-act="back" data-lib-id="' + esc( r.id ) + '">' + __( 'Yes, it\'s back', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-lib-act="notyet" data-lib-id="' + esc( r.id ) + '">' + __( 'Not yet', 'stubli' ) + '</button></div></div></li>' );
+			}
+		} );
+		n.borrowed.forEach( function ( e ) {
+			if ( e.seen ) { return; }
+			if ( e.state === 'borrowed' ) {
+				cards.push( '<li class="a-lib-req">' + libCover( e ) + '<div>' + who( e.name, e.site ) + ' ' + __( 'said yes', 'stubli' ) + '<p><strong>' + esc( e.title ) + '</strong></p>' + ( e.handover ? '<p class="a-wn-quote">' + esc( e.handover ) + '</p>' : '' ) +
+					'<div class="a-actions"><a class="a-btn quiet" href="#letters/' + encodeURIComponent( e.site ) + '">' + esc( _f( __( 'Write to %s', 'stubli' ), libFirst( e.name ) ) ) + '</a></div><p class="a-help">' + __( 'It\'s in your Library now, under Borrowed.', 'stubli' ) + '</p></div></li>' );
+			} else if ( e.state === 'declined' ) {
+				cards.push( '<li class="a-lib-req is-quiet">' + libCover( e ) + '<div>' + who( e.name, e.site ) + ' ' + __( 'can\'t lend it right now', 'stubli' ) + '<p><strong>' + esc( e.title ) + '</strong></p><p class="a-help">' + __( 'No reason needed. You can ask again another time.', 'stubli' ) + '</p>' +
+					'<button type="button" class="a-text-btn" data-lib-ok="' + esc( e.key ) + '">' + __( 'OK', 'stubli' ) + '</button></div></li>' );
+			}
+		} );
+		return cards.length ? '<h2 class="a-label">' + __( 'Library', 'stubli' ) + '</h2><ul class="a-lib-news">' + cards.join( '' ) + '</ul>' : '';
+	}
+	function libBindNews() {
+		var again = function () { if ( location.hash === '#whatsnew' ) { renderWhatsNew(); } };
+		$$( '[data-lib-act]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			$$( '[data-lib-id="' + b.dataset.libId + '"]' ).forEach( function ( x ) { x.disabled = true; } );
+			send( 'POST', 'library/asks/' + b.dataset.libId, { action: b.dataset.libAct } ).then( function ( r ) {
+				lib.news.incoming = lib.news.incoming.filter( function ( x ) { return x.id !== r.id; } ); lib.loaded = false; again();
+			}, function ( err ) { $$( '[data-lib-id="' + b.dataset.libId + '"]' ).forEach( function ( x ) { x.disabled = false; } ); b.insertAdjacentHTML( 'afterend', '<p class="a-help" role="alert">' + esc( err.message ) + '</p>' ); } );
+		} ); } );
+		$$( '[data-lib-ok]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			send( 'POST', 'library/borrowed/' + b.dataset.libOk, {} ).then( function () { lib.news.borrowed = lib.news.borrowed.filter( function ( x ) { return x.key !== b.dataset.libOk; } ); again(); } );
+		} ); } );
+		// A yes has been seen once it's on screen; it stays in your Library under Borrowed.
+		lib.news.borrowed.forEach( function ( e ) { if ( ! e.seen && e.state === 'borrowed' ) { e.seen = true; send( 'POST', 'library/borrowed/' + e.key, {} ).catch( function () {} ); } } );
+	}
 	function viewLibrary() {
 		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library' ) { viewLibrary(); } } ); return; }
+		if ( ! lib.newsLoaded ) { lib.newsLoaded = true; libNews().then( function () { if ( location.hash === '#library' ) { viewLibrary(); } } ); }
 		var s = lib.settings, body;
 		if ( ! s.on ) {
 			body = '<section class="a-card"><h2>' + __( 'Lend your things?', 'stubli' ) + '</h2><p>' + __( 'Add a Library tab to your page: the books, games and tools you\'re happy to lend, so people nearby can see them. Visitors see when something is on loan, never who has it.', 'stubli' ) + '</p>' +
@@ -2328,8 +2398,9 @@
 					} ).join( '' ) + '</ul><p class="a-help">' + __( 'Only you see who has something. Visitors see "On loan".', 'stubli' ) + '</p>' : '<p class="muted">' + __( 'Nothing on the shelf yet. Add a book, a game or a tool to start.', 'stubli' ) + '</p>' ) +
 				'</section>';
 		}
-		root.innerHTML = arrangeHead( '#you', __( 'Library', 'stubli' ) ) + '<main class="a-main" id="main">' + body + '</main>';
+		root.innerHTML = arrangeHead( '#you', __( 'Library', 'stubli' ) ) + '<main class="a-main" id="main">' + libBorrowedCard() + body + '</main>';
 		lib.msg = '';
+		libBindBorrowed( viewLibrary );
 		var on = $( '[data-lib-on]' ); if ( on ) { on.addEventListener( 'click', function () { on.disabled = true; libSaveSettings( { on: true }, __( 'Your Library is on. Add the first thing you\'d lend.', 'stubli' ), function () { location.hash = '#library/where'; } ); } ); }
 		$$( '[data-lib-kind]' ).forEach( function ( c ) { c.addEventListener( 'click', function () { lib.kind = c.dataset.libKind; viewLibrary(); } ); } );
 	}
@@ -2549,6 +2620,39 @@
 			send( 'DELETE', 'library/' + id ).then( function () { lib.books = lib.books.filter( function ( x ) { return x.id !== id; } ); lib.msg = _f( __( 'Took %s off your shelf.', 'stubli' ), b.title ); location.hash = '#library'; } );
 		} );
 	}
+	// What you can do with one of their things: ask to borrow it (0.48.0), or write to them.
+	function libAskBits( o, sel, fid, first ) {
+		var mine = lib.news.borrowed.filter( function ( e ) { return hostOf( e.site ) === hostOf( o.site ) && e.item === sel.id; } )[ 0 ];
+		var write = '<a class="a-text-btn" href="#letters/' + encodeURIComponent( o.site ) + '">' + esc( _f( __( 'Write to %s instead', 'stubli' ), first ) ) + '</a>';
+		if ( mine && mine.state === 'asked' ) { return '<p class="muted">' + esc( _f( __( 'You asked. %s\'s answer comes to your What\'s new.', 'stubli' ), first ) ) + '</p>' + write; }
+		if ( mine && ( mine.state === 'borrowed' || mine.state === 'returning' ) ) { return '<p class="muted">' + __( 'You have it. It\'s in your Library under Borrowed.', 'stubli' ) + '</p>'; }
+		if ( sel.onLoan ) { return '<p class="muted">' + __( 'On loan just now.', 'stubli' ) + '</p>' + write; }
+		if ( sel.reading || sel.just ) { return '<p class="muted">' + esc( _f( __( '%s is reading it just now.', 'stubli' ), first ) ) + '</p>'; }
+		return '<div class="a-actions"><a class="a-btn" href="#library/of/' + fid + '/ask/' + sel.id + '">' + __( 'Ask to borrow', 'stubli' ) + '</a></div>' + write;
+	}
+	function viewLibraryAsk( fid, item ) {
+		var o = lib.of && lib.of.id === fid ? lib.of : null, b = o && ( o.items || [] ).filter( function ( x ) { return x.id === item; } )[ 0 ];
+		if ( ! b ) { location.replace( '#library/of/' + fid ); return; }
+		var first = libFirst( o.name ), back = '#library/of/' + fid;
+		root.innerHTML = arrangeHead( back, __( 'Ask to borrow', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			( lib.askMsg ? '<div class="a-notice" role="alert">' + esc( lib.askMsg ) + '</div>' : '' ) +
+			'<section class="a-card"><div class="a-lib-book">' + libCover( b ) + '<div><h2>' + esc( b.title ) + '</h2><p class="muted">' + esc( [ _f( __( 'from %s', 'stubli' ), first ), o.area ].filter( Boolean ).join( ' · ' ) ) + '</p>' + ( o.handover ? '<p class="a-help">' + esc( o.handover ) + '</p>' : '' ) + '</div></div></section>' +
+			'<section class="a-card"><label class="a-label" for="a-ask-note">' + esc( _f( __( 'A note for %s (optional)', 'stubli' ), first ) ) + '</label><textarea id="a-ask-note" class="a-field" maxlength="280" rows="3" placeholder="' + esc( __( 'e.g. Could I borrow it for a couple of weeks? I can pick it up on Saturday.', 'stubli' ) ) + '">' + esc( lib.askNote || '' ) + '</textarea>' +
+			'<p class="a-help">' + esc( _f( __( 'Only %s sees this. The answer comes to your What\'s new.', 'stubli' ), first ) ) + '</p></section>' +
+			'<div class="a-actions"><button type="button" class="a-btn" data-ask-send>' + __( 'Send request', 'stubli' ) + '</button><a class="a-btn quiet" href="' + back + '">' + __( 'Cancel', 'stubli' ) + '</a></div></main>';
+		lib.askMsg = '';
+		$( '[data-ask-send]' ).addEventListener( 'click', function ( e ) {
+			var note = $( '#a-ask-note' ).value.trim(); lib.askNote = note;
+			e.target.disabled = true; e.target.textContent = __( 'Sending…', 'stubli' );
+			send( 'POST', 'library/ask', { follow: fid, item: item, note: note, shown: { title: b.title, author: b.author, cover: b.cover, kind: b.kind } } ).then( function ( entry ) {
+				lib.askNote = ''; lib.news.borrowed = [ entry ].concat( lib.news.borrowed.filter( function ( x ) { return x.key !== entry.key; } ) );
+				lib.ofMsg = _f( __( 'Sent. %s\'s answer comes to your What\'s new.', 'stubli' ), first ); location.hash = back;
+			}, function ( err ) {
+				if ( err && err.code === 'stubli_not_followed' ) { lib.ofMsg = err.message; lib.ofNotFollowed = true; location.hash = back; return; }
+				lib.askMsg = ( err && err.message ) || __( 'That didn\'t send. Try again in a moment.', 'stubli' ); viewLibraryAsk( fid, item );
+			} );
+		} );
+	}
 	// Someone you follow: their Library, in your app. Friends-only things show when they ticked you as a friend.
 	function viewLibraryOf( fid ) {
 		var o = lib.of && lib.of.id === fid ? lib.of : null;
@@ -2556,7 +2660,7 @@
 		var head = arrangeHead( '#discover', pname ? _f( __( '%s\'s Library', 'stubli' ), unent( pname ) ) : __( 'Library', 'stubli' ) );
 		if ( ! o ) {
 			root.innerHTML = head + '<main class="a-main" id="main"><p class="muted" role="status">' + __( 'Loading…', 'stubli' ) + '</p></main>';
-			send( 'GET', 'library/of/' + fid ).then( function ( r ) { lib.of = r; lib.ofKind = 'all'; if ( location.hash === '#library/of/' + fid ) { viewLibraryOf( fid ); } }, function ( e ) { if ( location.hash === '#library/of/' + fid ) { root.innerHTML = head + '<main class="a-main" id="main"><div class="a-notice" role="alert">' + esc( e.message ) + '</div></main>'; } } );
+			Promise.all( [ send( 'GET', 'library/of/' + fid ), libNews() ] ).then( function ( rr ) { var r = rr[ 0 ]; lib.of = r; lib.ofKind = 'all'; if ( location.hash === '#library/of/' + fid ) { viewLibraryOf( fid ); } }, function ( e ) { if ( location.hash === '#library/of/' + fid ) { root.innerHTML = head + '<main class="a-main" id="main"><div class="a-notice" role="alert">' + esc( e.message ) + '</div></main>'; } } );
 			return;
 		}
 		var first = unent( String( o.name || pname ).split( /\s+/ )[ 0 ] );
@@ -2570,14 +2674,16 @@
 		var tile = function ( b, badge ) { return '<li><button type="button" class="a-lib-pick" data-of-item="' + b.id + '">' + libCover( b ) + ( badge ? '<span class="a-lib-badge' + ( badge[ 1 ] ? ' ' + badge[ 1 ] : '' ) + '">' + esc( badge[ 0 ] ) + '</span>' : '' ) + '<span class="a-lib-t">' + esc( b.title ) + '</span>' + ( b.author ? '<span class="muted">' + esc( b.author ) + '</span>' : '' ) + '</button></li>'; };
 		var sel = items.filter( function ( b ) { return b.id === lib.ofSel; } )[ 0 ];
 		root.innerHTML = head + '<main class="a-main" id="main">' +
+			( lib.ofMsg ? '<div class="a-notice' + ( lib.ofNotFollowed ? '' : ' calm' ) + '" role="status">' + esc( lib.ofMsg ) + ( lib.ofNotFollowed ? ' <a href="#letters/' + encodeURIComponent( o.site ) + '">' + esc( _f( __( 'Write to %s', 'stubli' ), first ) ) + '</a>' : '' ) + '</div>' : '' ) +
 			( o.friend ? '<p class="a-help">' + esc( _f( __( '%s ticked you as a friend, so you also see what\'s for friends only.', 'stubli' ), first ) ) + '</p>' : '' ) +
 			( reading.length ? '<section class="a-card"><h2 class="a-caps">' + __( 'Now reading', 'stubli' ) + '</h2><ul class="a-lib-grid a-lib-reading">' + reading.map( function ( b ) { return tile( b, b.friends ? [ __( 'For friends', 'stubli' ), 'is-friends' ] : null ); } ).join( '' ) + '</ul></section>' : '' ) +
 			'<section class="a-card">' + ( o.area || o.handover ? '<p class="a-lib-where">' + icon( 'place', 16 ) + esc( [ o.area, o.handover ].filter( Boolean ).join( ' · ' ) ) + '</p>' : '' ) +
 			( shelf.length ? libChips( shelf, kind, 'of-kind' ) + '<ul class="a-lib-grid">' + shown.map( function ( b ) { return tile( b, b.onLoan ? [ __( 'On loan', 'stubli' ), 'is-light' ] : ( b.reading ? [ __( 'Now reading', 'stubli' ), 'is-light' ] : ( b.friends ? [ __( 'For friends', 'stubli' ), 'is-friends' ] : null ) ) ); } ).join( '' ) + '</ul>' : '<p class="muted">' + esc( _f( __( 'Nothing on %s\'s shelf yet.', 'stubli' ), first ) ) + '</p>' ) +
 			'</section>' +
 			( sel ? '<section class="a-card a-lib-sel" tabindex="-1"><div class="a-lib-book">' + libCover( sel, 'a-lib-cover a-lib-cover-big' ) + '<div><h2>' + esc( sel.title ) + '</h2>' + ( sel.author || sel.year ? '<p class="muted">' + esc( [ sel.author, sel.year ].filter( Boolean ).join( ' · ' ) ) + '</p>' : '' ) + ( sel.note ? '<p>' + esc( sel.note ) + '</p>' : '' ) +
-				( sel.onLoan ? '<p class="muted">' + __( 'On loan just now.', 'stubli' ) + '</p>' : ( sel.just ? '' : '<a class="a-btn quiet" href="#letters/' + encodeURIComponent( o.site ) + '">' + icon( 'mail', 16 ) + esc( _f( __( 'Ask %s about it', 'stubli' ), first ) ) + '</a>' ) ) + '</div></div></section>' : '' ) +
+				libAskBits( o, sel, fid, first ) + '</div></div></section>' : '' ) +
 			'</main>';
+		lib.ofMsg = ''; lib.ofNotFollowed = false;
 		$$( '[data-of-kind]' ).forEach( function ( c ) { c.addEventListener( 'click', function () { lib.ofKind = c.dataset.ofKind; viewLibraryOf( fid ); } ); } );
 		$$( '[data-of-item]' ).forEach( function ( c ) { c.addEventListener( 'click', function () { lib.ofSel = +c.dataset.ofItem; viewLibraryOf( fid ); var s = $( '.a-lib-sel' ); if ( s ) { s.scrollIntoView( { block: 'nearest' } ); s.focus( { preventScroll: true } ); } } ); } );
 	}

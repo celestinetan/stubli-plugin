@@ -1063,6 +1063,7 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-lib-book[open] { grid-column: span 2; }
 .st-lib-h { margin: 18px 0 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--st-muted); }
 .st-lib-reading { grid-template-columns: repeat(auto-fill, minmax(84px, 104px)); margin-top: 10px; }
+.st-lib-borrowed { display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.25; }
 .st-lib-kinds { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
 .st-lib-kinds a { padding: 6px 12px; border-radius: 999px; background: var(--st-tab-off); color: var(--st-muted); font-size: 13px; font-weight: 600; text-decoration: none; }
 .st-lib-kinds a[aria-current] { background: var(--st-ink); color: var(--st-bg); }

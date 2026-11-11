@@ -394,7 +394,12 @@ class Library {
 	 */
 	public static function lend( $id, $loan ) {
 		if ( null === $loan ) {
+			$old = get_post_meta( $id, '_stubli_loan', true );
 			delete_post_meta( $id, '_stubli_loan' );
+			// Lent through Stubli: their Library lets it go too (0.48.0).
+			if ( is_array( $old ) ) {
+				Borrow::ended( (int) $id, $old );
+			}
 		} else {
 			$name = trim( sanitize_text_field( (string) ( $loan['name'] ?? '' ) ) );
 			if ( '' === $name ) {
