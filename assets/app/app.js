@@ -490,9 +490,10 @@
 		if ( ! /^library\/(new|\d+\/edit)/.test( h ) ) { lib.draft = null; }
 		if ( h === 'library' ) { return viewLibrary(); }
 		if ( h === 'library/where' ) { return viewLibraryWhere(); }
+		if ( h === 'library/order' ) { return viewLibraryOrder(); }
 		if ( h === 'library/add' ) { return viewLibraryKinds(); }
 		if ( h === 'library/add/book' ) { return viewLibraryAdd(); }
-		if ( /^library\/new\/(game|tool|other)$/.test( h ) ) { return viewLibraryBookForm( 0, h.split( '/' )[ 2 ] ); }
+		if ( /^library\/new\/(game|tool|electronics|other)$/.test( h ) ) { return viewLibraryBookForm( 0, h.split( '/' )[ 2 ] ); }
 		if ( /^library\/of\/\d+$/.test( h ) ) { return viewLibraryOf( +h.split( '/' )[ 2 ] ); }
 		if ( /^library\/of\/\d+\/ask\/\d+$/.test( h ) ) { return viewLibraryAsk( +h.split( '/' )[ 2 ], +h.split( '/' )[ 4 ] ); }
 		if ( h === 'library/scan' ) { return viewLibraryScan(); }
@@ -2279,6 +2280,7 @@
 			[ 'book', __( 'A book', 'stubli' ), __( 'Scan the barcode, type the number, or by hand', 'stubli' ), __( 'Books', 'stubli' ), __( 'Book', 'stubli' ), '📖' ],
 			[ 'game', __( 'A game', 'stubli' ), __( 'Board games, card games, puzzles', 'stubli' ), __( 'Games', 'stubli' ), __( 'Game', 'stubli' ), '🎲' ],
 			[ 'tool', __( 'A tool', 'stubli' ), __( 'Drills, ladders, garden tools', 'stubli' ), __( 'Tools', 'stubli' ), __( 'Tool', 'stubli' ), '🔧' ],
+			[ 'electronics', __( 'Electronics', 'stubli' ), __( 'Cameras, projectors, speakers', 'stubli' ), __( 'Electronics', 'stubli' ), __( 'Electronics', 'stubli' ), '🔌' ],
 			[ 'other', __( 'Something else', 'stubli' ), __( 'A tent, a fondue set, a sewing machine', 'stubli' ), __( 'Other things', 'stubli' ), __( 'Something else', 'stubli' ), '✦' ]
 		];
 	}
@@ -2373,6 +2375,93 @@
 		// A yes has been seen once it's on screen; it stays in your Library under Borrowed.
 		lib.news.borrowed.forEach( function ( e ) { if ( ! e.seen && e.state === 'borrowed' ) { e.seen = true; send( 'POST', 'library/borrowed/' + e.key, {} ).catch( function () {} ); } } );
 	}
+	/* ── Library order: like posts in a collection. Newest first with up to three pinned, or by hand. ── */
+	var lo = { sel: 0, msg: '' };
+	function loShelf() { return lib.books.filter( function ( b ) { return ! b.just; } ); }
+	function loTile( b, attr, extra, label ) {
+		return '<li data-id="' + b.id + '"><button type="button" class="a-pin-tile a-lib-ot' + ( extra || '' ) + '" ' + attr + '="' + b.id + '" aria-label="' + esc( label ) + '">' + libCover( b ) + '<span class="a-lib-ot-t">' + esc( b.title ) + '</span>';
+	}
+	function viewLibraryOrder() {
+		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library/order' ) { viewLibraryOrder(); } } ); return; }
+		var s = lib.settings, shelf = loShelf(), hand = !! s.hand, pins = s.pins || [], max = 3, n = shelf.length, at = -1;
+		shelf.forEach( function ( b, i ) { if ( b.id === lo.sel ) { at = i; } } );
+		var tools = ! hand || at < 0 ? '' : '<div class="a-hand-tools" role="group" aria-label="' + esc( _f( __( 'Move %s', 'stubli' ), shelf[ at ].title ) ) + '">' +
+			[ [ 'first', __( 'To the start', 'stubli' ), at === 0 ], [ 'up', __( 'Earlier', 'stubli' ), at === 0 ], [ 'down', __( 'Later', 'stubli' ), at === n - 1 ], [ 'last', __( 'To the end', 'stubli' ), at === n - 1 ] ].map( function ( t ) { return '<button type="button" class="a-btn quiet" data-lo-mv="' + t[ 0 ] + '"' + ( t[ 2 ] ? ' disabled' : '' ) + '>' + esc( t[ 1 ] ) + '</button>'; } ).join( '' ) +
+			'<button type="button" class="a-text-btn" data-lo-done>' + __( 'Done', 'stubli' ) + '</button></div>';
+		root.innerHTML = arrangeHead( '#library', __( 'Order', 'stubli' ) ) + '<main class="a-main" id="main">' +
+			'<div class="a-chips" role="radiogroup" aria-label="' + esc( __( 'Order', 'stubli' ) ) + '">' + [ [ '', __( 'Newest first', 'stubli' ) ], [ '1', __( 'By hand', 'stubli' ) ] ].map( function ( o ) { var on = hand === !! o[ 0 ]; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-lo-ord="' + o[ 0 ] + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( o[ 1 ] ) + '</button>'; } ).join( '' ) + '</div>' +
+			( hand ?
+				'<p class="muted" style="margin:4px 0 12px">' + __( 'Hold a tile and drag it to its new place. Or tap a tile, then move it with the buttons. Your page shows this order; new things appear first.', 'stubli' ) + '</p>' + tools +
+				'<ul class="a-pins a-hand a-lib-order" role="list" data-lo-hand>' + shelf.map( function ( b ) { return loTile( b, 'data-lo-pick', b.id === lo.sel ? ' is-sel' : '', b.title ) + '</button></li>'; } ).join( '' ) + '</ul>'
+			:
+				'<h2 class="a-label">' + __( 'Pin to the top', 'stubli' ) + '</h2>' +
+				'<p class="muted" style="margin:4px 0 12px">' + _f( __( 'Tap up to %s things to pin them to the top of your Library, in the order you tap them. Tap again to unpin. Everything else stays newest first.', 'stubli' ), max ) + '</p>' +
+				'<ul class="a-pins a-lib-order" role="list">' + shelf.map( function ( b ) {
+					var p = pins.indexOf( b.id );
+					return loTile( b, 'data-lo-pin', p > -1 ? ' is-pinned' : '', b.title + ( p > -1 ? ', ' + _f( __( 'pinned %s', 'stubli' ), p + 1 ) : '' ) ) + ( p > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( p + 1 ) + '</span>' : '' ) + '</button></li>';
+				} ).join( '' ) + '</ul>' ) +
+			'<p class="a-help" aria-live="polite" data-lo-msg>' + esc( lo.msg ) + '</p></main>';
+		var say = function ( t ) { lo.msg = t; var m = $( '[data-lo-msg]' ); if ( m ) { m.textContent = t; } };
+		var save = function ( change, ok ) {
+			say( __( 'Saving…', 'stubli' ) );
+			return send( 'POST', 'library/settings', change ).then( function ( r ) { lib.settings = r; return send( 'GET', 'library' ); } ).then( function ( r ) { lib.books = r.books || []; lo.msg = ok; if ( location.hash === '#library/order' ) { viewLibraryOrder(); } }, function ( e ) { say( e.message ); } );
+		};
+		$$( '[data-lo-ord]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var on = !! b.dataset.loOrd; if ( on === hand ) { return; }
+			lo.sel = 0;
+			save( { hand: on }, on ? __( 'Now drag the tiles into the order you like. New things appear first.', 'stubli' ) : __( 'Saved. Your Library is newest first again, with your pins on top.', 'stubli' ) ).then( function () { var f = $( '[data-lo-ord="' + ( on ? '1' : '' ) + '"]' ); if ( f ) { f.focus(); } } );
+		} ); } );
+		$$( '[data-lo-pin]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var id = +b.dataset.loPin, i = pins.indexOf( id ), next = pins.slice();
+			if ( i > -1 ) { next.splice( i, 1 ); } else if ( next.length >= max ) { say( _f( __( 'That\'s %s pinned already. Tap one to unpin it first.', 'stubli' ), max ) ); return; } else { next.push( id ); }
+			lib.settings.pins = next;
+			save( { pins: next }, next.length ? __( 'Saved. Pinned things lead your Library on your page.', 'stubli' ) : __( 'Saved. Nothing pinned now.', 'stubli' ) ).then( function () { var f = $( '[data-lo-pin="' + id + '"]' ); if ( f ) { f.focus(); } } );
+		} ); } );
+		if ( ! hand ) { return; }
+		var ul = $( '[data-lo-hand]' ), ids = function () { return Array.prototype.map.call( ul.children, function ( x ) { return +x.dataset.id; } ); };
+		var put = function ( list ) {
+			var by = {}; lib.books.forEach( function ( b ) { by[ b.id ] = b; } );
+			lib.books = list.map( function ( id ) { return by[ id ]; } ).concat( lib.books.filter( function ( b ) { return list.indexOf( b.id ) < 0; } ) );
+			save( { order: list }, __( 'Saved. Your page shows this order.', 'stubli' ) );
+			viewLibraryOrder();
+		};
+		$$( '[data-lo-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { if ( b.dataset.dragged ) { delete b.dataset.dragged; return; } var id = +b.dataset.loPick; lo.sel = lo.sel === id ? 0 : id; viewLibraryOrder(); var f = $( '[data-lo-pick="' + id + '"]' ); if ( f ) { f.focus(); } } ); } );
+		var dn = $( '[data-lo-done]' ); if ( dn ) { dn.addEventListener( 'click', function () { var id = lo.sel; lo.sel = 0; viewLibraryOrder(); var f = $( '[data-lo-pick="' + id + '"]' ); if ( f ) { f.focus(); } } ); }
+		$$( '[data-lo-mv]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var list = ids(), i = list.indexOf( lo.sel ), to = { first: 0, up: i - 1, down: i + 1, last: list.length - 1 }[ b.dataset.loMv ];
+			if ( i < 0 || to < 0 || to >= list.length || to === i ) { return; }
+			list.splice( i, 1 ); list.splice( to, 0, lo.sel ); put( list );
+			var f = $( '[data-lo-mv="' + b.dataset.loMv + '"]:not([disabled])' ) || $( '[data-lo-pick="' + lo.sel + '"]' ); if ( f ) { f.focus(); }
+		} ); } );
+		// Hold, then drag: a quick swipe still scrolls the page.
+		Array.prototype.forEach.call( ul.children, function ( li ) {
+			var btn = li.firstChild, timer = null, x0 = 0, y0 = 0, dragging = false, before0 = ids().join( ',' );
+			var noScroll = function ( e ) { if ( dragging ) { e.preventDefault(); } };
+			var move = function ( ev ) {
+				if ( ! dragging ) { if ( Math.abs( ev.clientX - x0 ) > 8 || Math.abs( ev.clientY - y0 ) > 8 ) { clearTimeout( timer ); } return; }
+				ev.preventDefault();
+				if ( ev.clientY < 70 ) { window.scrollBy( 0, -12 ); } else if ( ev.clientY > window.innerHeight - 90 ) { window.scrollBy( 0, 12 ); }
+				var sibs = Array.prototype.filter.call( ul.children, function ( x ) { return x !== li; } ), before = null;
+				for ( var k = 0; k < sibs.length; k++ ) { var r = sibs[ k ].getBoundingClientRect(); if ( ev.clientY < r.top || ( ev.clientY <= r.bottom && ev.clientX < r.left + r.width / 2 ) ) { before = sibs[ k ]; break; } }
+				if ( li.nextSibling !== before ) { ul.insertBefore( li, before ); }
+			};
+			var up = function () {
+				clearTimeout( timer );
+				document.removeEventListener( 'pointermove', move ); document.removeEventListener( 'pointerup', up ); document.removeEventListener( 'pointercancel', up ); document.removeEventListener( 'touchmove', noScroll );
+				if ( ! dragging ) { return; }
+				dragging = false; li.classList.remove( 'is-drag' ); btn.dataset.dragged = '1'; setTimeout( function () { delete btn.dataset.dragged; }, 400 );
+				if ( ids().join( ',' ) !== before0 ) { put( ids() ); }
+			};
+			btn.addEventListener( 'contextmenu', function ( e ) { e.preventDefault(); } );
+			btn.addEventListener( 'pointerdown', function ( e ) {
+				if ( e.button > 0 ) { return; }
+				x0 = e.clientX; y0 = e.clientY;
+				timer = setTimeout( function () { dragging = true; li.classList.add( 'is-drag' ); if ( navigator.vibrate ) { try { navigator.vibrate( 10 ); } catch ( er ) {} } }, e.pointerType === 'mouse' ? 120 : 280 );
+				document.addEventListener( 'pointermove', move ); document.addEventListener( 'pointerup', up ); document.addEventListener( 'pointercancel', up );
+				document.addEventListener( 'touchmove', noScroll, { passive: false } );
+			} );
+		} );
+	}
 	function viewLibrary() {
 		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library' ) { viewLibrary(); } } ); return; }
 		if ( ! lib.newsLoaded ) { lib.newsLoaded = true; libNews().then( function () { if ( location.hash === '#library' ) { viewLibrary(); } } ); }
@@ -2390,12 +2479,12 @@
 					'<p class="a-help">' + _f( __( 'At the top of your Library. Up to %s books.', 'stubli' ), LIB_READING ) + '</p></section>' : '' ) +
 				'<section class="a-card"><p class="a-lib-where">' + ( s.area || s.handover ? esc( [ s.area, s.handover ].filter( Boolean ).join( ' · ' ) ) : '<span class="muted">' + __( 'Add a rough area, like your town or district, so neighbours know you\'re near.', 'stubli' ) + '</span>' ) + ' <a href="#library/where">' + __( 'Change', 'stubli' ) + '</a></p>' +
 				'<div class="a-actions"><a class="a-btn" href="#library/add">' + icon( 'plus', 18 ) + __( 'Add something', 'stubli' ) + '</a></div>' +
-				( shelf.length ? '<p class="muted">' + ( shelf.length === 1 ? __( '1 thing', 'stubli' ) : _f( __( '%s things', 'stubli' ), shelf.length ) ) + ( out ? ' · ' + _f( __( '%s on loan', 'stubli' ), out ) : '' ) + ( fr ? ' · ' + ( fr === 1 ? __( '1 for friends only', 'stubli' ) : _f( __( '%s for friends only', 'stubli' ), fr ) ) : '' ) + '</p>' +
+				( shelf.length ? '<p class="muted">' + ( shelf.length === 1 ? __( '1 thing', 'stubli' ) : _f( __( '%s things', 'stubli' ), shelf.length ) ) + ( out ? ' · ' + _f( __( '%s on loan', 'stubli' ), out ) : '' ) + ( fr ? ' · ' + ( fr === 1 ? __( '1 for friends only', 'stubli' ) : _f( __( '%s for friends only', 'stubli' ), fr ) ) : '' ) + ( shelf.length > 1 ? ' · <a href="#library/order">' + ( s.hand ? __( 'Your own order', 'stubli' ) : ( s.pins && s.pins.length ? __( 'Pinned, then newest', 'stubli' ) : __( 'Newest first', 'stubli' ) ) ) + ' – ' + __( 'Change', 'stubli' ) + '</a>' : '' ) + '</p>' +
 					libChips( shelf, lib.kind, 'lib-kind' ) +
 					'<ul class="a-lib-grid">' + shown.map( function ( b ) {
 						var badge = b.loan ? [ _f( __( 'With %s', 'stubli' ), b.loan.name ), '' ] : ( b.reading ? [ __( 'Now reading', 'stubli' ), 'is-light' ] : ( b.friends ? [ __( 'Friends only', 'stubli' ), 'is-friends' ] : null ) );
 						return libTile( b, '#library/' + b.id, badge );
-					} ).join( '' ) + '</ul><p class="a-help">' + __( 'Only you see who has something. Visitors see "On loan".', 'stubli' ) + '</p>' : '<p class="muted">' + __( 'Nothing on the shelf yet. Add a book, a game or a tool to start.', 'stubli' ) + '</p>' ) +
+					} ).join( '' ) + '</ul><p class="a-help">' + __( 'Only you see who has something. Visitors see "On loan".', 'stubli' ) + '</p>' : '<p class="muted">' + __( 'Nothing on the shelf yet. Add a book, a game, a tool or something else to start.', 'stubli' ) + '</p>' ) +
 				'</section>';
 		}
 		root.innerHTML = arrangeHead( '#you', __( 'Library', 'stubli' ) ) + '<main class="a-main" id="main">' + libBorrowedCard() + body + '</main>';
@@ -2517,10 +2606,10 @@
 				'<div class="a-lib-photo">' + ( cover ? '<img src="' + esc( cover ) + '" alt="">' : '<span aria-hidden="true">' + k[ 5 ] + '</span>' ) + '</div>' +
 				'<label class="a-btn quiet a-lib-photo-btn">' + icon( 'camera', 18 ) + ( cover ? __( 'Change the photo', 'stubli' ) : __( 'Take a photo or choose one', 'stubli' ) ) + '<input type="file" accept="image/*" class="sr" data-lib-photo></label>' +
 				'<p class="a-help" data-lib-photo-msg>' + __( 'Tip: check what else is in the picture before you add it.', 'stubli' ) + '</p>' ) +
-			'<label class="a-label" for="a-lb-title">' + ( isBook ? __( 'Title', 'stubli' ) : __( 'Name', 'stubli' ) ) + '</label><input id="a-lb-title" class="a-field" maxlength="200" value="' + esc( b.title ) + '"' + ( isBook ? '' : ' placeholder="' + esc( kind === 'tool' ? __( 'e.g. Cordless drill', 'stubli' ) : ( kind === 'game' ? __( 'e.g. a board game\'s name', 'stubli' ) : __( 'e.g. A two-person tent', 'stubli' ) ) ) + '"' ) + '>' +
+			'<label class="a-label" for="a-lb-title">' + ( isBook ? __( 'Title', 'stubli' ) : __( 'Name', 'stubli' ) ) + '</label><input id="a-lb-title" class="a-field" maxlength="200" value="' + esc( b.title ) + '"' + ( isBook ? '' : ' placeholder="' + esc( kind === 'tool' ? __( 'e.g. Cordless drill', 'stubli' ) : kind === 'electronics' ? __( 'e.g. A projector', 'stubli' ) : ( kind === 'game' ? __( 'e.g. a board game\'s name', 'stubli' ) : __( 'e.g. A two-person tent', 'stubli' ) ) ) + '"' ) + '>' +
 			( isBook ? '<label class="a-label" for="a-lb-author">' + __( 'Author (optional)', 'stubli' ) + '</label><input id="a-lb-author" class="a-field" maxlength="200" value="' + esc( b.author ) + '">' +
 				'<label class="a-label" for="a-lb-year">' + __( 'Year (optional)', 'stubli' ) + '</label><input id="a-lb-year" class="a-field" inputmode="numeric" maxlength="4" value="' + esc( b.year ) + '">' : '' ) +
-			'<label class="a-label" for="a-lb-note">' + __( 'A note for borrowers (optional)', 'stubli' ) + '</label><textarea id="a-lb-note" class="a-field" maxlength="280" rows="3" placeholder="' + esc( isBook ? __( 'e.g. Lovely for a slow weekend', 'stubli' ) : ( kind === 'tool' ? __( 'e.g. Comes with two batteries', 'stubli' ) : ( kind === 'game' ? __( 'e.g. 2–5 players, ages 8 and up', 'stubli' ) : __( 'e.g. Fits in a backpack', 'stubli' ) ) ) ) + '">' + esc( b.note ) + '</textarea></section>' +
+			'<label class="a-label" for="a-lb-note">' + __( 'A note for borrowers (optional)', 'stubli' ) + '</label><textarea id="a-lb-note" class="a-field" maxlength="280" rows="3" placeholder="' + esc( isBook ? __( 'e.g. Lovely for a slow weekend', 'stubli' ) : ( kind === 'tool' ? __( 'e.g. Comes with two batteries', 'stubli' ) : kind === 'electronics' ? __( 'e.g. Charger and cables included', 'stubli' ) : ( kind === 'game' ? __( 'e.g. 2–5 players, ages 8 and up', 'stubli' ) : __( 'e.g. Fits in a backpack', 'stubli' ) ) ) ) + '">' + esc( b.note ) + '</textarea></section>' +
 			( isBook ? '<section class="a-card"><h2 class="a-label">' + __( 'Cover', 'stubli' ) + '</h2>' + ( cover ? '<img class="a-lib-cover a-lib-cover-big" src="' + esc( cover ) + '" alt="">' + ( id || d.photo ? '' : '<p class="a-help">' + __( 'Cover from Open Library. Your Stubli keeps a copy, so visitors load it from your site.', 'stubli' ) + '</p>' ) : '' ) +
 				'<label class="a-btn quiet a-lib-photo-btn">' + icon( 'camera', 18 ) + ( d.photo ? __( 'Change the photo', 'stubli' ) : ( cover ? __( 'Use my own photo of the cover', 'stubli' ) : __( 'Take a photo of the cover', 'stubli' ) ) ) + '<input type="file" accept="image/*" class="sr" data-lib-photo></label>' +
 				'<p class="a-help" data-lib-photo-msg>' + ( cover ? '' : ( ! id && lib.found ? __( 'Open Library has no cover for this one. A photo of the front works well.', 'stubli' ) : __( 'Optional. A photo of the front works well.', 'stubli' ) ) ) + '</p>' +

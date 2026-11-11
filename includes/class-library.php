@@ -32,7 +32,8 @@ class Library {
 	const MAX      = 500;
 	const NOTE_MAX = 280;
 	const READING  = 3;
-	const KINDS    = array( 'book', 'game', 'tool', 'other' );
+	const KINDS    = array( 'book', 'game', 'tool', 'electronics', 'other' );
+	const PINS     = 3;
 
 	/**
 	 * Hooks.
@@ -63,15 +64,46 @@ class Library {
 	/**
 	 * Library settings.
 	 *
-	 * @return array { on: bool, area: string, handover: string }
+	 * @return array { on: bool, area: string, handover: string, hand: bool, pins: int[], order: int[] }
 	 */
 	public static function settings() {
 		$s = (array) get_option( 'stubli_library', array() );
+		$i = static fn( $a ) => array_values( array_unique( array_filter( array_map( 'intval', (array) $a ) ) ) );
 		return array(
 			'on'       => ! empty( $s['on'] ),
 			'area'     => (string) ( $s['area'] ?? '' ),
 			'handover' => (string) ( $s['handover'] ?? '' ),
+			'hand'     => ! empty( $s['hand'] ),
+			'pins'     => array_slice( $i( $s['pins'] ?? array() ), 0, self::PINS ),
+			'order'    => array_slice( $i( $s['order'] ?? array() ), 0, self::MAX ),
 		);
+	}
+
+	/**
+	 * Put the Library in the owner's order, the way posts in a collection work: newest first with up to three pinned
+	 * at the top, or arranged by hand (things added since come first).
+	 *
+	 * @param \WP_Post[] $posts Newest first.
+	 * @return \WP_Post[]
+	 */
+	public static function arrange( array $posts ) {
+		$s    = self::settings();
+		$list = $s['hand'] ? $s['order'] : $s['pins'];
+		if ( ! $list ) {
+			return $posts;
+		}
+		$at = array_flip( $list );
+		$in = array();
+		$no = array();
+		foreach ( $posts as $p ) {
+			if ( isset( $at[ $p->ID ] ) ) {
+				$in[ $at[ $p->ID ] ] = $p;
+			} else {
+				$no[] = $p;
+			}
+		}
+		ksort( $in );
+		return $s['hand'] ? array_merge( $no, array_values( $in ) ) : array_merge( array_values( $in ), $no );
 	}
 
 	/**
@@ -139,7 +171,7 @@ class Library {
 	}
 
 	/**
-	 * All books, newest first.
+	 * All books, in the owner's order (newest first unless pinned or arranged).
 	 *
 	 * @param bool $owner Include who has each book.
 	 * @return array[]
@@ -154,7 +186,7 @@ class Library {
 				'order'          => 'DESC',
 			)
 		);
-		return array_map( static fn( $p ) => self::book( $p, $owner ), $posts );
+		return array_map( static fn( $p ) => self::book( $p, $owner ), self::arrange( $posts ) );
 	}
 
 	/**
@@ -619,6 +651,25 @@ class Library {
 					}
 					if ( null !== $r['handover'] ) {
 						$s['handover'] = mb_substr( sanitize_text_field( (string) $r['handover'] ), 0, 140 );
+					}
+					// Order: newest first with pins, or by hand. Only your own things can be listed.
+					$mine = static fn( $a ) => array_values( array_filter( array_map( 'intval', (array) $a ), static fn( $id ) => self::TYPE === get_post_type( $id ) ) );
+					if ( null !== $r['hand'] ) {
+						$s['hand'] = (bool) $r['hand'];
+						if ( $s['hand'] && ! $s['order'] ) {
+							$s['order'] = array_map( static fn( $b ) => $b['id'], self::books() );
+						}
+					}
+					if ( null !== $r['pins'] ) {
+						$pins = $mine( $r['pins'] );
+						if ( count( $pins ) > self::PINS ) {
+							/* translators: %s: how many things can be pinned. */
+							return new \WP_Error( 'stubli_pins', sprintf( __( 'You can pin up to %s things.', 'stubli' ), self::PINS ), array( 'status' => 400 ) );
+						}
+						$s['pins'] = $pins;
+					}
+					if ( null !== $r['order'] ) {
+						$s['order'] = array_slice( $mine( $r['order'] ), 0, self::MAX );
 					}
 					update_option( 'stubli_library', $s, false );
 					return rest_ensure_response( self::settings() );

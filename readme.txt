@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.48.0
+Stable tag: 0.49.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.49.0 =
+* Library: Electronics, for cameras, projectors, speakers and the like, next to books, games, tools and other things.
+* Library: choose the order. Newest first with up to three things pinned to the top, or put everything in your own order by dragging, the same way as posts in a collection. Library → Change, next to how many things you have.
 
 = 0.48.0 =
 * Library: ask to borrow. Open the Library of someone you follow (People → Library next to their name), tap something and tap Ask to borrow, with a note if you like. They answer Lend it or Not now in What's new. While you have it, it's in your Library under Borrowed, and your page says "borrowed from a neighbour", never who lent it. Tap I've given it back when you return it.

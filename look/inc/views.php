@@ -1004,11 +1004,13 @@ function stubli_view_library() {
 		'book'  => __( 'Books', 'stubli' ),
 		'game'  => __( 'Games', 'stubli' ),
 		'tool'  => __( 'Tools', 'stubli' ),
+		'electronics' => __( 'Electronics', 'stubli' ),
 		'other' => __( 'Other things', 'stubli' ),
 	);
 	$icons   = array(
 		'game'  => '🎲',
 		'tool'  => '🔧',
+		'electronics' => '🔌',
 		'other' => '✦',
 	);
 	$have    = array_values( array_intersect( array_keys( $kinds ), array_unique( array_column( $shelf, 'kind' ) ) ) );
@@ -1041,7 +1043,7 @@ function stubli_view_library() {
 		if ( '' !== $b['author'] ) {
 			echo '<span class="st-muted st-small">' . esc_html( $b['author'] ) . '</span>';
 		} elseif ( 'book' !== $b['kind'] && $lendable ) {
-			echo '<span class="st-muted st-small">' . esc_html( array( 'game' => __( 'Game', 'stubli' ), 'tool' => __( 'Tool', 'stubli' ), 'other' => __( 'Something else', 'stubli' ) )[ $b['kind'] ] ?? '' ) . '</span>';
+			echo '<span class="st-muted st-small">' . esc_html( array( 'game' => __( 'Game', 'stubli' ), 'tool' => __( 'Tool', 'stubli' ), 'electronics' => __( 'Electronics', 'stubli' ), 'other' => __( 'Something else', 'stubli' ) )[ $b['kind'] ] ?? '' ) . '</span>';
 		}
 		echo '</summary><div class="st-lib-more">';
 		if ( '' !== $b['year'] ) {
