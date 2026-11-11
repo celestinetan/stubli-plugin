@@ -62,6 +62,17 @@ jobs:
         run: |
           printf '%s\n' /.git /.github /.gitignore /.gitattributes /.distignore /.wordpress-org /README.md /blueprint.json /build /notes.md /stubli.zip > .distignore
 
+      - name: Install Subversion (retries, and Ubuntu's main server if the usual mirror is down)
+        run: |
+          command -v svn && exit 0
+          for i in 1 2 3; do
+            sudo apt-get update -o Acquire::Retries=3 && sudo apt-get install -y -o Acquire::Retries=3 subversion && command -v svn && exit 0
+            echo "Try $i failed; switching apt to archive.ubuntu.com"
+            sudo sed -i 's#mirror+file:/etc/apt/apt-mirrors.txt#http://archive.ubuntu.com/ubuntu/#g' /etc/apt/sources.list.d/*.sources /etc/apt/sources.list 2>/dev/null || true
+            sleep 30
+          done
+          exit 1
+
       - name: Publish to WordPress.org
         uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
         env:
