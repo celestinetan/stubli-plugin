@@ -612,6 +612,8 @@ class Move {
 					'date'       => $time,
 					'import_key' => $key,
 					'posters'    => $posters,
+					'audience'   => 'friends' === ( $p['audience'] ?? '' ) ? 'friends' : '',
+					'status'     => 'private' === $p['status'] ? 'private' : '',
 				)
 			);
 			foreach ( $temp as $t ) {
@@ -732,8 +734,13 @@ class Move {
 		}
 		global $wpdb;
 		$new_site = trailingslashit( Follows::origin( (string) $data['url'] ) );
+		// The old address's key stops working; a friend gets a fresh key at the new one.
+		$was_friend = Friends::forget( $follow['site_url'] );
 		if ( Follows::find_by_site( $new_site ) ) {
 			Follows::remove( (int) $follow['id'] );
+			if ( $was_friend ) {
+				Friends::set( $new_site, true );
+			}
 			return true;
 		}
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- this plugin's own tables.
@@ -749,6 +756,9 @@ class Move {
 		// The posts arrive again from the new address, with their dates.
 		$wpdb->delete( Install::items_table(), array( 'follow_id' => (int) $follow['id'] ) );
 		// phpcs:enable
+		if ( $was_friend ) {
+			Friends::set( $new_site, true );
+		}
 		return true;
 	}
 

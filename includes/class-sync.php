@@ -76,6 +76,12 @@ class Sync {
 			return 0;
 		}
 
+		// Their site says our key no longer works: drop what we kept of their friends-only posts.
+		$flag = $feed->get_channel_tags( Posts::NS, 'friend' );
+		if ( ! empty( $flag[0]['data'] ) && 'no' === trim( (string) $flag[0]['data'] ) ) {
+			Friends::no_longer_theirs( $follow );
+		}
+
 		$new    = 0;
 		$table  = Install::items_table();
 		$origin = Follows::origin( $follow['site_url'] );

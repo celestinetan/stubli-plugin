@@ -505,6 +505,11 @@ class Notes {
 		$quote  = $pidx >= 0 ? Prompts::at( $pidx ) : null;
 		$follow = Follows::find_by_site( $origin . '/' );
 		$state  = $follow ? 'inbox' : 'request';
+		// The letter is from the site we checked with, whatever its answer claims (security review 11 Nov).
+		$from = esc_url_raw( (string) ( $data['site'] ?? '' ) );
+		if ( ! $from || Follows::origin( $from ) !== $origin ) {
+			$from = $site;
+		}
 		$new    = wp_insert_post(
 			wp_slash(
 				array(
@@ -515,7 +520,7 @@ class Notes {
 					'meta_input'   => array(
 						'_stubli_dir'    => 'in',
 						'_stubli_kind'   => 'stubli',
-						'_stubli_site'   => esc_url_raw( (string) ( $data['site'] ?? $site ) ),
+						'_stubli_site'   => $from,
 						'_stubli_name'   => mb_substr( sanitize_text_field( (string) ( $data['name'] ?? '' ) ), 0, 80 ),
 						'_stubli_avatar' => esc_url_raw( (string) ( $data['avatar'] ?? '' ) ),
 						'_stubli_state'  => $state,

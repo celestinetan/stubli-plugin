@@ -26,6 +26,60 @@ class Privacy {
 		add_filter( 'robots_txt', array( self::class, 'robots_txt' ), 20, 2 );
 		add_filter( 'wp_robots', array( self::class, 'robots_meta' ) );
 		add_filter( 'get_avatar_url', array( self::class, 'no_gravatar' ), 5 );
+		// Security review 11 Nov: WordPress's public lists don't show what Stubli keeps private.
+		add_filter( 'rest_attachment_query', array( self::class, 'media_list' ) );
+		add_filter( 'rest_pre_dispatch', array( self::class, 'media_item' ), 10, 3 );
+		add_filter( 'rest_category_query', array( self::class, 'collections_list' ) );
+	}
+
+	/**
+	 * Visitors' media list leaves out photos that hang under no post (a
+	 * journal photo never saved, a photo uploaded for something private):
+	 * WordPress would otherwise list them for anyone.
+	 *
+	 * @param array $args Query args.
+	 * @return array
+	 */
+	public static function media_list( $args ) {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			$args['post_parent__not_in'] = array( 0 );
+		}
+		return $args;
+	}
+
+	/**
+	 * The same for asking for one such photo by its number.
+	 *
+	 * @param mixed            $result  Response so far.
+	 * @param \WP_REST_Server  $server  Server.
+	 * @param \WP_REST_Request $request Request.
+	 * @return mixed
+	 */
+	public static function media_item( $result, $server, $request ) {
+		if ( null !== $result || 'GET' !== $request->get_method() || current_user_can( 'upload_files' ) ) {
+			return $result;
+		}
+		if ( preg_match( '#^/wp/v2/media/(\d+)$#', (string) $request->get_route(), $m ) ) {
+			$att = get_post( (int) $m[1] );
+			if ( $att && 'attachment' === $att->post_type && 0 === (int) $att->post_parent ) {
+				return new \WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress's own message.
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Visitors' list of collections leaves out ones with no public posts,
+	 * so a collection holding only friends-only or only-me posts isn't named.
+	 *
+	 * @param array $args Query args.
+	 * @return array
+	 */
+	public static function collections_list( $args ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			$args['hide_empty'] = true;
+		}
+		return $args;
 	}
 
 	/**

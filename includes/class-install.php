@@ -153,6 +153,7 @@ class Install {
 			Guestbook::ensure_page();
 		}
 		self::migrate_tables();
+		Friends::tidy_once();
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'stubli_fifteen_minutes', self::CRON_HOOK );
 		}

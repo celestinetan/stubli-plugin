@@ -240,6 +240,11 @@ class Follows {
 	 */
 	public static function remove( $id ) {
 		global $wpdb;
+		// Someone you stop following stops being a friend too (security review 11 Nov).
+		$row = self::get( $id );
+		if ( $row && ! empty( $row['site_url'] ) ) {
+			Friends::forget( $row['site_url'] );
+		}
 		$wpdb->delete( Install::items_table(), array( 'follow_id' => (int) $id ), array( '%d' ) );
 		return (bool) $wpdb->delete( Install::follows_table(), array( 'id' => (int) $id ), array( '%d' ) );
 	}

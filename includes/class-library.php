@@ -423,6 +423,15 @@ class Library {
 		update_post_meta( $id, '_stubli_book_note', mb_substr( sanitize_textarea_field( (string) ( $f['note'] ?? '' ) ), 0, self::NOTE_MAX ) );
 		if ( ! empty( $f['coverId'] ) && current_user_can( 'edit_post', (int) $f['coverId'] ) ) {
 			update_post_meta( $id, '_stubli_cover', (int) $f['coverId'] );
+			// Hang the photo under the book, so WordPress doesn't list it for visitors (security review 11 Nov).
+			if ( 'attachment' === get_post_type( (int) $f['coverId'] ) && 0 === (int) get_post_field( 'post_parent', (int) $f['coverId'] ) ) {
+				wp_update_post(
+					array(
+						'ID'          => (int) $f['coverId'],
+						'post_parent' => $id,
+					)
+				);
+			}
 		} elseif ( ! empty( $f['coverUrl'] ) && ( ! empty( $f['coverPick'] ) || ! get_post_meta( $id, '_stubli_cover', true ) ) ) {
 			// A cover picked from Open Library replaces the one there was (0.47.1).
 			$c = self::sideload_cover( (string) $f['coverUrl'], $id );

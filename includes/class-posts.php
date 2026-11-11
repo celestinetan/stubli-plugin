@@ -279,10 +279,15 @@ class Posts {
 			return new WP_Error( 'stubli_caption_too_long', __( 'That caption is a little long. Trim it to 2,200 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
 		}
 
+		// Friends-only and only-me posts are never public, not even while their photos upload (security review 11 Nov).
+		$friends = 'friends' === ( $extra['audience'] ?? '' );
+		$status  = ( $friends || 'private' === ( $extra['status'] ?? '' ) ) ? 'private' : 'publish';
+
 		self::$saving_photos = true;
 		$post_id             = wp_insert_post(
 			array(
-				'post_status'   => 'publish',
+				'post_status'   => $status,
+				'meta_input'    => $friends ? array( Friends::META => 'friends' ) : array(),
 				'post_title'    => wp_trim_words( wp_strip_all_tags( $caption ), 8, '…' ),
 				'post_content'  => '' !== trim( $caption ) ? self::safe_text_html( $caption ) : '',
 				'post_author'   => get_current_user_id(),

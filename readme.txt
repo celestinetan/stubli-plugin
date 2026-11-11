@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.51.2
+Stable tag: 0.51.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,14 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.51.4 =
+* Friends only: a friends-only post is never public, not even for a moment while its photos upload or while you move your Stubli. When someone stops being your friend, their Stubli lets go of the friends-only posts it kept.
+* Privacy: the comments you write on other Stublis are no longer listed anywhere; each opens only at its own address. WordPress's public lists leave out photos that belong to nothing public and collections that hold only private posts.
+
+= 0.51.3 =
+* Friends only: when you block or stop following someone you had ticked as a friend, they stop seeing your friends-only posts straight away. When a friend's Stubli moves, the friendship moves with it. You can now untick someone you no longer follow.
+* Letters: a letter is always shown as coming from the Stubli that sent it.
 
 = 0.51.2 =
 * Library: tidier tiles. Tap something to open a card with its note and the ways to borrow it: ask privately, or, easier, with a Stubli of your own.

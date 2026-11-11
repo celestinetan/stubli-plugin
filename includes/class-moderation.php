@@ -217,6 +217,8 @@ class Moderation {
 			$list[] = $origin;
 			update_option( 'stubli_blocked', $list, false );
 		}
+		// A blocked site no longer sees friends-only posts.
+		Friends::forget( $origin );
 		$hidden = 0;
 		foreach ( self::comments_from( $origin, array( 'approve', 'hold' ) ) as $comment ) {
 			update_comment_meta( $comment->comment_ID, 'stubli_hidden_by_block', wp_get_comment_status( $comment ) );

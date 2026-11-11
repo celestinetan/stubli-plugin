@@ -29,6 +29,8 @@ class Replies {
 	public static function init() {
 		add_action( 'init', array( self::class, 'register_post_type' ) );
 		add_action( 'template_redirect', array( self::class, 'render_reply_page' ) );
+		add_action( 'pre_get_posts', array( self::class, 'unlisted' ) );
+		add_filter( 'wp_sitemaps_post_types', array( self::class, 'no_sitemap' ) );
 		add_action( Install::CRON_HOOK, array( self::class, 'retry' ), 36 );
 		// Replies you write in the WordPress dashboard travel too (0.45.9).
 		add_action( 'comment_post', array( self::class, 'dashboard_reply' ), 20, 2 );
@@ -83,6 +85,35 @@ class Replies {
 		update_post_meta( $id, '_stubli_retries', $tries + 1 );
 		update_post_meta( $id, '_stubli_retry_at', time() + ( $gaps[ $tries ] ?? DAY_IN_SECONDS ) );
 		update_post_meta( $id, '_stubli_delivery', $status );
+	}
+
+	/**
+	 * Comment pages answer only at their own unguessable address: never in
+	 * feeds, lists, by number or in sitemaps (security review 11 Nov).
+	 *
+	 * @param \WP_Query $q Query.
+	 */
+	public static function unlisted( $q ) {
+		if ( is_admin() || ! $q->is_main_query() ) {
+			return;
+		}
+		$types = (array) $q->get( 'post_type' );
+		$id    = (int) ( $q->get( 'p' ) ? $q->get( 'p' ) : $q->get( 'page_id' ) );
+		$by_id = $id && self::POST_TYPE === get_post_type( $id );
+		if ( $by_id || ( in_array( self::POST_TYPE, $types, true ) && ( ! $q->is_singular() || '' === (string) $q->get( 'name' ) ) ) ) {
+			$q->set( 'post__in', array( 0 ) );
+		}
+	}
+
+	/**
+	 * Leave comment pages out of the sitemap.
+	 *
+	 * @param array $types Post types.
+	 * @return array
+	 */
+	public static function no_sitemap( $types ) {
+		unset( $types[ self::POST_TYPE ] );
+		return $types;
 	}
 
 	/**

@@ -53,6 +53,8 @@ class Friends {
 		add_filter( 'webmention_post_id', array( self::class, 'webmention_target' ), 10, 2 );
 		add_filter( 'webmention_server_url', array( self::class, 'find_endpoint' ), 10, 2 );
 		add_action( 'send_headers', array( self::class, 'no_cache' ) );
+		add_action( 'rss2_head', array( self::class, 'feed_flag' ) );
+		add_filter( 'comment_feed_where', array( self::class, 'friends_comments_only' ) );
 		add_action( Install::CRON_HOOK, array( self::class, 'resend' ), 35 );
 	}
 
@@ -143,18 +145,18 @@ class Friends {
 	 */
 	public static function set( $url, $on ) {
 		$origin = Follows::origin( $url );
-		if ( ! $origin || ! Follows::find_by_site( trailingslashit( $origin ) ) ) {
-			return new \WP_Error( 'stubli_friend_follow', __( 'You can only choose friends among the people you follow.', 'stubli' ), array( 'status' => 400 ) );
-		}
-		$ours = self::ours();
 		if ( ! $on ) {
-			unset( $ours[ $origin ] );
-			update_option( self::OURS, $ours, false );
+			// Unticking always works, even for someone no longer followed (security review 11 Nov).
+			self::forget( $url );
 			return array(
 				'friend' => false,
 				'sent'   => false,
 			);
 		}
+		if ( ! $origin || ! Follows::find_by_site( trailingslashit( $origin ) ) ) {
+			return new \WP_Error( 'stubli_friend_follow', __( 'You can only choose friends among the people you follow.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		$ours = self::ours();
 		$key             = wp_generate_password( 32, false );
 		$ours[ $origin ] = array(
 			'hash'  => wp_hash( $key, 'nonce' ),
@@ -168,6 +170,41 @@ class Friends {
 			'friend' => true,
 			'sent'   => $sent,
 		);
+	}
+
+	/**
+	 * Stop treating a site as a friend: its key stops opening friends-only
+	 * posts on its very next request. Used when unticking, blocking,
+	 * unfollowing, and when a friend's site moves (security review 11 Nov).
+	 *
+	 * @param string $url Any URL on that site.
+	 * @return bool Whether it was a friend.
+	 */
+	public static function forget( $url ) {
+		$origin = Follows::origin( $url );
+		$ours   = self::ours();
+		if ( ! $origin || ! isset( $ours[ $origin ] ) ) {
+			return false;
+		}
+		unset( $ours[ $origin ] );
+		update_option( self::OURS, $ours, false );
+		return true;
+	}
+
+	/**
+	 * Once, after updating to 0.51.3: drop friends who were blocked or
+	 * unfollowed before Stubli took their access away by itself.
+	 */
+	public static function tidy_once() {
+		if ( get_option( 'stubli_friends_tidied' ) ) {
+			return;
+		}
+		foreach ( array_keys( self::ours() ) as $origin ) {
+			if ( Moderation::is_blocked( $origin ) || ! Follows::find_by_site( trailingslashit( $origin ) ) ) {
+				self::forget( $origin );
+			}
+		}
+		update_option( 'stubli_friends_tidied', 1, true );
 	}
 
 	/**
@@ -350,6 +387,50 @@ class Friends {
 			return add_query_arg( self::PARAM, rawurlencode( sanitize_text_field( wp_unslash( $_GET[ self::PARAM ] ?? '' ) ) ), $url );
 		}
 		return $url;
+	}
+
+	/**
+	 * A feed asked for with a key says whether the key still works, so a
+	 * former friend's reader can drop the friends-only posts it kept
+	 * (security review 11 Nov). Feeds asked for without a key say nothing.
+	 */
+	public static function feed_flag() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only.
+		if ( isset( $_GET[ self::PARAM ] ) ) {
+			echo "\t<stubli:friend>" . ( self::viewer() ? 'yes' : 'no' ) . "</stubli:friend>\n";
+		}
+	}
+
+	/**
+	 * A comment feed opened with a friend's key shows comments on public and
+	 * friends-only posts only, never on other private posts (security review 11 Nov).
+	 *
+	 * @param string $where WHERE clause.
+	 * @return string
+	 */
+	public static function friends_comments_only( $where ) {
+		if ( ! self::viewer() || current_user_can( 'read_private_posts' ) ) {
+			return $where;
+		}
+		global $wpdb;
+		return $where . $wpdb->prepare(
+			" AND {$wpdb->comments}.comment_post_ID IN ( SELECT sp.ID FROM {$wpdb->posts} sp LEFT JOIN {$wpdb->postmeta} sm ON ( sm.post_id = sp.ID AND sm.meta_key = %s ) WHERE sp.post_status = 'publish' OR ( sp.post_status = 'private' AND sm.meta_value = 'friends' ) )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			self::META
+		);
+	}
+
+	/**
+	 * Their site no longer counts us as a friend: forget their key and the
+	 * friends-only posts we kept from them.
+	 *
+	 * @param array $follow Follow row.
+	 */
+	public static function no_longer_theirs( array $follow ) {
+		global $wpdb;
+		$theirs = (array) get_option( self::THEIRS, array() );
+		unset( $theirs[ Follows::origin( $follow['site_url'] ) ] );
+		update_option( self::THEIRS, $theirs, false );
+		$wpdb->delete( Install::items_table(), array( 'follow_id' => (int) $follow['id'], 'audience' => 'friends' ), array( '%d', '%s' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
 	/**
