@@ -1075,3 +1075,4 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 
 .st-journal-topics { flex-wrap: wrap; margin: 0 0 14px; }
 .st-tile-paper .st-badge-pin { top: auto; bottom: 8px; left: 8px; right: auto; }
+.st-links .st-fav-tile .st-fav-sub { margin: -4px 6px 6px; }

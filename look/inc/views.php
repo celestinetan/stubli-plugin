@@ -1128,18 +1128,16 @@ function stubli_view_links() {
 	// Sites I follow is the last tile (Celestine, 3 Nov), so one group doesn't sit alone in a third of the width.
 	$secs  = stubli_favourite_sections();
 	$sites = stubli_has_plugin() ? \Stubli\Follows::public_list() : array();
-	// On a computer: rows of up to three tiles; tiles in a shorter last row share its width, so no row has an empty gap.
-	$count = count( $secs ) + 1;
-	$last  = $count > 3 ? $count % 3 : 0;
-	$span  = static function ( $i ) use ( $count, $last ) {
-		if ( $count <= 3 ) {
-			return 6 / $count;
-		}
-		return ( $last && $i >= $count - $last ) ? 6 / $last : 2;
+	// On a computer: rows of up to three tiles. Up to three tiles share the width; from four on, every tile is a third
+	// wide, so a tile alone on the last row keeps its size instead of stretching (Celestine, 11 Nov).
+	// Sites I follow is a tile like the others, and only shows when you follow someone (0.2.128).
+	$count = count( $secs ) + ( $sites ? 1 : 0 );
+	$span  = static function () use ( $count ) {
+		return $count <= 3 ? 6 / max( 1, $count ) : 2;
 	};
 	echo '<div class="st-fav-tiles">';
 	foreach ( array_values( $secs ) as $i => $sec ) {
-		$cls = 'st-fav-tile span-' . (int) $span( $i );
+		$cls = 'st-fav-tile span-' . (int) $span();
 		echo '' !== $sec['group'] ? '<section class="' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $sec['group'] ) . '"><h3 class="st-links-h">' . esc_html( $sec['group'] ) . '</h3>' : '<section class="' . esc_attr( $cls ) . ' is-loose" aria-label="' . esc_attr__( 'Favourites', 'stubli' ) . '">';
 		echo '<div class="st-link-list">';
 		foreach ( $sec['items'] as $l ) {
@@ -1154,12 +1152,19 @@ function stubli_view_links() {
 		}
 		echo '</div></section>';
 	}
-	echo '<section class="st-fav-tile is-sites span-' . (int) $span( $count - 1 ) . '" aria-label="' . esc_attr__( 'Sites I follow', 'stubli' ) . '">';
-	echo '<h3 class="st-links-h">' . esc_html__( 'Sites I follow', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '· people I like to visit', 'stubli' ) . '</span></h3>';
-	echo '<div class="st-link-list">';
 	if ( ! $sites ) {
-		echo '<p class="st-empty">' . esc_html__( 'Not following anyone yet.', 'stubli' ) . '</p>';
+		echo '</div>';
+		if ( ! $secs ) {
+			echo '<p class="st-empty">' . esc_html__( 'No favourites here yet.', 'stubli' ) . '</p>';
+		}
+		echo '</section>';
+		stubli_hub_invite_maybe();
+		echo '</main>';
+		return;
 	}
+	echo '<section class="st-fav-tile is-sites span-' . (int) $span() . '" aria-label="' . esc_attr__( 'Sites I follow', 'stubli' ) . '">';
+	echo '<h3 class="st-links-h">' . esc_html__( 'Sites I follow', 'stubli' ) . '</h3><p class="st-muted st-small st-fav-sub">' . esc_html__( 'People I like to visit', 'stubli' ) . '</p>';
+	echo '<div class="st-link-list">';
 	foreach ( $sites as $s ) {
 		echo '<a class="st-site-row" href="' . esc_url( $s['url'] ) . '">';
 		echo '<img src="' . esc_url( stubli_img_src( $s['avatar'] ), array( 'http', 'https', 'data' ) ) . '" alt="" width="40" height="40" loading="lazy">';
