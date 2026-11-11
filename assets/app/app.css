@@ -940,3 +940,12 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lib-chips { gap: 6px; }
 .a-lib-chip { gap: 6px; min-width: 44px; padding-left: 10px; padding-right: 10px; justify-content: center; }
 .a-lib-chip-i { font-size: 18px; line-height: 1; }
+/* Journal topics and pins (0.51.0) */
+.a-jt-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.a-jt-list li { display: flex; gap: 8px; align-items: center; }
+.a-jt-list .a-field { flex: 1; margin: 0; }
+.a-jt-pins { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.a-jt-pin { position: relative; display: grid; gap: 4px; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-radius: 14px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.a-jt-pin .muted { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; }
+.a-jt-pin.is-pinned { box-shadow: inset 0 0 0 3px var(--accent); }
+.a-jt-pin .a-pin-n { position: static; justify-self: start; }

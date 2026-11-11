@@ -299,6 +299,36 @@ class Rest {
 				),
 			)
 		);
+		// Journal topics and pins (0.51.0).
+		Rest::register(
+			'/journal/topics',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => static fn() => rest_ensure_response( array( 'topics' => Journal::topics(), 'pins' => Journal::pins() ) ),
+					'permission_callback' => array( self::class, 'is_owner' ),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => static function ( WP_REST_Request $r ) {
+						if ( is_array( $r['topics'] ) ) {
+							$t = Journal::save_topics( $r['topics'] );
+							if ( is_wp_error( $t ) ) {
+								return $t;
+							}
+						}
+						if ( is_array( $r['pins'] ) ) {
+							$p = Journal::set_pins( $r['pins'] );
+							if ( is_wp_error( $p ) ) {
+								return $p;
+							}
+						}
+						return rest_ensure_response( array( 'topics' => Journal::topics(), 'pins' => Journal::pins() ) );
+					},
+					'permission_callback' => array( self::class, 'is_owner' ),
+				),
+			)
+		);
 		Rest::register(
 			'/journal/(?P<id>\d+)/restore',
 			array(
@@ -596,7 +626,15 @@ class Rest {
 	 * @return array|WP_Error
 	 */
 	private static function filed( $res, WP_REST_Request $r ) {
-		if ( is_wp_error( $res ) || null === $r['collection'] || empty( $res['id'] ) ) {
+		if ( is_wp_error( $res ) || empty( $res['id'] ) ) {
+			return $res;
+		}
+		// A topic (0.51.0): sent as a number, 0 for none; left alone when not sent.
+		if ( null !== $r['topic'] ) {
+			Journal::set_topic( (int) $res['id'], (int) $r['topic'] );
+			$res['topic'] = Journal::topic_of( (int) $res['id'] );
+		}
+		if ( null === $r['collection'] ) {
 			return $res;
 		}
 		return Journal::file( (int) $res['id'], sanitize_text_field( (string) $r['collection'] ), sanitize_key( (string) $r['tile'] ) );

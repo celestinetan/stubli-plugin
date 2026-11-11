@@ -182,6 +182,7 @@ class App {
 			'noneOk'      => Posts::is_unsorted( get_term( $default, 'category' ) ),
 			'collOrder'   => array_column( Arrange::collections(), 'name' ),
 			'library'     => Library::is_on(),
+			'jTopics'     => Journal::topics(),
 			'scanner'     => STUBLI_PLUGIN_URL . 'assets/app/isbn-scan.min.js?ver=' . VERSION,
 			'maxPhotos'   => Posts::max_photos(),
 			'maxFiles'    => Posts::max_files(),

@@ -19,6 +19,10 @@ defined( 'ABSPATH' ) || exit;
  */
 class Journal {
 
+	const TOPICS     = 5;
+	const TOPIC_NAME = 20;
+	const PINS       = 3;
+
 	const MAX_LENGTH = 5000;
 	const MAX_TITLE  = 120;
 	const QUERY_VAR  = 'stubli_journal';
@@ -144,6 +148,143 @@ class Journal {
 		$text = preg_replace( '#<figure\b.*?</figure>#is', ' ', (string) $post->post_content );
 		$text = html_entity_decode( wp_strip_all_tags( (string) $text ), ENT_QUOTES, 'UTF-8' );
 		return wp_trim_words( trim( (string) preg_replace( '/\s+/', ' ', $text ) ), $words, '…' );
+	}
+
+	/**
+	 * The owner's journal topics (0.51.0): up to five, each a short name or emoji, like collection tabs. An entry has
+	 * at most one (meta _stubli_topic); the Journal tab shows them as filters.
+	 *
+	 * @return array[] { id: int, name: string }
+	 */
+	public static function topics() {
+		$out = array();
+		foreach ( (array) get_option( 'stubli_journal_topics', array() ) as $t ) {
+			if ( is_array( $t ) && ! empty( $t['id'] ) && '' !== (string) ( $t['name'] ?? '' ) ) {
+				$out[] = array( 'id' => (int) $t['id'], 'name' => (string) $t['name'] );
+			}
+		}
+		return array_slice( $out, 0, self::TOPICS );
+	}
+
+	/**
+	 * Save the topics, in the order given. New ones (no id) get one; an entry whose topic is gone has none.
+	 *
+	 * @param array $list [ { id?, name } ].
+	 * @return array[]|WP_Error The topics now.
+	 */
+	public static function save_topics( array $list ) {
+		$next = max( 1, (int) get_option( 'stubli_journal_topic_next', 1 ) );
+		$old  = array_column( self::topics(), 'id' );
+		$next = max( $next, $old ? max( $old ) + 1 : 1 );
+		$out  = array();
+		$seen = array();
+		foreach ( $list as $t ) {
+			$name = trim( mb_substr( sanitize_text_field( (string) ( is_array( $t ) ? ( $t['name'] ?? '' ) : '' ) ), 0, self::TOPIC_NAME ) );
+			if ( '' === $name || isset( $seen[ mb_strtolower( $name ) ] ) ) {
+				continue;
+			}
+			$seen[ mb_strtolower( $name ) ] = true;
+			$id    = (int) ( $t['id'] ?? 0 );
+			$out[] = array( 'id' => in_array( $id, $old, true ) ? $id : $next++, 'name' => $name );
+		}
+		if ( count( $out ) > self::TOPICS ) {
+			/* translators: %s: how many topics there can be */
+			return new WP_Error( 'stubli_topics', sprintf( __( 'Up to %s topics.', 'stubli' ), self::TOPICS ), array( 'status' => 400 ) );
+		}
+		update_option( 'stubli_journal_topics', $out, false );
+		update_option( 'stubli_journal_topic_next', $next, false );
+		$keep = array_column( $out, 'id' );
+		$tagged = get_posts( array( 'post_type' => 'post', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_stubli_topic' ) ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		foreach ( $tagged as $pid ) {
+			if ( ! in_array( (int) get_post_meta( $pid, '_stubli_topic', true ), $keep, true ) ) {
+				delete_post_meta( $pid, '_stubli_topic' );
+			}
+		}
+		return self::topics();
+	}
+
+	/**
+	 * An entry's topic id, or 0.
+	 *
+	 * @param int $id Post ID.
+	 * @return int
+	 */
+	public static function topic_of( $id ) {
+		$t = (int) get_post_meta( $id, '_stubli_topic', true );
+		return $t && in_array( $t, array_column( self::topics(), 'id' ), true ) ? $t : 0;
+	}
+
+	/**
+	 * Give an entry a topic (0 for none).
+	 *
+	 * @param int $id    Post ID.
+	 * @param int $topic Topic id.
+	 */
+	public static function set_topic( $id, $topic ) {
+		$topic = (int) $topic;
+		if ( $topic && in_array( $topic, array_column( self::topics(), 'id' ), true ) ) {
+			update_post_meta( $id, '_stubli_topic', $topic );
+		} else {
+			delete_post_meta( $id, '_stubli_topic' );
+		}
+	}
+
+	/**
+	 * Entries pinned to the top of the Journal tab, in order (up to three, public entries only).
+	 *
+	 * @return int[]
+	 */
+	public static function pins() {
+		$out = array();
+		foreach ( (array) get_option( 'stubli_journal_pins', array() ) as $id ) {
+			$id = (int) $id;
+			if ( $id && 'publish' === get_post_status( $id ) && has_post_format( 'status', $id ) && ! in_array( $id, $out, true ) ) {
+				$out[] = $id;
+			}
+		}
+		return array_slice( $out, 0, self::PINS );
+	}
+
+	/**
+	 * Pin entries to the top of the Journal tab.
+	 *
+	 * @param array $ids Entry ids, in order.
+	 * @return int[]|WP_Error
+	 */
+	public static function set_pins( array $ids ) {
+		$ids = array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
+		if ( count( $ids ) > self::PINS ) {
+			/* translators: %s: how many entries can be pinned */
+			return new WP_Error( 'stubli_pins', sprintf( __( 'You can pin up to %s entries.', 'stubli' ), self::PINS ), array( 'status' => 400 ) );
+		}
+		update_option( 'stubli_journal_pins', $ids, false );
+		return self::pins();
+	}
+
+	/**
+	 * Put pinned entries first, keeping the rest newest first.
+	 *
+	 * @param \WP_Post[] $posts Newest first.
+	 * @return \WP_Post[]
+	 */
+	public static function pinned_first( array $posts ) {
+		$pins = self::pins();
+		if ( ! $pins ) {
+			return $posts;
+		}
+		$at  = array_flip( $pins );
+		$top = array();
+		$no  = array();
+		foreach ( $posts as $p ) {
+			if ( isset( $at[ $p->ID ] ) ) {
+				$p->stubli_pinned     = true;
+				$top[ $at[ $p->ID ] ] = $p;
+			} else {
+				$no[] = $p;
+			}
+		}
+		ksort( $top );
+		return array_merge( array_values( $top ), $no );
 	}
 
 	/**
@@ -576,6 +717,7 @@ class Journal {
 			'saved'      => self::iso( $post->post_modified ),
 			'collection' => self::is_filed( $post->ID ) ? Mine::collection_of( $post->ID ) : '',
 			'tile'       => 'words' === get_post_meta( $post->ID, '_stubli_tile', true ) ? 'words' : 'photo',
+			'topic'      => self::topic_of( $post->ID ),
 		);
 	}
 
@@ -758,6 +900,7 @@ class Journal {
 					'visibility' => self::visibility( $post ),
 					'draft'      => true,
 					'title'      => self::title( $post->ID ),
+					'topic'      => self::topic_of( $post->ID ),
 					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
 				);
 			},
@@ -799,6 +942,7 @@ class Journal {
 					'url'        => get_permalink( $post ),
 					'edited'     => self::edited( $post->ID ) ? gmdate( 'c', self::edited( $post->ID ) ) : '',
 					'title'      => self::title( $post->ID ),
+					'topic'      => self::topic_of( $post->ID ),
 					'excerpt'    => wp_html_excerpt( trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( str_replace( '</', ' </', $post->post_content ) ), ENT_QUOTES ) ) ), 140, '…' ),
 				);
 			},

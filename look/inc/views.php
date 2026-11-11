@@ -805,12 +805,36 @@ function stubli_view_journal() {
 		// A quiet way to every entry, by month, at the top. No count, like everywhere in Stubli.
 		echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a></p>';
 	}
+	// Topics as filters, like the Library (0.2.127): only topics that have an entry; pinned entries first.
+	$posts  = $entries->posts;
+	$topics = array();
+	if ( class_exists( '\\Stubli\\Journal' ) && method_exists( '\\Stubli\\Journal', 'topics' ) ) {
+		$used = array();
+		foreach ( $posts as $entry ) {
+			$used[ \Stubli\Journal::topic_of( $entry->ID ) ] = true;
+		}
+		$topics = array_values( array_filter( \Stubli\Journal::topics(), static fn( $t ) => isset( $used[ $t['id'] ] ) ) );
+		$posts  = \Stubli\Journal::pinned_first( $posts );
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter.
+	$topic = isset( $_GET['topic'] ) ? absint( wp_unslash( $_GET['topic'] ) ) : 0;
+	$topic = in_array( $topic, array_column( $topics, 'id' ), true ) ? $topic : 0;
+	if ( $topics ) {
+		$base = home_url( '/journal/' );
+		echo '<nav class="st-lib-kinds st-journal-topics" aria-label="' . esc_attr__( 'Topics', 'stubli' ) . '"><a href="' . esc_url( $base ) . '"' . ( 0 === $topic ? ' aria-current="true"' : '' ) . '>' . esc_html__( 'All', 'stubli' ) . '</a>';
+		foreach ( $topics as $t ) {
+			echo '<a href="' . esc_url( add_query_arg( 'topic', $t['id'], $base ) ) . '"' . ( $t['id'] === $topic ? ' aria-current="true"' : '' ) . '>' . esc_html( $t['name'] ) . '</a>';
+		}
+		echo '</nav>';
+	}
 	// Cards, like a collection (0.2.126): each entry as the tile it has in a collection, its photo or a paper tile with
 	// its title and first lines; one tap opens the whole entry. Every entry on one page, as collections are.
-	if ( $entries->have_posts() ) {
+	if ( $posts ) {
 		echo '<ul class="st-grid st-journal-grid" role="list">';
-		foreach ( $entries->posts as $entry ) {
-			stubli_entry_tile( $entry, 'stubli-tile' );
+		foreach ( $posts as $entry ) {
+			if ( ! $topic || \Stubli\Journal::topic_of( $entry->ID ) === $topic ) {
+				stubli_entry_tile( $entry, 'stubli-tile' );
+			}
 		}
 		echo '</ul>';
 	}

@@ -1072,3 +1072,6 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-lib-kinds .st-lib-kind { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 32px; box-sizing: border-box; }
 .st-lib-kinds .st-lib-kind > span[aria-hidden] { font-size: 16px; line-height: 1; }
 .st-lib-hint { margin: 8px 0 0; }
+
+.st-journal-topics { flex-wrap: wrap; margin: 0 0 14px; }
+.st-tile-paper .st-badge-pin { top: auto; bottom: 8px; left: 8px; right: auto; }
