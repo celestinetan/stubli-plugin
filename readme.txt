@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.49.0
+Stable tag: 0.50.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.50.0 =
+* Library: A to Z by title is the new standard order (The, A and An are skipped, so The Odyssey files under O). Newest first and your own order are still there, under Library → Change. A Library that was arranged by hand keeps its order.
+* Library: the filters are icons; the one you pick shows its name.
+* Journal: entries show as cards, like the photos in a collection, all on one page. Tap a card to read the entry.
+* Library: visitors who have a Stubli of their own are told how to ask to borrow: follow, and ask from their app once they're followed back.
 
 = 0.49.0 =
 * Library: Electronics, for cameras, projectors, speakers and the like, next to books, games, tools and other things.

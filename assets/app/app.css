@@ -935,3 +935,8 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lib-ot-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 4px; font-size: 13px; line-height: 1.3; }
 .a-lib-order.a-pins { gap: 12px 8px; }
 .a-lib-order .is-drag { opacity: .6; }
+/* Library filters as icons (0.50.0): the chosen one shows its name. */
+.a-lib-chips { flex-wrap: nowrap; }
+.a-lib-chips { gap: 6px; }
+.a-lib-chip { gap: 6px; min-width: 44px; padding-left: 10px; padding-right: 10px; justify-content: center; }
+.a-lib-chip-i { font-size: 18px; line-height: 1; }

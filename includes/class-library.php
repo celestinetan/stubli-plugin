@@ -64,30 +64,36 @@ class Library {
 	/**
 	 * Library settings.
 	 *
-	 * @return array { on: bool, area: string, handover: string, hand: bool, pins: int[], order: int[] }
+	 * @return array { on: bool, area: string, handover: string, sort: string, hand: bool, pins: int[], order: int[] }
 	 */
 	public static function settings() {
 		$s = (array) get_option( 'stubli_library', array() );
-		$i = static fn( $a ) => array_values( array_unique( array_filter( array_map( 'intval', (array) $a ) ) ) );
+		// Before 0.50.0 there was only 'hand'; without a choice the Library is A to Z.
+		$sort = in_array( $s['sort'] ?? '', array( 'az', 'new', 'hand' ), true ) ? $s['sort'] : ( empty( $s['hand'] ) ? 'az' : 'hand' );
+		$i    = static fn( $a ) => array_values( array_unique( array_filter( array_map( 'intval', (array) $a ) ) ) );
 		return array(
 			'on'       => ! empty( $s['on'] ),
 			'area'     => (string) ( $s['area'] ?? '' ),
 			'handover' => (string) ( $s['handover'] ?? '' ),
-			'hand'     => ! empty( $s['hand'] ),
+			'sort'     => $sort,
+			'hand'     => 'hand' === $sort,
 			'pins'     => array_slice( $i( $s['pins'] ?? array() ), 0, self::PINS ),
 			'order'    => array_slice( $i( $s['order'] ?? array() ), 0, self::MAX ),
 		);
 	}
 
 	/**
-	 * Put the Library in the owner's order, the way posts in a collection work: newest first with up to three pinned
-	 * at the top, or arranged by hand (things added since come first).
+	 * Put the Library in the owner's order: A to Z by title (the default since 0.50.0) or newest first, each with up to
+	 * three pinned at the top; or arranged by hand (things added since come first), like posts in a collection.
 	 *
 	 * @param \WP_Post[] $posts Newest first.
 	 * @return \WP_Post[]
 	 */
 	public static function arrange( array $posts ) {
-		$s    = self::settings();
+		$s = self::settings();
+		if ( 'az' === $s['sort'] ) {
+			usort( $posts, static fn( $a, $b ) => strnatcasecmp( self::sort_key( $a->post_title ), self::sort_key( $b->post_title ) ) );
+		}
 		$list = $s['hand'] ? $s['order'] : $s['pins'];
 		if ( ! $list ) {
 			return $posts;
@@ -168,6 +174,16 @@ class Library {
 	 */
 	public static function shown( $friend = false ) {
 		return array_values( array_filter( self::books( false ), static fn( $b ) => $friend || ! $b['friends'] ) );
+	}
+
+	/**
+	 * A title as it files on a shelf: without a leading The, A, An, Der, Die, Das.
+	 *
+	 * @param string $t Title.
+	 * @return string
+	 */
+	public static function sort_key( $t ) {
+		return (string) preg_replace( '/^(the|a|an|der|die|das)\s+/iu', '', trim( html_entity_decode( (string) $t, ENT_QUOTES ) ) );
 	}
 
 	/**
@@ -654,8 +670,12 @@ class Library {
 					}
 					// Order: newest first with pins, or by hand. Only your own things can be listed.
 					$mine = static fn( $a ) => array_values( array_filter( array_map( 'intval', (array) $a ), static fn( $id ) => self::TYPE === get_post_type( $id ) ) );
-					if ( null !== $r['hand'] ) {
-						$s['hand'] = (bool) $r['hand'];
+					if ( null !== $r['hand'] && null === $r['sort'] ) {
+						$r['sort'] = $r['hand'] ? 'hand' : 'new';
+					}
+					if ( in_array( $r['sort'], array( 'az', 'new', 'hand' ), true ) ) {
+						$s['sort'] = $r['sort'];
+						$s['hand'] = 'hand' === $r['sort'];
 						if ( $s['hand'] && ! $s['order'] ) {
 							$s['order'] = array_map( static fn( $b ) => $b['id'], self::books() );
 						}

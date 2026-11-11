@@ -2301,7 +2301,7 @@
 		var kinds = libKinds().filter( function ( k ) { return list.some( function ( b ) { return ( b.kind || 'book' ) === k[ 0 ]; } ); } );
 		if ( kinds.length < 2 ) { return ''; }
 		return '<div class="a-chips a-lib-chips" role="group" aria-label="' + esc( __( 'Show', 'stubli' ) ) + '"><button type="button" class="a-chip" aria-pressed="' + ( current === 'all' ) + '" data-' + attr + '="all">' + __( 'All', 'stubli' ) + '</button>' +
-			kinds.map( function ( k ) { return '<button type="button" class="a-chip" aria-pressed="' + ( current === k[ 0 ] ) + '" data-' + attr + '="' + k[ 0 ] + '">' + esc( k[ 3 ] ) + '</button>'; } ).join( '' ) + '</div>';
+			kinds.map( function ( k ) { var on = current === k[ 0 ]; return '<button type="button" class="a-chip a-lib-chip' + ( on ? ' is-on' : '' ) + '" aria-pressed="' + on + '" data-' + attr + '="' + k[ 0 ] + '"' + ( on ? '' : ' aria-label="' + esc( k[ 3 ] ) + '" title="' + esc( k[ 3 ] ) + '"' ) + '><span class="a-lib-chip-i" aria-hidden="true">' + k[ 5 ] + '</span>' + ( on ? '<span>' + esc( k[ 3 ] ) + '</span>' : '' ) + '</button>'; } ).join( '' ) + '</div>';
 	}
 	function libAudience( friends ) {
 		return '<h2 class="a-label" id="a-lib-aud">' + __( 'Who can see it', 'stubli' ) + '</h2><div class="a-chips" role="radiogroup" aria-labelledby="a-lib-aud">' +
@@ -2381,21 +2381,27 @@
 	function loTile( b, attr, extra, label ) {
 		return '<li data-id="' + b.id + '"><button type="button" class="a-pin-tile a-lib-ot' + ( extra || '' ) + '" ' + attr + '="' + b.id + '" aria-label="' + esc( label ) + '">' + libCover( b ) + '<span class="a-lib-ot-t">' + esc( b.title ) + '</span>';
 	}
+	function libOrderName( s ) {
+		var sort = s.sort || ( s.hand ? 'hand' : 'az' ), pinned = s.pins && s.pins.length;
+		if ( sort === 'hand' ) { return __( 'Your own order', 'stubli' ); }
+		if ( sort === 'new' ) { return pinned ? __( 'Pinned, then newest', 'stubli' ) : __( 'Newest first', 'stubli' ); }
+		return pinned ? __( 'Pinned, then A to Z', 'stubli' ) : __( 'A to Z', 'stubli' );
+	}
 	function viewLibraryOrder() {
 		if ( ! lib.loaded ) { libLoad( function () { if ( location.hash === '#library/order' ) { viewLibraryOrder(); } } ); return; }
-		var s = lib.settings, shelf = loShelf(), hand = !! s.hand, pins = s.pins || [], max = 3, n = shelf.length, at = -1;
+		var s = lib.settings, sort = s.sort || ( s.hand ? 'hand' : 'az' ), shelf = loShelf(), hand = sort === 'hand', pins = s.pins || [], max = 3, n = shelf.length, at = -1;
 		shelf.forEach( function ( b, i ) { if ( b.id === lo.sel ) { at = i; } } );
 		var tools = ! hand || at < 0 ? '' : '<div class="a-hand-tools" role="group" aria-label="' + esc( _f( __( 'Move %s', 'stubli' ), shelf[ at ].title ) ) + '">' +
 			[ [ 'first', __( 'To the start', 'stubli' ), at === 0 ], [ 'up', __( 'Earlier', 'stubli' ), at === 0 ], [ 'down', __( 'Later', 'stubli' ), at === n - 1 ], [ 'last', __( 'To the end', 'stubli' ), at === n - 1 ] ].map( function ( t ) { return '<button type="button" class="a-btn quiet" data-lo-mv="' + t[ 0 ] + '"' + ( t[ 2 ] ? ' disabled' : '' ) + '>' + esc( t[ 1 ] ) + '</button>'; } ).join( '' ) +
 			'<button type="button" class="a-text-btn" data-lo-done>' + __( 'Done', 'stubli' ) + '</button></div>';
 		root.innerHTML = arrangeHead( '#library', __( 'Order', 'stubli' ) ) + '<main class="a-main" id="main">' +
-			'<div class="a-chips" role="radiogroup" aria-label="' + esc( __( 'Order', 'stubli' ) ) + '">' + [ [ '', __( 'Newest first', 'stubli' ) ], [ '1', __( 'By hand', 'stubli' ) ] ].map( function ( o ) { var on = hand === !! o[ 0 ]; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-lo-ord="' + o[ 0 ] + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( o[ 1 ] ) + '</button>'; } ).join( '' ) + '</div>' +
+			'<div class="a-chips" role="radiogroup" aria-label="' + esc( __( 'Order', 'stubli' ) ) + '">' + [ [ 'az', __( 'A to Z', 'stubli' ) ], [ 'new', __( 'Newest first', 'stubli' ) ], [ 'hand', __( 'By hand', 'stubli' ) ] ].map( function ( o ) { var on = sort === o[ 0 ]; return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-lo-ord="' + o[ 0 ] + '">' + ( on ? icon( 'check', 16 ) : '' ) + esc( o[ 1 ] ) + '</button>'; } ).join( '' ) + '</div>' +
 			( hand ?
 				'<p class="muted" style="margin:4px 0 12px">' + __( 'Hold a tile and drag it to its new place. Or tap a tile, then move it with the buttons. Your page shows this order; new things appear first.', 'stubli' ) + '</p>' + tools +
 				'<ul class="a-pins a-hand a-lib-order" role="list" data-lo-hand>' + shelf.map( function ( b ) { return loTile( b, 'data-lo-pick', b.id === lo.sel ? ' is-sel' : '', b.title ) + '</button></li>'; } ).join( '' ) + '</ul>'
 			:
 				'<h2 class="a-label">' + __( 'Pin to the top', 'stubli' ) + '</h2>' +
-				'<p class="muted" style="margin:4px 0 12px">' + _f( __( 'Tap up to %s things to pin them to the top of your Library, in the order you tap them. Tap again to unpin. Everything else stays newest first.', 'stubli' ), max ) + '</p>' +
+				'<p class="muted" style="margin:4px 0 12px">' + _f( sort === 'az' ? __( 'Tap up to %s things to pin them to the top of your Library, in the order you tap them. Tap again to unpin. Everything else stays A to Z, by title.', 'stubli' ) : __( 'Tap up to %s things to pin them to the top of your Library, in the order you tap them. Tap again to unpin. Everything else stays newest first.', 'stubli' ), max ) + '</p>' +
 				'<ul class="a-pins a-lib-order" role="list">' + shelf.map( function ( b ) {
 					var p = pins.indexOf( b.id );
 					return loTile( b, 'data-lo-pin', p > -1 ? ' is-pinned' : '', b.title + ( p > -1 ? ', ' + _f( __( 'pinned %s', 'stubli' ), p + 1 ) : '' ) ) + ( p > -1 ? '<span class="a-pin-n" aria-hidden="true">' + icon( 'pin', 12 ) + ( p + 1 ) + '</span>' : '' ) + '</button></li>';
@@ -2407,9 +2413,9 @@
 			return send( 'POST', 'library/settings', change ).then( function ( r ) { lib.settings = r; return send( 'GET', 'library' ); } ).then( function ( r ) { lib.books = r.books || []; lo.msg = ok; if ( location.hash === '#library/order' ) { viewLibraryOrder(); } }, function ( e ) { say( e.message ); } );
 		};
 		$$( '[data-lo-ord]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
-			var on = !! b.dataset.loOrd; if ( on === hand ) { return; }
+			var to = b.dataset.loOrd; if ( to === sort ) { return; }
 			lo.sel = 0;
-			save( { hand: on }, on ? __( 'Now drag the tiles into the order you like. New things appear first.', 'stubli' ) : __( 'Saved. Your Library is newest first again, with your pins on top.', 'stubli' ) ).then( function () { var f = $( '[data-lo-ord="' + ( on ? '1' : '' ) + '"]' ); if ( f ) { f.focus(); } } );
+			save( { sort: to }, to === 'hand' ? __( 'Now drag the tiles into the order you like. New things appear first.', 'stubli' ) : ( to === 'az' ? __( 'Saved. Your Library is A to Z by title, with your pins on top.', 'stubli' ) : __( 'Saved. Your Library is newest first, with your pins on top.', 'stubli' ) ) ).then( function () { var f = $( '[data-lo-ord="' + to + '"]' ); if ( f ) { f.focus(); } } );
 		} ); } );
 		$$( '[data-lo-pin]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
 			var id = +b.dataset.loPin, i = pins.indexOf( id ), next = pins.slice();
@@ -2479,7 +2485,7 @@
 					'<p class="a-help">' + _f( __( 'At the top of your Library. Up to %s books.', 'stubli' ), LIB_READING ) + '</p></section>' : '' ) +
 				'<section class="a-card"><p class="a-lib-where">' + ( s.area || s.handover ? esc( [ s.area, s.handover ].filter( Boolean ).join( ' · ' ) ) : '<span class="muted">' + __( 'Add a rough area, like your town or district, so neighbours know you\'re near.', 'stubli' ) + '</span>' ) + ' <a href="#library/where">' + __( 'Change', 'stubli' ) + '</a></p>' +
 				'<div class="a-actions"><a class="a-btn" href="#library/add">' + icon( 'plus', 18 ) + __( 'Add something', 'stubli' ) + '</a></div>' +
-				( shelf.length ? '<p class="muted">' + ( shelf.length === 1 ? __( '1 thing', 'stubli' ) : _f( __( '%s things', 'stubli' ), shelf.length ) ) + ( out ? ' · ' + _f( __( '%s on loan', 'stubli' ), out ) : '' ) + ( fr ? ' · ' + ( fr === 1 ? __( '1 for friends only', 'stubli' ) : _f( __( '%s for friends only', 'stubli' ), fr ) ) : '' ) + ( shelf.length > 1 ? ' · <a href="#library/order">' + ( s.hand ? __( 'Your own order', 'stubli' ) : ( s.pins && s.pins.length ? __( 'Pinned, then newest', 'stubli' ) : __( 'Newest first', 'stubli' ) ) ) + ' – ' + __( 'Change', 'stubli' ) + '</a>' : '' ) + '</p>' +
+				( shelf.length ? '<p class="muted">' + ( shelf.length === 1 ? __( '1 thing', 'stubli' ) : _f( __( '%s things', 'stubli' ), shelf.length ) ) + ( out ? ' · ' + _f( __( '%s on loan', 'stubli' ), out ) : '' ) + ( fr ? ' · ' + ( fr === 1 ? __( '1 for friends only', 'stubli' ) : _f( __( '%s for friends only', 'stubli' ), fr ) ) : '' ) + ( shelf.length > 1 ? ' · <a href="#library/order">' + libOrderName( s ) + ' – ' + __( 'Change', 'stubli' ) + '</a>' : '' ) + '</p>' +
 					libChips( shelf, lib.kind, 'lib-kind' ) +
 					'<ul class="a-lib-grid">' + shown.map( function ( b ) {
 						var badge = b.loan ? [ _f( __( 'With %s', 'stubli' ), b.loan.name ), '' ] : ( b.reading ? [ __( 'Now reading', 'stubli' ), 'is-light' ] : ( b.friends ? [ __( 'Friends only', 'stubli' ), 'is-friends' ] : null ) );
@@ -2652,7 +2658,7 @@
 			if ( d.photo ) { f.coverId = d.photo.id; } else if ( d.pick ) { f.coverUrl = d.pick; f.coverPick = true; }
 			if ( ! id ) { f.friends = d.friends; if ( isBook ) { f.just = d.just; } }
 			send( 'POST', id ? 'library/' + id : 'library', f ).then( function ( saved ) {
-				if ( id ) { lib.books = lib.books.map( function ( x ) { return x.id === id ? saved : x; } ); } else { lib.books.unshift( saved ); }
+				if ( id ) { lib.books = lib.books.map( function ( x ) { return x.id === id ? saved : x; } ); } else { lib.books.unshift( saved ); } lib.loaded = false; // Reload, so it sits in your order (A to Z puts it among the rest).
 				lib.found = null; lib.draft = null; lib.msg = id ? __( 'Saved.', 'stubli' ) : ( saved.just ? _f( __( 'Added %s to Now reading.', 'stubli' ), saved.title ) : _f( __( 'Added %s to your Library.', 'stubli' ), saved.title ) );
 				location.hash = id ? '#library/' + id : '#library';
 			}, function ( err ) { lib.msg = err.message; viewLibraryBookForm( id, kind ); } );

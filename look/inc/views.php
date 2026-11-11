@@ -775,8 +775,9 @@ function stubli_view_journal() {
 	echo '<main class="st-main" id="main">';
 	stubli_profile_cards();
 	stubli_tabs( 'journal' );
-	echo '<section class="st-panel st-journal">';
-	if ( 'all' === get_query_var( 'stubli_journal' ) ) {
+	$cards = 'all' !== get_query_var( 'stubli_journal' );
+	echo '<section class="st-panel ' . ( $cards ? 'st-journal-cards' : 'st-journal' ) . '">';
+	if ( ! $cards ) {
 		stubli_journal_contents();
 		echo '</section>';
 		stubli_hub_invite_maybe();
@@ -787,8 +788,8 @@ function stubli_view_journal() {
 		array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
-			'posts_per_page' => 10,
-			'paged'          => max( 1, (int) get_query_var( 'paged' ) ),
+			'posts_per_page' => 500,
+			'no_found_rows'  => true,
 			'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 				array(
 					'taxonomy' => 'post_format',
@@ -801,41 +802,17 @@ function stubli_view_journal() {
 	if ( ! $entries->have_posts() ) {
 		echo wp_kses( stubli_empty( 'journal' ), stubli_allowed_html() );
 	} else {
-		// A quiet way to every entry, at the top (and again at the bottom when there are more entries). No count, like everywhere in Stubli.
+		// A quiet way to every entry, by month, at the top. No count, like everywhere in Stubli.
 		echo '<p class="st-journal-nav"><a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a></p>';
 	}
-	foreach ( $entries->posts as $entry ) {
-		$long  = mb_strlen( wp_strip_all_tags( $entry->post_content ) ) > 600;
-		$title = stubli_entry_title( $entry );
-		echo '<article class="st-entry' . ( $long ? ' is-long' : '' ) . '">';
-		$when = '<time datetime="' . esc_attr( get_post_time( 'c', true, $entry ) ) . '">' . esc_html( get_the_date( 'l, j F', $entry ) ) . '</time>';
-		if ( '' !== $title ) {
-			echo wp_kses( '<p class="st-entry-date">' . $when . '</p>', stubli_allowed_html() );
-			echo '<h2 class="st-entry-title"><a href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html( $title ) . '</a></h2>';
-		} else {
-			echo wp_kses( '<h2 class="st-entry-date">' . $when . '</h2>', stubli_allowed_html() );
-		}
-		echo wp_kses( stubli_entry_meta( $entry ), stubli_allowed_html() );
-		echo wp_kses( '<div class="st-entry-text">' . stubli_entry_html( $entry ) . '</div>', stubli_allowed_html() );
-		if ( $long ) {
-			echo '<a class="st-read-more" href="' . esc_url( get_permalink( $entry ) ) . '">' . esc_html__( 'Read more', 'stubli' ) . '</a>';
-		}
-		echo '</article>';
-	}
+	// Cards, like a collection (0.2.126): each entry as the tile it has in a collection, its photo or a paper tile with
+	// its title and first lines; one tap opens the whole entry. Every entry on one page, as collections are.
 	if ( $entries->have_posts() ) {
-		$page  = max( 1, (int) get_query_var( 'paged' ) );
-		$links = array();
-		if ( $page < (int) $entries->max_num_pages ) {
-			$links[] = '<a href="' . esc_url( home_url( '/journal/page/' . ( $page + 1 ) . '/' ) ) . '">' . esc_html__( 'More entries', 'stubli' ) . '</a>';
+		echo '<ul class="st-grid st-journal-grid" role="list">';
+		foreach ( $entries->posts as $entry ) {
+			stubli_entry_tile( $entry, 'stubli-tile' );
 		}
-		if ( $page > 1 ) {
-			$links[] = '<a href="' . esc_url( 2 === $page ? home_url( '/journal/' ) : home_url( '/journal/page/' . ( $page - 1 ) . '/' ) ) . '">' . esc_html__( 'Newer entries', 'stubli' ) . '</a>';
-		}
-		// With more than one page, "All entries" sits again beside More/Newer entries; a short journal shows it once, at the top.
-		if ( $links ) {
-			$links[] = '<a href="' . esc_url( home_url( '/journal/all/' ) ) . '">' . esc_html__( 'All entries', 'stubli' ) . '</a>';
-			echo wp_kses( '<p class="st-more st-journal-more">' . implode( '<span aria-hidden="true">·</span>', $links ) . '</p>', stubli_allowed_html() );
-		}
+		echo '</ul>';
 	}
 	echo '</section>';
 	stubli_hub_invite_maybe();
@@ -1060,6 +1037,9 @@ function stubli_view_library() {
 		} elseif ( $lendable && ! stubli_is_owner() ) {
 			/* translators: %s: the owner's first name */
 			echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
+			// For visitors who have a Stubli: asking to borrow happens in their own app (0.2.126). Names, never pronouns.
+			/* translators: 1: the owner's first name, 2: the same name */
+			echo '<p class="st-muted st-small st-lib-hint">' . esc_html( sprintf( __( 'Have a Stubli? Follow %1$s, and once %2$s follows you back, you can ask to borrow it from your app: People → Library.', 'stubli' ), $first, $first ) ) . '</p>';
 		}
 		echo '</div></details></li>';
 	};
@@ -1090,8 +1070,11 @@ function stubli_view_library() {
 		if ( count( $have ) > 1 ) {
 			$base = home_url( '/library/' );
 			echo '<nav class="st-lib-kinds" aria-label="' . esc_attr__( 'Show', 'stubli' ) . '"><a href="' . esc_url( $base ) . '"' . ( '' === $kind ? ' aria-current="true"' : '' ) . '>' . esc_html__( 'All', 'stubli' ) . '</a>';
+			// Icons; the chosen one also shows its name (0.2.126).
+			$fic = array( 'book' => '📖' ) + $icons;
 			foreach ( $have as $k ) {
-				echo '<a href="' . esc_url( add_query_arg( 'kind', $k, $base ) ) . '"' . ( $k === $kind ? ' aria-current="true"' : '' ) . '>' . esc_html( $kinds[ $k ] ) . '</a>';
+				$on = $k === $kind;
+				echo '<a class="st-lib-kind" href="' . esc_url( add_query_arg( 'kind', $k, $base ) ) . '"' . ( $on ? ' aria-current="true"' : ' aria-label="' . esc_attr( $kinds[ $k ] ) . '" title="' . esc_attr( $kinds[ $k ] ) . '"' ) . '><span aria-hidden="true">' . esc_html( $fic[ $k ] ?? '✦' ) . '</span>' . ( $on ? '<span>' . esc_html( $kinds[ $k ] ) . '</span>' : '' ) . '</a>';
 			}
 			echo '</nav>';
 		}
