@@ -334,6 +334,134 @@ class Posts {
 	}
 
 	/**
+	 * Park one photo (or video with its cover picture) that arrived on its own, until the post is made (0.51.3).
+	 * The app sends photos one at a time, so a 20-photo post is never one huge upload that a host can stall
+	 * (Celestine, 11 Nov: 20 photos from a computer never arrived on WordPress.com). Parked files sit in
+	 * uploads/stubli-staging and are cleared after a day if no post picks them up.
+	 *
+	 * @param array      $file   The upload.
+	 * @param array|null $poster A video's cover picture.
+	 * @return array|WP_Error { token }
+	 */
+	public static function stage( array $file, $poster = null ) {
+		$videos = self::check_media( array( $file ), $poster ? array( 0 => $poster ) : array() );
+		if ( is_wp_error( $videos ) ) {
+			return $videos;
+		}
+		$dir = self::stage_dir();
+		if ( is_wp_error( $dir ) ) {
+			return $dir;
+		}
+		self::stage_tidy( $dir );
+		$token = strtolower( wp_generate_password( 24, false ) );
+		$ext   = strtolower( (string) pathinfo( (string) ( $file['name'] ?? '' ), PATHINFO_EXTENSION ) );
+		$ext   = preg_match( '/^[a-z0-9]{2,5}$/', $ext ) ? $ext : 'jpg';
+		$path  = $dir . '/' . $token . '.' . $ext;
+		if ( ! self::stage_move( $file['tmp_name'] ?? '', $path ) ) {
+			return new WP_Error( 'stubli_stage_failed', __( 'That photo couldn\'t be saved just now. Try sharing again.', 'stubli' ), array( 'status' => 500 ) );
+		}
+		$meta = array(
+			'user' => get_current_user_id(),
+			'name' => sanitize_file_name( (string) ( $file['name'] ?? 'photo.jpg' ) ),
+			'type' => (string) ( $file['type'] ?? '' ),
+			'path' => $path,
+		);
+		if ( $videos && $poster ) {
+			$pp = $dir . '/' . $token . '-cover.jpg';
+			if ( ! self::stage_move( $poster['tmp_name'] ?? '', $pp ) ) {
+				return new WP_Error( 'stubli_stage_failed', __( 'That photo couldn\'t be saved just now. Try sharing again.', 'stubli' ), array( 'status' => 500 ) );
+			}
+			$meta['poster'] = $pp;
+		}
+		set_transient( 'stubli_stage_' . $token, $meta, DAY_IN_SECONDS );
+		return array( 'token' => $token );
+	}
+
+	/**
+	 * The parked uploads for a post, in order, as file arrays the rest of the saving understands.
+	 *
+	 * @param array $tokens From stage().
+	 * @return array|WP_Error { files, posters }
+	 */
+	public static function unstage( array $tokens ) {
+		$files   = array();
+		$posters = array();
+		foreach ( array_values( $tokens ) as $i => $token ) {
+			$token = preg_replace( '/[^a-z0-9]/', '', strtolower( (string) $token ) );
+			$meta  = '' !== $token ? get_transient( 'stubli_stage_' . $token ) : false;
+			if ( ! is_array( $meta ) || (int) $meta['user'] !== get_current_user_id() || ! is_file( $meta['path'] ) ) {
+				return new WP_Error( 'stubli_stage_missing', __( 'One of your photos didn\'t arrive. Nothing was shared. Try again.', 'stubli' ), array( 'status' => 400 ) );
+			}
+			delete_transient( 'stubli_stage_' . $token );
+			$files[ $i ] = array(
+				'name'     => $meta['name'],
+				'type'     => $meta['type'],
+				'tmp_name' => $meta['path'],
+				'error'    => 0,
+				'size'     => (int) filesize( $meta['path'] ),
+			);
+			if ( ! empty( $meta['poster'] ) && is_file( $meta['poster'] ) ) {
+				$posters[ $i ] = array(
+					'name'     => 'cover.jpg',
+					'type'     => 'image/jpeg',
+					'tmp_name' => $meta['poster'],
+					'error'    => 0,
+					'size'     => (int) filesize( $meta['poster'] ),
+				);
+			}
+		}
+		return array( 'files' => $files, 'posters' => $posters );
+	}
+
+	/**
+	 * The folder for parked uploads, made private on first use.
+	 *
+	 * @return string|WP_Error
+	 */
+	private static function stage_dir() {
+		$up  = wp_upload_dir();
+		$dir = trailingslashit( $up['basedir'] ) . 'stubli-staging';
+		if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
+			return new WP_Error( 'stubli_stage_failed', __( 'That photo couldn\'t be saved just now. Try sharing again.', 'stubli' ), array( 'status' => 500 ) );
+		}
+		if ( ! file_exists( $dir . '/index.php' ) ) {
+			file_put_contents( $dir . '/index.php', "<?php\n// Silence.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $dir . '/.htaccess', "Require all denied\nDeny from all\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
+		return $dir;
+	}
+
+	/**
+	 * Move an upload into the staging folder.
+	 *
+	 * @param string $from Temporary upload.
+	 * @param string $to   Destination.
+	 * @return bool
+	 */
+	private static function stage_move( $from, $to ) {
+		if ( '' === $from || ! file_exists( $from ) ) {
+			return false;
+		}
+		if ( is_uploaded_file( $from ) ) {
+			return move_uploaded_file( $from, $to );
+		}
+		return @rename( $from, $to ) || ( @copy( $from, $to ) && ( wp_delete_file( $from ) || true ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename
+	}
+
+	/**
+	 * Clear parked uploads no post picked up within a day.
+	 *
+	 * @param string $dir Staging folder.
+	 */
+	private static function stage_tidy( $dir ) {
+		foreach ( (array) glob( $dir . '/*' ) as $f ) {
+			if ( is_file( $f ) && 'index.php' !== basename( $f ) && filemtime( $f ) < time() - DAY_IN_SECONDS ) {
+				wp_delete_file( $f );
+			}
+		}
+	}
+
+	/**
 	 * How many files this host takes in one upload (PHP's max_file_uploads, 20 unless the host changed it).
 	 * Each video also sends its cover picture, so a post can hold fewer items when it has videos (0.45.15).
 	 *

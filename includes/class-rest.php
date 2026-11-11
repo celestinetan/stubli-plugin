@@ -551,6 +551,8 @@ class Rest {
 				'import_key'   => $str,
 			)
 		);
+		// One photo at a time, parked until the post is made (0.51.3).
+		self::route( '/posts/stage', WP_REST_Server::CREATABLE, array( self::class, 'stage_photo' ), false, array() );
 	}
 
 	/**
@@ -577,8 +579,25 @@ class Rest {
 	}
 
 	/**
-	 * Publish a photo or carousel. Files arrive as "photo" (one) or
-	 * "photos[]" (up to Posts::max_photos()), with "alts[]" in the same order.
+	 * Receive one photo (as "photo", with "poster" for a video) and park it until the post is made (0.51.3).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public static function stage_photo( WP_REST_Request $request ) {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return new WP_Error( 'stubli_forbidden', __( 'You can\'t upload photos here.', 'stubli' ), array( 'status' => 403 ) );
+		}
+		$params = $request->get_file_params();
+		if ( empty( $params['photo']['tmp_name'] ) ) {
+			return new WP_Error( 'stubli_stage_missing', __( 'That photo didn\'t arrive. Try again.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		return self::respond( Posts::stage( $params['photo'], ! empty( $params['poster']['tmp_name'] ) ? $params['poster'] : null ) );
+	}
+
+	/**
+	 * Publish a photo or carousel: from "staged" tokens (photos sent one at a time first, since 0.51.3), or with the
+	 * files themselves as "photo" (one) or "photos[]" (up to Posts::max_photos()), with "alts[]" in the same order.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return \WP_REST_Response|WP_Error
@@ -587,17 +606,31 @@ class Rest {
 		if ( ! current_user_can( 'upload_files' ) ) {
 			return new WP_Error( 'stubli_forbidden', __( 'You can\'t upload photos here.', 'stubli' ), array( 'status' => 403 ) );
 		}
-		$params  = $request->get_file_params();
-		$files   = array_values( self::file_list( $params, 'photos' ) );
-		$posters = self::file_list( $params, 'posters' );
-		if ( ! $files && ! empty( $params['photo'] ) ) {
-			$files[] = $params['photo'];
-		}
 		$alts = $request->get_param( 'alts' );
 		$alts = is_array( $alts ) ? array_values( $alts ) : array( (string) $request['alt'] );
-		$short = Posts::short_upload( count( $alts ), count( $files ) );
-		if ( $short ) {
-			return $short;
+		if ( is_array( $request['staged'] ) ) {
+			// Photos sent one at a time first (0.51.3).
+			if ( count( $request['staged'] ) > Posts::MAX_PHOTOS ) {
+				/* translators: %d: how many photos a post can hold */
+				return new WP_Error( 'stubli_too_many_photos', sprintf( __( 'A post can hold up to %d photos.', 'stubli' ), Posts::MAX_PHOTOS ), array( 'status' => 400 ) );
+			}
+			$staged = Posts::unstage( $request['staged'] );
+			if ( is_wp_error( $staged ) ) {
+				return $staged;
+			}
+			$files   = $staged['files'];
+			$posters = $staged['posters'];
+		} else {
+			$params  = $request->get_file_params();
+			$files   = array_values( self::file_list( $params, 'photos' ) );
+			$posters = self::file_list( $params, 'posters' );
+			if ( ! $files && ! empty( $params['photo'] ) ) {
+				$files[] = $params['photo'];
+			}
+			$short = Posts::short_upload( count( $alts ), count( $files ) );
+			if ( $short ) {
+				return $short;
+			}
 		}
 
 		return self::respond(

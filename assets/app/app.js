@@ -239,6 +239,11 @@
 				reject( { message: ( d && d.message ) || __( 'Something went wrong on the way. Try again in a moment.', 'stubli' ), code: d && d.code } );
 			};
 			x.onerror = function () { reject( { message: __( 'No connection right now. Try again when you\'re back online.', 'stubli' ), code: 'offline' } ); };
+			// Uploads get a time limit, so a host that stalls never leaves "Sharing…" hanging with no word (0.51.3).
+			if ( body instanceof FormData ) {
+				x.timeout = 180000;
+				x.ontimeout = function () { reject( { message: __( 'Your site took too long to answer, so the upload stopped. Check your connection and try again.', 'stubli' ), code: 'timeout' } ); };
+			}
 			x.send( body );
 		} );
 	}
@@ -3488,27 +3493,38 @@
 			var job = ph.video ? stripLocation( ph.file ) : cropped( ph.file, p.ratio );
 			return job.then( function ( b ) { done++; total += b.size + ( ph.video ? ph.poster.size : 0 ); bar( 0.3 * done / p.photos.length ); return b; } );
 		} ) ).then( function ( blobs ) {
-			if ( B.maxPost && total > B.maxPost ) { return Promise.reject( { message: _f( __( 'Together these are %s, and your host accepts up to %s at once. Share the videos in separate posts, or choose a shorter clip.', 'stubli' ), fmtMB( total ), fmtMB( B.maxPost ) ) } ); }
-			var nfiles = p.photos.length + p.photos.filter( function ( ph ) { return ph.video; } ).length;
-			if ( B.maxFiles && nfiles > B.maxFiles ) { return Promise.reject( { message: tooManyFiles( nfiles ) } ); }
-			var fd = new FormData();
-			blobs.forEach( function ( b, i ) {
-				var ph = p.photos[ i ];
-				if ( ph.video ) {
-					fd.append( 'photos[]', b, 'video-' + ( i + 1 ) + ( /quicktime/.test( b.type ) || /\.mov$/i.test( ph.file.name ) ? '.mov' : '.mp4' ) );
-					fd.append( 'posters[' + i + ']', ph.poster, 'video-' + ( i + 1 ) + '-cover.jpg' );
-				} else {
-					fd.append( 'photos[]', b, 'photo-' + ( i + 1 ) + '.jpg' );
-				}
-				fd.append( 'alts[]', ph.alt.trim() );
+			// One photo at a time (0.51.3): each is a small upload, parked on your site until the post is made, so a
+			// 20-photo post is never one huge upload a host can stall (Celestine 11 Nov). A photo that fails on the way
+			// is tried once more.
+			var tokens = [], t = $( '.a-notice p' ), n = blobs.length;
+			if ( B.maxUpload && blobs.some( function ( b ) { return b.size > B.maxUpload; } ) ) { return Promise.reject( { message: _f( __( 'One of these is bigger than your host accepts per file (%s). Share the videos in separate posts, or choose a shorter clip.', 'stubli' ), fmtMB( B.maxUpload ) ) } ); }
+			return blobs.reduce( function ( chain, b, i ) {
+				return chain.then( function () {
+					var ph = p.photos[ i ], fd = new FormData();
+					if ( ph.video ) {
+						fd.append( 'photo', b, 'video-' + ( i + 1 ) + ( /quicktime/.test( b.type ) || /\.mov$/i.test( ph.file.name ) ? '.mov' : '.mp4' ) );
+						fd.append( 'poster', ph.poster, 'video-' + ( i + 1 ) + '-cover.jpg' );
+					} else {
+						fd.append( 'photo', b, 'photo-' + ( i + 1 ) + '.jpg' );
+					}
+					if ( t ) { t.textContent = n > 1 ? _f( __( 'Uploading %s of %s…', 'stubli' ), i + 1, n ) : __( 'Uploading…', 'stubli' ); }
+					var go = function ( again ) {
+						return send( 'POST', 'posts/stage', fd, function ( f ) { bar( 0.3 + 0.65 * ( i + f ) / n ); } ).catch( function ( e ) {
+							if ( ! again && ( ! e || ! e.code || e.code === 'offline' || e.code === 'timeout' ) ) { return go( true ); }
+							throw e;
+						} );
+					};
+					return go( false ).then( function ( r ) { tokens.push( r.token ); } );
+				} );
+			}, Promise.resolve() ).then( function () {
+				if ( t ) { t.textContent = __( 'Sharing…', 'stubli' ); }
+				var col = p.addingCollection ? p.newCollection.trim() : p.collection;
+				try { localStorage.setItem( 'stubli-last-coll', col ); } catch ( e ) {}
+				var body = { staged: tokens, alts: p.photos.map( function ( ph ) { return ph.alt.trim(); } ), caption: p.caption.trim(), collection: col };
+				if ( p.note ) { body.content_note = p.noteText.trim(); }
+				if ( p.audience === 'friends' ) { body.audience = 'friends'; }
+				return send( 'POST', 'posts', body ).then( function ( res ) { bar( 1 ); return res; } );
 			} );
-			fd.append( 'caption', p.caption.trim() );
-			fd.append( 'collection', p.addingCollection ? p.newCollection.trim() : p.collection );
-			try { localStorage.setItem( 'stubli-last-coll', p.addingCollection ? p.newCollection.trim() : p.collection ); } catch ( e ) {}
-			if ( p.note ) { fd.append( 'content_note', p.noteText.trim() ); }
-			if ( p.audience === 'friends' ) { fd.append( 'audience', 'friends' ); }
-			var t = $( '.a-notice p' ); if ( t ) { t.textContent = __( 'Sharing…', 'stubli' ); }
-			return send( 'POST', 'posts', fd, function ( f ) { bar( 0.3 + 0.7 * f ); } );
 		} ).then( function ( res ) {
 			var thumb = p.photos[ 0 ].thumb, col = p.addingCollection ? p.newCollection.trim() : p.collection, aud = p.audience;
 			if ( col && B.collections.indexOf( col ) < 0 ) { B.collections.unshift( col ); }
