@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.51.1
+Stable tag: 0.51.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.51.2 =
+* Library: tidier tiles. Tap something to open a card with its note and the ways to borrow it: ask privately, or, easier, with a Stubli of your own.
 
 = 0.51.1 =
 * Favourites: Sites I follow is a card like your groups, with its title on its own line. On a computer, a card alone on the last row keeps its size instead of stretching. The card only shows once you follow someone.

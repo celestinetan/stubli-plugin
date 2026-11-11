@@ -1061,7 +1061,7 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-lib-more { padding: 8px 0 0; font-size: 14px; }
 .st-lib-more p { margin: 0 0 6px; }
 .st-lib-ask { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
-.st-lib-book[open] { grid-column: span 2; }
+
 .st-lib-h { margin: 18px 0 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--st-muted); }
 .st-lib-reading { grid-template-columns: repeat(auto-fill, minmax(84px, 104px)); margin-top: 10px; }
 .st-lib-borrowed { display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.25; }
@@ -1076,3 +1076,21 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-journal-topics { flex-wrap: wrap; margin: 0 0 14px; }
 .st-tile-paper .st-badge-pin { top: auto; bottom: 8px; left: 8px; right: auto; }
 .st-links .st-fav-tile .st-fav-sub { margin: -4px 6px 6px; }
+/* Library pop-up (0.2.129): tiles are buttons; tapping one opens the thing's card. */
+.st-lib-book { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; position: relative; }
+.st-lib-book:focus-visible { outline: 3px solid var(--st-ink); outline-offset: 3px; border-radius: 8px; }
+.st-lib-pop { box-sizing: border-box; width: min(420px, calc(100% - 32px)); max-height: 85vh; overflow: auto; margin: auto; padding: 22px 20px 20px; border: 0; border-radius: 20px; background: var(--st-bg); color: var(--st-ink); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.st-lib-pop::backdrop { background: rgba(0,0,0,.35); }
+.st-lib-x { position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 999px; background: var(--st-surface, transparent); color: var(--st-ink); cursor: pointer; }
+.st-lib-pop-head { display: flex; gap: 14px; align-items: flex-start; padding-right: 40px; }
+.st-lib-pop-head .st-lib-cover { width: 96px; flex-shrink: 0; }
+.st-lib-pop-head h3 { margin: 0 0 4px; font-size: 19px; line-height: 1.25; }
+.st-lib-pop-head p { margin: 0 0 2px; }
+.st-lib-note { margin: 14px 0 0; }
+.st-lib-pop-h { margin: 18px 0 8px; font-size: 15px; }
+.st-lib-pop .st-lib-ask { min-height: 44px; }
+.st-lib-pop .st-lib-ask + p { margin: 0 0 4px; }
+.st-lib-own { margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--st-surface, rgba(0,0,0,.04)); }
+.st-lib-own p { margin: 0 0 10px; font-size: 14px; line-height: 1.45; }
+.st-lib-own .st-lib-hint { margin: 10px 0 0; }
+.st-lib-make { display: inline-flex; }

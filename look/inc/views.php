@@ -1028,44 +1028,54 @@ function stubli_view_library() {
 	}
 	echo '</div></div>';
 	$ask  = add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
-	$tile = static function ( $b, $lendable ) use ( $first, $ask, $icons ) {
-		echo '<li><details class="st-lib-book"><summary>';
-		if ( $b['cover'] ) {
-			echo '<img class="st-lib-cover" src="' . esc_url( $b['cover'] ) . '" alt="" loading="lazy">';
-		} else {
-			echo '<span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( $icons[ $b['kind'] ] ?? stubli_chars( $b['title'], 1 ) ) . '</span>';
-		}
+	// Tiles show just the cover, title and author or kind; tapping one opens a pop-up with the note and the ways to
+	// borrow it (0.2.129, Celestine 11 Nov). The browser's own popover: Escape or a tap outside closes it.
+	$kindname = array( 'game' => __( 'Game', 'stubli' ), 'tool' => __( 'Tool', 'stubli' ), 'electronics' => __( 'Electronics', 'stubli' ), 'other' => __( 'Something else', 'stubli' ) );
+	$tile     = static function ( $b, $lendable ) use ( $first, $ask, $icons, $kindname ) {
+		$pid   = 'st-lib-p-' . (int) $b['id'];
+		$cover = $b['cover'] ? '<img class="st-lib-cover" src="' . esc_url( $b['cover'] ) . '" alt="" loading="lazy">' : '<span class="st-lib-cover st-lib-nocover" aria-hidden="true">' . esc_html( $icons[ $b['kind'] ] ?? stubli_chars( $b['title'], 1 ) ) . '</span>';
+		$sub   = '' !== $b['author'] ? $b['author'] : ( 'book' !== $b['kind'] ? ( $kindname[ $b['kind'] ] ?? '' ) : '' );
+		echo '<li><button type="button" class="st-lib-book" popovertarget="' . esc_attr( $pid ) . '">' . $cover; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above.
 		if ( $lendable && $b['onLoan'] ) {
 			echo '<span class="st-lib-badge">' . esc_html__( 'On loan', 'stubli' ) . '</span>';
 		} elseif ( $lendable && '' !== $b['reading'] ) {
 			echo '<span class="st-lib-badge">' . esc_html__( 'Now reading', 'stubli' ) . '</span>';
 		}
 		echo '<span class="st-lib-t">' . esc_html( $b['title'] ) . '</span>';
-		if ( '' !== $b['author'] ) {
-			echo '<span class="st-muted st-small">' . esc_html( $b['author'] ) . '</span>';
-		} elseif ( 'book' !== $b['kind'] && $lendable ) {
-			echo '<span class="st-muted st-small">' . esc_html( array( 'game' => __( 'Game', 'stubli' ), 'tool' => __( 'Tool', 'stubli' ), 'electronics' => __( 'Electronics', 'stubli' ), 'other' => __( 'Something else', 'stubli' ) )[ $b['kind'] ] ?? '' ) . '</span>';
+		if ( '' !== $sub ) {
+			echo '<span class="st-muted st-small">' . esc_html( $sub ) . '</span>';
 		}
-		echo '</summary><div class="st-lib-more">';
+		echo '</button>';
+		echo '<div class="st-lib-pop" id="' . esc_attr( $pid ) . '" popover role="dialog" aria-label="' . esc_attr( $b['title'] ) . '">';
+		echo '<button type="button" class="st-lib-x" popovertarget="' . esc_attr( $pid ) . '" popovertargetaction="hide" aria-label="' . esc_attr__( 'Close', 'stubli' ) . '">' . wp_kses( stubli_icon( 'close', 20 ), stubli_allowed_html() ) . '</button>';
+		echo '<div class="st-lib-pop-head">' . $cover . '<div><h3>' . esc_html( $b['title'] ) . '</h3>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above.
+		if ( '' !== $sub ) {
+			echo '<p class="st-muted">' . esc_html( $sub ) . '</p>';
+		}
 		if ( '' !== $b['year'] ) {
 			echo '<p class="st-muted st-small">' . esc_html( $b['year'] ) . '</p>';
 		}
+		echo '</div></div>';
 		if ( '' !== $b['note'] ) {
-			echo '<p>' . esc_html( $b['note'] ) . '</p>';
+			echo '<p class="st-lib-note">' . esc_html( $b['note'] ) . '</p>';
 		}
 		if ( $lendable && $b['onLoan'] ) {
-			echo '<p class="st-muted st-small">' . esc_html__( 'On loan just now.', 'stubli' ) . '</p>';
+			echo '<p class="st-muted">' . esc_html__( 'On loan just now.', 'stubli' ) . '</p>';
 		} elseif ( $lendable && '' !== $b['reading'] ) {
 			/* translators: %s: the owner's first name */
-			echo '<p class="st-muted st-small">' . esc_html( sprintf( __( '%s is reading it just now.', 'stubli' ), $first ) ) . '</p>';
+			echo '<p class="st-muted">' . esc_html( sprintf( __( '%s is reading it just now.', 'stubli' ), $first ) ) . '</p>';
 		} elseif ( $lendable && ! stubli_is_owner() ) {
+			echo '<h4 class="st-lib-pop-h">' . esc_html__( 'Borrow it', 'stubli' ) . '</h4>';
 			/* translators: %s: the owner's first name */
 			echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
-			// For visitors who have a Stubli: asking to borrow happens in their own app (0.2.126). Names, never pronouns.
+			echo '<p class="st-muted st-small">' . esc_html__( 'Send a private note with how to reach you.', 'stubli' ) . '</p>';
+			echo '<div class="st-lib-own"><p><strong>' . esc_html__( 'Easier with a Stubli of your own:', 'stubli' ) . '</strong> ' . esc_html__( 'ask with one tap, get the answer in your app, and lend your own things too.', 'stubli' ) . '</p>';
+			echo '<a class="st-button st-lib-make" href="https://stubli.app/welcome/?from=library">' . esc_html__( 'Make your Stubli', 'stubli' ) . '</a>';
+			// Names, never pronouns (Celestine, 11 Nov).
 			/* translators: 1: the owner's first name, 2: the same name */
-			echo '<p class="st-muted st-small st-lib-hint">' . esc_html( sprintf( __( 'Have a Stubli? Follow %1$s, and once %2$s follows you back, you can ask to borrow it from your app: People → Library.', 'stubli' ), $first, $first ) ) . '</p>';
+			echo '<p class="st-muted st-small st-lib-hint">' . esc_html( sprintf( __( 'Already have one? Follow %1$s, and once %2$s follows you back, ask from your app: People → Library.', 'stubli' ), $first, $first ) ) . '</p></div>';
 		}
-		echo '</div></details></li>';
+		echo '</div></li>';
 	};
 	// Borrowed through Stubli (0.2.124): no cover and no link, so who lent it stays private.
 	$borrowed = class_exists( '\\Stubli\\Borrow' ) ? \Stubli\Borrow::public_borrowed() : array();
