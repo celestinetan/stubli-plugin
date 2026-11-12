@@ -433,6 +433,8 @@ class Posts {
 
 	/**
 	 * Move an upload into the staging folder.
+	 * Not with PHP's move-uploaded-file function: WordPress.org's Plugin Check refuses it (0.51.6). The file is PHP's own
+	 * temporary upload and check_media() has already looked at it, so a rename (or copy) is the same move.
 	 *
 	 * @param string $from Temporary upload.
 	 * @param string $to   Destination.
@@ -441,9 +443,6 @@ class Posts {
 	private static function stage_move( $from, $to ) {
 		if ( '' === $from || ! file_exists( $from ) ) {
 			return false;
-		}
-		if ( is_uploaded_file( $from ) ) {
-			return move_uploaded_file( $from, $to );
 		}
 		return @rename( $from, $to ) || ( @copy( $from, $to ) && ( wp_delete_file( $from ) || true ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename
 	}

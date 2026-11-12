@@ -3455,7 +3455,8 @@
 			} );
 		}
 		$$( '[data-col]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { p.collection = b.dataset.col; p.addingCollection = false; viewDetails(); } ); } );
-		$( '[data-col-new]' ).addEventListener( 'click', function () { p.addingCollection = true; viewDetails(); var n = $( '#a-newcol' ); if ( n ) { n.focus(); } } );
+		// '+ New' isn't there once you have 5 collections (0.51.7: without this check, Share did nothing).
+		var cn = $( '[data-col-new]' ); if ( cn ) { cn.addEventListener( 'click', function () { p.addingCollection = true; viewDetails(); var n = $( '#a-newcol' ); if ( n ) { n.focus(); } } ); }
 		var nc = $( '#a-newcol' );
 		if ( nc ) { nc.addEventListener( 'input', function () { var c = chars( nc.value, 5 ); if ( c !== nc.value ) { nc.value = c; } p.newCollection = c; } ); }
 		$$( '[data-alt]' ).forEach( function ( inp ) { inp.addEventListener( 'input', function () { p.photos[ +inp.dataset.alt ].alt = inp.value; p.altsChecked = false; } ); } );
