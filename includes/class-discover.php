@@ -111,13 +111,21 @@ class Discover {
 		}
 		$responses = array();
 		if ( $todo && class_exists( '\WpOrg\Requests\Requests' ) ) {
-			$reqs = array();
+			$reqs  = array();
+			// Redirects are checked like WordPress's own safe requests: never to this server or a private address
+			// (security review 11 Nov, finding 8).
+			$hooks = new \WpOrg\Requests\Hooks();
+			$hooks->register( 'requests.before_redirect', array( \WP_Http::class, 'validate_redirects' ) );
 			foreach ( $todo as $o => $url ) {
 				if ( wp_http_validate_url( $url ) || apply_filters( 'http_request_host_is_external', false, (string) wp_parse_url( $url, PHP_URL_HOST ), $url ) ) {
 					$reqs[ $o ] = array(
 						'url'     => $url,
 						'type'    => 'GET',
-						'options' => array( 'timeout' => 8 ),
+						'options' => array(
+							'timeout'   => 8,
+							'redirects' => 3,
+							'hooks'     => $hooks,
+						),
 					);
 				}
 			}

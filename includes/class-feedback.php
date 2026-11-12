@@ -139,7 +139,7 @@ class Feedback {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( self::class, 'send' ),
-				'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
+				'permission_callback' => array( Rest::class, 'is_owner' ),
 				'args'                => $fields + array(
 					'include_address' => array(
 						'type'    => 'boolean',

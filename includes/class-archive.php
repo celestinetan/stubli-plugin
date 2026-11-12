@@ -152,6 +152,11 @@ class Archive {
 			unset( $ph );
 		}
 		unset( $p );
+		$library = Bundle::library();
+		foreach ( $library['items'] as &$it ) {
+			$place( $it['cover'], $it['date'] );
+		}
+		unset( $it );
 		$profile = Bundle::profile();
 		if ( $profile['avatar'] ) {
 			$place( $profile['avatar'], gmdate( 'Y-m-d' ) );
@@ -170,6 +175,7 @@ class Archive {
 			'following' => Bundle::follows(),
 			'guestbook' => Bundle::guestbook(),
 			'posts'     => $posts,
+			'library'   => $library,
 		);
 		$strip = static function ( $v ) use ( &$strip ) {
 			if ( is_array( $v ) ) {
@@ -300,13 +306,17 @@ class Archive {
 		$photos = array_reverse( $photos );
 		$jour   = array_reverse( $jour );
 		$day    = static fn( $iso ) => wp_date( 'j F Y', (int) strtotime( $iso ) );
-		$nav    = static function ( $on ) use ( $e ) {
+		$things = (array) ( $d['library']['items'] ?? array() );
+		$nav    = static function ( $on ) use ( $e, $things ) {
 			$items = array(
 				'index.html'     => __( 'Photos', 'stubli' ),
 				'journal.html'   => __( 'Journal', 'stubli' ),
 				'guestbook.html' => __( 'Guest book', 'stubli' ),
 				'people.html'    => __( 'People', 'stubli' ),
 			);
+			if ( $things ) {
+				$items['library.html'] = __( 'Library', 'stubli' );
+			}
 			$out = '<nav>';
 			foreach ( $items as $f => $label ) {
 				$out .= '<a href="' . $f . '"' . ( $f === $on ? ' aria-current="page"' : '' ) . '>' . $e( $label ) . '</a>';
@@ -370,6 +380,23 @@ class Archive {
 		}
 		$pp .= '</ul>';
 
+		// Library (0.52.0): every thing, with its cover, note and who has it.
+		$lib = '<ul class="c">';
+		foreach ( $things as $t ) {
+			$bits = array_filter(
+				array(
+					$t['author'],
+					$t['year'],
+					$t['isbn'] ? 'ISBN ' . $t['isbn'] : '',
+					$t['friends'] ? __( 'Friends only', 'stubli' ) : '',
+					$t['reading'] ? __( 'Now reading', 'stubli' ) : '',
+					! empty( $t['loan']['name'] ) ? sprintf( /* translators: %s: who has it */ __( 'With %s', 'stubli' ), $t['loan']['name'] ) : '',
+				)
+			);
+			$lib .= '<li>' . ( ! empty( $t['cover']['file'] ) ? '<img src="' . esc_attr( $t['cover']['file'] ) . '" alt="" loading="lazy" width="60">' : '' ) . ' <strong>' . $e( $t['title'] ) . '</strong> <span class="m">' . $e( implode( ' · ', $bits ) ) . '</span>' . ( '' !== $t['note'] ? '<br>' . $e( $t['note'] ) : '' ) . '</li>';
+		}
+		$lib .= '</ul>';
+
 		$wrap = static function ( $file, $title, $body ) use ( $nav, $head, $e, $p ) {
 			// A standalone page in the zip, from the template in assets/archive (it links the zip's style.css).
 			return strtr(
@@ -385,6 +412,7 @@ class Archive {
 			'index.html'     => $wrap( 'index.html', __( 'Photos', 'stubli' ), ( $photos ? $grid . $list : '<p class="m">' . $e( __( 'No photos yet.', 'stubli' ) ) . '</p>' ) ),
 			'journal.html'   => $wrap( 'journal.html', __( 'Journal', 'stubli' ), $jhtml ? $jhtml : '<p class="m">' . $e( __( 'No journal entries.', 'stubli' ) ) . '</p>' ),
 			'guestbook.html' => $wrap( 'guestbook.html', __( 'Guest book', 'stubli' ), $gb ? $gb : '<p class="m">' . $e( __( 'No guest book entries.', 'stubli' ) ) . '</p>' ),
+			'library.html'   => $wrap( 'library.html', __( 'Library', 'stubli' ), $things ? $lib : '<p class="m">' . $e( __( 'Nothing in the Library.', 'stubli' ) ) . '</p>' ),
 			'people.html'    => $wrap( 'people.html', __( 'People', 'stubli' ), $d['following'] ? '<h2>' . $e( __( 'People you follow', 'stubli' ) ) . '</h2>' . $pp : '<p class="m">' . $e( __( 'You weren\'t following anyone.', 'stubli' ) ) . '</p>' ),
 		);
 	}

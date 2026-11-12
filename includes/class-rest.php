@@ -194,11 +194,10 @@ class Rest {
 			'/invites/accept',
 			WP_REST_Server::CREATABLE,
 			static function ( WP_REST_Request $r ) {
-				$n = (int) get_transient( 'stubli_invite_accepts' );
-				if ( $n >= 20 ) {
+				// Counted per network address, so strangers can't use up everyone's tries (security review 11 Nov, finding 7).
+				if ( ! Notes::under_limit( 'invite_' . Notes::guest_hash(), 20, HOUR_IN_SECONDS ) ) {
 					return new \WP_Error( 'stubli_rate_limited', __( 'Too many tries. Please wait a little.', 'stubli' ), array( 'status' => 429 ) );
 				}
-				set_transient( 'stubli_invite_accepts', $n + 1, HOUR_IN_SECONDS );
 				return self::respond( Invites::accept_remote( (string) $r['token'], (string) $r['site'] ) );
 			},
 			true,
@@ -243,7 +242,7 @@ class Rest {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => static fn( WP_REST_Request $r ) => self::respond( self::filed( Journal::create( (string) $r['text'], (string) $r['visibility'], is_array( $r['photos'] ) ? $r['photos'] : array(), null !== $r['html'] ? (string) $r['html'] : null, (bool) $r['draft'], (string) $r['title'] ), $r ) ),
-					'permission_callback' => static fn() => current_user_can( 'publish_posts' ),
+					'permission_callback' => array( self::class, 'is_owner' ),
 					'args'                => array(
 						'text'       => array_merge( $text, array( 'required' => false ) ),
 						'html'       => array( 'type' => 'string' ),
@@ -355,7 +354,7 @@ class Rest {
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => static fn( WP_REST_Request $r ) => self::respond( Journal::upload_photo( $r->get_file_params()['photo'] ?? array() ) ),
-				'permission_callback' => static fn() => current_user_can( 'upload_files' ),
+				'permission_callback' => array( self::class, 'is_owner' ),
 			)
 		);
 

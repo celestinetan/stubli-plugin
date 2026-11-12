@@ -269,4 +269,53 @@ class Bundle {
 		}
 		return $out;
 	}
+
+	/**
+	 * The Library: its settings and every thing in it, oldest first, with who has it and its cover (0.52.0). Only for
+	 * the owner's own download and for Move: loans name people, so this never reaches visitors.
+	 *
+	 * @return array { settings, items }
+	 */
+	public static function library() {
+		$s     = Library::settings();
+		$items = array();
+		$posts = get_posts(
+			array(
+				'post_type'      => Library::TYPE,
+				'post_status'    => 'private',
+				'posts_per_page' => Library::MAX,
+				'orderby'        => 'date',
+				'order'          => 'ASC',
+			)
+		);
+		foreach ( $posts as $p ) {
+			$b       = Library::book( $p, true );
+			$items[] = array(
+				'id'      => (int) $p->ID,
+				'date'    => gmdate( 'c', (int) strtotime( $p->post_date_gmt . ' UTC' ) ),
+				'title'   => $b['title'],
+				'kind'    => $b['kind'],
+				'author'  => $b['author'],
+				'year'    => $b['year'],
+				'isbn'    => $b['isbn'],
+				'note'    => $b['note'],
+				'friends' => $b['friends'],
+				'reading' => $b['reading'],
+				'just'    => $b['just'],
+				'loan'    => $b['loan'] ?? null,
+				'cover'   => self::media( (int) get_post_meta( $p->ID, '_stubli_cover', true ) ),
+			);
+		}
+		return array(
+			'settings' => array(
+				'on'       => $s['on'],
+				'area'     => $s['area'],
+				'handover' => $s['handover'],
+				'sort'     => $s['sort'],
+				'pins'     => $s['pins'],
+				'order'    => $s['order'],
+			),
+			'items'    => $items,
+		);
+	}
 }

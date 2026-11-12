@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.51.7
+Stable tag: 0.52.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,8 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 * Photo posts and carousels of up to 20 photos or videos (videos up to a minute), with optional descriptions.
 * Collections as folder tabs, captions with clickable links, and content notes that keep a photo softly blurred until someone chooses to see it.
 * A journal (for everyone, or only you) and a guest book that people sign from their own Stubli.
-* Your colour and reading mode (Automatic, Light, Paper, Dark). The look works with any theme.
+* A Library: lend books, games, tools and more to people nearby. People who have a Stubli ask to borrow from their app; anyone else can ask with a private note.
+* Your colour and reading mode (Light or Paper). The look works with any theme.
 
 **The Stubli app at yoursite/app**
 
@@ -31,8 +32,9 @@ Stubli turns your WordPress site into a calm, familiar place for your photos and
 * Discover: sites that the people you follow share publicly. No ranking, no algorithm.
 * What's new: comments and guest book entries waiting for your OK, and notes from visitors.
 * A daily summary at a time you choose, only when something is new, as a phone notification or by email. Never one per post.
+* Letters: write to other Stublis like letters, not a chat. Letters from people you don't follow wait for your OK.
 * Edit or delete your posts, bring your photos and videos from Instagram, and invite friends with links that make you follow each other.
-* Yours to keep: download everything as one zip that opens offline, or move your whole Stubli to another WordPress site. The people who follow you come along.
+* Yours to keep: download everything, your Library included, as one zip that opens offline, or move your whole Stubli to another WordPress site. The people who follow you come along.
 
 **Kind by design**
 
@@ -88,7 +90,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 * **Notes (only when you send one, or someone leaves one).** A note you write goes from your site to the other person's Stubli site, which fetches it back from yours to check it really came from you; it gets your site's address, name and photo with it. Visitors without a Stubli can leave you a note with their name and a way to reach them; it's stored only on your site, seen only by you, and deleted after 90 days. Suggested privacy-policy text is added under Settings → Privacy.
 * **Asking to borrow (only when you ask, or answer).** When you tap Ask to borrow, your site tells the lender's Stubli site that a request is waiting, and their site fetches it from yours: which thing, your note, your name, site address and profile photo. Their answers (yes with their hand-over line, not now, it's back) travel back the same way. Nothing goes anywhere else.
 * **Libraries of people you follow (only when you open one).** When you tap Library next to someone under People, your site asks their Stubli site for its Library (with their friend key, if they gave you one). Their site sees your site's address.
-* **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
+* **Moving your Stubli (only when you paste a move link).** Your new site downloads your posts, photos, videos, journal, guest book, Library, people and settings from your old site, using the move link you made there. The link works for 7 days and only for that.
 * **Open Library (only when you add a book to your Library by its barcode or ISBN, or tap Pick a cover from Open Library).** Your site asks Open Library (openlibrary.org, run by the Internet Archive) for the book's title, author, year and cover, sending only the book's ISBN, or, to pick a cover, the title and author you typed. While you choose, your own browser shows the covers straight from covers.openlibrary.org. Your site keeps a copy of the cover you pick in your media, so visitors load it from your site, never from Open Library. Privacy: https://archive.org/about/terms.php
 * **Phone notifications (only if you turn them on).** The daily summary is sent through your phone browser's own push service (for example Apple, Google or Mozilla), encrypted end to end so the service can't read it.
 
@@ -105,6 +107,14 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.52.0 =
+* Yours to keep: Download everything and Move to another site now bring your Library too: every book and thing, its cover and note, who has it, Now reading, and your pins and order.
+* Safety: only the site's owner can act as your Stubli. A second account on the same site (an Editor or Author) can no longer follow, send letters or comment in your Stubli's name.
+* Safety: moving a Stubli brings only real photos for your profile picture, cover and journal, and only Stubli's own details on comments.
+* Safety: strangers can no longer use up the limits that keep spam out, so real comments, letters, borrow requests and invites keep getting through. Letters from people you don't follow wait quietly under the envelope instead of buzzing your phone.
+* Safety: a comment always shows the site it really came from, even if its page claims to be someone else.
+* Behind the scenes: Discover checks where another site sends it before following, like WordPress's own safe requests.
 
 = 0.51.7 =
 * Posting: Share works again when you already have 5 collections. Until now the button did nothing, without a message. Sorry about that.

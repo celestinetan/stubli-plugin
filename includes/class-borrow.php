@@ -170,7 +170,8 @@ class Borrow {
 			return new \WP_Error( 'stubli_on_break', __( 'They\'re taking a break just now. Try again another time.', 'stubli' ), array( 'status' => 403 ) );
 		}
 		$origin = Follows::origin( $site );
-		if ( ! Notes::under_limit( 'lib_' . md5( $origin ), 30, DAY_IN_SECONDS ) ) {
+		// Limits count only messages that passed the check (security review 11 Nov, finding 7).
+		if ( Notes::too_many_fails( 'lib' ) ) {
 			return new \WP_Error( 'stubli_borrow_limit', __( 'That\'s a lot for one day. Try again tomorrow.', 'stubli' ), array( 'status' => 429 ) );
 		}
 		$res  = Rest::remote(
@@ -185,11 +186,15 @@ class Borrow {
 		);
 		$data = is_wp_error( $res ) ? null : json_decode( (string) wp_remote_retrieve_body( $res ), true );
 		if ( empty( $data['ok'] ) || ! is_array( $data['payload'] ?? null ) ) {
+			Notes::failed( 'lib' );
 			return new \WP_Error( 'stubli_borrow_unproven', 'Not confirmed.', array( 'status' => 403 ) );
 		}
 		// Blocked sites get the same answer as everyone else, and nothing is kept.
 		if ( Moderation::is_blocked( $site ) ) {
 			return array( 'ok' => true );
+		}
+		if ( ! Notes::under_limit( 'lib_' . md5( $origin ), 30, DAY_IN_SECONDS ) ) {
+			return new \WP_Error( 'stubli_borrow_limit', __( 'That\'s a lot for one day. Try again tomorrow.', 'stubli' ), array( 'status' => 429 ) );
 		}
 		$p    = $data['payload'];
 		$type = (string) ( $p['type'] ?? '' );

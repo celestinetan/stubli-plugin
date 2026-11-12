@@ -92,7 +92,7 @@ class App {
 			wp_safe_redirect( wp_login_url( esc_url_raw( $back ) ) );
 			exit;
 		}
-		if ( ! current_user_can( 'publish_posts' ) ) {
+		if ( ! Rest::is_owner() ) {
 			wp_die( esc_html__( 'The Stubli app is for the owner of this site.', 'stubli' ), esc_html__( 'Stubli', 'stubli' ), array( 'response' => 403 ) );
 		}
 		self::render( isset( $_GET['act'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
@@ -105,7 +105,7 @@ class App {
 	 * @param \WP_Admin_Bar $bar Toolbar.
 	 */
 	public static function admin_bar( $bar ) {
-		if ( current_user_can( 'publish_posts' ) ) {
+		if ( Rest::is_owner() ) {
 			$bar->add_node(
 				array(
 					'id'    => 'stubli-app',

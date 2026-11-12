@@ -476,7 +476,8 @@ class Notes {
 			return new \WP_Error( 'stubli_on_break', __( 'They\'re taking a break, so notes are paused for now.', 'stubli' ), array( 'status' => 403 ) );
 		}
 		$origin = Follows::origin( $site );
-		if ( ! self::under_limit( 'site_' . md5( $origin ), 20, DAY_IN_SECONDS ) ) {
+		// Limits count only letters that passed the check (security review 11 Nov, finding 7).
+		if ( self::too_many_fails( 'note' ) ) {
 			return new \WP_Error( 'stubli_note_limit', __( 'That\'s a lot of notes for one day. Try again tomorrow.', 'stubli' ), array( 'status' => 429 ) );
 		}
 		$res  = Rest::remote(
@@ -491,11 +492,15 @@ class Notes {
 		);
 		$data = is_wp_error( $res ) ? null : json_decode( (string) wp_remote_retrieve_body( $res ), true );
 		if ( empty( $data['ok'] ) ) {
+			self::failed( 'note' );
 			return new \WP_Error( 'stubli_note_unproven', 'Not confirmed.', array( 'status' => 403 ) );
 		}
 		// Blocked sites get the same answer as everyone else, and nothing is kept.
 		if ( Moderation::is_blocked( $site ) ) {
 			return array( 'ok' => true );
+		}
+		if ( ! self::under_limit( 'site_' . md5( $origin ), 20, DAY_IN_SECONDS ) ) {
+			return new \WP_Error( 'stubli_note_limit', __( 'That\'s a lot of notes for one day. Try again tomorrow.', 'stubli' ), array( 'status' => 429 ) );
 		}
 		$text = self::clean_text( $data['text'] ?? '' );
 		if ( is_wp_error( $text ) ) {
@@ -505,6 +510,10 @@ class Notes {
 		$quote  = $pidx >= 0 ? Prompts::at( $pidx ) : null;
 		$follow = Follows::find_by_site( $origin . '/' );
 		$state  = $follow ? 'inbox' : 'request';
+		// Letters from people you don't follow: a cap for all of them together, however many addresses they use.
+		if ( 'request' === $state && ! self::under_limit( 'requests', self::REQUESTS_PER_DAY, DAY_IN_SECONDS ) ) {
+			return new \WP_Error( 'stubli_note_limit', __( 'That\'s a lot of notes for one day. Try again tomorrow.', 'stubli' ), array( 'status' => 429 ) );
+		}
 		// The letter is from the site we checked with, whatever its answer claims (security review 11 Nov).
 		$from = esc_url_raw( (string) ( $data['site'] ?? '' ) );
 		if ( ! $from || Follows::origin( $from ) !== $origin ) {
@@ -533,7 +542,10 @@ class Notes {
 		if ( is_wp_error( $new ) ) {
 			return $new;
 		}
-		wp_schedule_single_event( time(), self::PUSH_HOOK, array( (int) $new ) );
+		// Only letters from people you follow buzz the phone; requests wait quietly under the envelope.
+		if ( 'inbox' === $state ) {
+			wp_schedule_single_event( time(), self::PUSH_HOOK, array( (int) $new ) );
+		}
 		return array(
 			'ok'    => true,
 			'state' => $state,
@@ -611,6 +623,33 @@ class Notes {
 	public static function guest_hash() {
 		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 		return substr( wp_hash( 'stubli-note|' . $ip ), 0, 20 );
+	}
+
+	/** Failed proof checks one network address may cause in an hour (security review 11 Nov, finding 7). */
+	const FAILS_PER_HOUR = 30;
+
+	/** Letters a day from people you don't follow yet, from all of them together. */
+	const REQUESTS_PER_DAY = 30;
+
+	/**
+	 * Has the address sending this request failed too many proof checks in the last hour?
+	 * Only failures count, so strangers can't use up anyone else's allowance.
+	 *
+	 * @param string $what What's being checked (note, lib).
+	 * @return bool
+	 */
+	public static function too_many_fails( $what ) {
+		return (int) get_transient( 'stubli_nf_' . md5( $what . '|' . self::guest_hash() ) ) >= self::FAILS_PER_HOUR;
+	}
+
+	/**
+	 * Remember a failed proof check from the address sending this request.
+	 *
+	 * @param string $what What was checked.
+	 */
+	public static function failed( $what ) {
+		$t = 'stubli_nf_' . md5( $what . '|' . self::guest_hash() );
+		set_transient( $t, (int) get_transient( $t ) + 1, HOUR_IN_SECONDS );
 	}
 
 	/**

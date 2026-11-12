@@ -38,6 +38,7 @@ class Moderation {
 
 	const PER_SITE_PER_HOUR = 10;
 	const ALL_PER_HOUR      = 60;
+	const EVERYONE_PER_HOUR = 300;
 	const WEBMENTION_ROUTE  = '/webmention/1.0/endpoint';
 
 	/**
@@ -46,6 +47,7 @@ class Moderation {
 	public static function init() {
 		add_filter( 'rest_pre_dispatch', array( self::class, 'gate_webmentions' ), 10, 3 );
 		add_filter( 'webmention_comment_data', array( self::class, 'drop_unsupported' ), 99 );
+		add_filter( 'webmention_comment_data', array( self::class, 'true_author' ), 100 );
 		add_filter( 'pre_comment_approved', array( self::class, 'approval' ), 99, 2 );
 		add_action( 'pre_comment_on_post', array( self::class, 'owner_only_form' ) );
 		add_filter( 'comments_open', array( self::class, 'comments_open' ), 20, 2 );
@@ -88,14 +90,21 @@ class Moderation {
 		}
 
 		if ( $origin && ! Follows::is_followed( $source ) ) {
-			$site_key = 'stubli_rate_' . md5( $origin );
+			// Counted per sending address as well as per site (security review 11 Nov, finding 7): a stranger naming
+			// someone else's site, or sending lots, uses up only their own allowance. A high cap for everyone together
+			// stays as a last guard.
+			$ip       = Notes::guest_hash();
+			$site_key = 'stubli_rate_' . md5( $origin . '|' . $ip );
+			$ip_key   = 'stubli_rate_ip_' . md5( $ip );
 			$all_key  = 'stubli_rate_all';
 			$site     = (int) get_transient( $site_key );
+			$from     = (int) get_transient( $ip_key );
 			$all      = (int) get_transient( $all_key );
-			if ( $site >= self::PER_SITE_PER_HOUR || $all >= self::ALL_PER_HOUR ) {
+			if ( $site >= self::PER_SITE_PER_HOUR || $from >= self::ALL_PER_HOUR || $all >= self::EVERYONE_PER_HOUR ) {
 				return new WP_Error( 'stubli_slow_down', __( 'Lots of notes are arriving at once. Please try again in an hour.', 'stubli' ), array( 'status' => 429 ) );
 			}
 			set_transient( $site_key, $site + 1, HOUR_IN_SECONDS );
+			set_transient( $ip_key, $from + 1, HOUR_IN_SECONDS );
 			set_transient( $all_key, $all + 1, HOUR_IN_SECONDS );
 		}
 
@@ -115,6 +124,34 @@ class Moderation {
 		$type = $commentdata['comment_type'] ?? '';
 		if ( in_array( $type, array( 'like', 'repost', 'favorite', 'bookmark', 'tag', 'read', 'listen', 'watch', 'rsvp' ), true ) ) {
 			return new WP_Error( 'stubli_words_only', __( 'Stubli only keeps comments, not reactions.', 'stubli' ), array( 'status' => 200 ) );
+		}
+		return $commentdata;
+	}
+
+	/**
+	 * A comment shows who it really came from (security review 11 Nov, finding 9): when the author details on the
+	 * sending page name another site than the page itself, the name, address and picture are the sending site's.
+	 *
+	 * @param array|WP_Error|null $commentdata Parsed Webmention.
+	 * @return array|WP_Error|null
+	 */
+	public static function true_author( $commentdata ) {
+		if ( ! is_array( $commentdata ) ) {
+			return $commentdata;
+		}
+		$source = (string) ( $commentdata['comment_meta']['webmention_source_url'] ?? ( $commentdata['source'] ?? '' ) );
+		$origin = Follows::origin( $source );
+		if ( '' === $origin ) {
+			return $commentdata;
+		}
+		$claimed = (string) ( $commentdata['comment_author_url'] ?? '' );
+		if ( '' !== $claimed && Follows::origin( $claimed ) === $origin ) {
+			return $commentdata;
+		}
+		$commentdata['comment_author_url'] = $origin . '/';
+		if ( '' !== $claimed ) {
+			$commentdata['comment_author'] = (string) wp_parse_url( $origin, PHP_URL_HOST );
+			unset( $commentdata['comment_meta']['avatar'] );
 		}
 		return $commentdata;
 	}

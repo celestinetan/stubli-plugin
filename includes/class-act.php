@@ -30,7 +30,7 @@ class Act {
 	 * A hidden screen (no menu item).
 	 */
 	public static function menu() {
-		add_submenu_page( 'options.php', __( 'From your Stubli', 'stubli' ), '', 'publish_posts', self::PAGE, array( self::class, 'render' ) );
+		add_submenu_page( 'options.php', __( 'From your Stubli', 'stubli' ), '', 'manage_options', self::PAGE, array( self::class, 'render' ) );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class Act {
 	 * Render the screen.
 	 */
 	public static function render() {
-		if ( ! current_user_can( 'publish_posts' ) ) {
+		if ( ! Rest::is_owner() ) { // Owner only (security review 11 Nov, finding 5).
 			return;
 		}
 		self::body( false );
@@ -168,7 +168,7 @@ class Act {
 	 * Do it.
 	 */
 	public static function handle() {
-		if ( ! current_user_can( 'publish_posts' ) ) {
+		if ( ! Rest::is_owner() ) { // Owner only (security review 11 Nov, finding 5).
 			wp_die( esc_html__( 'Only the site owner can do this.', 'stubli' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'stubli_act' );

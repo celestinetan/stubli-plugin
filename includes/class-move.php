@@ -25,6 +25,19 @@ defined( 'ABSPATH' ) || exit;
  */
 class Move {
 
+	/** Photo types Move brings for the profile picture, cover and journal photos. */
+	const PHOTO_TYPES = array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'gif'          => 'image/gif',
+		'webp'         => 'image/webp',
+		'avif'         => 'image/avif',
+		'heic'         => 'image/heic',
+	);
+
+	/** Comment fields Move keeps. */
+	const COMMENT_META = array( 'stubli_from', 'stubli_guest', 'stubli_pinned', 'webmention_source_url', 'webmention_target_url', 'webmention_created_at', 'protocol', 'avatar', 'semantic_linkbacks_canonical', 'semantic_linkbacks_type' );
+
 	const OUT     = 'stubli_move_out';
 	const IN      = 'stubli_move_in';
 	const DAYS    = 7;
@@ -143,6 +156,7 @@ class Move {
 				'following' => Bundle::follows(),
 				'guestbook' => Bundle::guestbook(),
 				'posts'     => $posts,
+				'library'   => Bundle::library(),
 			)
 		);
 	}
@@ -291,6 +305,25 @@ class Move {
 		foreach ( (array) ( $m['posts'] ?? array() ) as $p ) {
 			$j['queue'][] = array( 'post', (int) $p['id'] );
 		}
+		// The Library (0.52.0): its settings now, each thing in turn, then its pins and order once the things are here.
+		$lib = (array) ( $m['library'] ?? array() );
+		if ( ! empty( $lib['settings'] ) ) {
+			$ls = (array) $lib['settings'];
+			update_option(
+				'stubli_library',
+				array(
+					'on'       => ! empty( $ls['on'] ),
+					'area'     => mb_substr( sanitize_text_field( (string) ( $ls['area'] ?? '' ) ), 0, 120 ),
+					'handover' => mb_substr( sanitize_textarea_field( (string) ( $ls['handover'] ?? '' ) ), 0, 300 ),
+					'sort'     => in_array( $ls['sort'] ?? '', array( 'az', 'new', 'hand' ), true ) ? $ls['sort'] : 'az',
+				)
+			);
+			$j['libpins']  = array_map( 'intval', (array) ( $ls['pins'] ?? array() ) );
+			$j['liborder'] = array_map( 'intval', (array) ( $ls['order'] ?? array() ) );
+		}
+		foreach ( array_slice( (array) ( $lib['items'] ?? array() ), 0, Library::MAX ) as $t ) {
+			$j['queue'][] = array( 'thing', (array) $t );
+		}
 		$j['total'] = count( $j['queue'] );
 		update_option( self::IN, $j, false );
 		return self::in_status();
@@ -373,6 +406,11 @@ class Move {
 		if ( is_wp_error( $file ) ) {
 			return $file;
 		}
+		// Only real photos (security review 11 Nov, finding 6): a file that isn't one, whatever its name, stays behind.
+		if ( ! self::is_photo( $file ) ) {
+			wp_delete_file( $file['tmp_name'] );
+			return new \WP_Error( 'stubli_move_not_photo', __( 'That file isn\'t a photo, so it stayed behind.', 'stubli' ) );
+		}
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		$id = media_handle_sideload( $file, (int) $post_id );
@@ -380,6 +418,20 @@ class Move {
 			wp_delete_file( $file['tmp_name'] );
 		}
 		return $id;
+	}
+
+	/**
+	 * Is a downloaded file a photo? Checks what the file really holds, not only its name.
+	 *
+	 * @param array $file { name, tmp_name }.
+	 * @return bool
+	 */
+	public static function is_photo( array $file ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$check = wp_check_filetype_and_ext( (string) $file['tmp_name'], (string) $file['name'], self::PHOTO_TYPES );
+		return ! empty( $check['type'] ) && in_array( $check['type'], self::PHOTO_TYPES, true )
+			// HEIC and (before PHP 8.2) AVIF aren't read by getimagesize(); the check above already looked inside them.
+			&& ( in_array( $check['type'], array( 'image/heic', 'image/avif' ), true ) || false !== @getimagesize( (string) $file['tmp_name'] ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a broken file just answers no.
 	}
 
 	/**
@@ -446,10 +498,13 @@ class Move {
 			}
 			$map[ (int) $c['id'] ] = (int) $id;
 			update_comment_meta( $id, '_stubli_moved_id', $key );
+			// Only the fields Stubli and Webmention use (security review 11 Nov, finding 6).
 			foreach ( (array) ( $c['meta'] ?? array() ) as $k => $v ) {
-				if ( is_string( $k ) && preg_match( '/^[a-z0-9_]+$/', $k ) ) {
-					update_comment_meta( $id, $k, is_scalar( $v ) ? sanitize_text_field( (string) $v ) : map_deep( $v, 'sanitize_text_field' ) );
+				if ( ! is_string( $k ) || ! in_array( $k, self::COMMENT_META, true ) || ! is_scalar( $v ) ) {
+					continue;
 				}
+				$v = (string) $v;
+				update_comment_meta( $id, $k, in_array( $k, array( 'webmention_source_url', 'webmention_target_url', 'avatar', 'semantic_linkbacks_canonical' ), true ) ? esc_url_raw( $v ) : sanitize_text_field( $v ) );
 			}
 		}
 	}
@@ -468,7 +523,14 @@ class Move {
 		while ( $j['queue'] && time() < $until ) {
 			list( $kind, $what ) = $j['queue'][0];
 			self::$novid         = 0;
-			$res                 = 'follow' === $kind ? self::copy_follow( (array) $what ) : self::copy_post( $j, (int) $what );
+			if ( 'thing' === $kind ) {
+				$res = self::copy_thing( (array) $what );
+				if ( is_int( $res ) ) {
+					$j['libmap'][ (int) ( $what['id'] ?? 0 ) ] = $res;
+				}
+			} else {
+				$res = 'follow' === $kind ? self::copy_follow( (array) $what ) : self::copy_post( $j, (int) $what );
+			}
 			if ( self::$novid && ! is_wp_error( $res ) && false !== $res ) {
 				$j['novid'] = (int) ( $j['novid'] ?? 0 ) + self::$novid;
 			}
@@ -485,6 +547,11 @@ class Move {
 				break; // One post (with its photos and videos) per request.
 			}
 		}
+		if ( ! $j['queue'] && ( ! empty( $j['libpins'] ) || ! empty( $j['liborder'] ) ) ) {
+			self::library_order( $j );
+			unset( $j['libpins'], $j['liborder'] );
+			update_option( self::IN, $j, false );
+		}
 		if ( ! $j['queue'] && empty( $j['told'] ) ) {
 			$told      = self::call( $j, '/move/done', 'POST', array( 'site' => home_url( '/' ) ) );
 			$j['told'] = ! is_wp_error( $told );
@@ -493,6 +560,94 @@ class Move {
 			update_option( 'stubli_firstday', 'off', false );
 		}
 		return self::in_status();
+	}
+
+	/**
+	 * One thing from the old Library, with its cover and who has it (0.52.0). Skipped if it's already here.
+	 *
+	 * @param array $t Thing (Bundle::library() item).
+	 * @return int|false|\WP_Error New (or already moved) post ID, or false without a title.
+	 */
+	private static function copy_thing( array $t ) {
+		$key   = 'lib:' . (int) ( $t['id'] ?? 0 );
+		$title = trim( sanitize_text_field( (string) ( $t['title'] ?? '' ) ) );
+		if ( '' === $title ) {
+			return false;
+		}
+		$here = get_posts(
+			array(
+				'post_type'   => Library::TYPE,
+				'post_status' => 'private',
+				'meta_key'    => '_stubli_moved_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'  => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'fields'      => 'ids',
+			)
+		);
+		if ( $here ) {
+			return (int) $here[0];
+		}
+		$time = (int) strtotime( (string) ( $t['date'] ?? '' ) );
+		$kind = in_array( $t['kind'] ?? '', Library::KINDS, true ) ? (string) $t['kind'] : 'book';
+		$meta = array(
+			'_stubli_moved_id'  => $key,
+			'_stubli_kind'      => $kind,
+			'_stubli_author'    => mb_substr( sanitize_text_field( (string) ( $t['author'] ?? '' ) ), 0, 200 ),
+			'_stubli_year'      => preg_replace( '/\D/', '', substr( (string) ( $t['year'] ?? '' ), 0, 4 ) ),
+			'_stubli_isbn'      => Library::isbn( (string) ( $t['isbn'] ?? '' ) ),
+			'_stubli_book_note' => mb_substr( sanitize_textarea_field( (string) ( $t['note'] ?? '' ) ), 0, Library::NOTE_MAX ),
+		);
+		if ( ! empty( $t['friends'] ) ) {
+			$meta['_stubli_audience'] = 'friends';
+		}
+		if ( 'book' === $kind && preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) ( $t['reading'] ?? '' ) ) ) {
+			$meta['_stubli_reading'] = (string) $t['reading'];
+			if ( ! empty( $t['just'] ) ) {
+				$meta['_stubli_just'] = 1;
+			}
+		}
+		if ( ! empty( $t['loan']['name'] ) ) {
+			$meta['_stubli_loan'] = array(
+				'name'  => mb_substr( sanitize_text_field( (string) $t['loan']['name'] ), 0, 80 ),
+				'site'  => esc_url_raw( (string) ( $t['loan']['site'] ?? '' ) ),
+				'since' => sanitize_text_field( (string) ( $t['loan']['since'] ?? '' ) ),
+			);
+		}
+		$new = wp_insert_post(
+			wp_slash(
+				array(
+					'post_type'   => Library::TYPE,
+					'post_status' => 'private',
+					'post_title'  => mb_substr( $title, 0, 200 ),
+					'meta_input'  => $meta,
+				) + ( $time ? Posts::date_fields( $time ) : array() )
+			),
+			true
+		);
+		if ( is_wp_error( $new ) ) {
+			return $new;
+		}
+		if ( ! empty( $t['cover']['url'] ) ) {
+			$c = self::fetch( (string) $t['cover']['url'], (int) $new, (string) ( $t['cover']['name'] ?? 'cover.jpg' ) );
+			if ( ! is_wp_error( $c ) ) {
+				update_post_meta( $new, '_stubli_cover', (int) $c );
+			}
+		}
+		return (int) $new;
+	}
+
+	/**
+	 * The old Library's pins and hand order, with this site's IDs.
+	 *
+	 * @param array $j Job.
+	 */
+	private static function library_order( array $j ) {
+		$map  = (array) ( $j['libmap'] ?? array() );
+		$swap = static fn( $ids ) => array_values( array_filter( array_map( static fn( $i ) => (int) ( $map[ (int) $i ] ?? 0 ), (array) $ids ) ) );
+		$s    = (array) get_option( 'stubli_library', array() );
+		$s['pins']  = array_slice( $swap( $j['libpins'] ?? array() ), 0, Library::PINS );
+		$s['order'] = $swap( $j['liborder'] ?? array() );
+		$s['hand']  = 'hand' === ( $s['sort'] ?? '' );
+		update_option( 'stubli_library', $s );
 	}
 
 	/**
