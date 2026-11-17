@@ -1010,17 +1010,18 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-profile-acts { display: inline-flex; align-items: center; gap: 6px; flex: none; }
 .st-envelope { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; color: var(--st-ink); background: var(--st-surface); }
 .st-envelope:hover { background: color-mix(in srgb, var(--st-accent) 12%, var(--st-surface)); }
-.st-gb-ways { display: grid; gap: 10px; margin: 4px 0 18px; }
-@media (min-width: 820px) { .st-gb-ways { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
 .st-gb-way { display: block; background: var(--st-bg); border-radius: 16px; padding: 14px 16px; text-decoration: none; color: var(--st-ink); box-shadow: 0 1px 0 rgba(0,0,0,.04); }
 .st-gb-way summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
 .st-gb-way summary::-webkit-details-marker { display: none; }
 .st-gb-way-h { display: inline-flex; align-items: center; gap: 8px; font: 650 15px/1.3 var(--st-sans); }
 .st-gb-way .st-muted { font-size: 14px; }
-.st-gb-private { position: relative; padding-right: 40px; display: flex; flex-direction: column; gap: 2px; }
-.st-gb-private > .st-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
-.st-gb-private:hover, .st-gb-sign summary:hover { background: color-mix(in srgb, var(--st-accent) 5%, var(--st-bg)); border-radius: 12px; }
-.st-gb-sign[open] summary { margin-bottom: 10px; }
+.st-gb-write { margin: 4px 0 18px; scroll-margin-top: 72px; }
+.st-gb-write .st-gb-form, .st-gb-write .st-note-done { max-width: 640px; }
+.st-gb-write summary:hover { background: color-mix(in srgb, var(--st-accent) 5%, var(--st-bg)); border-radius: 12px; }
+.st-gb-write[open] summary { margin-bottom: 10px; }
+/* The Private box (0.2.130): a real checkbox, big enough to tap. */
+.st-gb-form .st-gb-private { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; font: 400 15px/1.4 var(--st-sans); cursor: pointer; }
+.st-gb-form .st-gb-private input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--st-accent); }
 .st-gb-form { margin-top: 4px; }
 .st-gb-own { margin: 12px 0 0; font-size: 14px; }
 .st-gb-own a { color: var(--st-ink); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }

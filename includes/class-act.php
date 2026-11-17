@@ -78,28 +78,32 @@ class Act {
 			$do = 'follow';
 		}
 		$host = $target ? (string) wp_parse_url( $target, PHP_URL_HOST ) : '';
+		/* translators: %s: site */
+		$following = sprintf( __( 'You\'re following %s', 'stubli' ), $host ); // The other site by its address, never a pronoun (Celestine's rule).
 		?>
 		<div class="<?php echo $app ? 'a-compose a-act' : 'wrap'; ?>" style="max-width:640px">
 			<?php if ( ! $target ) : ?>
 				<h1><?php esc_html_e( 'Nothing to do here', 'stubli' ); ?></h1>
 				<p><?php esc_html_e( 'This link is missing the page it\'s about. Go back and try the button again.', 'stubli' ); ?></p>
 			<?php elseif ( $done ) : ?>
-				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html__( 'You\'re following them', 'stubli' ) ) : ( 'follow' === $do ? esc_html__( 'You\'re following them', 'stubli' ) : ( 'note' === $do ? esc_html__( 'Letter sent', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ) ); ?></h1>
+				<h1><?php echo 'accept' === $do ? ( 'both' === $done ? esc_html__( 'You\'re following each other', 'stubli' ) : esc_html( $following ) ) : ( 'follow' === $do ? esc_html( $following ) : ( 'note' === $do ? esc_html__( 'Letter sent', 'stubli' ) : esc_html__( 'Sent', 'stubli' ) ) ); ?></h1>
 				<p>
 					<?php
 					if ( 'accept' === $do && 'both' === $done ) {
 						/* translators: %s: site */
-						printf( esc_html__( 'New photos from %s will show in your feed, and yours in theirs.', 'stubli' ), esc_html( $host ) );
+						printf( esc_html__( 'New photos from %1$s will show in your feed, and yours in the feed of %1$s.', 'stubli' ), esc_html( $host ) );
 					} elseif ( 'accept' === $do ) {
 						/* translators: %s: site */
-						printf( esc_html__( 'New photos from %s will show in your feed. Their site couldn\'t follow you back just now; they can follow you from your page.', 'stubli' ), esc_html( $host ) );
+						printf( esc_html__( 'New photos from %1$s will show in your feed. %1$s couldn\'t follow you back just now, but can still follow you from your page.', 'stubli' ), esc_html( $host ) );
 					} elseif ( 'follow' === $do ) {
 						/* translators: %s: site */
 						printf( esc_html__( 'New photos from %s will show in your feed.', 'stubli' ), esc_html( $host ) );
 					} elseif ( 'paused' === $done ) {
-						esc_html_e( 'They\'re taking a break, so Stubli will keep sending it and it shows once they\'re back.', 'stubli' );
+						/* translators: %s: site */
+						printf( esc_html__( '%1$s is taking a break, so Stubli will keep sending it and it shows once %1$s is back.', 'stubli' ), esc_html( $host ) );
 					} else {
-						esc_html_e( 'If they follow you, it shows right away. Otherwise it waits for their OK.', 'stubli' );
+						/* translators: %s: site */
+						printf( esc_html__( 'If %1$s follows you, it shows right away. Otherwise it waits for an OK from %1$s.', 'stubli' ), esc_html( $host ) );
 					}
 					?>
 				</p>
@@ -130,10 +134,10 @@ class Act {
 					<blockquote class="<?php echo $app ? 'a-quote' : ''; ?>"><strong><?php echo esc_html( $quote['q'] ); ?></strong><br><?php echo esc_html( $quote['a'] ); ?></blockquote>
 				<?php endif; ?>
 				<?php if ( 'note' === $do ) : ?>
-					<p><?php esc_html_e( 'A private letter: only they see it. If they follow you, it arrives straight away; otherwise it waits for their OK.', 'stubli' ); ?></p>
+					<p><?php /* translators: %s: site */ printf( esc_html__( 'A private letter: only %1$s sees it. If %1$s follows you, it arrives straight away; otherwise it waits for an OK from %1$s.', 'stubli' ), esc_html( $host ) ); ?></p>
 				<?php endif; ?>
 				<?php if ( 'accept' === $do ) : ?>
-					<p><?php /* translators: %s: site */ printf( esc_html__( 'You\'ll follow %s, and their site will follow you back. Either of you can stop following any time.', 'stubli' ), esc_html( $host ) ); ?></p>
+					<p><?php /* translators: %s: site */ printf( esc_html__( 'You\'ll follow %1$s, and %1$s will follow you back. Either of you can stop following any time.', 'stubli' ), esc_html( $host ) ); ?></p>
 				<?php endif; ?>
 				<?php if ( $error ) : ?>
 					<div class="<?php echo $app ? 'a-notice' : 'notice notice-error'; ?>" role="alert"><p><?php echo esc_html( $error ); ?></p></div>

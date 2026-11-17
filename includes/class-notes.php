@@ -153,6 +153,23 @@ class Notes {
 	}
 
 	/**
+	 * Delete a whole conversation from this Stubli (0.52.2, Celestine 14 Nov). The other person's copies stay on their
+	 * own Stubli; a letter still waiting for the owner's OK isn't part of a conversation and stays.
+	 *
+	 * @param string $with Key from inbox().
+	 * @return int How many letters went.
+	 */
+	public static function forget( $with ) {
+		$n = 0;
+		foreach ( self::thread( $with ) as $l ) {
+			if ( ! empty( $l['id'] ) && wp_delete_post( (int) $l['id'], true ) ) {
+				++$n;
+			}
+		}
+		return $n;
+	}
+
+	/**
 	 * Mark a conversation's letters as read.
 	 *
 	 * @param string $with Key.
@@ -473,7 +490,8 @@ class Notes {
 			return new \WP_Error( 'stubli_note_bad', 'Bad request.', array( 'status' => 400 ) );
 		}
 		if ( Settings::on_break() ) {
-			return new \WP_Error( 'stubli_on_break', __( 'They\'re taking a break, so notes are paused for now.', 'stubli' ), array( 'status' => 403 ) );
+			/* translators: %s: the owner's first name */
+			return new \WP_Error( 'stubli_on_break', sprintf( __( '%s is taking a break, so notes are paused for now.', 'stubli' ), self::owner_first() ), array( 'status' => 403 ) );
 		}
 		$origin = Follows::origin( $site );
 		// Limits count only letters that passed the check (security review 11 Nov, finding 7).
@@ -564,7 +582,8 @@ class Notes {
 			return array( 'ok' => true );
 		}
 		if ( Settings::on_break() ) {
-			return new \WP_Error( 'stubli_on_break', __( 'They\'re taking a break, so notes are paused for now.', 'stubli' ), array( 'status' => 403 ) );
+			/* translators: %s: the owner's first name */
+			return new \WP_Error( 'stubli_on_break', sprintf( __( '%s is taking a break, so notes are paused for now.', 'stubli' ), self::owner_first() ), array( 'status' => 403 ) );
 		}
 		$name    = mb_substr( trim( sanitize_text_field( (string) ( $in['name'] ?? '' ) ) ), 0, 60 );
 		$contact = mb_substr( trim( sanitize_text_field( (string) ( $in['contact'] ?? '' ) ) ), 0, 120 );
@@ -573,11 +592,10 @@ class Notes {
 			return $text;
 		}
 		if ( '' === $name ) {
-			return new \WP_Error( 'stubli_note_name', __( 'Add your name, so they know who it\'s from.', 'stubli' ), array( 'status' => 400 ) );
+			/* translators: %s: the owner's first name */
+			return new \WP_Error( 'stubli_note_name', sprintf( __( 'Add your name, so %s knows who wrote.', 'stubli' ), self::owner_first() ), array( 'status' => 400 ) );
 		}
-		if ( '' === $contact ) {
-			return new \WP_Error( 'stubli_note_contact', __( 'Add an email, phone number or other way to reach you, so they can write back.', 'stubli' ), array( 'status' => 400 ) );
-		}
+		// A way to reach the guest is optional since 0.52.2 (Celestine 14 Nov): without one, the owner just can't reply.
 		$who = self::guest_hash();
 		if ( in_array( $who, (array) get_option( self::BLOCKED_GUEST, array() ), true ) ) {
 			return array( 'ok' => true );
@@ -612,6 +630,20 @@ class Notes {
 		}
 		wp_schedule_single_event( time(), self::PUSH_HOOK, array( (int) $id ) );
 		return array( 'ok' => true );
+	}
+
+	/**
+	 * The owner's first name, for wording visitors read (names, never pronouns: Celestine 11 Nov).
+	 *
+	 * @return string
+	 */
+	public static function owner_first() {
+		$full = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
+		$d    = trim( (string) preg_replace( "/['’]s\\b.*$/u", '', $full ) );
+		if ( '' === $d || count( (array) preg_split( '/\\s+/u', $d ) ) > 2 ) {
+			return '' !== $full ? $full : __( 'The owner', 'stubli' );
+		}
+		return (string) strtok( $d, ' ' );
 	}
 
 	/**
@@ -871,6 +903,14 @@ class Notes {
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => static function ( \WP_REST_Request $r ) {
 						return rest_ensure_response( array( 'read' => self::mark_read( (string) $r['with'] ), 'unread' => self::unread() ) );
+					},
+					'permission_callback' => array( Rest::class, 'is_owner' ),
+					'args'                => array( 'with' => array( 'type' => 'string', 'required' => true ) ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => static function ( \WP_REST_Request $r ) {
+						return rest_ensure_response( array( 'deleted' => self::forget( (string) $r['with'] ), 'unread' => self::unread() ) );
 					},
 					'permission_callback' => array( Rest::class, 'is_owner' ),
 					'args'                => array( 'with' => array( 'type' => 'string', 'required' => true ) ),

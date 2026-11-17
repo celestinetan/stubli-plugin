@@ -197,7 +197,8 @@ function stubli_profile_cards() {
 					// A letterbox at the door (0.2.115): write privately, with or without a Stubli.
 					/* translators: %s: the owner's first name */
 					$write = sprintf( __( 'Write to %s', 'stubli' ), stubli_first_name() );
-					echo '<span class="st-profile-acts"><a class="st-envelope" href="' . esc_url( add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) ) ) . '" aria-label="' . esc_attr( $write ) . '" title="' . esc_attr( $write ) . '">' . wp_kses( stubli_icon( 'mail', 20 ), stubli_allowed_html() ) . '</a>';
+					$letterbox = class_exists( '\\Stubli\\Guestbook' ) && \Stubli\Guestbook::page_id() ? add_query_arg( 'private', '1', \Stubli\Guestbook::url() ) . '#write' : add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
+					echo '<span class="st-profile-acts"><a class="st-envelope" href="' . esc_url( $letterbox ) . '" aria-label="' . esc_attr( $write ) . '" title="' . esc_attr( $write ) . '">' . wp_kses( stubli_icon( 'mail', 20 ), stubli_allowed_html() ) . '</a>';
 					echo wp_kses( stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ), stubli_allowed_html() ) . '</span>';
 				}
 				?>
@@ -946,43 +947,63 @@ function stubli_view_guestbook() {
 }
 
 /**
- * The two ways in for a visitor (0.2.115): sign the guest book (in public,
- * after the owner's OK; from a Stubli or without one) or write privately.
+ * One way in for a visitor (0.2.130, Celestine 14 Nov: "integrate the guestbook and write privately"): a single form.
+ * Unticked, it signs the guest book (in public, after the owner's OK); with "Private" ticked, it sends a private note
+ * only the owner sees, with an optional way to reach the visitor. The envelope next to Follow opens it ticked
+ * (?private=1#write). Replaces the two cards of 0.2.115.
  *
  * @param WP_Post $page The guest book page.
  */
 function stubli_guestbook_ways( $page ) {
 	$first   = stubli_first_name();
-	$open    = stubli_has_plugin() && get_option( 'stubli_guest_sign', 1 );
-	$private = add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
-	echo '<div class="st-gb-ways">';
-	echo '<details class="st-gb-way st-gb-sign"' . ( $open ? '' : ' data-closed' ) . '><summary><span class="st-gb-way-h">' . wp_kses( stubli_icon( 'pen', 18 ), stubli_allowed_html() ) . esc_html__( 'Sign the guest book', 'stubli' ) . '</span>';
-	/* translators: %s: the owner's first name */
-	echo '<span class="st-muted">' . esc_html( sprintf( __( 'Everyone visiting can read it, once %s says OK.', 'stubli' ), $first ) ) . '</span></summary>';
-	if ( $open ) {
-		echo '<form class="st-note-form st-gb-form" data-st-gb-sign data-url="' . esc_url( rest_url( 'stubli/v1/guestbook/sign' ) ) . '"'
-			. ' data-need-text="' . esc_attr__( 'Write a few words first.', 'stubli' ) . '"'
-			. ' data-need-name="' . esc_attr__( 'Add your name, so they know who signed.', 'stubli' ) . '"'
-			. ' data-sending="' . esc_attr__( 'Signing…', 'stubli' ) . '"'
-			. ' data-failed="' . esc_attr__( 'That didn\'t go through. Check your connection and try again.', 'stubli' ) . '" novalidate>';
-		echo '<label for="st-gb-text">' . esc_html__( 'Your message', 'stubli' ) . '</label><textarea id="st-gb-text" name="text" rows="4" maxlength="500" required></textarea>';
-		echo '<label for="st-gb-name">' . esc_html__( 'Your name', 'stubli' ) . '</label><input id="st-gb-name" name="name" type="text" maxlength="60" autocomplete="name" required>';
-		echo '<label for="st-gb-from">' . esc_html__( 'Where you\'re from', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '(optional)', 'stubli' ) . '</span></label><input id="st-gb-from" name="from" type="text" maxlength="40" placeholder="' . esc_attr__( 'e.g. Zurich', 'stubli' ) . '">';
-		echo '<div class="st-trap" aria-hidden="true"><label for="st-gb-website">Website</label><input id="st-gb-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>';
-		/* translators: %s: the owner's first name */
-		echo '<p class="st-muted st-small">' . esc_html( sprintf( __( 'Your name, where you\'re from and your message appear on this page once %s says OK. No email needed.', 'stubli' ), $first ) ) . '</p>';
-		echo '<p class="st-error" role="alert" hidden></p>';
-		echo '<button type="submit" class="st-button">' . esc_html__( 'Sign', 'stubli' ) . '</button>';
-		echo '</form>';
-		/* translators: %s: the owner's first name */
-		echo '<div class="st-card-tone st-note-done" data-st-gb-done hidden tabindex="-1"><p><strong>' . esc_html__( 'Thank you for signing!', 'stubli' ) . '</strong></p><p>' . esc_html( sprintf( __( 'Your entry appears here once %s says OK.', 'stubli' ), $first ) ) . '</p></div>';
+	$sign    = stubli_has_plugin() && get_option( 'stubli_guest_sign', 1 );
+	$note    = stubli_has_plugin();
+	$private = ! $sign || isset( $_GET['private'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! $note ) {
+		echo '<p class="st-gb-own"><a href="' . esc_url( stubli_remote_url( 'sign', get_permalink( $page ) ) ) . '">' . esc_html__( 'Have a Stubli? Sign from your own Stubli', 'stubli' ) . '</a></p>';
+		return;
 	}
-	echo '<p class="st-gb-own"><a href="' . esc_url( stubli_remote_url( 'sign', get_permalink( $page ) ) ) . '">' . esc_html__( 'Have a Stubli? Sign from your own Stubli', 'stubli' ) . '</a></p>';
-	echo '</details>';
-	echo '<a class="st-gb-way st-gb-private" href="' . esc_url( $private ) . '"><span class="st-gb-way-h">' . wp_kses( stubli_icon( 'mail', 18 ), stubli_allowed_html() ) . esc_html__( 'Write privately', 'stubli' ) . '</span>';
+	$open = isset( $_GET['private'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	echo '<details class="st-gb-way st-gb-write" id="write"' . ( $open ? ' open' : '' ) . '><summary><span class="st-gb-way-h">' . wp_kses( stubli_icon( 'pen', 18 ), stubli_allowed_html() );
 	/* translators: %s: the owner's first name */
-	echo '<span class="st-muted">' . esc_html( sprintf( __( 'Only %s sees it. Leave a way to reach you if you\'d like a reply.', 'stubli' ), $first ) ) . '</span>' . wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ) . '</a>';
+	echo esc_html( $sign ? __( 'Write in the guest book', 'stubli' ) : sprintf( __( 'Write to %s', 'stubli' ), $first ) ) . '</span>';
+	/* translators: %s: the owner's first name */
+	echo '<span class="st-muted">' . esc_html( $sign ? sprintf( __( 'Sign it for everyone to read, or tick Private so only %s sees it.', 'stubli' ), $first ) : sprintf( __( 'Only %s sees it.', 'stubli' ), $first ) ) . '</span></summary>';
+	echo '<form class="st-note-form st-gb-form" data-st-gb-write' . ( $private ? ' data-private' : '' )
+		. ' data-sign-url="' . esc_url( rest_url( 'stubli/v1/guestbook/sign' ) ) . '"'
+		. ' data-note-url="' . esc_url( rest_url( 'stubli/v1/notes/guest' ) ) . '"'
+		. ' data-need-text="' . esc_attr__( 'Write a few words first.', 'stubli' ) . '"'
+		/* translators: %s: the owner's first name */
+		. ' data-need-name="' . esc_attr( sprintf( __( 'Add your name, so %s knows who wrote.', 'stubli' ), $first ) ) . '"'
+		. ' data-sending="' . esc_attr__( 'Sending…', 'stubli' ) . '"'
+		. ' data-failed="' . esc_attr__( 'That didn\'t go through. Check your connection and try again.', 'stubli' ) . '" novalidate>';
+	echo '<label for="st-gb-text">' . esc_html__( 'Your message', 'stubli' ) . '</label><textarea id="st-gb-text" name="text" rows="4" maxlength="' . ( $private ? 1000 : 500 ) . '" required></textarea>';
+	echo '<label for="st-gb-name">' . esc_html__( 'Your name', 'stubli' ) . '</label><input id="st-gb-name" name="name" type="text" maxlength="60" autocomplete="name" required>';
+	if ( $sign ) {
+		/* translators: %s: the owner's first name */
+		echo '<label class="st-gb-private"><input type="checkbox" name="private" value="1" data-st-gb-private' . ( $private ? ' checked' : '' ) . '><span><strong>' . esc_html__( 'Private', 'stubli' ) . '</strong>: ' . esc_html( sprintf( __( 'only %s sees it', 'stubli' ), $first ) ) . '</span></label>';
+	}
+	echo '<div data-st-gb-public' . ( $private ? ' hidden' : '' ) . '>';
+	echo '<label for="st-gb-from">' . esc_html__( 'Where you\'re from', 'stubli' ) . ' <span class="st-muted st-normal">' . esc_html__( '(optional)', 'stubli' ) . '</span></label><input id="st-gb-from" name="from" type="text" maxlength="40" placeholder="' . esc_attr__( 'e.g. Zurich', 'stubli' ) . '">';
+	/* translators: %s: the owner's first name */
+	echo '<p class="st-muted st-small">' . esc_html( sprintf( __( 'Your name, where you\'re from and your message appear on this page once %s says OK. No email needed.', 'stubli' ), $first ) ) . '</p>';
+	echo '</div><div data-st-gb-privnote' . ( $private ? '' : ' hidden' ) . '>';
+	/* translators: %s: the owner's first name */
+	echo '<label for="st-gb-contact">' . esc_html( sprintf( __( 'How %s can reach you', 'stubli' ), $first ) ) . ' <span class="st-muted st-normal">' . esc_html__( '(optional)', 'stubli' ) . '</span></label><input id="st-gb-contact" name="contact" type="text" maxlength="120" autocomplete="email" placeholder="' . esc_attr__( 'Email, phone or Instagram name', 'stubli' ) . '">';
+	/* translators: %s: the owner's first name */
+	echo '<p class="st-muted st-small">' . esc_html( sprintf( __( 'Only %s sees this note and how to reach you. Nothing appears on this page, and it\'s deleted after 90 days. Without a way to reach you, there\'s no way to reply.', 'stubli' ), $first ) ) . '</p>';
 	echo '</div>';
+	echo '<div class="st-trap" aria-hidden="true"><label for="st-gb-website">Website</label><input id="st-gb-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>';
+	echo '<p class="st-error" role="alert" hidden></p>';
+	echo '<button type="submit" class="st-button" data-label-public="' . esc_attr__( 'Sign the guest book', 'stubli' ) . '" data-label-private="' . esc_attr__( 'Send privately', 'stubli' ) . '">' . esc_html( $private ? __( 'Send privately', 'stubli' ) : __( 'Sign the guest book', 'stubli' ) ) . '</button>';
+	echo '</form>';
+	/* translators: %s: the owner's first name */
+	echo '<div class="st-card-tone st-note-done" data-st-gb-done hidden tabindex="-1"><p><strong>' . esc_html__( 'Thank you for signing!', 'stubli' ) . '</strong></p><p>' . esc_html( sprintf( __( 'Your entry appears here once %s says OK.', 'stubli' ), $first ) ) . '</p></div>';
+	/* translators: %s: the owner's first name */
+	echo '<div class="st-card-tone st-note-done" data-st-gb-sent hidden tabindex="-1"><p><strong>' . esc_html__( 'Sent. Thank you!', 'stubli' ) . '</strong></p><p>' . esc_html( sprintf( __( 'Only %s sees it.', 'stubli' ), $first ) ) . '</p></div>';
+	echo '<p class="st-gb-own" data-st-gb-own-public' . ( $private ? ' hidden' : '' ) . '><a href="' . esc_url( stubli_remote_url( 'sign', get_permalink( $page ) ) ) . '">' . esc_html__( 'Have a Stubli? Sign from your own Stubli', 'stubli' ) . '</a></p>';
+	echo '<p class="st-gb-own" data-st-gb-own-private' . ( $private ? '' : ' hidden' ) . '><a href="' . esc_url( add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) ) ) . '">' . esc_html__( 'Have a Stubli? Write from your own Stubli', 'stubli' ) . '</a></p>';
+	echo '</details>';
 }
 
 /**
@@ -1280,27 +1301,27 @@ function stubli_view_note( $name ) {
 			<button type="button" role="tab" id="st-tab-own" aria-controls="st-pane-own" aria-selected="false"><?php esc_html_e( 'I have a Stubli', 'stubli' ); ?></button>
 		</div>
 		<section id="st-pane-guest" role="tabpanel" aria-labelledby="st-tab-guest">
-			<form class="st-note-form" data-st-note data-url="<?php echo esc_url( rest_url( 'stubli/v1/notes/guest' ) ); ?>" data-prompt="<?php echo (int) $i; ?>" novalidate>
+			<form class="st-note-form" data-st-note data-url="<?php echo esc_url( rest_url( 'stubli/v1/notes/guest' ) ); ?>" data-prompt="<?php echo (int) $i; ?>" data-need-text="<?php esc_attr_e( 'Write a few words first.', 'stubli' ); ?>" data-need-name="<?php /* translators: %s: first name */ echo esc_attr( sprintf( __( 'Add your name, so %s knows who wrote.', 'stubli' ), $first ) ); ?>" novalidate>
 				<label for="st-note-text"><?php esc_html_e( 'Your note', 'stubli' ); ?></label>
 				<textarea id="st-note-text" name="text" rows="4" maxlength="1000" required></textarea>
 				<label for="st-note-name"><?php esc_html_e( 'Your name', 'stubli' ); ?></label>
 				<input id="st-note-name" name="name" type="text" maxlength="60" autocomplete="name" required>
-				<label for="st-note-contact"><?php /* translators: %s: first name */ printf( esc_html__( 'How %s can reach you', 'stubli' ), esc_html( $first ) ); ?></label>
-				<input id="st-note-contact" name="contact" type="text" maxlength="120" autocomplete="email" placeholder="<?php esc_attr_e( 'Email, phone or Instagram name', 'stubli' ); ?>" required>
+				<label for="st-note-contact"><?php /* translators: %s: first name */ printf( esc_html__( 'How %s can reach you', 'stubli' ), esc_html( $first ) ); ?> <span class="st-muted st-normal"><?php esc_html_e( '(optional)', 'stubli' ); ?></span></label>
+				<input id="st-note-contact" name="contact" type="text" maxlength="120" autocomplete="email" placeholder="<?php esc_attr_e( 'Email, phone or Instagram name', 'stubli' ); ?>">
 				<div class="st-trap" aria-hidden="true"><label for="st-note-website">Website</label><input id="st-note-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-				<p class="st-muted st-small"><?php /* translators: %s: first name */ printf( esc_html__( 'Only %s sees this note and your contact details. Nothing appears on this page, and it\'s deleted after 90 days.', 'stubli' ), esc_html( $first ) ); ?></p>
+				<p class="st-muted st-small"><?php /* translators: %s: first name */ printf( esc_html__( 'Only %s sees this note and how to reach you. Nothing appears on this page, and it\'s deleted after 90 days. Without a way to reach you, there\'s no way to reply.', 'stubli' ), esc_html( $first ) ); ?></p>
 				<p class="st-error" role="alert" hidden></p>
 				<button type="submit" class="st-button"><?php esc_html_e( 'Send note', 'stubli' ); ?></button>
 			</form>
 			<div class="st-card-tone st-note-done" data-st-note-done hidden tabindex="-1">
 				<p><strong><?php esc_html_e( 'Sent. Thank you!', 'stubli' ); ?></strong></p>
-				<p class="st-muted"><?php /* translators: %s: first name */ printf( esc_html__( '%s will see it soon and can write back to you directly.', 'stubli' ), esc_html( $first ) ); ?></p>
+				<p class="st-muted"><?php /* translators: %s: first name */ printf( esc_html__( '%s will see it soon, and can write back if you left a way to reach you.', 'stubli' ), esc_html( $first ) ); ?></p>
 				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php /* translators: %s: first name */ printf( esc_html__( 'Back to %s\'s page', 'stubli' ), esc_html( $first ) ); ?></a>
 				<p class="st-note-own st-muted st-small"><?php esc_html_e( 'Want a page like this of your own?', 'stubli' ); ?> <a href="https://stubli.app/welcome/?from=note"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a></p>
 			</div>
 		</section>
 		<section id="st-pane-own" role="tabpanel" aria-labelledby="st-tab-own" hidden>
-			<p><?php /* translators: %s: first name */ printf( esc_html__( 'Write it in your own Stubli app. %s gets it as a private note: straight away if they follow you, otherwise after their OK.', 'stubli' ), esc_html( $first ) ); ?></p>
+			<p><?php /* translators: 1, 2, 3: the owner's first name */ printf( esc_html__( 'Write it in your own Stubli app. %1$s gets it as a private note: straight away if %2$s follows you, otherwise after %3$s\'s OK.', 'stubli' ), esc_html( $first ), esc_html( $first ), esc_html( $first ) ); ?></p>
 			<form class="st-remote" data-st-remote data-do="note" data-target="<?php echo esc_url( home_url( '/' ) ); ?>" data-p="<?php echo (int) $i; ?>">
 				<label for="st-addr"><?php esc_html_e( 'Your Stubli address', 'stubli' ); ?></label>
 				<input id="st-addr" name="addr" type="url" inputmode="url" autocomplete="url" placeholder="yourname.com" required>

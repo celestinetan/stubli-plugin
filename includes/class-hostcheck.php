@@ -42,6 +42,12 @@ class HostCheck {
 		update_option( 'stubli_last_cron', time(), false );
 	}
 
+	/** Host checks one network address may ask the hub for in an hour. */
+	const REACH_PER_HOUR = 15;
+
+	/** Host checks the hub answers in an hour, from everyone together. */
+	const REACH_EVERYONE_PER_HOUR = 300;
+
 	/**
 	 * The hub's "can I reach you?" endpoint.
 	 */
@@ -73,11 +79,16 @@ class HostCheck {
 	 * @return array|\WP_Error
 	 */
 	public static function reach( WP_REST_Request $r ) {
-		$n = (int) get_transient( 'stubli_reach_count' );
-		if ( $n >= 60 ) {
+		// Counted per network address, so one visitor can't use up the checks for everyone
+		// (GitHub issue #1, 15 Nov), with a roomy cap for everyone together.
+		$mine = 'stubli_reach_' . Notes::guest_hash();
+		$n    = (int) get_transient( $mine );
+		$all  = (int) get_transient( 'stubli_reach_count' );
+		if ( $n >= self::REACH_PER_HOUR || $all >= self::REACH_EVERYONE_PER_HOUR ) {
 			return new \WP_Error( 'stubli_rate_limited', __( 'Too many checks right now. Try again in an hour.', 'stubli' ), array( 'status' => 429 ) );
 		}
-		set_transient( 'stubli_reach_count', $n + 1, HOUR_IN_SECONDS );
+		set_transient( $mine, $n + 1, HOUR_IN_SECONDS );
+		set_transient( 'stubli_reach_count', $all + 1, HOUR_IN_SECONDS );
 		$url = esc_url_raw( (string) $r['url'] );
 		if ( ! $url || ! in_array( wp_parse_url( $url, PHP_URL_SCHEME ), array( 'http', 'https' ), true ) ) {
 			return new \WP_Error( 'stubli_bad_url', 'Bad address.', array( 'status' => 400 ) );

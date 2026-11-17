@@ -52,8 +52,9 @@ msgstr ""
 msgid "You're following each other"
 msgstr ""
 
-#: includes/class-act.php:87
-msgid "You're following them"
+#. translators: %s: site
+#: includes/class-act.php:82
+msgid "You're following %s"
 msgstr ""
 
 #: includes/class-act.php:87
@@ -65,13 +66,13 @@ msgid "Sent"
 msgstr ""
 
 #. translators: %s: site
-#: includes/class-act.php:92
-msgid "New photos from %s will show in your feed, and yours in theirs."
+#: includes/class-act.php:94
+msgid "New photos from %1$s will show in your feed, and yours in the feed of %1$s."
 msgstr ""
 
 #. translators: %s: site
-#: includes/class-act.php:95
-msgid "New photos from %s will show in your feed. Their site couldn't follow you back just now; they can follow you from your page."
+#: includes/class-act.php:97
+msgid "New photos from %1$s will show in your feed. %1$s couldn't follow you back just now, but can still follow you from your page."
 msgstr ""
 
 #. translators: %s: site
@@ -79,12 +80,14 @@ msgstr ""
 msgid "New photos from %s will show in your feed."
 msgstr ""
 
-#: includes/class-act.php:100
-msgid "They're taking a break, so Stubli will keep sending it and it shows once they're back."
+#. translators: %s: site
+#: includes/class-act.php:103
+msgid "%1$s is taking a break, so Stubli will keep sending it and it shows once %1$s is back."
 msgstr ""
 
-#: includes/class-act.php:102
-msgid "If they follow you, it shows right away. Otherwise it waits for their OK."
+#. translators: %s: site
+#: includes/class-act.php:106
+msgid "If %1$s follows you, it shows right away. Otherwise it waits for an OK from %1$s."
 msgstr ""
 
 #. translators: %s: site
@@ -124,13 +127,14 @@ msgstr ""
 msgid "Comment on %s"
 msgstr ""
 
-#: includes/class-act.php:133
-msgid "A private letter: only they see it. If they follow you, it arrives straight away; otherwise it waits for their OK."
+#. translators: %s: site
+#: includes/class-act.php:137
+msgid "A private letter: only %1$s sees it. If %1$s follows you, it arrives straight away; otherwise it waits for an OK from %1$s."
 msgstr ""
 
 #. translators: %s: site
-#: includes/class-act.php:136
-msgid "You'll follow %s, and their site will follow you back. Either of you can stop following any time."
+#: includes/class-act.php:140
+msgid "You'll follow %1$s, and %1$s will follow you back. Either of you can stop following any time."
 msgstr ""
 
 #: includes/class-act.php:153
@@ -3340,7 +3344,7 @@ msgid "downloading everything"
 msgstr ""
 
 #: assets/app/app.js:1245
-msgid "One zip with your photos and videos as they are on your site, your captions, journal, comments, guest book and the people you follow. It opens offline in any browser."
+msgid "One zip with your photos and videos as they are on your site, your captions, journal, comments, guest book, Library and the people you follow. It opens offline in any browser."
 msgstr ""
 
 #: assets/app/app.js:1253

@@ -79,6 +79,7 @@
 		pin: '<path d="M12 17v5"/><path d="M8 3h8l-1 6 3 4H6l3-4z"/>',
 		menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
 		mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
+		trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
 		page: '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 11h6M9 15h4"/>',
 		book: '<path d="M12 6.5C10.3 5.2 7.9 4.5 4 4.5v14c3.9 0 6.3.7 8 2 1.7-1.3 4.1-2 8-2v-14c-3.9 0-6.3.7-8 2z"/><path d="M12 6.5v14"/>',
 		pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13 7l4 4"/>',
@@ -1167,6 +1168,24 @@
 		if ( /^\+?[\d\s()\-]{7,}$/.test( c ) ) { return { href: 'tel:' + c.replace( /[^\d+]/g, '' ), label: __( 'Call or text', 'stubli' ) }; }
 		return null;
 	}
+	/* A letter from someone without a Stubli (0.52.2, Celestine 14 Nov): reply by email, text or call, or copy what
+	   they left; the email opens with their note quoted. */
+	function guestReply( name, l ) {
+		var c = String( l.contact || '' ).trim(), k = contactLink( c ), out = '<div class="a-card a-lt-guest"><p class="muted">' + esc( _f( __( '%s doesn\'t have a Stubli, so you can\'t write back here.', 'stubli' ), name ) ) + '</p>';
+		if ( k && k.href.indexOf( 'mailto:' ) === 0 ) {
+			var q = String( l.text || '' ).split( '\n' ).map( function ( x ) { return '> ' + x; } ).join( '\n' );
+			var mail = k.href + '?subject=' + encodeURIComponent( B.name ? _f( __( 'Your note to %s', 'stubli' ), B.name ) : __( 'Your note', 'stubli' ) ) + '&body=' + encodeURIComponent( '\n\n' + q );
+			out += '<div class="a-actions"><a class="a-btn" href="' + esc( mail ) + '">' + icon( 'mail', 18 ) + __( 'Reply by email', 'stubli' ) + '</a></div><p class="a-help">' + esc( c ) + '</p>';
+		} else if ( k ) {
+			var num = k.href.replace( /^tel:/, '' );
+			out += '<div class="a-actions"><a class="a-btn" href="sms:' + esc( num ) + '">' + __( 'Send a text', 'stubli' ) + '</a><a class="a-btn quiet" href="' + esc( k.href ) + '">' + __( 'Call', 'stubli' ) + '</a></div><p class="a-help">' + esc( c ) + '</p>';
+		} else if ( c ) {
+			out += '<p>' + esc( _f( __( 'How to reach %s:', 'stubli' ), name ) ) + ' <strong>' + esc( c ) + '</strong></p><div class="a-actions"><button type="button" class="a-btn quiet" data-lt-copy="' + esc( c ) + '">' + __( 'Copy', 'stubli' ) + '</button></div>';
+		} else {
+			out += '<p class="a-help">' + esc( _f( __( '%s didn\'t leave a way to reply.', 'stubli' ), name ) ) + '</p>';
+		}
+		return out + '</div>';
+	}
 	/* ── Letters: one conversation per person, like letters between friends ── */
 	var lt = { loaded: false, requests: [], convs: [], done: {}, thread: null };
 	function loadLetters() {
@@ -1255,11 +1274,31 @@
 				return out + '<div class="a-lt-letter ' + ( l.dir === 'out' ? 'is-me' : 'is-them' ) + '"><p>' + esc( l.text ) + '</p><span class="a-lt-t">' + esc( d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) ) + ( l.dir === 'out' && l.state === 'failed' ? ' · ' + __( 'not delivered', 'stubli' ) : '' ) + '</span></div>';
 			} ).join( '' );
 		}
-		var guestNote = guest && lastIn ? ( function () { var k = contactLink( lastIn.contact ); return '<p class="a-help">' + _f( __( '%s doesn\'t have a Stubli, so you can\'t write back here.', 'stubli' ), esc( unent( name ) ) ) + ( k ? ' <a href="' + esc( k.href ) + '">' + esc( k.label ) + '</a>' : ( lastIn.contact ? ' ' + _f( __( 'They left this: %s', 'stubli' ), '<strong>' + esc( lastIn.contact ) + '</strong>' ) : '' ) ) + '</p>'; } )() : '';
+		var guestNote = guest && lastIn ? guestReply( unent( name ), lastIn ) : '';
+		// Delete the whole conversation (0.52.2, Celestine 14 Nov): asks once, right here.
+		var del = ! letters || ! letters.length ? '' : th.sure ?
+			'<div class="a-card a-lt-sure" role="group" aria-labelledby="a-lt-sure-h"><p id="a-lt-sure-h"><strong>' + esc( _f( __( 'Delete all letters with %s?', 'stubli' ), unent( name ) ) ) + '</strong> ' +
+				esc( guest ? __( 'You can\'t undo this.', 'stubli' ) : _f( __( 'You can\'t undo this. %s\'s own copies stay with %s.', 'stubli' ), unent( name ), unent( name ) ) ) + '</p>' +
+				'<div class="a-actions"><button type="button" class="a-btn a-danger" data-lt-del-yes' + ( th.deleting ? ' disabled' : '' ) + '>' + ( th.deleting ? __( 'Deleting…', 'stubli' ) : __( 'Delete conversation', 'stubli' ) ) + '</button><button type="button" class="a-btn quiet" data-lt-del-no>' + __( 'Keep it', 'stubli' ) + '</button></div></div>' :
+			'<p class="a-lt-del"><button type="button" class="a-text-btn a-danger-text" data-lt-del>' + icon( 'trash', 16 ) + __( 'Delete this conversation', 'stubli' ) + '</button></p>';
 		root.innerHTML = '<header class="a-head a-lt-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( c.avatar ? face( c.avatar, name, 28 ) : '' ) + '<span>' + esc( unent( name ) ) + ( site && ! guest ? '<small class="muted">' + esc( hostOf( site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>' +
-			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + '</main>' +
+			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + del + '</main>' +
 			( guest || ! site ? '' : '<div class="a-lt-compose"><label class="sr" for="a-lt-text">' + __( 'Your letter', 'stubli' ) + '</label><textarea id="a-lt-text" class="a-field a-grow" rows="1" maxlength="1000" placeholder="' + esc( __( 'Write a letter…', 'stubli' ) ) + '">' + esc( th.text ) + '</textarea><button type="button" class="a-btn" data-lt-send' + ( th.busy || ! th.text.trim() ? ' disabled' : '' ) + '>' + ( th.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></div>' );
 		if ( scroll ) { window.scrollTo( 0, document.body.scrollHeight ); }
+		var dl = $( '[data-lt-del]' ); if ( dl ) { dl.addEventListener( 'click', function () { th.sure = true; renderThread(); var y = $( '[data-lt-del-no]' ); if ( y ) { y.focus(); } } ); }
+		var dn = $( '[data-lt-del-no]' ); if ( dn ) { dn.addEventListener( 'click', function () { th.sure = false; renderThread(); var z = $( '[data-lt-del]' ); if ( z ) { z.focus(); } } ); }
+		var dy = $( '[data-lt-del-yes]' ); if ( dy ) { dy.addEventListener( 'click', function () {
+			th.deleting = true; renderThread();
+			send( 'DELETE', 'letters/thread?with=' + encodeURIComponent( th.with ), null ).then( function ( r ) {
+				B.unread = r && typeof r.unread === 'number' ? r.unread : B.unread;
+				lt.convs = lt.convs.filter( function ( x ) { return x.with !== th.with; } ); lt.thread = null; lt.loaded = false;
+				toast( __( 'Conversation deleted.', 'stubli' ) ); location.hash = '#letters';
+			}, function ( e ) { th.deleting = false; th.sure = false; th.error = e.message; renderThread(); } );
+		} ); }
+		var cp = $( '[data-lt-copy]' ); if ( cp ) { cp.addEventListener( 'click', function () {
+			var v = cp.getAttribute( 'data-lt-copy' ), ok = function () { cp.textContent = __( 'Copied', 'stubli' ); };
+			if ( navigator.clipboard && navigator.clipboard.writeText ) { navigator.clipboard.writeText( v ).then( ok, function () {} ); }
+		} ); }
 		var t = $( '#a-lt-text' ), b = $( '[data-lt-send]' );
 		if ( ! t ) { return; }
 		var fit = function () { t.style.height = 'auto'; t.style.height = Math.min( 160, t.scrollHeight ) + 'px'; }; fit();
@@ -1315,7 +1354,7 @@
 		} else {
 			body = '<button type="button" class="a-btn quiet" data-keep-start' + ( kp.busy || a.supported === false ? ' disabled' : '' ) + '>' + ( kp.busy ? __( 'Starting…', 'stubli' ) : __( 'Download everything', 'stubli' ) ) + '</button>' + ( a.supported === false ? ( '<p class="a-help">' + __( 'This host can\'t make zip files. Ask your host to turn on PHP\'s Zip extension.', 'stubli' ) + '</p>' ) : '' );
 		}
-		return ( '<section class="a-card" data-keep><h2>' + __( 'Yours to keep', 'stubli' ) ) + helpLink( 'moving-and-leaving/download', __( 'downloading everything', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'One zip with your photos and videos as they are on your site, your captions, journal, comments, guest book and the people you follow. It opens offline in any browser.', 'stubli' ) + '</p>' ) + body +
+		return ( '<section class="a-card" data-keep><h2>' + __( 'Yours to keep', 'stubli' ) ) + helpLink( 'moving-and-leaving/download', __( 'downloading everything', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'One zip with your photos and videos as they are on your site, your captions, journal, comments, guest book, Library and the people you follow. It opens offline in any browser.', 'stubli' ) + '</p>' ) + body +
 			( kp.msg ? '<div class="a-notice" role="alert"><p>' + esc( kp.msg ) + '</p></div>' : '' ) + '</section>' + moveCard();
 	}
 	/* Move: out (this site is the old one) and in (this site is the new one). */

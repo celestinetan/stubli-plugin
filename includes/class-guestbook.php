@@ -133,7 +133,8 @@ class Guestbook {
 			return new \WP_Error( 'stubli_gb_long', __( 'That\'s a little long for a guest book. Trim it to 500 characters and it will fit.', 'stubli' ), array( 'status' => 400 ) );
 		}
 		if ( '' === $name ) {
-			return new \WP_Error( 'stubli_gb_name', __( 'Add your name, so they know who signed.', 'stubli' ), array( 'status' => 400 ) );
+			/* translators: %s: the owner's first name */
+			return new \WP_Error( 'stubli_gb_name', sprintf( __( 'Add your name, so %s knows who wrote.', 'stubli' ), Notes::owner_first() ), array( 'status' => 400 ) );
 		}
 		$who = Notes::guest_hash();
 		if ( in_array( $who, (array) get_option( Notes::BLOCKED_GUEST, array() ), true ) ) {

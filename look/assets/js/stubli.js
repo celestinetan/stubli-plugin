@@ -482,9 +482,9 @@
 	form.addEventListener( 'submit', function ( e ) {
 		e.preventDefault();
 		var get = function ( n ) { return ( form.elements[ n ] && form.elements[ n ].value || '' ).trim(); };
-		var missing = ! get( 'text' ) ? 'text' : ! get( 'name' ) ? 'name' : ! get( 'contact' ) ? 'contact' : '';
+		var missing = ! get( 'text' ) ? 'text' : ! get( 'name' ) ? 'name' : '';
 		if ( missing ) {
-			err.textContent = { text: 'Write a few words first.', name: 'Add your name, so they know who it\'s from.', contact: 'Add an email, phone number or other way to reach you, so they can write back.' }[ missing ];
+			err.textContent = form.getAttribute( 'data-need-' + missing ) || 'Write a few words first.';
 			err.hidden = false; form.elements[ missing ].focus(); return;
 		}
 		err.hidden = true; btn.disabled = true; btn.textContent = 'Sending…';
@@ -580,11 +580,26 @@
 }() );
 
 
-/* Sign the guest book without a Stubli (0.2.115). Messages come from the page, so they're translated. */
+/* The guest book's one form (0.2.130): sign in public, or tick Private to send a note only the owner sees.
+   Messages come from the page, so they're translated. */
 ( function () {
-	var form = document.querySelector( '[data-st-gb-sign]' );
+	var form = document.querySelector( '[data-st-gb-write]' );
 	if ( ! form ) { return; }
-	var err = form.querySelector( '.st-error' ), btn = form.querySelector( 'button[type=submit]' ), label = btn.textContent;
+	var err = form.querySelector( '.st-error' ), btn = form.querySelector( 'button[type=submit]' ), box = form.querySelector( '[data-st-gb-private]' );
+	var wrap = form.parentNode, text = form.elements.text;
+	var isPrivate = function () { return box ? box.checked : form.hasAttribute( 'data-private' ); };
+	var show = function () {
+		var p = isPrivate();
+		form.querySelector( '[data-st-gb-public]' ).hidden = p;
+		form.querySelector( '[data-st-gb-privnote]' ).hidden = ! p;
+		var a = wrap.querySelector( '[data-st-gb-own-public]' ), b = wrap.querySelector( '[data-st-gb-own-private]' );
+		if ( a ) { a.hidden = p; } if ( b ) { b.hidden = ! p; }
+		text.maxLength = p ? 1000 : 500;
+		btn.textContent = btn.getAttribute( p ? 'data-label-private' : 'data-label-public' );
+	};
+	if ( box ) { box.addEventListener( 'change', function () { err.hidden = true; show(); } ); }
+	// The envelope next to Follow lands here with Private ticked: open and start typing.
+	if ( wrap.open && location.hash === '#write' ) { var go = function () { wrap.scrollIntoView( { block: 'start' } ); text.focus( { preventScroll: true } ); }; if ( document.readyState === 'complete' ) { go(); } else { window.addEventListener( 'load', go ); } }
 	form.addEventListener( 'submit', function ( e ) {
 		e.preventDefault();
 		var get = function ( n ) { return ( form.elements[ n ] && form.elements[ n ].value || '' ).trim(); };
@@ -592,16 +607,19 @@
 		if ( missing ) {
 			err.textContent = form.getAttribute( 'data-need-' + missing ); err.hidden = false; form.elements[ missing ].focus(); return;
 		}
+		var p = isPrivate();
 		err.hidden = true; btn.disabled = true; btn.textContent = form.getAttribute( 'data-sending' );
-		fetch( form.getAttribute( 'data-url' ), {
-			method: 'POST', headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( { text: get( 'text' ), name: get( 'name' ), from: get( 'from' ), website: get( 'website' ) } )
+		var body = p ? { text: get( 'text' ), name: get( 'name' ), contact: get( 'contact' ), website: get( 'website' ), prompt: -1 }
+			: { text: get( 'text' ), name: get( 'name' ), from: get( 'from' ), website: get( 'website' ) };
+		fetch( form.getAttribute( p ? 'data-note-url' : 'data-sign-url' ), {
+			method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify( body )
 		} ).then( function ( r ) { return r.json().then( function ( d ) { return { ok: r.ok, d: d }; } ); } ).then( function ( res ) {
 			if ( ! res.ok ) { throw new Error( ( res.d && res.d.message ) || '' ); }
 			form.hidden = true;
-			var done = form.parentNode.querySelector( '[data-st-gb-done]' ); done.hidden = false; done.focus();
+			Array.prototype.forEach.call( wrap.querySelectorAll( '.st-gb-own' ), function ( x ) { x.hidden = true; } );
+			var done = wrap.querySelector( p ? '[data-st-gb-sent]' : '[data-st-gb-done]' ); done.hidden = false; done.focus();
 		} ).catch( function ( x ) {
-			btn.disabled = false; btn.textContent = label;
+			btn.disabled = false; show();
 			err.textContent = x.message || form.getAttribute( 'data-failed' ); err.hidden = false;
 		} );
 	} );
