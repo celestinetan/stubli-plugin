@@ -25,6 +25,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class Move {
 
+	/** Seconds a move waits for one photo to download (GitHub issue #1: was 300). */
+	const PHOTO_WAIT = 60;
+
+	/** Seconds a move waits for one video (up to a minute long) to download. */
+	const VIDEO_WAIT = 300;
+
 	/** Photo types Move brings for the profile picture, cover and journal photos. */
 	const PHOTO_TYPES = array(
 		'jpg|jpeg|jpe' => 'image/jpeg',
@@ -107,10 +113,9 @@ class Move {
 	 * @return bool|\WP_Error
 	 */
 	public static function token_ok( $r ) {
+		// Only from the header (GitHub issue #1 on stubli-plugin): a secret in the address can end up in server logs.
+		// Stubli has always sent it as a header (since 0.20.0), so nothing that worked stops working.
 		$token = (string) $r->get_header( 'x_stubli_move' );
-		if ( '' === $token ) {
-			$token = (string) $r['token'];
-		}
 		$out = (array) get_option( self::OUT, array() );
 		if ( '' === $token || empty( $out['hash'] ) || (int) ( $out['expires'] ?? 0 ) < time() || ! hash_equals( (string) $out['hash'], wp_hash( $token, 'nonce' ) ) ) {
 			return new \WP_Error( 'stubli_move_link', __( 'That move link isn\'t valid any more. Make a new one on your old Stubli: You → Settings and more → Move to another site.', 'stubli' ), array( 'status' => 401 ) );
@@ -437,13 +442,14 @@ class Move {
 	/**
 	 * Download to a temporary file.
 	 *
-	 * @param string $url  URL.
-	 * @param string $name File name.
+	 * @param string $url     URL.
+	 * @param string $name    File name.
+	 * @param int    $timeout Seconds to wait: a photo (at most 2048 px) needs far less than a minute of video.
 	 * @return array|\WP_Error { name, tmp_name }
 	 */
-	private static function download( $url, $name ) {
+	private static function download( $url, $name, $timeout = self::PHOTO_WAIT ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$tmp = download_url( esc_url_raw( $url ), 300 );
+		$tmp = download_url( esc_url_raw( $url ), (int) $timeout );
 		if ( is_wp_error( $tmp ) ) {
 			return $tmp;
 		}
@@ -742,7 +748,7 @@ class Move {
 					// This site can't take the video: keep its cover picture as a photo, and say so at the end.
 					++self::$novid;
 				} elseif ( ! empty( $ph['video']['url'] ) ) {
-					$video = self::download( (string) $ph['video']['url'], (string) $ph['video']['name'] );
+					$video = self::download( (string) $ph['video']['url'], (string) $ph['video']['name'], self::VIDEO_WAIT );
 					if ( ! is_wp_error( $video ) ) {
 						$temp[]                          = $video['tmp_name'];
 						$posters[ count( $files ) ]      = $photo;

@@ -4096,16 +4096,19 @@ msgstr ""
 msgid "Say something kind…"
 msgstr ""
 
+#. translators: %s: the other Stubli's name
 #: assets/app/app.js:1852
-msgid "It's saved on your own site too. It shows on their post right away if they follow you; otherwise after their OK."
+msgid "It's saved on your own site too. If %s follows you, it shows on the post right away; otherwise once %s says OK."
 msgstr ""
 
+#. translators: %s: the other Stubli's name
 #: assets/app/app.js:1867
-msgid "Saved. They're taking a break, so Stubli will keep sending it and it shows once they're back."
+msgid "Saved. %s is taking a break, so Stubli will keep sending it and it shows once %s is back."
 msgstr ""
 
+#. translators: %s: the other Stubli's name
 #: assets/app/app.js:1867
-msgid "Saved on your site. Their site didn't answer, so Stubli will keep trying for a week."
+msgid "Saved on your site. %s didn't answer just now, so Stubli will keep trying for a week."
 msgstr ""
 
 #: assets/app/app.js:1867
@@ -5694,4 +5697,8 @@ msgstr ""
 
 #: assets/app/app.js:3720
 msgid "Discard this post. Press again to confirm."
+msgstr ""
+
+#: assets/app/app.js
+msgid "the other Stubli"
 msgstr ""

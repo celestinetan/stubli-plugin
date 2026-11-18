@@ -1943,6 +1943,11 @@
 		if ( older ) { older.addEventListener( 'click', function () { older.disabled = true; older.textContent = __( 'Loading…', 'stubli' ); var y = window.scrollY; loadFeed( false ).then( function () { renderHome(); window.scrollTo( 0, y ); } ); } ); }
 		bindItems();
 	}
+	// The other Stubli by its name (or its address when it has none), never 'they' (0.52.7; Celestine: names, never pronouns).
+	function whoOf( it ) {
+		var a = ( it && it.author ) || {}, n = unent( a.name || '' ).trim();
+		return n || hostOf( a.url ) || __( 'the other Stubli', 'stubli' );
+	}
 	function item( it ) {
 		var imgs = ( it.images && it.images.length ? it.images : ( it.image ? [ { url: it.image, alt: '' } ] : [] ) );
 		var isNew = Date.parse( it.published ) > ( feed.seenBefore || 0 ) && feed.seenBefore;
@@ -1961,7 +1966,7 @@
 				( note ? '<button type="button" class="a-reveal" data-reveal="' + it.id + '"><strong>' + esc( it.content_note ) + ( '</strong><span>' + __( 'Show photo', 'stubli' ) + '</span></button>' ) : '' ) + '</div>' : '' ) +
 			( it.caption_html ? '<div class="a-caption">' + it.caption_html + '</div>' : '' ) +
 			'<div class="a-item-acts"><button type="button" class="a-text-btn" data-comment="' + it.id + '" aria-expanded="' + ( c ? 'true' : 'false' ) + ( '">' + __( 'Comment', 'stubli' ) + '</button>' ) + ( it.my_comments ? ( '<span class="muted small">' + __( 'You commented', 'stubli' ) + '</span>' ) : '' ) + '<a class="a-text-btn muted" href="' + esc( it.permalink ) + ( '">' + __( 'Open', 'stubli' ) + '</a></div>' ) +
-			( c ? '<div class="a-comment-box"><label class="sr" for="a-cm-' + it.id + ( '">' + __( 'Your comment', 'stubli' ) + '</label><textarea id="a-cm-' ) + it.id + '" class="a-textarea" maxlength="1000" placeholder="' + esc( __( 'Say something kind…', 'stubli' ) ) + '">' + esc( c.text || '' ) + '</textarea><div class="a-actions" style="margin-top:8px"><button type="button" class="a-btn" data-send-comment="' + it.id + ( '">' + __( 'Send', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-comment="' ) + it.id + ( '">' + __( 'Cancel', 'stubli' ) + '</button></div><p class="a-help" data-cm-msg="' ) + it.id + '" aria-live="polite">' + esc( c.msg || __( 'It\'s saved on your own site too. It shows on their post right away if they follow you; otherwise after their OK.', 'stubli' ) ) + '</p></div>' : '' ) +
+			( c ? '<div class="a-comment-box"><label class="sr" for="a-cm-' + it.id + ( '">' + __( 'Your comment', 'stubli' ) + '</label><textarea id="a-cm-' ) + it.id + '" class="a-textarea" maxlength="1000" placeholder="' + esc( __( 'Say something kind…', 'stubli' ) ) + '">' + esc( c.text || '' ) + '</textarea><div class="a-actions" style="margin-top:8px"><button type="button" class="a-btn" data-send-comment="' + it.id + ( '">' + __( 'Send', 'stubli' ) + '</button><button type="button" class="a-text-btn" data-comment="' ) + it.id + ( '">' + __( 'Cancel', 'stubli' ) + '</button></div><p class="a-help" data-cm-msg="' ) + it.id + '" aria-live="polite">' + esc( c.msg || _f( __( 'It\'s saved on your own site too. If %s follows you, it shows on the post right away; otherwise once %s says OK.', 'stubli' ), whoOf( it ), whoOf( it ) ) ) + '</p></div>' : '' ) +
 			'</article>';
 	}
 	function bindItems() {
@@ -1976,7 +1981,7 @@
 				send( 'POST', 'items/' + id + '/comments', { text: t.value.trim() } ).then( function ( r ) {
 					var it = feed.items.filter( function ( x ) { return String( x.id ) === String( id ); } )[ 0 ];
 					if ( it ) { it.my_comments = ( it.my_comments || 0 ) + 1; }
-					var msg = r && r.status === 'paused' ? __( 'Saved. They\'re taking a break, so Stubli will keep sending it and it shows once they\'re back.', 'stubli' ) : r && r.status === 'not_sent' ? __( 'Saved on your site. Their site didn\'t answer, so Stubli will keep trying for a week.', 'stubli' ) : __( 'Sent. Thank you.', 'stubli' );
+					var who = whoOf( it ), msg = r && r.status === 'paused' ? _f( __( 'Saved. %s is taking a break, so Stubli will keep sending it and it shows once %s is back.', 'stubli' ), who, who ) : r && r.status === 'not_sent' ? _f( __( 'Saved on your site. %s didn\'t answer just now, so Stubli will keep trying for a week.', 'stubli' ), who ) : __( 'Sent. Thank you.', 'stubli' );
 					feed.open[ k ] = null; var y = window.scrollY; renderHome(); window.scrollTo( 0, y );
 					var art = $( '[data-item="' + id + '"] .a-item-acts' ); if ( art ) { art.insertAdjacentHTML( 'afterend', '<p class="a-help" role="status">' + esc( msg ) + '</p>' ); }
 				}, function ( e ) { b.disabled = false; b.textContent = __( 'Send', 'stubli' ); m.textContent = ( e && e.message ) || __( 'Couldn\'t send that. Try again.', 'stubli' ); } );

@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.52.5
+Stable tag: 0.52.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -107,6 +107,12 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.52.7 =
+* Home: when you comment on someone's post, the notes under the comment box name their Stubli instead of saying "they".
+
+= 0.52.6 =
+* Safety: Move to another site accepts its secret link only the way Stubli sends it, never in a web address that could end up in server logs, and gives up sooner on a photo that doesn't arrive.
 
 = 0.52.5 =
 * Safety: the "can stubli.app reach your site?" check is now limited per visitor, so one visitor can no longer use it up for everyone.
