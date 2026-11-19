@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.53.0
+Stable tag: 0.53.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.53.1 =
+* Your page's top bar no longer shows starter pages you never edited, such as WordPress.com's example About page. Edit one and it shows again.
+* Wording: "leave a tip", and the setup's Say hello says "so Celestine knows you've joined".
 
 = 0.53.0 =
 * News from Stubli: short notes about new features and safety updates, in What's new. Off unless you turn it on: in setup, once in What's new, or in You → Settings and more. When on, your site checks stubli.app once a day and sends nothing about you or your visitors.

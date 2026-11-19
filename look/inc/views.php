@@ -92,6 +92,28 @@ function stubli_print_view( $view ) {
 /* ───────────────────────── Shared pieces ───────────────────────── */
 
 /**
+ * A placeholder page nobody has touched (theme 0.2.134, Celestine 19 Nov): WordPress.com's starter
+ * "About" ("This is an example of a page…") or the old OpenGram plugin's "Profile" ("Write a few lines
+ * about yourself…"), never edited since it was made. Kept out of the top bar, like "Sample Page".
+ * Once the owner edits it, it shows again.
+ *
+ * @param WP_Post $page Page.
+ * @return bool
+ */
+function stubli_is_starter_page( $page ) {
+	if ( $page->post_modified_gmt !== $page->post_date_gmt ) {
+		return false;
+	}
+	$text = wp_strip_all_tags( (string) $page->post_content );
+	foreach ( array( 'This is an example of a page.', 'Write a few lines about yourself and your photos here.' ) as $starter ) {
+		if ( false !== strpos( $text, $starter ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Top bar: site address (or a back link), project pages, reading mode.
  *
  * @param string $back_url  Optional back link.
@@ -106,7 +128,7 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	);
 	// Pages ordered 90 or later stay out of the top bar (stubli.app keeps Privacy in its footer).
 	// WordPress's starter "Sample Page" never shows (audit #12).
-	$pages = array_values( array_filter( $pages, static fn( $p ) => (int) $p->menu_order < 90 && 'sample-page' !== $p->post_name ) );
+	$pages = array_values( array_filter( $pages, static fn( $p ) => (int) $p->menu_order < 90 && 'sample-page' !== $p->post_name && ! stubli_is_starter_page( $p ) ) );
 	/**
 	 * Filters the pages listed in the top bar.
 	 *
