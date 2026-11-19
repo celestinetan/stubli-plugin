@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Stubli
  * Description:       Turns a WordPress site into a cosy, familiar photo-sharing home: a public profile with collections, a journal and a guest book, a private reader for the Stubli sites you follow, and comments between sites via Webmention.
- * Version:           0.52.8
+ * Version:           0.53.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Celestine Tan
@@ -21,7 +21,7 @@ namespace Stubli;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION        = '0.52.8';
+const VERSION        = '0.53.0';
 const SCHEMA_VERSION = 5;
 const REST_NS        = 'stubli/v1';
 /** Every route also answers here, and calls to other sites use it, so sites on older versions keep understanding each other. */
@@ -49,6 +49,7 @@ require_once STUBLI_PLUGIN_DIR . 'includes/class-app.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-invites.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-look.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-feedback.php';
+require_once STUBLI_PLUGIN_DIR . 'includes/class-news.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-hostcheck.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-discover.php';
 require_once STUBLI_PLUGIN_DIR . 'includes/class-setup.php';
@@ -89,6 +90,7 @@ add_action(
 		App::init();
 		Look::init();
 		Feedback::init();
+		News::init();
 		HostCheck::init();
 		Discover::init();
 		Setup::init();

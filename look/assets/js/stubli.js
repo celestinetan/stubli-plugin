@@ -80,6 +80,9 @@
 		try {
 			var qs = new URLSearchParams( location.search );
 			if ( qs.get( 'invite' ) && keepInvite( qs.get( 'invite' ), qs.get( 'from' ) ) ) { history.replaceState( null, '', location.pathname + '#gs-start' ); }
+			// "Tell a friend about Stubli" (0.53.0): ?friend=Zoë greets them by the friend's first name. Text only, nothing kept.
+			var fr = String( qs.get( 'friend' ) || '' ).replace( /[<>]/g, '' ).trim().slice( 0, 40 ), fb = gs.querySelector( '[data-gs-friend]' );
+			if ( fr && fb && ! qs.get( 'invite' ) ) { fb.textContent = ( T.friendBy || '%s thinks you\'d like Stubli' ).replace( '%s', fr ); fb.hidden = false; }
 		} catch ( e ) {}
 		var paintInvite = function () {
 			var box = gs.querySelector( '[data-gs-invited]' ), h = gs.querySelector( '[data-gs-invited-h]' ), pick = gs.querySelector( '[data-gs-invite-pick]' );
@@ -103,6 +106,7 @@
 			paintInvite();
 			var ibox = gs.querySelector( '[data-gs-invited]' );
 			if ( ibox && 'start' !== sid ) { ibox.hidden = true; }
+			var fbx = gs.querySelector( '[data-gs-friend]' ); if ( fbx && fbx.textContent ) { fbx.hidden = 'start' !== sid || ! ( ibox && ibox.hidden ); }
 			if ( ! n ) {
 				prog.hidden = true;
 				if ( focus ) { var h0 = cur.querySelector( 'h2' ); h0.setAttribute( 'tabindex', '-1' ); h0.focus(); }

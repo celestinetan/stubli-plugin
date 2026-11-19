@@ -235,6 +235,8 @@ class Setup {
 			'seasonal'  => Seasonal::on(),
 			// Asked as a yes/no in setup: null until the owner answers (WordPress.org guideline 10: credits are opt-in).
 			'credit'    => false === get_option( 'stubli_credit', false ) ? null : (bool) get_option( 'stubli_credit' ),
+			// News from Stubli (0.53.0): null until answered (guideline 7: outside calls need consent).
+			'news'      => News::asked() ? News::is_on() : null,
 			'helper'    => Helper::state(),
 			'manual'    => Helper::manual_url(),
 			'follows'   => array_map(
@@ -281,6 +283,9 @@ class Setup {
 		}
 		if ( array_key_exists( 'credit', $c ) ) {
 			Settings::update( array( 'credit' => $c['credit'] ) );
+		}
+		if ( array_key_exists( 'news', $c ) ) {
+			News::set( rest_sanitize_boolean( $c['news'] ) );
 		}
 		if ( array_key_exists( 'seasonal', $c ) ) {
 			Seasonal::set( $c['seasonal'] );

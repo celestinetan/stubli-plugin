@@ -1151,8 +1151,12 @@ function stubli_view_library() {
 			/* translators: %s: the owner's first name */
 			echo '<a class="st-lib-ask" href="' . esc_url( $ask ) . '">' . wp_kses( stubli_icon( 'mail', 16 ), stubli_allowed_html() ) . esc_html( sprintf( __( 'Ask %s about it', 'stubli' ), $first ) ) . '</a>';
 			echo '<p class="st-muted st-small">' . esc_html__( 'Send a private note with how to reach you.', 'stubli' ) . '</p>';
-			echo '<div class="st-lib-own"><p><strong>' . esc_html__( 'Easier with a Stubli of your own:', 'stubli' ) . '</strong> ' . esc_html__( 'ask with one tap, get the answer in your app, and lend your own things too.', 'stubli' ) . '</p>';
-			echo '<a class="st-button st-lib-make" href="https://stubli.app/welcome/?from=library">' . esc_html__( 'Make your Stubli', 'stubli' ) . '</a>';
+			echo '<div class="st-lib-own">';
+			// Only if the owner said yes to "Help friends find Stubli?" (0.2.133: WordPress.org guideline 10, credit links are opt-in).
+			if ( stubli_credit_on() ) {
+				echo '<p><strong>' . esc_html__( 'Easier with a Stubli of your own:', 'stubli' ) . '</strong> ' . esc_html__( 'ask with one tap, get the answer in your app, and lend your own things too.', 'stubli' ) . '</p>';
+				echo '<a class="st-button st-lib-make" href="https://stubli.app/welcome/?from=library">' . esc_html__( 'Make your Stubli', 'stubli' ) . '</a>';
+			}
 			// Names, never pronouns (Celestine, 11 Nov).
 			/* translators: 1: the owner's first name, 2: the same name */
 			echo '<p class="st-muted st-small st-lib-hint">' . esc_html( sprintf( __( 'Already have one? Follow %1$s, and once %2$s follows you back, ask from your app: People → Library.', 'stubli' ), $first, $first ) ) . '</p></div>';
@@ -1378,7 +1382,9 @@ function stubli_view_note( $name ) {
 				<p><strong><?php esc_html_e( 'Sent. Thank you!', 'stubli' ); ?></strong></p>
 				<p class="st-muted"><?php /* translators: %s: first name */ printf( esc_html__( '%s will see it soon, and can write back if you left a way to reach you.', 'stubli' ), esc_html( $first ) ); ?></p>
 				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php /* translators: %s: first name */ printf( esc_html__( 'Back to %s\'s page', 'stubli' ), esc_html( $first ) ); ?></a>
+				<?php if ( stubli_credit_on() ) : // Opt-in, like the "Made with Stubli" line (0.2.133). ?>
 				<p class="st-note-own st-muted st-small"><?php esc_html_e( 'Want a page like this of your own?', 'stubli' ); ?> <a href="https://stubli.app/welcome/?from=note"><?php esc_html_e( 'Make your Stubli', 'stubli' ); ?></a></p>
+				<?php endif; ?>
 			</div>
 		</section>
 		<section id="st-pane-own" role="tabpanel" aria-labelledby="st-tab-own" hidden>

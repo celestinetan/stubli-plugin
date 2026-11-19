@@ -56,6 +56,8 @@ add_action(
 				'badAddress'  => __( 'That doesn\'t look like a website address. Try something like yourname.com.', 'stubli' ),
 				/* translators: %s: name */
 				'invitedBy'   => __( '%s invited you', 'stubli' ),
+				/* translators: %s: first name of the friend who shared the link */
+				'friendBy'    => __( '%s thinks you\'d like Stubli', 'stubli' ),
 				/* translators: 1: step number, 2: step name */
 				'badInvite'   => __( 'That doesn\'t look like an invite link. It looks like theirname.com/invite/?t=… Ask your friend to send it again if you can\'t find it.', 'stubli' ),
 				'gs1'         => __( 'Get a WordPress site', 'stubli' ),

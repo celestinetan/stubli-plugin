@@ -32,6 +32,7 @@ class Settings {
 			'guest_sign'    => (bool) get_option( 'stubli_guest_sign', 1 ),
 			'look'          => (bool) get_option( 'stubli_look', 0 ),
 			'credit'        => (bool) get_option( 'stubli_credit', 0 ),
+			'news'          => News::is_on(),
 		);
 	}
 
@@ -68,6 +69,9 @@ class Settings {
 		}
 		if ( array_key_exists( 'credit', $changes ) ) {
 			update_option( 'stubli_credit', rest_sanitize_boolean( $changes['credit'] ) ? 1 : 0 );
+		}
+		if ( array_key_exists( 'news', $changes ) && rest_sanitize_boolean( $changes['news'] ) !== News::is_on() ) {
+			News::set( rest_sanitize_boolean( $changes['news'] ) );
 		}
 		if ( array_key_exists( 'look', $changes ) ) {
 			update_option( 'stubli_look', rest_sanitize_boolean( $changes['look'] ) ? 1 : 0 );

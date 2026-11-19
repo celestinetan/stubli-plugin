@@ -99,6 +99,7 @@ class Admin {
 						$row( 'look', __( 'Stubli look', 'stubli' ), __( 'Show your site in the Stubli design (recommended). Turn off to keep your current theme.', 'stubli' ), $s['look'] );
 					}
 					$row( 'credit', __( 'Made with Stubli', 'stubli' ), __( 'Show a small "Made with Stubli · Make your own" line below your photos and in your footer, so visitors can find out how to get their own. Off unless you turn it on.', 'stubli' ), $s['credit'] );
+					$row( 'news', __( 'News from Stubli', 'stubli' ), __( 'A short note now and then about new features and safety updates. Your Stubli checks stubli.app once a day and sends nothing about you or your visitors.', 'stubli' ), $s['news'] );
 					?>
 				</table>
 				<h2><?php esc_html_e( 'Privacy', 'stubli' ); ?></h2>
@@ -155,6 +156,7 @@ class Admin {
 		$changes = array(
 				'search_engines'  => ! empty( $_POST['search_engines'] ),
 				'credit'          => ! empty( $_POST['credit'] ),
+				'news'            => ! empty( $_POST['news'] ),
 				'block_ai'        => ! empty( $_POST['block_ai'] ),
 				'on_break'        => ! empty( $_POST['on_break'] ),
 				'guest_sign'      => ! empty( $_POST['guest_sign'] ),

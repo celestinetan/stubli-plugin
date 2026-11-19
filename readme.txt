@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.52.8
+Stable tag: 0.53.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,7 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 
 * **Sites you follow, comment on or invite.** Your site fetches their public feed and profile (address, name, photos) and sends comments by Webmention. These are other people's Stubli sites, chosen by you.
 * **stubli.app feedback (only when you press Send).** The app's feedback form sends your note, your device type (for example "iPhone, Safari") and your Stubli version, and, if you ticked them, your site address and a screenshot, to stubli.app, the project's own site, so the people who make Stubli can read it. Privacy: https://stubli.app/privacy/
+* **News from Stubli (only if you turn it on).** Once a day your site downloads a short list of notes from stubli.app. No site address or personal data is sent. stubli.app's privacy notice applies: https://stubli.app/privacy/
 * **stubli.app host check (only when you press Check).** The host check asks stubli.app to try reaching your site, to tell you whether other sites can reach it. stubli.app receives your site's address. If you press "Check and send the result to the Stubli team", the results, your site's address, your Stubli and PHP versions and the host name you typed are sent as a host report. Privacy: https://stubli.app/privacy/
 * **Videos you embed in a journal entry.** If you paste a YouTube or Vimeo link into a journal entry, visitors who open that entry load the video from YouTube (youtube-nocookie.com) or Vimeo. Nothing loads from them otherwise. YouTube: https://policies.google.com/privacy, Vimeo: https://vimeo.com/privacy
 * **WordPress.org (once, when you finish the setup).** Stubli asks WordPress.org for the Webmention plugin and installs it, the same way Plugins → Add New does. You can also add it yourself.
@@ -107,6 +108,11 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.53.0 =
+* News from Stubli: short notes about new features and safety updates, in What's new. Off unless you turn it on: in setup, once in What's new, or in You → Settings and more. When on, your site checks stubli.app once a day and sends nothing about you or your visitors.
+* Tell a friend about Stubli: share a link from People or Settings and more, so a friend can make their own. Stubli doesn't see who you send it to.
+* The Library card and the thank-you after a note show "Make your Stubli" only if you said yes to "Help friends find Stubli?", like the "Made with Stubli" line.
 
 = 0.52.8 =
 * Videos: YouTube and Vimeo videos in your journal play again when you press play.
@@ -143,39 +149,3 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 * Safety: strangers can no longer use up the limits that keep spam out, so real comments, letters, borrow requests and invites keep getting through. Letters from people you don't follow wait quietly under the envelope instead of buzzing your phone.
 * Safety: a comment always shows the site it really came from, even if its page claims to be someone else.
 * Behind the scenes: Discover checks where another site sends it before following, like WordPress's own safe requests.
-
-= 0.51.7 =
-* Posting: Share works again when you already have 5 collections. Until now the button did nothing, without a message. Sorry about that.
-
-= 0.51.6 =
-* Behind the scenes: parking photos while they upload one at a time now uses the way WordPress.org asks plugins to handle files. Nothing changes in how posting looks or works.
-
-= 0.51.5 =
-* Posting: photos now go up one at a time, with "Uploading 7 of 20", so a big carousel no longer gets stuck on some hosts. If your site doesn't answer, the app now says so instead of waiting forever.
-
-= 0.51.4 =
-* Friends only: a friends-only post is never public, not even for a moment while its photos upload or while you move your Stubli. When someone stops being your friend, their Stubli lets go of the friends-only posts it kept.
-* Privacy: the comments you write on other Stublis are no longer listed anywhere; each opens only at its own address. WordPress's public lists leave out photos that belong to nothing public and collections that hold only private posts.
-
-= 0.51.3 =
-* Friends only: when you block or stop following someone you had ticked as a friend, they stop seeing your friends-only posts straight away. When a friend's Stubli moves, the friendship moves with it. You can now untick someone you no longer follow.
-* Letters: a letter is always shown as coming from the Stubli that sent it.
-
-= 0.51.2 =
-* Library: tidier tiles. Tap something to open a card with its note and the ways to borrow it: ask privately, or, easier, with a Stubli of your own.
-
-= 0.51.1 =
-* Favourites: Sites I follow is a card like your groups, with its title on its own line. On a computer, a card alone on the last row keeps its size instead of stretching. The card only shows once you follow someone.
-
-= 0.51.0 =
-* Journal: topics. Make up to five of your own (a short name or an emoji) under Your journal → Topics and pins, and pick one when you write an entry. They show as filters at the top of your Journal tab, like the Library's.
-* Journal: pin up to three entries to the top of your Journal tab.
-
-Older versions: see changelog.txt in the plugin, or https://github.com/celestinetan/stubli-plugin/blob/main/changelog.txt
-
-== Developer notes ==
-
-* Internal prefix stubli_, PHP namespace Stubli, REST namespace stubli/v1. Sites that ran Stubli before 0.17 also answer at the older og/v1 so friends' sites that haven't updated can still reach them; calls to other sites try stubli/v1 first.
-* Content is standard WordPress posts: image, gallery and status post formats; collections are categories; the guest book is a page. A video is attached to its cover photo (meta _stubli_video), so everything that expects photos keeps working.
-* Feeds add Media RSS for each photo, plus stubli:contentNote and stubli:video in the urn:stubli:1 namespace.
-* Tables: {prefix}stubli_follows and {prefix}stubli_items.

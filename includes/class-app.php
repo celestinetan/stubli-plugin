@@ -176,6 +176,7 @@ class App {
 			'home'        => home_url( '/' ),
 			'journal'     => home_url( '/journal/' ),
 			'name'        => self::first_name( $user ),
+			'ownerFirst'  => Notes::owner_first(),
 			'settings'    => admin_url( 'options-general.php?page=stubli' ),
 			'dashboard'   => admin_url(),
 			'collections' => array_values( array_unique( $collections ) ),

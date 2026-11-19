@@ -2,6 +2,42 @@
 
 The newest changes are in readme.txt. These are the older versions, newest first.
 
+= 0.51.7 =
+* Posting: Share works again when you already have 5 collections. Until now the button did nothing, without a message. Sorry about that.
+
+= 0.51.6 =
+* Behind the scenes: parking photos while they upload one at a time now uses the way WordPress.org asks plugins to handle files. Nothing changes in how posting looks or works.
+
+= 0.51.5 =
+* Posting: photos now go up one at a time, with "Uploading 7 of 20", so a big carousel no longer gets stuck on some hosts. If your site doesn't answer, the app now says so instead of waiting forever.
+
+= 0.51.4 =
+* Friends only: a friends-only post is never public, not even for a moment while its photos upload or while you move your Stubli. When someone stops being your friend, their Stubli lets go of the friends-only posts it kept.
+* Privacy: the comments you write on other Stublis are no longer listed anywhere; each opens only at its own address. WordPress's public lists leave out photos that belong to nothing public and collections that hold only private posts.
+
+= 0.51.3 =
+* Friends only: when you block or stop following someone you had ticked as a friend, they stop seeing your friends-only posts straight away. When a friend's Stubli moves, the friendship moves with it. You can now untick someone you no longer follow.
+* Letters: a letter is always shown as coming from the Stubli that sent it.
+
+= 0.51.2 =
+* Library: tidier tiles. Tap something to open a card with its note and the ways to borrow it: ask privately, or, easier, with a Stubli of your own.
+
+= 0.51.1 =
+* Favourites: Sites I follow is a card like your groups, with its title on its own line. On a computer, a card alone on the last row keeps its size instead of stretching. The card only shows once you follow someone.
+
+= 0.51.0 =
+* Journal: topics. Make up to five of your own (a short name or an emoji) under Your journal → Topics and pins, and pick one when you write an entry. They show as filters at the top of your Journal tab, like the Library's.
+* Journal: pin up to three entries to the top of your Journal tab.
+
+Older versions: see changelog.txt in the plugin, or https://github.com/celestinetan/stubli-plugin/blob/main/changelog.txt
+
+== Developer notes ==
+
+* Internal prefix stubli_, PHP namespace Stubli, REST namespace stubli/v1. Sites that ran Stubli before 0.17 also answer at the older og/v1 so friends' sites that haven't updated can still reach them; calls to other sites try stubli/v1 first.
+* Content is standard WordPress posts: image, gallery and status post formats; collections are categories; the guest book is a page. A video is attached to its cover photo (meta _stubli_video), so everything that expects photos keeps working.
+* Feeds add Media RSS for each photo, plus stubli:contentNote and stubli:video in the urn:stubli:1 namespace.
+* Tables: {prefix}stubli_follows and {prefix}stubli_items.
+
 = 0.50.0 =
 * Library: A to Z by title is the new standard order (The, A and An are skipped, so The Odyssey files under O). Newest first and your own order are still there, under Library → Change. A Library that was arranged by hand keeps its order.
 * Library: the filters are icons; the one you pick shows its name.

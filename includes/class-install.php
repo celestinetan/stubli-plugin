@@ -57,6 +57,7 @@ class Install {
 	 */
 	public static function deactivate() {
 		wp_clear_scheduled_hook( self::CRON_HOOK );
+		wp_clear_scheduled_hook( News::CRON );
 		flush_rewrite_rules();
 	}
 

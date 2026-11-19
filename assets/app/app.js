@@ -562,12 +562,15 @@
 			( '<section class="a-card"><h2>' + __( 'Colour and reading mode', 'stubli' ) + '</h2><p class="muted">' + __( 'The colour of your page and how it opens for visitors: Light or Paper.', 'stubli' ) + '</p><a class="a-btn quiet" href="#look">' + __( 'Change', 'stubli' ) + '</a></section>' ) +
 			( '<section class="a-card"><h2>' + __( 'Bring your photos from Instagram', 'stubli' ) ) + helpLink( 'posting/instagram', __( 'bringing photos from Instagram', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Your posts arrive with their original dates and captions.', 'stubli' ) + '</p><a class="a-btn quiet" href="#import">' + __( 'Start', 'stubli' ) + '</a></section>' ) +
 			keepCard() +
+			newsCard() + friendCard() +
 			( '<section class="a-card"><h2>' + __( 'Tell us what you think', 'stubli' ) + '</h2><p class="muted">' + __( 'Ideas, things that don\'t work, kind words: every note goes to the people who make Stubli.', 'stubli' ) + '</p><a class="a-btn quiet" href="#feedback">' + __( 'Send feedback', 'stubli' ) + '</a></section>' ) +
 			( isStandalone() ? '' : ( '<section class="a-card"><h2>' + __( 'Put Stubli on your home screen', 'stubli' ) + '</h2><p class="muted">' ) + ( ios ? _f( __( 'In Safari, tap the Share button, then %s.', 'stubli' ), '<strong>' + __( 'Add to Home Screen', 'stubli' ) + '</strong>' ) : _f( __( 'Open your browser\'s menu, then choose %s or %s.', 'stubli' ), '<strong>' + __( 'Add to Home screen', 'stubli' ) + '</strong>', '<strong>' + __( 'Install app', 'stubli' ) + '</strong>' ) ) + ( ' ' + __( 'It opens like an app, without the browser around it.', 'stubli' ) + '</p></section>' ) ) +
 			( '<p class="a-help a-thanks">' + __( 'Stubli is free and always will be. Celestine makes it and pays for it; if you enjoy it, you can', 'stubli' ) + ' <a href="https://buymeacoffee.com/celestinetan" target="_blank" rel="noopener">' + __( 'leave him a tip', 'stubli' ) + '</a>. ' + __( 'It unlocks nothing; it just keeps Stubli going.', 'stubli' ) + '</p>' ) +
 			'</main>' + bar( 'you' );
 		bindSummary( redrawSummary ); bindKeep();
-		bindMove();
+		bindMove(); bindFriend();
+		bindNews( function () { if ( location.hash === '#more' ) { var y = window.scrollY; viewMore(); window.scrollTo( 0, y ); } } );
+		if ( ! nw.loadedMore ) { nw.loadedMore = true; loadNews().then( function () { if ( location.hash === '#more' ) { var y = window.scrollY; viewMore(); window.scrollTo( 0, y ); } } ); }
 		if ( ! mv.loaded ) { mv.loaded = true; Promise.all( [ send( 'GET', 'move/link', null ), send( 'GET', 'move/in', null ) ] ).then( function ( r ) { mv.out = r[ 0 ]; mv.inState = r[ 1 ]; if ( r[ 1 ].state === 'moving' ) { runMove( function () { if ( location.hash === '#more' ) { redrawMove(); } } ); } if ( location.hash === '#more' ) { redrawMove(); } }, function () {} ); }
 		if ( ! kp.loaded && ! kp.loading ) { kp.loading = true; send( 'GET', 'archive', null ).then( function ( r ) { kp.ar = r; kp.loaded = true; kp.loading = false; if ( r.state === 'packing' ) { packArchive(); } else if ( location.hash === '#more' ) { redrawKeep(); } }, function () { kp.loaded = true; kp.loading = false; } ); }
 		if ( ! ds.loaded && ! ds.loading ) { ds.loading = true; loadSummary().then( function () { ds.loading = false; if ( location.hash === '#more' ) { redrawSummary(); } } ); }
@@ -2068,10 +2071,11 @@
 		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'People', 'stubli' ) + '</h1>' ) +
 			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
 			( '<div data-invite-out></div><button type="button" class="a-btn" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
+			friendCard() +
 			peopleCard() +
 			( '<h2 class="a-caps" style="margin-top:22px">' + __( 'Discover', 'stubli' ) + '</h2><p class="muted" style="margin:-2px 0 14px">' + __( 'Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.', 'stubli' ) + '</p>' ) +
 			body + '</main>' + bar( 'discover' );
-		bindInvite(); bindPeople();
+		bindInvite(); bindPeople(); bindFriend();
 		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( $( '[data-people]' ) ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
 		var dr = $( '[data-disc-retry]' ); if ( dr ) { dr.addEventListener( 'click', function () { disc.loaded = false; viewDiscover(); } ); }
 		var dn = $( '[data-disc-next]' ); if ( dn ) { dn.addEventListener( 'click', function () { disc.i++; renderDiscover(); var h = $( '.a-disc strong, .a-end strong' ); if ( h ) { h.setAttribute( 'tabindex', '-1' ); h.focus(); } } ); }
@@ -2089,6 +2093,68 @@
 		} );
 	}
 
+	/* ── News from Stubli (0.53.0): opt-in notes from Celestine, one card at a time ── */
+	var nw = { on: false, asked: true, items: [], msg: '', busy: false };
+	function loadNews() {
+		return send( 'GET', 'news/mine', null ).then( function ( r ) { nw.on = !! r.on; nw.asked = !! r.asked; nw.items = r.items || []; }, function () { nw.items = []; } );
+	}
+	function newsSet( changes, msg ) {
+		nw.busy = true;
+		return send( 'POST', 'news/mine', changes ).then( function ( r ) { nw.on = !! r.on; nw.asked = !! r.asked; nw.items = r.items || []; nw.busy = false; nw.msg = msg || ''; }, function ( e ) { nw.busy = false; nw.msg = e.message; } );
+	}
+	var NEWS_WHY = function () { return __( 'A short note now and then about new features and safety updates. Your Stubli checks stubli.app once a day and sends nothing about you or your visitors.', 'stubli' ); };
+	function newsHtml() {
+		// Owners from before 0.53.0 never saw the setup question: ask once here.
+		if ( ! nw.asked && B.setupDone ) {
+			return '<section class="a-card a-news" aria-labelledby="a-news-ask"><p class="a-news-k">' + __( 'News from Stubli', 'stubli' ) + '</p><h2 id="a-news-ask">' + __( 'Get news from Stubli?', 'stubli' ) + '</h2><p class="muted">' + esc( NEWS_WHY() ) + '</p>' +
+				'<div class="a-actions"><button type="button" class="a-btn" data-news-ask="1"' + ( nw.busy ? ' disabled' : '' ) + '>' + __( 'Yes, get news', 'stubli' ) + '</button><button type="button" class="a-btn quiet" data-news-ask="0"' + ( nw.busy ? ' disabled' : '' ) + '>' + __( 'Not now', 'stubli' ) + '</button></div></section>';
+		}
+		var n = nw.items[ 0 ];
+		var said = nw.msg ? '<p class="a-help" role="status">' + esc( nw.msg ) + '</p>' : '';
+		if ( ! n ) { return said; }
+		return '<section class="a-card a-news' + ( n.kind === 'safety' ? ' is-safety' : '' ) + '" aria-labelledby="a-news-h"><p class="a-news-k">' + ( n.kind === 'safety' ? __( 'Safety update from Stubli', 'stubli' ) : __( 'News from Stubli', 'stubli' ) ) + '</p>' +
+			'<h2 id="a-news-h">' + esc( n.title ) + '</h2>' + ( n.text ? '<p>' + esc( n.text ) + '</p>' : '' ) +
+			'<div class="a-actions">' + ( n.link ? '<a class="a-btn quiet" href="' + esc( n.link ) + '" target="_blank" rel="noopener">' + __( 'Read more', 'stubli' ) + '</a>' : '' ) + '<button type="button" class="a-btn quiet" data-news-gone="' + esc( n.id ) + '">' + __( 'Got it', 'stubli' ) + '</button></div></section>' + said;
+	}
+	function bindNews( redraw ) {
+		$$( '[data-news-ask]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var yes = b.dataset.newsAsk === '1';
+			newsSet( { on: yes }, yes ? __( 'News is on. You can turn it off in You → Settings and more.', 'stubli' ) : __( 'No news, then. You can turn it on in You → Settings and more.', 'stubli' ) ).then( redraw );
+		} ); } );
+		$$( '[data-news-gone]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { b.disabled = true; newsSet( { dismiss: b.dataset.newsGone } ).then( redraw ); } ); } );
+		var t = $( '[data-news-on]' );
+		if ( t ) { t.addEventListener( 'change', function () { newsSet( { on: t.checked }, t.checked ? __( 'News is on.', 'stubli' ) : __( 'News is off. Your Stubli no longer checks stubli.app for news.', 'stubli' ) ).then( redraw ); } ); }
+	}
+	function newsCard() {
+		return '<section class="a-card"><h2>' + __( 'News from Stubli', 'stubli' ) + '</h2>' +
+			'<label class="a-check"><span><strong>' + __( 'Get news from Stubli', 'stubli' ) + '</strong><span class="muted small">' + esc( NEWS_WHY() ) + '</span></span><input type="checkbox" data-news-on' + ( nw.on ? ' checked' : '' ) + ( nw.busy ? ' disabled' : '' ) + '></label>' +
+			( nw.msg ? '<p class="a-help" role="status">' + esc( nw.msg ) + '</p>' : '' ) + '</section>';
+	}
+
+	/* ── Tell a friend about Stubli (0.53.0): the owner shares a link; Stubli sends nothing ── */
+	function friendLink() {
+		var first = String( B.ownerFirst || B.name || '' ).trim().split( /\s+/ )[ 0 ] || '';
+		return 'https://stubli.app/get-started/' + ( first ? '?friend=' + encodeURIComponent( first ) : '' );
+	}
+	function friendText() { return __( 'I made my own little website with Stubli for photos, a journal and friends. No ads, no feed. Make yours:', 'stubli' ); }
+	function friendCard() {
+		return '<section class="a-card a-tellfriend"><h2>' + __( 'Tell a friend about Stubli', 'stubli' ) + '</h2><p class="muted">' + __( 'Share a link to make their own Stubli. Stubli doesn\'t see who you send it to.', 'stubli' ) + '</p>' +
+			'<div class="a-actions">' + ( navigator.share ? '<button type="button" class="a-btn" data-friend-share>' + __( 'Tell a friend about Stubli', 'stubli' ) + '</button>' : '' ) +
+			'<button type="button" class="a-btn quiet" data-friend-copy>' + __( 'Copy link', 'stubli' ) + '</button>' +
+			'<a class="a-btn quiet" href="mailto:?subject=' + encodeURIComponent( __( 'Stubli', 'stubli' ) ) + '&body=' + encodeURIComponent( friendText() + ' ' + friendLink() ) + '">' + __( 'Email', 'stubli' ) + '</a></div>' +
+			'<p class="a-help" role="status" data-friend-msg></p></section>';
+	}
+	function bindFriend() {
+		var m = function ( t ) { $$( '[data-friend-msg]' ).forEach( function ( x ) { x.textContent = t; } ); };
+		$$( '[data-friend-share]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			navigator.share( { text: friendText(), url: friendLink() } ).then( function () {}, function () {} );
+		} ); } );
+		$$( '[data-friend-copy]' ).forEach( function ( b ) { b.addEventListener( 'click', function () {
+			var txt = friendText() + ' ' + friendLink();
+			( navigator.clipboard ? navigator.clipboard.writeText( txt ) : Promise.reject() ).then( function () { m( __( 'Copied. Paste it in a message to your friend.', 'stubli' ) ); }, function () { m( txt ); } );
+		} ); } );
+	}
+
 	/* ── What's new ── */
 	var wn = { loaded: false, queue: [], activity: [], items: [], done: {}, seen: +( store.get( 'stubli-wn-seen' ) || 0 ), showLater: false };
 	function viewWhatsNew() {
@@ -2098,7 +2164,8 @@
 			send( 'GET', 'activity', null ).then( function ( a ) { wn.activity = Array.isArray( a ) ? a : []; }, function () { wn.activity = []; } ),
 			send( 'GET', 'feed?page=1', null ).then( function ( f ) { wn.items = Array.isArray( f ) ? f : []; }, function () { wn.items = []; } ),
 			libNews(),
-			loadNotes()
+			loadNotes(),
+			loadNews()
 		] ).then( function () {
 			wn.loaded = true; wn.since = wn.seen || ( Date.now() - 86400000 );
 			B.waiting = wn.queue.filter( function ( c ) { return ! c.later; } ).length;
@@ -2112,6 +2179,7 @@
 		if ( ! wn.loaded ) {
 			body = ( '<div class="a-feed-skel" aria-hidden="true"><span style="height:160px"></span><span style="height:160px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>' );
 		} else {
+			body += newsHtml();
 			body += libNewsHtml();
 			var waiting = wn.queue.filter( function ( c ) { return ! c.later || wn.done[ c.id ]; } );
 			var later = wn.queue.filter( function ( c ) { return c.later && ! wn.done[ c.id ]; } );
@@ -2153,6 +2221,7 @@
 		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'What\'s new', 'stubli' ) + '</h1><p class="muted" style="margin:-2px 0 6px">' + __( 'Since your last look', 'stubli' ) + '</p>' ) + body + '</main>' + bar( 'whatsnew' );
 		$$( '[data-wn-more]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { wn.expand = wn.expand || {}; wn.expand[ b.dataset.wnMore ] = true; renderWhatsNew(); } ); } );
 		bindReplies();
+		bindNews( function () { if ( location.hash === '#whatsnew' ) { renderWhatsNew(); } } );
 		libBindNews();
 		var lt = $( '[data-later-toggle]' );
 		if ( lt ) { lt.addEventListener( 'click', function () { wn.showLater = ! wn.showLater; renderWhatsNew(); } ); }
@@ -3134,6 +3203,11 @@
 				'<p class="a-help">' + ( d.helper === 'active' ? __( 'Stubli also turns on comments, so replies from friends\' sites can arrive.', 'stubli' ) : __( 'Stubli also turns on comments and adds the free Webmention plugin from WordPress.org, so replies from friends\' sites can arrive.', 'stubli' ) ) + ( ' ' + __( 'You can change all of this later in Settings → Stubli.', 'stubli' ) + '</p>' ) +
 				( su.helperFail ? '<div class="a-notice" role="alert"><p>' + esc( su.helperFail ) + ' <a href="' + esc( d.manual ) + ( '">' + __( 'Add Webmention in Plugins', 'stubli' ) + '</a></p></div>' ) : '' ) +
 				( d.hello ? '' : '<label class="a-check"><span><strong>' + __( 'Say hello to Celestine', 'stubli' ) + '</strong><span class="muted small">' + __( 'Sends your site\'s address to stubli.app so he knows you\'ve joined. Nothing else, and only this once.', 'stubli' ) + '</span></span><input type="checkbox" data-su-hello' + ( su.hello ? ' checked' : '' ) + '></label>' ) +
+				( '<p class="a-label" id="a-su-news">' + __( 'Get news from Stubli?', 'stubli' ) + '</p><p class="a-help" style="margin:-2px 0 10px">' + __( 'A short note now and then about new features and safety updates. Your Stubli checks stubli.app once a day and sends nothing about you or your visitors.', 'stubli' ) + '</p>' ) +
+				'<div class="a-chips" role="radiogroup" aria-labelledby="a-su-news">' + [ [ true, __( 'Yes, get news', 'stubli' ) ], [ false, __( 'Not now', 'stubli' ) ] ].map( function ( c ) {
+					var on = d.news === c[ 0 ];
+					return '<button type="button" class="a-chip" role="radio" aria-checked="' + on + '" data-news-pick="' + ( c[ 0 ] ? 1 : 0 ) + '">' + ( on ? icon( 'check', 16 ) : '' ) + c[ 1 ] + '</button>';
+				} ).join( '' ) + '</div>' +
 				'<p class="a-su-note">' + _f( __( 'Your first photo can wait. When you\'re ready, tap %s at the bottom.', 'stubli' ), icon( 'plus', 18 ) ) + '</p>' +
 				setupFoot( su.helperFail ? __( 'Open my feed anyway', 'stubli' ) : ( su.busy && su.helperBusy ? __( 'Adding Webmention…', 'stubli' ) : __( 'Open my feed', 'stubli' ) ) );
 		}
@@ -3269,6 +3343,7 @@
 			hid.addEventListener( 'change', function () { d.hidden = hid.checked; } );
 			ai.addEventListener( 'change', function () { d.block_ai = ai.checked; } );
 			var hi = $( '[data-su-hello]' ); if ( hi ) { hi.addEventListener( 'change', function () { su.hello = hi.checked; } ); }
+			$$( '[data-news-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.news = b.dataset.newsPick === '1'; renderSetup(); $( '[data-news-pick="' + b.dataset.newsPick + '"]' ).focus(); } ); } );
 			var sp = $( '[data-su-push]' );
 			if ( sp ) {
 				sp.addEventListener( 'click', function () {
@@ -3278,7 +3353,7 @@
 			}
 			next.addEventListener( 'click', function () {
 				var finish = function () {
-					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, hello: !! su.hello, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
+					setupSave( { digest: d.digest, hidden: !! d.hidden, block_ai: !! d.block_ai, hello: !! su.hello, news: d.news === true, done: true } ).then( function () { su.helperFail = ''; B.setupDone = true; store.del( 'stubli-setup-later' ); feed.loaded = false; location.hash = '#home'; } );
 				};
 				if ( d.helper === 'active' || su.helperFail ) { return finish(); }
 				// Add the Webmention plugin (from WordPress.org) so comments can travel between sites.
