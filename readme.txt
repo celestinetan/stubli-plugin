@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.52.7
+Stable tag: 0.52.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,12 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 
 == Changelog ==
 
+= 0.52.8 =
+* Videos: YouTube and Vimeo videos in your journal play again when you press play.
+* Videos: only a YouTube or Vimeo link on a line of its own becomes a video. A link inside a sentence stays a link, as in WordPress.
+* Posts made before Stubli: WordPress shortcodes such as [video] and [audio] work again.
+* With Stubli's look on, a background picture or colour from your old theme no longer shows behind your Stubli.
+
 = 0.52.7 =
 * Home: when you comment on someone's post, the notes under the comment box name their Stubli instead of saying "they".
 
@@ -164,12 +170,6 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 = 0.51.0 =
 * Journal: topics. Make up to five of your own (a short name or an emoji) under Your journal → Topics and pins, and pick one when you write an entry. They show as filters at the top of your Journal tab, like the Library's.
 * Journal: pin up to three entries to the top of your Journal tab.
-
-= 0.50.0 =
-* Library: A to Z by title is the new standard order (The, A and An are skipped, so The Odyssey files under O). Newest first and your own order are still there, under Library → Change. A Library that was arranged by hand keeps its order.
-* Library: the filters are icons; the one you pick shows its name.
-* Journal: entries show as cards, like the photos in a collection, all on one page. Tap a card to read the entry.
-* Library: visitors who have a Stubli of their own are told how to ask to borrow: follow, and ask from their app once they're followed back.
 
 Older versions: see changelog.txt in the plugin, or https://github.com/celestinetan/stubli-plugin/blob/main/changelog.txt
 

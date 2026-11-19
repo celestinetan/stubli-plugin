@@ -654,7 +654,7 @@ function stubli_view_single() {
 		echo ' · <a href="' . esc_url( get_category_link( $coll ) ) . '">' . esc_html( stubli_collection_name( $coll ) ) . '</a>';
 	}
 	echo '</p>';
-	echo '<div class="st-caption">' . wp_kses_post( wpautop( $post->post_content ) ) . '</div>';
+	echo '<div class="st-caption">' . stubli_post_html( $post ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- cleaned in stubli_post_html() before shortcodes run.
 	stubli_comments( $post->ID );
 
 	$hand = $coll ? stubli_hand_ids( (int) $coll->term_id ) : null;
@@ -733,20 +733,81 @@ function stubli_entry_meta( $post ) {
  * @return string
  */
 function stubli_entry_html( $post ) {
-	$html = wpautop( $post->post_content );
-	$html = preg_replace_callback(
-		'#<a [^>]*href="(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|vimeo\.com/)([A-Za-z0-9_-]+)[^"]*)"[^>]*>[^<]*</a>#i',
-		static function ( $m ) {
-			$is_vimeo = false !== stripos( $m[1], 'vimeo.com' );
-			$src      = $is_vimeo ? 'https://player.vimeo.com/video/' . rawurlencode( $m[2] ) . '?dnt=1&autoplay=1' : 'https://www.youtube-nocookie.com/embed/' . rawurlencode( $m[2] ) . '?autoplay=1';
-			$from     = $is_vimeo ? 'Vimeo' : 'YouTube';
-			return '<span class="st-video" data-st-video="' . esc_url( $src ) . '"><button type="button" class="st-video-play" aria-label="' . esc_attr__( 'Play video', 'stubli' ) . '">' . stubli_icon( 'play', 22 ) . '</button></span><span class="st-video-note">' . esc_html( sprintf( /* translators: %s: YouTube or Vimeo */ __( 'Video from %s · loads only when you press play', 'stubli' ), $from ) ) . '</span>';
-		},
-		$html
-	);
+	$html = stubli_video_boxes( wpautop( $post->post_content ) );
 	// Screen readers hear which checklist items are ticked.
 	$html = preg_replace( '#<li data-checked="true">#', '<li data-checked="true"><span class="screen-reader-text">' . esc_html__( 'Done:', 'stubli' ) . ' </span>', $html );
-	return wp_kses_post( $html ) === $html ? $html : stubli_kses_entry( $html );
+	$html = wp_kses_post( $html ) === $html ? $html : stubli_kses_entry( $html );
+	return stubli_shortcodes( $html );
+}
+
+/**
+ * A post's caption or text: the owner's words, cleaned, with video links on
+ * their own line as click-to-play boxes and WordPress shortcodes ([video],
+ * [audio], [gallery] …) working, as in posts made before Stubli.
+ *
+ * @param WP_Post $post Post.
+ * @return string HTML.
+ */
+function stubli_post_html( $post ) {
+	$html = wp_kses_post( wpautop( $post->post_content ) );
+	$html = stubli_video_boxes( $html );
+	return stubli_shortcodes( $html );
+}
+
+/**
+ * Run WordPress shortcodes on text that was already cleaned. Their output
+ * comes from WordPress and the site's plugins, as on any WordPress page.
+ *
+ * @param string $html Cleaned HTML.
+ * @return string
+ */
+function stubli_shortcodes( $html ) {
+	if ( false === strpos( $html, '[' ) ) {
+		return $html;
+	}
+	return do_shortcode( shortcode_unautop( $html ) );
+}
+
+/**
+ * The video's player address, for a YouTube or Vimeo link; '' for anything else.
+ *
+ * @param string $url Link.
+ * @return array{0:string,1:string} Player address and site name, or two empty strings.
+ */
+function stubli_video_player( $url ) {
+	$url = html_entity_decode( trim( $url ), ENT_QUOTES );
+	if ( preg_match( '#^https?://(?:www\.|m\.)?(?:youtube\.com/(?:watch\?(?:[^\s"\'<>]*&)?v=|shorts/|embed/|live/)|youtu\.be/)([A-Za-z0-9_-]{6,})#i', $url, $m ) ) {
+		return array( 'https://www.youtube-nocookie.com/embed/' . rawurlencode( $m[1] ) . '?autoplay=1', 'YouTube' );
+	}
+	if ( preg_match( '#^https?://(?:www\.)?vimeo\.com/(?:video/)?([0-9]+)#i', $url, $m ) ) {
+		return array( 'https://player.vimeo.com/video/' . rawurlencode( $m[1] ) . '?dnt=1&autoplay=1', 'Vimeo' );
+	}
+	return array( '', '' );
+}
+
+/**
+ * A YouTube or Vimeo link alone on its own line becomes a click-to-play box,
+ * the way WordPress embeds them. A link inside a sentence stays a link.
+ *
+ * @param string $html HTML after wpautop.
+ * @return string
+ */
+function stubli_video_boxes( $html ) {
+	$url  = 'https?://[^\s"<>]+';
+	$link = '(?:<a [^>]*href="(' . $url . ')"[^>]*>[^<]*</a>|(' . $url . '))';
+	$box  = static function ( $m ) {
+		$found = '' !== ( $m[1] ?? '' ) ? $m[1] : ( $m[2] ?? '' );
+		list( $src, $from ) = stubli_video_player( $found );
+		if ( '' === $src ) {
+			return $m[0];
+		}
+		return '<p class="st-video-line"><span class="st-video" data-st-video="' . esc_url( $src ) . '"><button type="button" class="st-video-play" aria-label="' . esc_attr__( 'Play video', 'stubli' ) . '">' . stubli_icon( 'play', 22 ) . '</button></span><span class="st-video-note">' . esc_html( sprintf( /* translators: %s: YouTube or Vimeo */ __( 'Video from %s · loads only when you press play', 'stubli' ), $from ) ) . '</span></p>';
+	};
+	// A paragraph holding just the link.
+	$html = preg_replace_callback( '#<p>\s*' . $link . '\s*</p>#i', $box, $html );
+	// A WordPress embed block from before Stubli: its address sits alone in the wrapper.
+	$html = preg_replace_callback( '#<figure class="wp-block-embed[^"]*">\s*<div class="wp-block-embed__wrapper">\s*(?:<p>)?\s*' . $link . '\s*(?:</p>)?\s*</div>(?:\s*<figcaption[^>]*>.*?</figcaption>)?\s*</figure>#is', $box, $html );
+	return $html;
 }
 
 /**

@@ -42,7 +42,8 @@
 
 	/* Videos: tap to play, with sound. Nothing downloads before the tap. */
 	document.addEventListener( 'click', function ( e ) {
-		var b = e.target.closest( '[data-st-video]' );
+		// Only a photo post's own video file; YouTube and Vimeo boxes are handled further down.
+		var b = e.target.closest( '.st-play[data-st-video]' );
 		if ( ! b ) { return; }
 		var v = document.createElement( 'video' ), img = b.querySelector( 'img' );
 		v.controls = true; v.playsInline = true; v.setAttribute( 'playsinline', '' ); v.preload = 'auto';

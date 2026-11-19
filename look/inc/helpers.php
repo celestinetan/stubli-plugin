@@ -632,6 +632,8 @@ function stubli_allowed_html() {
 	$allowed['polygon']  = $shape + array( 'points' => true );
 	$allowed['button']   = array( 'type' => true, 'disabled' => true );
 	$allowed['time']     = array( 'datetime' => true );
+	// The players of WordPress's [video] and [audio] shortcodes.
+	$allowed['source']   = array( 'src' => true, 'type' => true );
 	$allowed['img']      = array_merge(
 		isset( $allowed['img'] ) ? $allowed['img'] : array(),
 		array( 'srcset' => true, 'sizes' => true, 'loading' => true, 'decoding' => true, 'fetchpriority' => true )

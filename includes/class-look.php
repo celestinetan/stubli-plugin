@@ -44,6 +44,14 @@ class Look {
 		require_once STUBLI_PLUGIN_DIR . 'look/inc/setup.php';
 		add_filter( 'template_include', array( self::class, 'template' ), 99 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'drop_theme_styles' ), 999 );
+		// The old theme's background image or colour (Appearance → Background) isn't part of the Stubli look.
+		add_action(
+			'after_setup_theme',
+			static function () {
+				remove_theme_support( 'custom-background' );
+			},
+			99
+		);
 		// The theme's own font declarations aren't needed.
 		add_action(
 			'init',
