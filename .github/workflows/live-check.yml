@@ -15,8 +15,6 @@ on:
   schedule:
     - cron: '41 5 * * *'
   workflow_dispatch:
-  push:  # TEST ONLY, removed before merging
-    branches: ['livecheck/**']
 
 permissions:
   contents: read
