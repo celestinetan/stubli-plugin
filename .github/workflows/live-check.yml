@@ -1,0 +1,56 @@
+# "Finished?" check: compares what's live (WordPress.org, GitHub Release, stubli.app, the WordPress.com
+# test site) with what's released, then opens stubli.app's pages at phone and computer width.
+# Read-only: it changes nothing anywhere. Moved here from the private repo on 19 Nov 2026 so it runs
+# free (public repos don't use the account's Actions minutes).
+# Runs every morning before the daily maintainer (07:13 Zurich), and by hand after every release
+# (Actions → Live check → Run workflow, or: gh workflow run live-check.yml -R celestinetan/stubli-plugin).
+# Secrets (Settings → Secrets and variables → Actions), both optional; lines that need them say SKIP:
+#   STUBLI_PRIVATE_READ  read-only token for celestinetan/stubli (theme version, "Where things are")
+#   LIVE_TEST_SITE       the WordPress.com test site's address, kept out of the public logs
+# Variable LIVE_REPORT_ONLY: "false" makes the run fail when something is out of step; anything else
+# (the default) only reports.
+name: Live check
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-check
+  cancel-in-progress: false
+
+jobs:
+  live:
+    name: Does the live world match GitHub?
+    runs-on: ubuntu-24.04  # Playwright has no Chromium for Ubuntu 26.04 yet (13 Nov)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Live check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STUBLI_PRIVATE_READ: ${{ secrets.STUBLI_PRIVATE_READ }}
+          LIVE_TEST_SITE: ${{ secrets.LIVE_TEST_SITE }}
+          REPORT_ONLY: ${{ vars.LIVE_REPORT_ONLY == 'false' && '0' || '1' }}
+        run: bash .github/live-check/live-check.sh
+      - name: Install the test browser
+        if: always()
+        run: |
+          cd "$RUNNER_TEMP" && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Live pages at phone and computer width
+        if: always()
+        continue-on-error: ${{ vars.LIVE_REPORT_ONLY != 'false' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/shots"
+          NODE_PATH="$RUNNER_TEMP/node_modules" node .github/live-check/screens-check.js https://stubli.app - - live "$RUNNER_TEMP/shots"
+      - name: Save the screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: live-page-shots
+          path: ${{ runner.temp }}/shots
+          if-no-files-found: ignore
