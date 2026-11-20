@@ -1153,8 +1153,9 @@
 			var empty = ab.cards.filter( function ( c ) { return ! c.a.trim(); } )[ 0 ];
 			if ( empty ) { ab.error = _f( __( 'Write an answer for "%s", or remove that card.', 'stubli' ), empty.q ); renderAbout(); return; }
 			if ( ! ab.name.trim() ) { ab.error = __( 'Add the name people should see.', 'stubli' ); renderAbout(); $( '#a-ab-name' ).focus(); return; }
+			var cover = ab.cc && ab.ccUse ? ab.ccUse() : Promise.resolve();
 			ab.busy = true; ab.error = ''; renderAbout();
-			Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim() } ) ] ).then( function ( r ) {
+			cover.then( function () { return Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim() } ) ] ); } ).then( function ( r ) {
 				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( __( 'Your page is updated.', 'stubli' ) );
 			}, function ( e ) { ab.busy = false; ab.error = e.message; renderAbout(); } );
 		} );
@@ -3412,16 +3413,20 @@
 		frame.addEventListener( 'wheel', function ( e ) { e.preventDefault(); c.zoom = Math.max( 1, Math.min( 3, c.zoom - e.deltaY * 0.002 ) ); $( '[data-cc-zoom]' ).value = c.zoom; paint(); }, { passive: false } );
 		$( '[data-cc-zoom]' ).addEventListener( 'input', function ( e ) { c.zoom = +e.target.value; paint(); } );
 		$( '[data-cc-rot]' ).addEventListener( 'click', function () { c.rot = ( c.rot + 90 ) % 360; c.x = 0; c.y = 0; paint(); } );
-		$( '[data-cc-cancel]' ).addEventListener( 'click', function () { if ( c.img.close ) { c.img.close(); } ab.cc = null; renderAbout(); } );
-		$( '[data-cc-use]' ).addEventListener( 'click', function ( e ) {
+		$( '[data-cc-cancel]' ).addEventListener( 'click', function () { if ( c.img.close ) { c.img.close(); } ab.cc = null; ab.ccUse = null; renderAbout(); } );
+		// Save at the top uses the open cover too (0.53.3, Celestine 20 Nov: 'Use this' is easy to miss).
+		ab.ccUse = function () {
 			// As sharp as the photo allows inside the frame, at most 1800 × 600.
-			var btn = e.currentTarget, out = document.createElement( 'canvas' ), ow = Math.max( 600, Math.min( 1800, Math.round( W / coverFit( c, W, H ).s ) ) );
+			var btn = $( '[data-cc-use]' ), out = document.createElement( 'canvas' ), ow = Math.max( 600, Math.min( 1800, Math.round( W / coverFit( c, W, H ).s ) ) );
 			out.width = ow; out.height = Math.round( ow / 3 );
 			coverPaint( c, out, W, H, ow / W );
-			btn.disabled = true; btn.textContent = __( 'Uploading…', 'stubli' );
-			toBlob( out, 0.86 ).then( function ( blob ) { var fd = new FormData(); fd.append( 'cover', blob, 'cover-' + Date.now() + '.jpg' ); return send( 'POST', 'setup/cover', fd ); } )
-				.then( function ( r ) { if ( c.img.close ) { c.img.close(); } ab.cc = null; ab.d.cover = r.cover; ab.d.coverSeen = Date.now(); ab.d.coverMsg = __( 'Lovely. It\'s on your page now.', 'stubli' ); me.p = null; renderAbout(); },
-					function ( err ) { btn.disabled = false; btn.textContent = __( 'Use this', 'stubli' ); toast( ( err && err.message ) || __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ) ); } );
+			if ( btn ) { btn.disabled = true; btn.textContent = __( 'Uploading…', 'stubli' ); }
+			return toBlob( out, 0.86 ).then( function ( blob ) { var fd = new FormData(); fd.append( 'cover', blob, 'cover-' + Date.now() + '.jpg' ); return send( 'POST', 'setup/cover', fd ); } )
+				.then( function ( r ) { if ( c.img.close ) { c.img.close(); } ab.cc = null; ab.ccUse = null; ab.d.cover = r.cover; ab.d.coverSeen = Date.now(); ab.d.coverMsg = __( 'Lovely. It\'s on your page now.', 'stubli' ); me.p = null; return r; },
+					function ( err ) { var b = $( '[data-cc-use]' ); if ( b ) { b.disabled = false; b.textContent = __( 'Use this', 'stubli' ); } throw new Error( ( err && err.message ) || __( 'That didn\'t upload. Try again when you\'re ready.', 'stubli' ) ); } );
+		};
+		$( '[data-cc-use]' ).addEventListener( 'click', function () {
+			ab.ccUse().then( function () { renderAbout(); }, function ( err ) { toast( err.message ); } );
 		} );
 	}
 	// Cover photo: the middle of the picture at 3:1, at most 1800 × 600, re-drawn

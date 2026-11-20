@@ -119,6 +119,19 @@ function stubli_is_starter_page( $page ) {
  * @param string $back_url  Optional back link.
  * @param string $back_text Its label.
  */
+/**
+ * The top bar for pages without the profile card: a way back to the front page,
+ * named after the Stubli (0.2.137). stubli.app keeps its logo.
+ */
+function stubli_topbar_home() {
+	if ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
+		stubli_topbar();
+		return;
+	}
+	$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
+	stubli_topbar( home_url( '/' ), '' !== $name ? $name : (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+}
+
 function stubli_topbar( $back_url = '', $back_text = '' ) {
 	$pages = get_pages(
 		array(
@@ -150,15 +163,17 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 	$welcome = $hub ? get_page_by_path( 'welcome' ) : null;
 	$join    = $welcome && 'publish' === $welcome->post_status ? ( function_exists( 'stubli_is_pitch' ) && stubli_is_pitch() ? '#start' : get_permalink( $welcome ) ) : '';
 	?>
+	<?php if ( stubli_visitor_view() ) : ?>
+		<p class="st-visitor-bar" role="status"><?php esc_html_e( 'You\'re seeing your Stubli as a visitor sees it.', 'stubli' ); ?> <a href="<?php echo esc_url( stubli_visitor_url( false ) ); ?>"><?php esc_html_e( 'Back to your view', 'stubli' ); ?></a></p>
+	<?php endif; ?>
 	<header class="st-top<?php echo $hub ? ' st-top-brand' : ''; ?>">
 		<?php if ( $back_url ) : ?>
 			<a class="st-top-back" href="<?php echo esc_url( $back_url ); ?>"><?php echo wp_kses( stubli_icon( 'back', 22 ), stubli_allowed_html() ); ?><span><?php echo esc_html( $back_text ); ?></span></a>
 		<?php else : ?>
 			<?php if ( $hub ) : ?>
 				<a class="st-top-host st-top-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Stubli (beta), home', 'stubli' ); ?>"><?php echo wp_kses( stubli_wordmark( true ), stubli_allowed_html() ); ?><span class="st-beta" aria-hidden="true"><?php esc_html_e( 'Beta', 'stubli' ); ?></span></a>
-			<?php else : ?>
-				<a class="st-top-host" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></a>
 			<?php endif; ?>
+			<?php // No address in the top bar (0.2.137, Celestine 20 Nov): the profile card shows it; pages without the card get a way home instead. ?>
 		<?php endif; ?>
 		<?php if ( $pages ) : ?>
 			<nav class="st-top-pages" aria-label="<?php esc_attr_e( 'Pages', 'stubli' ); ?>">
@@ -170,7 +185,7 @@ function stubli_topbar( $back_url = '', $back_text = '' ) {
 				<?php endif; ?>
 			</nav>
 		<?php endif; ?>
-		<button type="button" class="st-mode" data-st-mode aria-label="<?php esc_attr_e( 'Reading mode', 'stubli' ); ?>"><span class="st-mode-aa" aria-hidden="true">Aa</span> <span class="st-mode-label"><?php esc_html_e( 'Light', 'stubli' ); ?></span></button>
+		<button type="button" class="st-mode" data-st-mode aria-label="<?php esc_attr_e( 'Reading mode', 'stubli' ); ?>"><span class="st-mode-aa" aria-hidden="true">Aa</span> <span class="st-mode-label"><span class="st-mode-is-light"><?php esc_html_e( 'Light', 'stubli' ); ?></span><span class="st-mode-is-paper"><?php esc_html_e( 'Paper', 'stubli' ); ?></span></span></button>
 	</header>
 	<?php
 }
@@ -229,6 +244,9 @@ function stubli_profile_cards() {
 			<?php if ( '' !== trim( $p['bio'] ) ) : ?>
 				<p class="st-bio"><?php echo esc_html( $p['bio'] ); ?></p>
 			<?php endif; ?>
+			<?php if ( stubli_is_owner() ) : ?>
+				<p class="st-visitor-link"><a href="<?php echo esc_url( stubli_visitor_url( true ) ); ?>"><?php esc_html_e( 'See it as a visitor', 'stubli' ); ?></a></p>
+			<?php endif; ?>
 			<?php if ( ! empty( $p['on_break'] ) ) : ?>
 				<p class="st-break"><?php /* translators: %s: name */ printf( esc_html__( '%s is taking a break from comments.', 'stubli' ), esc_html( $p['name'] ) ); ?></p>
 			<?php endif; ?>
@@ -245,7 +263,7 @@ function stubli_profile_cards() {
 		<?php endforeach; ?>
 		</div>
 		<?php if ( $prompts ) : ?>
-			<div class="st-stack-nav" data-st-stack-nav hidden>
+			<div class="st-stack-nav" data-st-stack-nav>
 				<button type="button" class="st-stack-btn" data-st-prev aria-label="<?php esc_attr_e( 'Previous card', 'stubli' ); ?>"><?php echo wp_kses( stubli_icon( 'back', 18 ), stubli_allowed_html() ); ?></button>
 				<span class="st-stack-dots" aria-hidden="true"><?php echo wp_kses( str_repeat( '<span></span>', count( $prompts ) + 1 ), stubli_allowed_html() ); ?></span>
 				<button type="button" class="st-stack-btn" data-st-next aria-label="<?php /* translators: %s: name */ echo esc_attr( sprintf( __( 'Next card: more about %s', 'stubli' ), $p['name'] ) ); ?>"><?php echo wp_kses( stubli_icon( 'chev', 18 ), stubli_allowed_html() ); ?></button>
@@ -1287,7 +1305,9 @@ function stubli_view_links() {
 	foreach ( $sites as $s ) {
 		echo '<a class="st-site-row" href="' . esc_url( $s['url'] ) . '">';
 		echo '<img src="' . esc_url( stubli_img_src( $s['avatar'] ), array( 'http', 'https', 'data' ) ) . '" alt="" width="40" height="40" loading="lazy">';
-		echo '<span><span><strong>' . esc_html( $s['name'] ) . '</strong> <span class="st-muted">' . esc_html( (string) wp_parse_url( $s['url'], PHP_URL_HOST ) ) . '</span></span>';
+		// Just the Stubli's name; its address stays in the link (Celestine 20 Nov: it ran past the card). No name: the address.
+		$host = (string) wp_parse_url( $s['url'], PHP_URL_HOST );
+		echo '<span><span><strong>' . esc_html( '' !== trim( (string) $s['name'] ) ? $s['name'] : $host ) . '</strong></span>';
 		if ( '' !== $s['note'] ) {
 			echo '<span>' . esc_html( $s['note'] ) . '</span>';
 		}
@@ -1516,7 +1536,7 @@ function stubli_the_content( $page ) {
  */
 function stubli_view_page() {
 	$page = get_queried_object();
-	stubli_topbar();
+	stubli_topbar_home();
 	// stubli.app's elevator pitch: a wide, designed page whose words stay editable as ordinary blocks.
 	$wide = array( 'welcome' => 'st-pitch', 'pitch' => 'st-pitch', 'how-it-works' => 'st-pitch st-guide' );
 	if ( $page instanceof WP_Post && isset( $wide[ $page->post_name ] ) && class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) {
@@ -1590,7 +1610,7 @@ function stubli_feedback_form() {
  * Page not found.
  */
 function stubli_view_notfound() {
-	stubli_topbar();
+	stubli_topbar_home();
 	?>
 	<main class="st-main st-narrow" id="main">
 		<section class="st-card-tone st-notfound">

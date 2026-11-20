@@ -73,7 +73,37 @@ function stubli_profile() {
  * @return bool
  */
 function stubli_is_owner() {
-	return current_user_can( 'manage_options' );
+	return current_user_can( 'manage_options' ) && ! stubli_visitor_view();
+}
+
+/**
+ * The owner looking at their own Stubli as a visitor sees it (0.2.137, Celestine 20 Nov):
+ * ?stubli_visitor=1 turns it on for this browser session, ?stubli_visitor=0 turns it off.
+ * It only hides things; nothing the owner can do changes.
+ *
+ * @return bool
+ */
+function stubli_visitor_view() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return false;
+	}
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- display only.
+	if ( isset( $_GET['stubli_visitor'] ) ) {
+		return '1' === $_GET['stubli_visitor'];
+	}
+	// phpcs:enable
+	return isset( $_COOKIE['stubli_visitor'] ) && '1' === $_COOKIE['stubli_visitor'];
+}
+
+/**
+ * Address of this page with the visitor view switched on or off.
+ *
+ * @param bool $on On.
+ * @return string
+ */
+function stubli_visitor_url( $on ) {
+	$here = remove_query_arg( 'stubli_visitor', home_url( add_query_arg( array() ) ) );
+	return add_query_arg( 'stubli_visitor', $on ? '1' : '0', $here );
 }
 
 /**
@@ -846,7 +876,7 @@ function stubli_credit_on() {
  * only when the owner shows the credit.
  */
 function stubli_make_your_own() {
-	if ( ! stubli_credit_on() || current_user_can( 'manage_options' ) || ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) ) {
+	if ( ! stubli_credit_on() || stubli_is_owner() || ( class_exists( '\\Stubli\\Feedback' ) && \Stubli\Feedback::is_hub() ) ) {
 		return;
 	}
 	$GLOBALS['stubli_own_shown'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- own prefix.

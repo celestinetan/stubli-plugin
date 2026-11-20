@@ -24,7 +24,6 @@
 		root.setAttribute( 'data-mode-pref', pref );
 		document.querySelectorAll( '[data-st-mode]' ).forEach( function ( b ) {
 			var label = ( T.modes && T.modes[ pref ] ) || pref;
-			b.querySelector( '.st-mode-label' ).textContent = label;
 			b.setAttribute( 'aria-label', ( T.readingMode || 'Reading mode' ) + ': ' + label );
 		} );
 	}

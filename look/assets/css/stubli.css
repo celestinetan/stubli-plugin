@@ -119,7 +119,7 @@ p { margin: 0 0 .75em; }
 @media (max-width: 760px) {
 	.st-top { flex-wrap: wrap; row-gap: 0; }
 	.st-top-pages { order: 3; flex-basis: 100%; margin: 0 -8px; padding: 0 8px 4px; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
-	.st-top-pages + .st-mode { margin-left: auto; }
+	.st-top .st-top-pages + .st-mode { margin-left: auto; } /* Aa stays on the right on phones (0.2.137) */
 }
 .st-mode {
 	margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
@@ -128,6 +128,9 @@ p { margin: 0 0 .75em; }
 }
 .st-top-pages + .st-mode { margin-left: 0; }
 .st-mode-aa { font-weight: 700; color: var(--st-ink); }
+/* The label follows the mode set in the head, so it never shows Light first (0.2.137, Celestine 20 Nov). */
+.st-mode-is-paper, [data-mode="paper"] .st-mode-is-light { display: none; }
+[data-mode="paper"] .st-mode-is-paper { display: inline; }
 .st-mode:hover { background: var(--st-surface); }
 
 /* ── Pills and buttons ── */
@@ -430,7 +433,7 @@ p { margin: 0 0 .75em; }
 .st-link-row .st-muted { font-size: 13px; }
 .st-link-row .st-icon { color: var(--st-green); }
 .st-site-row img, .st-avatar-blank { width: 40px; height: 40px; border-radius: 50%; flex: none; background: var(--st-field); }
-.st-site-row > span { display: flex; flex-direction: column; font-size: 14px; line-height: 1.4; min-width: 0; }
+.st-site-row > span { display: flex; flex-direction: column; font-size: 14px; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
 .st-link-row:hover, .st-site-row:hover { background: var(--st-bg); }
 
 /* ── Remote form ── */
@@ -497,7 +500,7 @@ p { margin: 0 0 .75em; }
 	.st-cards .st-stack { grid-column: 1; grid-row: 1; }
 	.st-cards .st-stack-nav { grid-column: 1; grid-row: 2; margin-top: -8px; }
 	.st-cards > .st-latest { grid-column: 2; grid-row: 1; }
-	.st-cards:has(.st-stack.is-live) > .st-latest { margin-bottom: 18px; }
+	.st-cards:has(.st-stack.is-live) > .st-latest, .st-js .st-cards:has(.st-stack.has-cards) > .st-latest { margin-bottom: 18px; }
 	.st-cards:not(:has(> .st-latest)) { grid-template-columns: minmax(0, 1fr); }
 	.st-latest { align-self: stretch; }
 	/* Wider screens: up to three of the newest posts fill the card. */
@@ -722,6 +725,16 @@ html { scroll-behavior: smooth; }
 .st-stack.is-live > .st-card[data-pos="2"] { z-index: 1; transform: translateY(17px) scale(.93); background: var(--st-field); }
 .st-stack.is-live > .st-card[data-pos="1"] > *, .st-stack.is-live > .st-card[data-pos="2"] > *, .st-stack.is-live > .st-card[data-pos="hide"] { visibility: hidden; }
 .st-stack:not(.is-live) > .st-prompt { margin-top: 10px; }
+/* Before the script runs, stack the cards the way the script will and keep room for the arrows, so the page doesn't jump
+   (0.2.137, Celestine 20 Nov). Without scripts (no st-js class) every card still shows. */
+.st-js .st-stack.has-cards:not(.is-live) { padding-bottom: 18px; }
+.st-js .st-stack.has-cards:not(.is-live) > [data-st-card] { grid-area: 1 / 1; margin-top: 0; }
+.st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:first-child { position: relative; z-index: 3; box-shadow: 0 10px 22px -18px rgba(0,0,0,.35); }
+.st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:nth-child(2) { z-index: 2; transform: translateY(9px) scale(.965); }
+.st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:nth-child(3) { z-index: 1; transform: translateY(17px) scale(.93); }
+.st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:nth-child(2) > *, .st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:nth-child(3) > *, .st-js .st-stack.has-cards:not(.is-live) > [data-st-card]:nth-child(n+4) { visibility: hidden; }
+html:not(.st-js) .st-stack-nav { display: none; }
+.st-js .st-stack:not(.is-live) + .st-stack-nav { visibility: hidden; }
 .st-prompt, .st-stack > .st-card.st-prompt { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; position: relative;
 	padding: 22px 20px 16px; border: 0; color: var(--st-accent-ink);
 	background: linear-gradient(165deg, color-mix(in srgb, var(--st-accent), var(--st-accent-far) var(--tone)), color-mix(in srgb, var(--st-accent), var(--st-accent-far) calc(var(--tone) + 10%))); }
@@ -1095,3 +1108,9 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 .st-lib-own p { margin: 0 0 10px; font-size: 14px; line-height: 1.45; }
 .st-lib-own .st-lib-hint { margin: 10px 0 0; }
 .st-lib-make { display: inline-flex; }
+
+/* Visitor view (0.2.137). */
+.st-visitor-link { margin: 6px 0 0; font-size: 13px; }
+.st-visitor-link a { color: var(--st-muted); }
+.st-visitor-bar { margin: 0; padding: 10px 16px; text-align: center; font: 500 14px var(--st-sans); background: var(--st-ink); color: var(--st-bg); }
+.st-visitor-bar a { color: inherit; font-weight: 700; margin-left: 6px; }

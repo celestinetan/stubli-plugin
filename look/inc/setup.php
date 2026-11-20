@@ -101,7 +101,7 @@ add_action(
 		$pref = 'paper' === $pref ? 'paper' : 'light'; // No dark mode since 0.2.117 (Celestine 8 Nov).
 		wp_register_script( 'stubli-mode', false, array(), (string) filemtime( stubli_look_dir() . '/assets/js/stubli.js' ), false );
 		wp_enqueue_script( 'stubli-mode' );
-		wp_add_inline_script( 'stubli-mode', "(function(){try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( $pref ) . ";var m=p==='paper'?'paper':'light';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',m);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();" );
+		wp_add_inline_script( 'stubli-mode', "(function(){document.documentElement.classList.add('st-js');try{var p=localStorage.getItem('stubli-mode')||" . wp_json_encode( $pref ) . ";var m=p==='paper'?'paper':'light';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-mode-pref',m);}catch(e){document.documentElement.setAttribute('data-mode','light');}})();" );
 	},
 	1
 );
@@ -237,5 +237,33 @@ add_filter(
 			return $url;
 		}
 		return 'data:image/svg+xml,' . rawurlencode( '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#e6e1d8"/><circle cx="20" cy="16" r="7" fill="#c9c1b4"/><path d="M6 38c2-8 8-12 14-12s12 4 14 12z" fill="#c9c1b4"/></svg>' );
+	}
+);
+
+/*
+ * Visitor view (0.2.137): remember the switch for this browser session, and show only what
+ * visitors see (no friends-only or only-me posts, which are private posts).
+ */
+add_action(
+	'template_redirect',
+	static function () {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
+		if ( ! isset( $_GET['stubli_visitor'] ) || ! current_user_can( 'manage_options' ) || headers_sent() ) {
+			return;
+		}
+		$on = '1' === $_GET['stubli_visitor']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		setcookie( 'stubli_visitor', $on ? '1' : '', $on ? 0 : time() - 3600, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
+		nocache_headers();
+	}
+);
+add_action(
+	'pre_get_posts',
+	static function ( $q ) {
+		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! function_exists( 'stubli_visitor_view' ) || ! stubli_visitor_view() ) {
+			return;
+		}
+		if ( ! $q->get( 'post_status' ) || 'any' === $q->get( 'post_status' ) ) {
+			$q->set( 'post_status', 'publish' );
+		}
 	}
 );
