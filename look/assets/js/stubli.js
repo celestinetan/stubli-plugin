@@ -407,6 +407,43 @@
 			} ).catch( function () {} );
 	} )();
 
+	/* Straight to your own Stubli (0.2.138, Celestine 20 Nov): once this device knows your Stubli, the envelope,
+	   Follow and the other "from your own Stubli" links open your app directly, without the address form.
+	   Coming back with the Back button (your Stubli didn't open?) brings the form back for this visit. */
+	( function () {
+		var ss = { get: function ( k ) { try { return sessionStorage.getItem( k ); } catch ( e ) { return null; } }, set: function ( k, v ) { try { sessionStorage.setItem( k, v ); } catch ( e ) {} } };
+		var nav = ( window.performance && performance.getEntriesByType && performance.getEntriesByType( 'navigation' )[ 0 ] ) || {};
+		var cameBack = function () { if ( ss.get( 'stubli-direct' ) === '1' ) { ss.set( 'stubli-direct', 'off' ); } };
+		if ( nav.type === 'back_forward' ) { cameBack(); } else if ( ss.get( 'stubli-direct' ) === '1' ) { ss.set( 'stubli-direct', '' ); }
+		window.addEventListener( 'pageshow', function ( e ) { if ( e.persisted ) { cameBack(); } } );
+		var homeUrl = function () {
+			var saved = store.get( 'stubli-home' );
+			if ( ! saved || ss.get( 'stubli-direct' ) === 'off' ) { return ''; }
+			var home = ( /^(localhost|127\.)/.test( saved ) ? 'http://' : 'https://' ) + saved.replace( /\/+$/, '' );
+			try { if ( new URL( home ).host === location.host ) { return ''; } } catch ( e ) { return ''; }
+			return home;
+		};
+		document.addEventListener( 'click', function ( e ) {
+			if ( e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey ) { return; }
+			var a = e.target.closest ? e.target.closest( 'a[data-st-letter], a[href*="/from-your-stubli/"]' ) : null;
+			if ( ! a ) { return; }
+			var home = homeUrl(); if ( ! home ) { return; }
+			var act = '', target = '', p = '';
+			if ( a.hasAttribute( 'data-st-letter' ) ) { act = 'note'; target = a.getAttribute( 'data-st-letter' ); }
+			else {
+				var u; try { u = new URL( a.href ); } catch ( x ) { return; }
+				act = u.searchParams.get( 'do' ) || ''; target = u.searchParams.get( 'url' ) || ''; p = u.searchParams.get( 'p' ) || '';
+				try { if ( /%[0-9a-f]{2}/i.test( target ) ) { target = decodeURIComponent( target ); } } catch ( x ) {}
+			}
+			if ( ! /^(follow|note|comment|sign)$/.test( act ) || ! /^https?:\/\//.test( target ) ) { return; }
+			e.preventDefault();
+			ss.set( 'stubli-direct', '1' );
+			var dest = home + '/app/?act=1&do=' + act + '&url=' + encodeURIComponent( target );
+			if ( p !== '' && p !== '-1' ) { dest += '&p=' + encodeURIComponent( p ); }
+			window.location.href = dest;
+		} );
+	} )();
+
 	/* From your own Stubli: remember the address and go to that site. */
 	document.querySelectorAll( '[data-st-remote]' ).forEach( function ( form ) {
 		var input = form.querySelector( 'input' );

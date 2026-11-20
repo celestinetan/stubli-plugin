@@ -95,6 +95,16 @@ class App {
 		if ( ! Rest::is_owner() ) {
 			wp_die( esc_html__( 'The Stubli app is for the owner of this site.', 'stubli' ), esc_html__( 'Stubli', 'stubli' ), array( 'response' => 403 ) );
 		}
+		// A plain letter (not a reply to a card) opens the conversation in the app, ready to type (0.54.0).
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- display only.
+		if ( isset( $_GET['act'], $_GET['do'], $_GET['url'] ) && 'note' === $_GET['do'] && ! isset( $_GET['done'] ) && ! isset( $_GET['error'] ) && ( ! isset( $_GET['p'] ) || '' === $_GET['p'] || (int) $_GET['p'] < 0 ) ) {
+			$to = Follows::origin( esc_url_raw( wp_unslash( $_GET['url'] ) ) );
+			if ( $to && preg_match( '#^https?://#', $to ) && Follows::origin( home_url() ) !== $to ) {
+				wp_safe_redirect( home_url( '/app/' ) . '#letters/' . rawurlencode( $to ) );
+				exit;
+			}
+		}
+		// phpcs:enable
 		self::render( isset( $_GET['act'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
 		exit;
 	}

@@ -966,3 +966,11 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-news h2 { margin: 0 0 6px; font-size: 18px; }
 .a-news p { overflow-wrap: anywhere; }
 .a-tellfriend .a-actions { flex-wrap: wrap; }
+
+/* Letters as easy as a message (0.54.0). */
+.a-lt-new { min-height: 36px; padding: 0 12px; font-size: 14px; gap: 4px; }
+.a-lt-new svg { width: 16px; height: 16px; }
+.a-lt-first { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 40px 16px 8px; }
+.a-lt-first img, .a-lt-first .a-av { border-radius: 50%; margin-bottom: 8px; }
+.a-lt-first p { margin: 0; max-width: 34ch; }
+.a-people-links { display: flex; gap: 14px; }

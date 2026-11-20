@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.53.3
+Stable tag: 0.54.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.54.0 =
+* Letters are quicker to write: New letter in the app's Letters, and Write next to each person you follow.
+* On someone's page, the envelope, Follow and the other "from your own Stubli" links open your own app straight away once your device knows your Stubli. No address form in between.
 
 = 0.53.3 =
 * Pages no longer jump while they load: the cards about you show as cards straight away, and the reading mode button shows the right name from the start.

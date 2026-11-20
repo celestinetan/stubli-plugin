@@ -516,6 +516,7 @@
 		if ( /^arrange\/\d+$/.test( h ) ) { return viewPins( +h.split( '/' )[ 1 ] ); }
 		if ( /^note\/\d+$/.test( h ) ) { location.replace( '#letters' ); return; }
 		if ( h === 'letters' ) { return viewLetters(); }
+		if ( h === 'letters/new' ) { return viewNewLetter(); }
 		if ( /^letters\//.test( h ) ) { return viewThread( decodeURIComponent( h.slice( 8 ) ) ); }
 		if ( h === 'feedback' ) { return viewFeedback(); }
 		if ( h === 'import' ) { if ( imp && ( imp.state === 'done' || imp.state === 'empty' ) ) { imp = null; } return viewImport(); }
@@ -1231,10 +1232,10 @@
 					return '<li><a class="a-lt-row' + ( c.unread ? ' is-unread' : '' ) + '" href="#letters/' + encodeURIComponent( c.with ) + '">' + face( c.avatar, c.name, 44 ) +
 						'<span class="a-lt-mid"><span class="a-lt-name">' + esc( unent( c.name ) ) + ( c.unread ? '<span class="sr"> ' + __( '(new)', 'stubli' ) + '</span>' : '' ) + '</span><span class="a-lt-last">' + esc( last ) + '</span></span>' +
 						'<span class="a-lt-when">' + esc( letterTime( c.last.date ) ) + ( c.unread ? '<span class="a-lt-dot" aria-hidden="true"></span>' : '' ) + '</span></a></li>';
-				} ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'No letters yet. When someone answers one of your cards or writes to you from their Stubli, it arrives here.', 'stubli' ) + '</p>' ) +
+				} ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'No letters yet. Tap New letter to write to someone you follow. Letters people write to you arrive here too.', 'stubli' ) + '</p>' ) +
 				'<p class="a-help" style="margin-top:20px">' + __( 'Letters are private: only you and the person you write to see them. They aren\'t end-to-end encrypted, so for anything very sensitive, use a messaging app.', 'stubli' ) + '</p>';
 		}
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + esc( cameFrom ) + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Letters', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + esc( cameFrom ) + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Letters', 'stubli' ) + '</h1><a class="a-btn a-lt-new" href="#letters/new">' + icon( 'pen', 16 ) + __( 'New letter', 'stubli' ) + '</a></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
 		$$( '[data-lt]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var id = +b.dataset.id, act = b.dataset.lt;
@@ -1247,6 +1248,42 @@
 			} );
 		} );
 	}
+	/* New letter (0.54.0, Celestine 20 Nov: "as easy as on Instagram"): pick someone you follow, write, send. */
+	function originOf( u ) { var m = /^(https?:\/\/[^\/?#]+)/i.exec( String( u || '' ) ); return m ? m[ 1 ].toLowerCase() : ''; }
+	function loadFollows() {
+		if ( pp.loaded ) { return Promise.resolve(); }
+		return send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; }, function () {} );
+	}
+	function followOf( origin ) { return ( pp.list || [] ).filter( function ( f ) { return originOf( f.site_url ) === origin; } )[ 0 ] || null; }
+	var nl = { q: '' };
+	function viewNewLetter() {
+		nl.q = '';
+		renderNewLetter();
+		loadFollows().then( function () { if ( location.hash === '#letters/new' ) { renderNewLetter(); } } );
+	}
+	function newLetterRows() {
+		var q = nl.q.trim().toLowerCase(), list = ( pp.list || [] ).filter( function ( f ) { return ! q || ( ( f.name || '' ) + ' ' + hostOf( f.site_url ) ).toLowerCase().indexOf( q ) > -1; } );
+		if ( ! list.length ) { return '<p class="muted" role="status">' + ( q ? __( 'Nobody you follow matches that.', 'stubli' ) : '' ) + '</p>'; }
+		return '<ul class="a-lt-list" role="list">' + list.map( function ( f ) {
+			var host = hostOf( f.site_url ), name = unent( f.name || host );
+			return '<li><a class="a-lt-row" href="#letters/' + encodeURIComponent( originOf( f.site_url ) ) + '">' + face( f.avatar_url, name, 44 ) +
+				'<span class="a-lt-mid"><span class="a-lt-name">' + esc( name ) + '</span><span class="a-lt-last">' + esc( host ) + '</span></span><span class="a-lt-when" aria-hidden="true">' + icon( 'chev', 18 ) + '</span></a></li>';
+		} ).join( '' ) + '</ul>';
+	}
+	function renderNewLetter() {
+		var body;
+		if ( ! pp.loaded ) {
+			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:64px"></span><span style="height:64px"></span></div><p class="sr" role="status">' + __( 'Loading…', 'stubli' ) + '</p>';
+		} else if ( ! pp.list.length ) {
+			body = '<p class="muted">' + __( 'You don\'t follow anyone yet. Follow someone first, then write to them here.', 'stubli' ) + '</p><div class="a-actions"><a class="a-btn" href="#discover">' + __( 'Find people', 'stubli' ) + '</a></div>';
+		} else {
+			body = '<h2 class="a-label">' + __( 'Who to?', 'stubli' ) + '</h2>' +
+				( pp.list.length > 8 ? '<label class="sr" for="a-nl-q">' + __( 'Search the people you follow', 'stubli' ) + '</label><input id="a-nl-q" class="a-field" type="search" placeholder="' + esc( __( 'Search…', 'stubli' ) ) + '" value="' + esc( nl.q ) + '" style="margin-bottom:8px">' : '' ) +
+				'<div data-nl-rows>' + newLetterRows() + '</div>';
+		}
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'New letter', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
+		var q = $( '#a-nl-q' ); if ( q ) { q.addEventListener( 'input', function () { nl.q = q.value; $( '[data-nl-rows]' ).innerHTML = newLetterRows(); } ); }
+	}
 	function refreshUnread() {
 		send( 'GET', 'letters', null ).then( function ( r ) {
 			B.unread = ( r.requests || [] ).length + ( r.conversations || [] ).filter( function ( c ) { return c.unread; } ).length;
@@ -1257,6 +1294,7 @@
 		var th = lt.thread;
 		renderThread();
 		if ( ! lt.loaded ) { loadLetters().then( function () { if ( lt.thread === th ) { renderThread(); } } ); }
+		if ( ! pp.loaded ) { loadFollows().then( function () { if ( lt.thread === th && $( '.a-lt-thread' ) ) { var a = document.activeElement && document.activeElement.id === 'a-lt-text'; renderThread(); if ( a && $( '#a-lt-text' ) ) { $( '#a-lt-text' ).focus(); } } } ); }
 		send( 'GET', 'letters/thread?with=' + encodeURIComponent( w ), null ).then( function ( l ) {
 			th.letters = Array.isArray( l ) ? l : []; if ( lt.thread === th ) { renderThread( true ); }
 			// Opening a conversation marks its letters read.
@@ -1266,7 +1304,10 @@
 	function renderThread( scroll ) {
 		var th = lt.thread, c = lt.convs.filter( function ( x ) { return x.with === th.with; } )[ 0 ] || {}, letters = th.letters;
 		var lastIn = letters ? letters.filter( function ( l ) { return l.dir === 'in'; } ).slice( -1 )[ 0 ] : null;
-		var name = c.name || ( lastIn && lastIn.name ) || '', site = c.site || ( lastIn && lastIn.site ) || '', guest = c.kind === 'guest' || ( lastIn && lastIn.kind === 'guest' );
+		var fw = /^https?:\/\//.test( th.with ) ? followOf( th.with ) : null;
+		var name = c.name || ( lastIn && lastIn.name ) || ( fw && fw.name ) || '', site = c.site || ( lastIn && lastIn.site ) || ( fw && fw.site_url ) || ( /^https?:\/\//.test( th.with ) ? th.with : '' ), guest = c.kind === 'guest' || ( lastIn && lastIn.kind === 'guest' );
+		if ( ! name && site ) { name = hostOf( site ); }
+		var av = c.avatar || ( fw && fw.avatar_url ) || '';
 		var day = '', body = '';
 		if ( ! letters ) {
 			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:80px"></span><span style="height:80px"></span></div>';
@@ -1278,6 +1319,9 @@
 				return out + '<div class="a-lt-letter ' + ( l.dir === 'out' ? 'is-me' : 'is-them' ) + '"><p>' + esc( l.text ) + '</p><span class="a-lt-t">' + esc( d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) ) + ( l.dir === 'out' && l.state === 'failed' ? ' · ' + __( 'not delivered', 'stubli' ) : '' ) + '</span></div>';
 			} ).join( '' );
 		}
+		if ( letters && ! letters.length && site && ! guest && ! th.error ) {
+			body = '<div class="a-lt-first">' + ( av ? face( av, name, 64 ) : '' ) + '<p><strong>' + esc( _f( __( 'Write to %s', 'stubli' ), unent( name ) ) ) + '</strong></p><p class="muted small">' + esc( _f( __( 'Only you two see it. If %s doesn\'t follow you yet, your first letter waits for %s\'s OK.', 'stubli' ), unent( name ), unent( name ) ) ) + '</p></div>';
+		}
 		var guestNote = guest && lastIn ? guestReply( unent( name ), lastIn ) : '';
 		// Delete the whole conversation (0.52.2, Celestine 14 Nov): asks once, right here.
 		var del = ! letters || ! letters.length ? '' : th.sure ?
@@ -1285,7 +1329,7 @@
 				esc( guest ? __( 'You can\'t undo this.', 'stubli' ) : _f( __( 'You can\'t undo this. %s\'s own copies stay with %s.', 'stubli' ), unent( name ), unent( name ) ) ) + '</p>' +
 				'<div class="a-actions"><button type="button" class="a-btn a-danger" data-lt-del-yes' + ( th.deleting ? ' disabled' : '' ) + '>' + ( th.deleting ? __( 'Deleting…', 'stubli' ) : __( 'Delete conversation', 'stubli' ) ) + '</button><button type="button" class="a-btn quiet" data-lt-del-no>' + __( 'Keep it', 'stubli' ) + '</button></div></div>' :
 			'<p class="a-lt-del"><button type="button" class="a-text-btn a-danger-text" data-lt-del>' + icon( 'trash', 16 ) + __( 'Delete this conversation', 'stubli' ) + '</button></p>';
-		root.innerHTML = '<header class="a-head a-lt-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( c.avatar ? face( c.avatar, name, 28 ) : '' ) + '<span>' + esc( unent( name ) ) + ( site && ! guest ? '<small class="muted">' + esc( hostOf( site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>' +
+		root.innerHTML = '<header class="a-head a-lt-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( av ? face( av, name, 28 ) : '' ) + '<span>' + esc( unent( name ) ) + ( site && ! guest && hostOf( site ) !== name ? '<small class="muted">' + esc( hostOf( site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>' +
 			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + del + '</main>' +
 			( guest || ! site ? '' : '<div class="a-lt-compose"><label class="sr" for="a-lt-text">' + __( 'Your letter', 'stubli' ) + '</label><textarea id="a-lt-text" class="a-field a-grow" rows="1" maxlength="1000" placeholder="' + esc( __( 'Write a letter…', 'stubli' ) ) + '">' + esc( th.text ) + '</textarea><button type="button" class="a-btn" data-lt-send' + ( th.busy || ! th.text.trim() ? ' disabled' : '' ) + '>' + ( th.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></div>' );
 		if ( scroll ) { window.scrollTo( 0, document.body.scrollHeight ); }
@@ -1306,6 +1350,7 @@
 		var t = $( '#a-lt-text' ), b = $( '[data-lt-send]' );
 		if ( ! t ) { return; }
 		var fit = function () { t.style.height = 'auto'; t.style.height = Math.min( 160, t.scrollHeight ) + 'px'; }; fit();
+		if ( letters && ! letters.length && ! th.focused ) { th.focused = true; t.focus(); }
 		t.addEventListener( 'input', function () { th.text = t.value; b.disabled = ! th.text.trim() || th.busy; fit(); } );
 		b.addEventListener( 'click', function () {
 			th.busy = true; th.error = ''; b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
@@ -1323,7 +1368,7 @@
 		return ( '<section class="a-card" data-people><h2>' + __( 'Your people', 'stubli' ) ) + helpLink( 'friends-and-privacy/friends-only', __( 'friends only posts', 'stubli' ) ) + '</h2>' +
 			( list.length ? ( '<p class="muted">' + __( 'Tick your friends. They see your posts marked "Friends only", in their own Stubli; nobody else does.', 'stubli' ) + '</p><ul class="a-people">' ) + shown.map( function ( f ) {
 				var host = hostOf( f.site_url ), name = f.name || host;
-				return '<li><span class="a-people-who"><strong>' + esc( name ) + '</strong><small class="muted">' + esc( host ) + ( f.list_name ? ' · ' + esc( f.list_name ) : '' ) + '</small><a class="a-people-lib" href="#library/of/' + f.id + '">' + icon( 'shelf', 14 ) + __( 'Library', 'stubli' ) + '</a></span>' +
+				return '<li><span class="a-people-who"><strong>' + esc( name ) + '</strong><small class="muted">' + esc( host ) + ( f.list_name ? ' · ' + esc( f.list_name ) : '' ) + '</small><span class="a-people-links"><a class="a-people-lib" href="#letters/' + encodeURIComponent( originOf( f.site_url ) ) + '" aria-label="' + esc( _f( __( 'Write to %s', 'stubli' ), name ) ) + '">' + icon( 'mail', 14 ) + __( 'Write', 'stubli' ) + '</a><a class="a-people-lib" href="#library/of/' + f.id + '">' + icon( 'shelf', 14 ) + __( 'Library', 'stubli' ) + '</a></span></span>' +
 					'<label class="a-friend"><input type="checkbox" data-friend="' + f.id + '"' + ( f.friend ? ' checked' : '' ) + ( '><span>' + __( 'Friend', 'stubli' ) + '</span><span class="sr"> – ' ) + esc( name ) + '</span></label></li>';
 			} ).join( '' ) + '</ul>' + ( list.length > 6 && ! pp.open ? '<button type="button" class="a-btn quiet wide" data-people-all>' + _f( __( 'Show all %s', 'stubli' ), list.length ) + '</button>' : '' ) : ( pp.loaded ? ( '<p class="muted">' + __( 'You don\'t follow anyone yet.', 'stubli' ) + '</p>' ) : '' ) ) +
 			( pp.msg ? '<p class="a-help" role="status">' + esc( pp.msg ) + '</p>' : '' ) +
