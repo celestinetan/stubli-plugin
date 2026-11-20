@@ -77,6 +77,10 @@ class Act {
 		if ( 'accept' === $do && '' === $invite ) {
 			$do = 'follow';
 		}
+		// Already following (0.53.2, Celestine 20 Nov): say so instead of asking again.
+		if ( 'follow' === $do && $target && ! $done && ! $error && Follows::is_followed( $target ) ) {
+			$done = 'already';
+		}
 		$host = $target ? (string) wp_parse_url( $target, PHP_URL_HOST ) : '';
 		/* translators: %s: site */
 		$following = sprintf( __( 'You\'re following %s', 'stubli' ), $host ); // The other site by its address, never a pronoun (Celestine's rule).
@@ -107,7 +111,11 @@ class Act {
 					}
 					?>
 				</p>
-				<p><a class="<?php echo esc_attr( $btn ); ?>" href="<?php echo esc_url( $target ); ?>"><?php /* translators: %s: site */ printf( esc_html__( 'Back to %s', 'stubli' ), esc_html( $host ) ); ?></a></p>
+				<?php
+				// Their page then shows "Following" on this device (theme 0.2.136): it only reads this mark, nothing is sent.
+				$back_to = in_array( $do, array( 'follow', 'accept' ), true ) ? add_query_arg( 'stubli_following', '1', $target ) : $target;
+				?>
+				<p><a class="<?php echo esc_attr( $btn ); ?>" href="<?php echo esc_url( $back_to ); ?>"><?php /* translators: %s: site */ printf( esc_html__( 'Back to %s', 'stubli' ), esc_html( $host ) ); ?></a></p>
 			<?php else : ?>
 				<h1>
 					<?php

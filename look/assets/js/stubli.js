@@ -366,6 +366,48 @@
 		box.replaceChildren( f );
 	} );
 
+	/* "Following" (0.2.136, Celestine 20 Nov: "I followed Tanya but her page doesn't say I'm following").
+	   A Stubli doesn't know who follows it (no follower lists), so this is worked out on the visitor's device only:
+	   - coming back from your own Stubli after following, the link carries ?stubli_following=1, kept on this device;
+	   - if this device remembers your Stubli's address (from "Follow" here before), its public "Sites I follow" list
+	     is read, and this site being on it counts too. Nothing is sent anywhere. */
+	( function () {
+		var box = document.querySelector( '[data-st-follow]' );
+		var key = 'stubli-following';
+		try {
+			var q = new URLSearchParams( location.search );
+			if ( q.get( 'stubli_following' ) === '1' ) {
+				store.set( key, '1' );
+				q.delete( 'stubli_following' );
+				var rest = q.toString();
+				history.replaceState( null, '', location.pathname + ( rest ? '?' + rest : '' ) + location.hash );
+			}
+		} catch ( e ) {}
+		if ( ! box ) { return; }
+		var mark = function () {
+			var pill = box.querySelector( '.st-pill' );
+			if ( ! pill || box.classList.contains( 'is-following' ) ) { return; }
+			box.classList.add( 'is-following' );
+			pill.classList.remove( 'st-pill-primary' );
+			pill.classList.add( 'st-pill-quiet' );
+			var label = pill.querySelector( 'span' );
+			if ( label ) { label.textContent = '✓ ' + box.getAttribute( 'data-following' ); }
+		};
+		if ( store.get( key ) === '1' ) { mark(); return; }
+		var home = store.get( 'stubli-home' );
+		if ( ! home || ! window.fetch ) { return; }
+		var norm = function ( u ) { return String( u || '' ).replace( /^https?:\/\//i, '' ).replace( /^www\./i, '' ).replace( /\/+$/, '' ).toLowerCase(); };
+		var here = norm( box.getAttribute( 'data-site' ) );
+		if ( norm( home ) === here ) { return; }
+		var ctl = window.AbortController ? new AbortController() : null;
+		if ( ctl ) { setTimeout( function () { ctl.abort(); }, 6000 ); }
+		fetch( ( /^(localhost|127\.)/.test( home ) ? 'http://' : 'https://' ) + home.replace( /^https?:\/\//i, '' ) + '/wp-json/stubli/v1/following', { credentials: 'omit', signal: ctl ? ctl.signal : undefined } )
+			.then( function ( r ) { return r.ok ? r.json() : []; } )
+			.then( function ( list ) {
+				if ( Array.isArray( list ) && list.some( function ( f ) { return f && norm( f.url ) === here; } ) ) { store.set( key, '1' ); mark(); }
+			} ).catch( function () {} );
+	} )();
+
 	/* From your own Stubli: remember the address and go to that site. */
 	document.querySelectorAll( '[data-st-remote]' ).forEach( function ( form ) {
 		var input = form.querySelector( 'input' );

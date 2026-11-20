@@ -221,7 +221,8 @@ function stubli_profile_cards() {
 					$write = sprintf( __( 'Write to %s', 'stubli' ), stubli_first_name() );
 					$letterbox = class_exists( '\\Stubli\\Guestbook' ) && \Stubli\Guestbook::page_id() ? add_query_arg( 'private', '1', \Stubli\Guestbook::url() ) . '#write' : add_query_arg( 'p', -1, stubli_remote_url( 'note', home_url( '/' ) ) );
 					echo '<span class="st-profile-acts"><a class="st-envelope" href="' . esc_url( $letterbox ) . '" aria-label="' . esc_attr( $write ) . '" title="' . esc_attr( $write ) . '">' . wp_kses( stubli_icon( 'mail', 20 ), stubli_allowed_html() ) . '</a>';
-					echo wp_kses( stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ), stubli_allowed_html() ) . '</span>';
+					// Follow becomes "Following" on a device whose owner follows this Stubli (0.2.136); see the script.
+					echo '<span class="st-follow" data-st-follow data-site="' . esc_attr( untrailingslashit( home_url() ) ) . '" data-following="' . esc_attr__( 'Following', 'stubli' ) . '">' . wp_kses( stubli_pill( stubli_remote_url( 'follow', home_url( '/' ) ), __( 'Follow', 'stubli' ) ), stubli_allowed_html() ) . '</span></span>';
 				}
 				?>
 			</div>

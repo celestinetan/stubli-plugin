@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.53.1
+Stable tag: 0.53.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,10 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.53.2 =
+* A Stubli you follow now says "Following" when you visit it, instead of "Follow". It works it out on your own device; the Stubli you visit isn't told.
+* Tapping Follow on a Stubli you already follow says so, instead of asking again.
 
 = 0.53.1 =
 * Your page's top bar no longer shows starter pages you never edited, such as WordPress.com's example About page. Edit one and it shows again.
