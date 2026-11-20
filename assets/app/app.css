@@ -816,7 +816,8 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lt-thread { display: flex; flex-direction: column; gap: 10px; padding-bottom: 120px; }
 .a-lt-day { align-self: center; font-size: 12px; color: var(--muted); margin: 10px 0 0; }
 .a-lt-letter { max-width: 86%; border-radius: 18px; padding: 11px 14px 8px; }
-.a-lt-letter p { margin: 0; font-family: var(--serif); font-size: 15.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Letters read in Figtree, like comments and the rest of the app (DESIGN.md §4; Celestine 20 Nov, 0.55.1). */
+.a-lt-letter p { margin: 0; font-family: var(--sans); font-size: 16px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 .a-lt-letter.is-them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
 .a-lt-letter.is-me { align-self: flex-end; background: color-mix(in srgb, var(--accent) 16%, var(--bg)); border-bottom-right-radius: 6px; }
 .a-lt-t { display: block; margin-top: 4px; font-size: 11.5px; color: var(--muted); }
