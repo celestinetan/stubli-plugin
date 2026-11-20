@@ -954,7 +954,13 @@ html[data-gs-at]:not([data-gs-at="start"]) .st-faq { display: none; }
 }
 .st-gs.is-live .st-gs-card .st-gs-end { display: block; padding: 14px 16px; border-radius: 16px; background: var(--st-bg); }
 .st-gs.is-live .st-gs-card .st-gs-end p + p { margin-top: 8px; }
-.st-gs-else .st-gs-site { margin-bottom: 4px; }
+.st-gs .st-gs-appway { margin: 4px 0 0; padding: 0; background: none; }
+.st-gs .st-gs-appway summary { font-weight: 500; font-size: 15px; color: var(--st-muted); min-height: 44px; display: flex; align-items: center; gap: 8px; }
+.st-gs .st-gs-appway summary::before { content: '▸'; }
+.st-gs .st-gs-appway[open] summary::before { content: '▾'; }
+.st-gs .st-gs-appway summary::-webkit-details-marker { display: none; }
+.st-gs .st-gs-appway summary { list-style: none; }
+.st-gs .st-gs-appway p { font-size: 15px; margin-top: 0; }
 .st-gs.is-live .st-gs-card { max-width: 640px; }
 .st-gs.is-live .st-gs-pick { position: relative; padding-right: 44px; }
 .st-gs.is-live .st-gs-pick::after { content: ""; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -5px; border-top: 2px solid var(--st-muted); border-right: 2px solid var(--st-muted); transform: rotate(45deg); }

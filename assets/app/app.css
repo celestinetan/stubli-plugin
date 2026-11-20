@@ -795,6 +795,9 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 /* ── Letters (0.40.0): the envelope, the inbox and a conversation ── */
 .a-top-acts { display: flex; align-items: center; gap: 4px; }
 .a-env { position: relative; }
+.a-top-people[aria-current="page"] { color: var(--ink); background: var(--field); border-radius: 999px; }
+.a-lt-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.a-lt-top .a-greet { margin: 0; }
 .a-env .a-dot { top: 6px; right: 4px; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
 .a-lt-list { list-style: none; margin: 0; padding: 0; }
 .a-lt-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--field); color: inherit; text-decoration: none; }

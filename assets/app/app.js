@@ -99,10 +99,10 @@
 	function icon( n, w ) {
 		return '<svg viewBox="0 0 24 24" width="' + ( w || 22 ) + '" height="' + ( w || 22 ) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + I[ n ] + '</svg>';
 	}
-	// The top of the main screens: the wordmark, the envelope for letters, and anything else on the right.
-	function topRow( extra ) {
-		var n = B.unread || 0;
-		return '<div class="a-top a-top-row">' + wordmark() + '<span class="a-top-acts"><a class="a-text-btn a-env" href="#letters" aria-label="' + esc( n ? __( 'Letters, new ones waiting', 'stubli' ) : __( 'Letters', 'stubli' ) ) + '">' + icon( 'mail', 22 ) + ( n ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</a>' + ( extra || '' ) + '</span></div>';
+	// The top of the main screens: the wordmark, People (it never needs a dot, so the corner suits it;
+	// Letters moved to the bar in 0.55.0, Celestine 20 Nov), and anything else on the right.
+	function topRow( extra, here ) {
+		return '<div class="a-top a-top-row">' + wordmark() + '<span class="a-top-acts"><a class="a-text-btn a-top-people" href="#discover"' + ( 'people' === here ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( __( 'People', 'stubli' ) ) + '">' + icon( 'people', 22 ) + '</a>' + ( extra || '' ) + '</span></div>';
 	}
 	function wordmark() {
 		var mark = B.logo && B.logo.html ?
@@ -533,21 +533,21 @@
 	window.addEventListener( 'hashchange', function ( e ) {
 		var was = ( e.oldURL || '' ).split( '#' )[ 1 ];
 		was = was === undefined ? 'home' : was;
-		if ( [ 'home', 'discover', 'whatsnew', 'you', 'more' ].indexOf( was ) > -1 ) { cameFrom = '#' + was; }
+		if ( [ 'home', 'discover', 'letters', 'whatsnew', 'you', 'more' ].indexOf( was ) > -1 ) { cameFrom = '#' + was; }
 	} );
 	window.addEventListener( 'hashchange', route );
 
 	function bar( active ) {
 		var items = [
 			[ 'home', '#home', __( 'Home', 'stubli' ), 'home', __( 'Home', 'stubli' ) ],
-			[ 'discover', '#discover', __( 'People', 'stubli' ), 'people', __( 'People', 'stubli' ) ],
+			[ 'letters', '#letters', __( 'Letters', 'stubli' ), 'mail', __( 'Letters', 'stubli' ) ],
 			[ 'new', '#new', __( 'New post', 'stubli' ), 'plus', _x( 'Post', 'tab', 'stubli' ) ],
 			[ 'whatsnew', '#whatsnew', __( 'What\'s new', 'stubli' ), 'news', __( 'What\'s new', 'stubli' ) ],
 			[ 'you', '#you', __( 'You', 'stubli' ), 'you', __( 'You', 'stubli' ) ]
 		];
 		return '<div class="a-bar"><nav aria-label="' + esc( __( 'Stubli', 'stubli' ) ) + '">' + items.map( function ( i ) {
-			var waiting = B.waiting || 0, dot = i[ 0 ] === 'whatsnew' && waiting > 0;
-			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '"><span class="a-bar-i">' + icon( i[ 3 ], 24 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</span><span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span></a>';
+			var waiting = B.waiting || 0, mail = i[ 0 ] === 'letters' && ( B.unread || 0 ) > 0, dot = mail || ( i[ 0 ] === 'whatsnew' && waiting > 0 );
+			return '<a href="' + esc( i[ 1 ] ) + '"' + ( i[ 0 ] === active ? ' aria-current="page"' : '' ) + ' aria-label="' + esc( mail ? __( 'Letters, new ones waiting', 'stubli' ) : i[ 2 ] + ( dot ? ', ' + _f( __( '%s waiting for your OK', 'stubli' ), waiting ) : '' ) ) + '"><span class="a-bar-i">' + icon( i[ 3 ], 24 ) + ( dot ? '<span class="a-dot" aria-hidden="true"></span>' : '' ) + '</span><span class="a-bar-l" aria-hidden="true">' + esc( i[ 4 ] ) + '</span></a>';
 		} ).join( '' ) + '</nav></div>';
 	}
 
@@ -1235,7 +1235,7 @@
 				} ).join( '' ) + '</ul>' : '<p class="muted">' + __( 'No letters yet. Tap New letter to write to someone you follow. Letters people write to you arrive here too.', 'stubli' ) + '</p>' ) +
 				'<p class="a-help" style="margin-top:20px">' + __( 'Letters are private: only you and the person you write to see them. They aren\'t end-to-end encrypted, so for anything very sensitive, use a messaging app.', 'stubli' ) + '</p>';
 		}
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="' + esc( cameFrom ) + '" aria-label="' + esc( __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'Letters', 'stubli' ) + '</h1><a class="a-btn a-lt-new" href="#letters/new">' + icon( 'pen', 16 ) + __( 'New letter', 'stubli' ) + '</a></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
+		root.innerHTML = '<main class="a-main" id="main">' + topRow() + '<div class="a-lt-top"><h1 class="a-greet">' + __( 'Letters', 'stubli' ) + '</h1><a class="a-btn a-lt-new" href="#letters/new">' + icon( 'pen', 16 ) + __( 'New letter', 'stubli' ) + '</a></div>' + body + '</main>' + bar( 'letters' );
 		$$( '[data-lt]' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				var id = +b.dataset.id, act = b.dataset.lt;
@@ -1281,7 +1281,7 @@
 				( pp.list.length > 8 ? '<label class="sr" for="a-nl-q">' + __( 'Search the people you follow', 'stubli' ) + '</label><input id="a-nl-q" class="a-field" type="search" placeholder="' + esc( __( 'Search…', 'stubli' ) ) + '" value="' + esc( nl.q ) + '" style="margin-bottom:8px">' : '' ) +
 				'<div data-nl-rows>' + newLetterRows() + '</div>';
 		}
-		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'New letter', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' + body + '</main>' + bar( '' );
+		root.innerHTML = '<header class="a-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + __( 'New letter', 'stubli' ) + '</h1><span></span></header><main class="a-main" id="main">' + body + '</main>' + bar( 'letters' );
 		var q = $( '#a-nl-q' ); if ( q ) { q.addEventListener( 'input', function () { nl.q = q.value; $( '[data-nl-rows]' ).innerHTML = newLetterRows(); } ); }
 	}
 	function refreshUnread() {
@@ -2114,13 +2114,13 @@
 			} ).join( '' );
 		}
 		// People: bring friends in, the people you follow, then people they follow.
-		root.innerHTML = '<main class="a-main" id="main">' + topRow() + ( '<h1 class="a-greet">' + __( 'People', 'stubli' ) + '</h1>' ) +
+		root.innerHTML = '<main class="a-main" id="main">' + topRow( '', 'people' ) + ( '<h1 class="a-greet">' + __( 'People', 'stubli' ) + '</h1>' ) +
 			( '<section class="a-card" data-invite-card><h2>' + __( 'Invite a friend', 'stubli' ) ) + helpLink( 'reading-and-following/follow', __( 'following and invites', 'stubli' ) ) + ( '</h2><p class="muted">' + __( 'Send them a link. Once they\'ve set up their own Stubli, you follow each other. Each link works once, for 30 days.', 'stubli' ) + '</p>' ) +
 			( '<div data-invite-out></div><button type="button" class="a-btn" data-invite>' + __( 'Create an invite link', 'stubli' ) + '</button></section>' ) +
 			friendCard() +
 			peopleCard() +
 			( '<h2 class="a-caps" style="margin-top:22px">' + __( 'Discover', 'stubli' ) + '</h2><p class="muted" style="margin:-2px 0 14px">' + __( 'Sites followed by people you follow. No rankings, no algorithm: the newest photos come first.', 'stubli' ) + '</p>' ) +
-			body + '</main>' + bar( 'discover' );
+			body + '</main>' + bar( '' );
 		bindInvite(); bindPeople(); bindFriend();
 		if ( ! pp.loaded && ! pp.loading ) { pp.loading = true; send( 'GET', 'follows', null ).then( function ( r ) { pp.list = Array.isArray( r ) ? r : []; pp.loaded = true; pp.loading = false; if ( $( '[data-people]' ) ) { redrawPeople(); } }, function () { pp.loading = false; } ); }
 		var dr = $( '[data-disc-retry]' ); if ( dr ) { dr.addEventListener( 'click', function () { disc.loaded = false; viewDiscover(); } ); }

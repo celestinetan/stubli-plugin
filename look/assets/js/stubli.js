@@ -173,8 +173,8 @@
 				window.open( base + '/' + path, '_blank', 'noopener' );
 			} );
 		} );
-		// WordPress.com: ask the address once, then link to that site's own Install
-		// button (no site picker) and notice by itself when Stubli has arrived.
+		// Ask the address once, then link to Stubli on that site's own plugin screen
+		// and notice by itself when Stubli has arrived.
 		var wp = gs.querySelector( '[data-gs-wpcom]' );
 		var siteOf = function ( v ) {
 			v = String( v || '' ).trim();
@@ -204,7 +204,8 @@
 				find.hidden = !! site; found.hidden = ! site;
 				if ( ! site ) { return; }
 				found.querySelector( '[data-gs-host]' ).textContent = site.host;
-				found.querySelector( '[data-gs-add]' ).href = 'https://wordpress.com/plugins/stubli/' + encodeURIComponent( site.host );
+				// Their own address, not wordpress.com: that would open the WordPress or Jetpack app on a phone that has it.
+				found.querySelector( '[data-gs-add]' ).href = site.base + '/wp-admin/plugin-install.php?tab=plugin-information&plugin=stubli';
 				var open = site.base + '/app/' + ( invite ? '?stubli_invite=' + encodeURIComponent( invite.url ) : '' ) + '#setup';
 				found.querySelector( '[data-gs-open]' ).href = open;
 				setState( false );
@@ -213,7 +214,7 @@
 			find.addEventListener( 'submit', function ( e ) {
 				e.preventDefault();
 				var err = find.querySelector( '.st-error' ), s = siteOf( find.addr.value );
-				if ( ! s ) { err.textContent = T.badAddress || 'That doesn\'t look like a web address. Try something like yourname.wordpress.com.'; err.hidden = false; find.addr.focus(); return; }
+				if ( ! s ) { err.textContent = T.badAddress || 'That doesn\'t look like a web address. Try something like yourname.com.'; err.hidden = false; find.addr.focus(); return; }
 				err.hidden = true; site = s; mem.set( 'stubli-gs-site', s.base );
 				gs.querySelectorAll( '[data-gs-site] input[name="addr"]' ).forEach( function ( i ) { i.value = s.host; } );
 				paintSite();
