@@ -978,3 +978,27 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lt-first img, .a-lt-first .a-av { border-radius: 50%; margin-bottom: 8px; }
 .a-lt-first p { margin: 0; max-width: 34ch; }
 .a-people-links { display: flex; gap: 14px; }
+
+/* Letters look like letters (0.56.0, Celestine 21 Nov): full-width cards, From and when, a page for writing. */
+.a-lt-thread { gap: 12px; padding-bottom: 32px; }
+.a-lt-letter, .a-lt-letter.is-them, .a-lt-letter.is-me { align-self: stretch; max-width: none; border-radius: 14px; padding: 14px 16px 16px; }
+/* Two writing papers (Celestine 21 Nov): theirs cream, yours white, with faint ruled lines under each line of text.
+   Cream is near DESIGN.md's Paper #f5efe6; the line colour is the paper's own ink at low strength. No sage (Celestine). */
+.a-lt-letter { --lt-paper: #f6efe2; --lt-rule: rgba(110, 90, 60, .14); --lt-lh: 26px; box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 0 0 1px rgba(110, 90, 60, .08); }
+.a-lt-letter.is-them { background: var(--lt-paper); }
+.a-lt-letter.is-me { --lt-paper: #fff; --lt-rule: rgba(110, 90, 60, .12); background: var(--lt-paper); box-shadow: 0 1px 0 rgba(0, 0, 0, .05), 0 0 0 1px rgba(110, 90, 60, .14); }
+[data-mode="paper"] .a-lt-letter.is-them { --lt-paper: #fbf6ec; }
+.a-lt-letter .a-lt-text { line-height: var(--lt-lh); padding-bottom: 2px; background-image: repeating-linear-gradient( to bottom, transparent 0, transparent calc( var(--lt-lh) - 1px ), var(--lt-rule) calc( var(--lt-lh) - 1px ), var(--lt-rule) var(--lt-lh) ); background-position: 0 -3px; }
+.a-lt-letter .a-lt-from { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; margin: 0 0 10px; font-size: 13px; line-height: 1.4; white-space: normal; }
+.a-lt-letter .a-lt-from strong { font-weight: 600; }
+.a-lt-letter .a-lt-text { font-size: 16px; }
+.a-lt-failed { margin: 8px 0 0; font-size: 13px; color: #9a3b2a; }
+.a-lt-write { margin: 8px 0 0; }
+.a-lt-write .a-btn svg { margin-right: 6px; vertical-align: -3px; }
+.a-lt-writing { display: flex; flex-direction: column; gap: 12px; padding-bottom: 32px; }
+.a-lt-writing .a-lt-first { padding: 12px 16px 4px; }
+.a-lt-writing textarea { min-height: 38vh; resize: vertical; font: 400 16px/26px var(--sans); padding: 12px 16px; border-radius: 14px; border-color: rgba(110, 90, 60, .3); background-color: #fff;
+	background-image: repeating-linear-gradient( to bottom, transparent 0, transparent 25px, rgba(110, 90, 60, .12) 25px, rgba(110, 90, 60, .12) 26px ); background-position: 0 9px; background-attachment: local; }
+.a-lt-send { justify-content: flex-end; margin: 0; }
+.a-lt-quote { border-left: 3px solid var(--field); padding: 2px 0 2px 12px; }
+.a-lt-quote p { margin: 0 0 4px; white-space: pre-wrap; overflow-wrap: anywhere; }

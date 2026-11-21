@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.55.1
+Stable tag: 0.56.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,9 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 
 == Changelog ==
 
+= 0.56.0 =
+* Letters now look like letters: each one on its own sheet of lined paper, cream for theirs and white for yours, with who wrote it and when. Write back opens a page of its own, with the letter you're answering quoted underneath.
+
 = 0.55.1 =
 * Letters are now written and read in the same font as the rest of the app, which is easier to read on a phone.
 
@@ -167,10 +170,3 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 = 0.52.1 =
 * Yours to keep: the card in Settings and more now says your Library comes along too, as it has since 0.52.0.
 
-= 0.52.0 =
-* Yours to keep: Download everything and Move to another site now bring your Library too: every book and thing, its cover and note, who has it, Now reading, and your pins and order.
-* Safety: only the site's owner can act as your Stubli. A second account on the same site (an Editor or Author) can no longer follow, send letters or comment in your Stubli's name.
-* Safety: moving a Stubli brings only real photos for your profile picture, cover and journal, and only Stubli's own details on comments.
-* Safety: strangers can no longer use up the limits that keep spam out, so real comments, letters, borrow requests and invites keep getting through. Letters from people you don't follow wait quietly under the envelope instead of buzzing your phone.
-* Safety: a comment always shows the site it really came from, even if its page claims to be someone else.
-* Behind the scenes: Discover checks where another site sends it before following, like WordPress's own safe requests.

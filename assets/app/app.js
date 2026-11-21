@@ -12,7 +12,8 @@
 	// _f fills in each %s in order, after translating.
 	function __( s, d ) { return window.wp && wp.i18n ? wp.i18n.__( s, d || 'stubli' ) : s; }
 	function _x( s, c, d ) { return window.wp && wp.i18n ? wp.i18n._x( s, c, d || 'stubli' ) : s; }
-	function _f( s ) { var a = arguments, i = 1; return s.replace( /%s/g, function () { return String( a[ i++ ] ); } ); }
+	// Fills %s in order, and numbered %1$s, %2$s (translators may reorder those).
+	function _f( s ) { var a = arguments, i = 1; return s.replace( /%(?:(\d+)\$)?s/g, function ( m, n ) { return String( n ? a[ +n ] : a[ i++ ] ); } ); }
 	var root = document.getElementById( 'app' );
 	var store = {
 		get: function ( k ) { try { return localStorage.getItem( k ); } catch ( e ) { return null; } },
@@ -517,6 +518,7 @@
 		if ( /^note\/\d+$/.test( h ) ) { location.replace( '#letters' ); return; }
 		if ( h === 'letters' ) { return viewLetters(); }
 		if ( h === 'letters/new' ) { return viewNewLetter(); }
+		if ( /^letters\/.+\/write$/.test( h ) ) { return viewWrite( decodeURIComponent( h.slice( 8, -6 ) ) ); }
 		if ( /^letters\//.test( h ) ) { return viewThread( decodeURIComponent( h.slice( 8 ) ) ); }
 		if ( h === 'feedback' ) { return viewFeedback(); }
 		if ( h === 'import' ) { if ( imp && ( imp.state === 'done' || imp.state === 'empty' ) ) { imp = null; } return viewImport(); }
@@ -1289,49 +1291,62 @@
 			B.unread = ( r.requests || [] ).length + ( r.conversations || [] ).filter( function ( c ) { return c.unread; } ).length;
 		}, function () {} );
 	}
-	function viewThread( w ) {
+	// Letters look like letters (0.56.0, Celestine 21 Nov: "make it look like email… like personal sites in the
+	// early 2000s"): each letter is a full-width card with who wrote it and when, oldest first; no chat bubbles and
+	// no typing bar. Write back opens a page of its own (#letters/<who>/write). Nothing updates by itself.
+	function threadFor( w ) {
 		if ( ! lt.thread || lt.thread.with !== w ) { lt.thread = { with: w, letters: null, text: '', busy: false, error: '' }; }
-		var th = lt.thread;
-		renderThread();
-		if ( ! lt.loaded ) { loadLetters().then( function () { if ( lt.thread === th ) { renderThread(); } } ); }
-		if ( ! pp.loaded ) { loadFollows().then( function () { if ( lt.thread === th && $( '.a-lt-thread' ) ) { var a = document.activeElement && document.activeElement.id === 'a-lt-text'; renderThread(); if ( a && $( '#a-lt-text' ) ) { $( '#a-lt-text' ).focus(); } } } ); }
-		send( 'GET', 'letters/thread?with=' + encodeURIComponent( w ), null ).then( function ( l ) {
-			th.letters = Array.isArray( l ) ? l : []; if ( lt.thread === th ) { renderThread( true ); }
-			// Opening a conversation marks its letters read.
-			send( 'POST', 'letters/thread', { with: w } ).then( function ( r ) { B.unread = r.unread || 0; lt.convs.forEach( function ( c ) { if ( c.with === w ) { c.unread = false; } } ); }, function () {} );
-		}, function ( e ) { th.letters = []; th.error = e.message; renderThread(); } );
+		return lt.thread;
 	}
-	function renderThread( scroll ) {
-		var th = lt.thread, c = lt.convs.filter( function ( x ) { return x.with === th.with; } )[ 0 ] || {}, letters = th.letters;
+	function loadThread( th, then ) {
+		if ( ! lt.loaded ) { loadLetters().then( function () { if ( lt.thread === th ) { then(); } } ); }
+		if ( ! pp.loaded ) { loadFollows().then( function () { if ( lt.thread === th ) { then(); } } ); }
+		send( 'GET', 'letters/thread?with=' + encodeURIComponent( th.with ), null ).then( function ( l ) {
+			th.letters = Array.isArray( l ) ? l : []; if ( lt.thread === th ) { then( true ); }
+			// Opening a conversation marks its letters read.
+			send( 'POST', 'letters/thread', { with: th.with } ).then( function ( r ) { B.unread = r.unread || 0; lt.convs.forEach( function ( c ) { if ( c.with === th.with ) { c.unread = false; } } ); }, function () {} );
+		}, function ( e ) { th.letters = []; th.error = e.message; if ( lt.thread === th ) { then(); } } );
+	}
+	function threadWho( th ) {
+		var c = lt.convs.filter( function ( x ) { return x.with === th.with; } )[ 0 ] || {}, letters = th.letters;
 		var lastIn = letters ? letters.filter( function ( l ) { return l.dir === 'in'; } ).slice( -1 )[ 0 ] : null;
 		var fw = /^https?:\/\//.test( th.with ) ? followOf( th.with ) : null;
-		var name = c.name || ( lastIn && lastIn.name ) || ( fw && fw.name ) || '', site = c.site || ( lastIn && lastIn.site ) || ( fw && fw.site_url ) || ( /^https?:\/\//.test( th.with ) ? th.with : '' ), guest = c.kind === 'guest' || ( lastIn && lastIn.kind === 'guest' );
+		var name = c.name || ( lastIn && lastIn.name ) || ( fw && fw.name ) || '', site = c.site || ( lastIn && lastIn.site ) || ( fw && fw.site_url ) || ( /^https?:\/\//.test( th.with ) ? th.with : '' );
 		if ( ! name && site ) { name = hostOf( site ); }
-		var av = c.avatar || ( fw && fw.avatar_url ) || '';
-		var day = '', body = '';
-		if ( ! letters ) {
-			body = '<div class="a-feed-skel" aria-hidden="true"><span style="height:80px"></span><span style="height:80px"></span></div>';
-		} else {
-			body = letters.map( function ( l ) {
-				var d = new Date( l.date ), dl = d.toLocaleDateString( [], { weekday: 'long', day: 'numeric', month: 'long' } ), out = '';
-				if ( dl !== day ) { day = dl; out += '<p class="a-lt-day">' + esc( dl ) + '</p>'; }
-				if ( l.prompt ) { out += '<div class="a-lt-card"><span>' + ( l.dir === 'in' ? __( 'Replying to your card', 'stubli' ) : __( 'Replying to their card', 'stubli' ) ) + '</span><q>' + esc( l.prompt.q ) + ' ' + esc( l.prompt.a ) + '</q></div>'; }
-				return out + '<div class="a-lt-letter ' + ( l.dir === 'out' ? 'is-me' : 'is-them' ) + '"><p>' + esc( l.text ) + '</p><span class="a-lt-t">' + esc( d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) ) + ( l.dir === 'out' && l.state === 'failed' ? ' · ' + __( 'not delivered', 'stubli' ) : '' ) + '</span></div>';
-			} ).join( '' );
-		}
-		if ( letters && ! letters.length && site && ! guest && ! th.error ) {
-			body = '<div class="a-lt-first">' + ( av ? face( av, name, 64 ) : '' ) + '<p><strong>' + esc( _f( __( 'Write to %s', 'stubli' ), unent( name ) ) ) + '</strong></p><p class="muted small">' + esc( _f( __( 'Only you two see it. If %s doesn\'t follow you yet, your first letter waits for %s\'s OK.', 'stubli' ), unent( name ), unent( name ) ) ) + '</p></div>';
-		}
-		var guestNote = guest && lastIn ? guestReply( unent( name ), lastIn ) : '';
+		return { name: unent( name ), site: site, guest: c.kind === 'guest' || !! ( lastIn && lastIn.kind === 'guest' ), av: c.avatar || ( fw && fw.avatar_url ) || '', lastIn: lastIn };
+	}
+	function letterWhen( iso ) {
+		var d = new Date( iso );
+		return d.toLocaleDateString( [], { weekday: 'long', day: 'numeric', month: 'long' } ) + ', ' + d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+	}
+	function threadHead( p, back, title ) {
+		return '<header class="a-head a-lt-head"><a class="a-text-btn" href="' + esc( back ) + '" aria-label="' + esc( '#letters' === back ? __( 'Back to Letters', 'stubli' ) : __( 'Back', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( p.av ? face( p.av, p.name, 28 ) : '' ) + '<span>' + esc( title ) + ( p.site && ! p.guest && hostOf( p.site ) !== p.name ? '<small class="muted">' + esc( hostOf( p.site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>';
+	}
+	function viewThread( w ) {
+		var th = threadFor( w );
+		renderThread();
+		loadThread( th, renderThread );
+	}
+	function renderThread( scroll ) {
+		var th = lt.thread, p = threadWho( th ), letters = th.letters, name = p.name, enc = encodeURIComponent( th.with );
+		// A conversation with no letters yet goes straight to writing the first one.
+		if ( letters && ! letters.length && p.site && ! p.guest && ! th.error ) { location.replace( '#letters/' + enc + '/write' ); return; }
+		var body = ! letters ? '<div class="a-feed-skel" aria-hidden="true"><span style="height:120px"></span><span style="height:120px"></span></div>' : letters.map( function ( l ) {
+			var out = '';
+			if ( l.prompt ) { out += '<div class="a-lt-card"><span>' + ( l.dir === 'in' ? __( 'Replying to your card', 'stubli' ) : __( 'Replying to their card', 'stubli' ) ) + '</span><q>' + esc( l.prompt.q ) + ' ' + esc( l.prompt.a ) + '</q></div>'; }
+			return out + '<article class="a-lt-letter ' + ( l.dir === 'out' ? 'is-me' : 'is-them' ) + '"><p class="a-lt-from"><strong>' + esc( l.dir === 'out' ? __( 'From you', 'stubli' ) : _f( __( 'From %s', 'stubli' ), l.name ? unent( l.name ) : name ) ) + '</strong><span class="muted">' + esc( letterWhen( l.date ) ) + '</span></p><p class="a-lt-text">' + esc( l.text ) + '</p>' +
+				( l.dir === 'out' && l.state === 'failed' ? '<p class="a-lt-failed">' + __( 'Not delivered', 'stubli' ) + '</p>' : '' ) + '</article>';
+		} ).join( '' );
+		var guestNote = p.guest && p.lastIn ? guestReply( name, p.lastIn ) : '';
+		var write = letters && letters.length && p.site && ! p.guest ? '<p class="a-lt-write"><a class="a-btn wide" href="#letters/' + enc + '/write">' + icon( 'pen', 16 ) + __( 'Write back', 'stubli' ) + '</a></p>' : '';
 		// Delete the whole conversation (0.52.2, Celestine 14 Nov): asks once, right here.
 		var del = ! letters || ! letters.length ? '' : th.sure ?
-			'<div class="a-card a-lt-sure" role="group" aria-labelledby="a-lt-sure-h"><p id="a-lt-sure-h"><strong>' + esc( _f( __( 'Delete all letters with %s?', 'stubli' ), unent( name ) ) ) + '</strong> ' +
-				esc( guest ? __( 'You can\'t undo this.', 'stubli' ) : _f( __( 'You can\'t undo this. %s\'s own copies stay with %s.', 'stubli' ), unent( name ), unent( name ) ) ) + '</p>' +
+			'<div class="a-card a-lt-sure" role="group" aria-labelledby="a-lt-sure-h"><p id="a-lt-sure-h"><strong>' + esc( _f( __( 'Delete all letters with %s?', 'stubli' ), name ) ) + '</strong> ' +
+				esc( p.guest ? __( 'You can\'t undo this.', 'stubli' ) : _f( __( 'You can\'t undo this. %s\'s own copies stay with %s.', 'stubli' ), name, name ) ) + '</p>' +
 				'<div class="a-actions"><button type="button" class="a-btn a-danger" data-lt-del-yes' + ( th.deleting ? ' disabled' : '' ) + '>' + ( th.deleting ? __( 'Deleting…', 'stubli' ) : __( 'Delete conversation', 'stubli' ) ) + '</button><button type="button" class="a-btn quiet" data-lt-del-no>' + __( 'Keep it', 'stubli' ) + '</button></div></div>' :
 			'<p class="a-lt-del"><button type="button" class="a-text-btn a-danger-text" data-lt-del>' + icon( 'trash', 16 ) + __( 'Delete this conversation', 'stubli' ) + '</button></p>';
-		root.innerHTML = '<header class="a-head a-lt-head"><a class="a-text-btn" href="#letters" aria-label="' + esc( __( 'Back to Letters', 'stubli' ) ) + '">' + icon( 'back', 22 ) + '</a><h1>' + ( av ? face( av, name, 28 ) : '' ) + '<span>' + esc( unent( name ) ) + ( site && ! guest && hostOf( site ) !== name ? '<small class="muted">' + esc( hostOf( site ) ) + '</small>' : '' ) + '</span></h1><span></span></header>' +
-			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + del + '</main>' +
-			( guest || ! site ? '' : '<div class="a-lt-compose"><label class="sr" for="a-lt-text">' + __( 'Your letter', 'stubli' ) + '</label><textarea id="a-lt-text" class="a-field a-grow" rows="1" maxlength="1000" placeholder="' + esc( __( 'Write a letter…', 'stubli' ) ) + '">' + esc( th.text ) + '</textarea><button type="button" class="a-btn" data-lt-send' + ( th.busy || ! th.text.trim() ? ' disabled' : '' ) + '>' + ( th.busy ? __( 'Sending…', 'stubli' ) : __( 'Send', 'stubli' ) ) + '</button></div>' );
+		root.innerHTML = threadHead( p, '#letters', name ) +
+			'<main class="a-main a-lt-thread" id="main">' + body + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) + guestNote + write + del + '</main>';
 		if ( scroll ) { window.scrollTo( 0, document.body.scrollHeight ); }
 		var dl = $( '[data-lt-del]' ); if ( dl ) { dl.addEventListener( 'click', function () { th.sure = true; renderThread(); var y = $( '[data-lt-del-no]' ); if ( y ) { y.focus(); } } ); }
 		var dn = $( '[data-lt-del-no]' ); if ( dn ) { dn.addEventListener( 'click', function () { th.sure = false; renderThread(); var z = $( '[data-lt-del]' ); if ( z ) { z.focus(); } } ); }
@@ -1347,17 +1362,35 @@
 			var v = cp.getAttribute( 'data-lt-copy' ), ok = function () { cp.textContent = __( 'Copied', 'stubli' ); };
 			if ( navigator.clipboard && navigator.clipboard.writeText ) { navigator.clipboard.writeText( v ).then( ok, function () {} ); }
 		} ); }
+	}
+	// Writing a letter: a page of its own, "To <name>", with the letter being answered quoted underneath.
+	function viewWrite( w ) {
+		var th = threadFor( w );
+		renderWrite();
+		if ( ! th.letters ) { loadThread( th, function () { if ( $( '#a-lt-text' ) ) { th.text = $( '#a-lt-text' ).value; } renderWrite(); } ); }
+	}
+	function renderWrite() {
+		var th = lt.thread, p = threadWho( th ), letters = th.letters, name = p.name, enc = encodeURIComponent( th.with );
+		var first = letters && ! letters.length, last = letters && letters.length ? letters[ letters.length - 1 ] : null;
+		var intro = first ? '<div class="a-lt-first">' + ( p.av ? face( p.av, name, 56 ) : '' ) + '<p><strong>' + esc( _f( __( 'Write to %s', 'stubli' ), name ) ) + '</strong></p><p class="muted small">' + esc( _f( __( 'Only you two see it. If %s doesn\'t follow you yet, your first letter waits for %s\'s OK.', 'stubli' ), name, name ) ) + '</p></div>' : '';
+		var quote = last ? '<div class="a-lt-quote"><p class="muted small">' + esc( last.dir === 'out' ? _f( __( 'You wrote on %s:', 'stubli' ), letterWhen( last.date ) ) : _f( __( '%1$s wrote on %2$s:', 'stubli' ), name, letterWhen( last.date ) ) ) + '</p><p>' + esc( last.text.length > 600 ? last.text.slice( 0, 600 ) + '…' : last.text ) + '</p></div>' : '';
+		var can = p.site && ! p.guest;
+		root.innerHTML = threadHead( p, first ? '#letters' : '#letters/' + enc, _f( __( 'To %s', 'stubli' ), name ) ) +
+			'<main class="a-main a-lt-writing" id="main">' + intro + ( th.error ? '<div class="a-notice" role="alert"><p>' + esc( th.error ) + '</p></div>' : '' ) +
+			( can ? '<label class="sr" for="a-lt-text">' + __( 'Your letter', 'stubli' ) + '</label><textarea id="a-lt-text" class="a-field" rows="10" maxlength="1000" placeholder="' + esc( _f( __( 'Dear %s,', 'stubli' ), name.split( ' ' )[ 0 ] ) ) + '">' + esc( th.text ) + '</textarea>' +
+				'<div class="a-actions a-lt-send"><button type="button" class="a-btn" data-lt-send' + ( th.busy || ! th.text.trim() ? ' disabled' : '' ) + '>' + ( th.busy ? __( 'Sending…', 'stubli' ) : __( 'Send letter', 'stubli' ) ) + '</button></div>' : '' ) +
+			quote + '</main>';
 		var t = $( '#a-lt-text' ), b = $( '[data-lt-send]' );
 		if ( ! t ) { return; }
-		var fit = function () { t.style.height = 'auto'; t.style.height = Math.min( 160, t.scrollHeight ) + 'px'; }; fit();
-		if ( letters && ! letters.length && ! th.focused ) { th.focused = true; t.focus(); }
-		t.addEventListener( 'input', function () { th.text = t.value; b.disabled = ! th.text.trim() || th.busy; fit(); } );
+		if ( ! th.busy ) { t.focus(); t.setSelectionRange( t.value.length, t.value.length ); }
+		t.addEventListener( 'input', function () { th.text = t.value; b.disabled = ! th.text.trim() || th.busy; } );
 		b.addEventListener( 'click', function () {
 			th.busy = true; th.error = ''; b.disabled = true; b.textContent = __( 'Sending…', 'stubli' );
-			send( 'POST', 'notes/send', { to: site, text: th.text, reply: lastIn ? lastIn.id : 0 } ).then( function () {
+			send( 'POST', 'notes/send', { to: p.site, text: th.text, reply: p.lastIn ? p.lastIn.id : 0 } ).then( function () {
 				th.letters = ( th.letters || [] ).concat( [ { id: 0, dir: 'out', text: th.text, date: new Date().toISOString(), state: 'sent' } ] );
-				th.text = ''; th.busy = false; lt.loaded = false; renderThread( true );
-			}, function ( e ) { th.busy = false; th.error = e.message; renderThread(); } );
+				th.text = ''; th.busy = false; lt.loaded = false; toast( __( 'Letter sent.', 'stubli' ) );
+				location.replace( '#letters/' + enc );
+			}, function ( e ) { th.busy = false; th.error = e.message; renderWrite(); } );
 		} );
 	}
 

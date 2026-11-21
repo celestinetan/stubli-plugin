@@ -2,6 +2,14 @@
 
 The newest changes are in readme.txt. These are the older versions, newest first.
 
+= 0.52.0 =
+* Yours to keep: Download everything and Move to another site now bring your Library too: every book and thing, its cover and note, who has it, Now reading, and your pins and order.
+* Safety: only the site's owner can act as your Stubli. A second account on the same site (an Editor or Author) can no longer follow, send letters or comment in your Stubli's name.
+* Safety: moving a Stubli brings only real photos for your profile picture, cover and journal, and only Stubli's own details on comments.
+* Safety: strangers can no longer use up the limits that keep spam out, so real comments, letters, borrow requests and invites keep getting through. Letters from people you don't follow wait quietly under the envelope instead of buzzing your phone.
+* Safety: a comment always shows the site it really came from, even if its page claims to be someone else.
+* Behind the scenes: Discover checks where another site sends it before following, like WordPress's own safe requests.
+
 = 0.51.7 =
 * Posting: Share works again when you already have 5 collections. Until now the button did nothing, without a message. Sorry about that.
 
