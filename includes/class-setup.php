@@ -97,6 +97,9 @@ class Setup {
 	 */
 	public static function accent() {
 		$a = (string) get_option( 'stubli_accent', 'moss' );
+		if ( 'custom' === $a ) {
+			return self::custom() ? 'custom' : 'moss';
+		}
 		return isset( self::ACCENTS[ $a ] ) ? $a : 'moss';
 	}
 
@@ -120,9 +123,8 @@ class Setup {
 		if ( 'moss' === $key ) {
 			return '';
 		}
-		list( , $light, $ink, $dark ) = array_map( 'sanitize_hex_color', self::ACCENTS[ $key ] );
-		// Gold is too pale for words on a light page, so text gets a deeper gold.
-		$text = 'gold' === $key ? '#7d5f16' : $light;
+		$c = self::colours( $key );
+		list( $light, $ink, $dark, $text ) = array( $c['hex'], $c['ink'], $c['dark'], $c['text'] );
 		return sprintf(
 			':root,[data-mode="light"],[data-mode="paper"]{--accent:%1$s;--accent-ink:%2$s;--accent-text:%4$s;--accent-far:%5$s;--st-accent:%1$s;--st-accent-ink:%2$s;--st-accent-text:%4$s;--st-accent-far:%5$s}[data-mode="dark"]{--accent:%3$s;--accent-ink:#1c1916;--accent-text:%3$s;--accent-far:#fff;--st-accent:%3$s;--st-accent-ink:#1c1916;--st-accent-text:%3$s;--st-accent-far:#fff}',
 			$light,
@@ -132,6 +134,126 @@ class Setup {
 			// Card shades move away from the text colour, so words stay readable.
 			in_array( strtolower( $ink ), array( '#fff', '#ffffff' ), true ) ? '#000' : '#fff'
 		);
+	}
+
+	/**
+	 * Any colour (0.57.0, Celestine 22 Nov): the owner's own accent, picked with the phone's colour picker.
+	 * Stored as option stubli_accent = 'custom' and stubli_accent_hex. Returns the colours to use, or null.
+	 *
+	 * @return array|null hex, ink, dark, text, adjusted.
+	 */
+	public static function custom() {
+		$hex = sanitize_hex_color( (string) get_option( 'stubli_accent_hex', '' ) );
+		return $hex && 7 === strlen( $hex ) ? self::readable( $hex ) : null;
+	}
+
+	/**
+	 * The colours for one accent: its own, the text on it, and a deeper shade for words on the page.
+	 *
+	 * @param string $key An ACCENTS key or 'custom'.
+	 * @return array
+	 */
+	public static function colours( $key ) {
+		if ( 'custom' === $key ) {
+			$c = self::custom();
+			if ( $c ) {
+				return $c;
+			}
+			$key = 'moss';
+		}
+		list( , $light, $ink, $dark ) = array_map( 'sanitize_hex_color', self::ACCENTS[ $key ] );
+		// Gold is too pale for words on a light page, so text gets a deeper gold.
+		return array(
+			'hex'      => $light,
+			'ink'      => $ink,
+			'dark'     => $dark,
+			'text'     => 'gold' === $key ? '#7d5f16' : $light,
+			'adjusted' => false,
+		);
+	}
+
+	/**
+	 * Make a colour safe to use (DESIGN.md §3.3: text on it at least 4.5:1). White or dark text, whichever reads;
+	 * if neither does, the colour is darkened until white text reads. Words in the accent on the page get a
+	 * shade dark enough to read on Paper (#f5efe6).
+	 *
+	 * @param string $hex #rrggbb.
+	 * @return array hex, ink, dark, text, adjusted.
+	 */
+	public static function readable( $hex ) {
+		$hex      = strtolower( $hex );
+		$dark_ink = '#1d2433';
+		$adjusted = false;
+		// A colour almost the same as the page (white, cream) would make buttons vanish: darken it until it shows.
+		for ( $i = 0; $i < 40 && self::contrast( $hex, '#f5efe6' ) < 1.5; $i++ ) {
+			$hex      = self::shade( $hex, 0.94 );
+			$adjusted = true;
+		}
+		if ( self::contrast( $hex, '#ffffff' ) >= 4.5 ) {
+			$ink = '#ffffff';
+		} elseif ( self::contrast( $hex, $dark_ink ) >= 4.5 ) {
+			$ink = $dark_ink;
+		} else {
+			$ink = '#ffffff';
+			for ( $i = 0; $i < 40 && self::contrast( $hex, $ink ) < 4.5; $i++ ) {
+				$hex = self::shade( $hex, 0.94 );
+			}
+			$adjusted = true;
+		}
+		$text = $hex;
+		for ( $i = 0; $i < 60 && self::contrast( $text, '#f5efe6' ) < 4.5; $i++ ) {
+			$text = self::shade( $text, 0.93 );
+		}
+		return array(
+			'hex'      => $hex,
+			'ink'      => $ink,
+			'dark'     => $hex,
+			'text'     => $text,
+			'adjusted' => $adjusted,
+		);
+	}
+
+	/**
+	 * WCAG contrast ratio between two #rrggbb colours.
+	 *
+	 * @param string $a First colour.
+	 * @param string $b Second colour.
+	 * @return float
+	 */
+	public static function contrast( $a, $b ) {
+		$la = self::luminance( $a );
+		$lb = self::luminance( $b );
+		return ( max( $la, $lb ) + 0.05 ) / ( min( $la, $lb ) + 0.05 );
+	}
+
+	/**
+	 * Relative luminance of a #rrggbb colour.
+	 *
+	 * @param string $hex Colour.
+	 * @return float
+	 */
+	private static function luminance( $hex ) {
+		$l = 0;
+		foreach ( array( 0.2126, 0.7152, 0.0722 ) as $i => $w ) {
+			$c  = hexdec( substr( $hex, 1 + 2 * $i, 2 ) ) / 255;
+			$l += $w * ( $c <= 0.03928 ? $c / 12.92 : pow( ( $c + 0.055 ) / 1.055, 2.4 ) );
+		}
+		return $l;
+	}
+
+	/**
+	 * A darker shade of a #rrggbb colour.
+	 *
+	 * @param string $hex    Colour.
+	 * @param float  $factor 0–1, smaller is darker.
+	 * @return string
+	 */
+	private static function shade( $hex, $factor ) {
+		$out = '#';
+		for ( $i = 0; $i < 3; $i++ ) {
+			$out .= sprintf( '%02x', (int) round( hexdec( substr( $hex, 1 + 2 * $i, 2 ) ) * $factor ) );
+		}
+		return $out;
 	}
 
 	/**
@@ -210,6 +332,20 @@ class Setup {
 				'hex'  => $a[1],
 				'ink'  => $a[2],
 				'dark' => $a[3],
+				'text' => self::colours( $key )['text'],
+			);
+		}
+		$own = self::custom();
+		if ( $own ) {
+			$accents[] = array(
+				'key'      => 'custom',
+				'name'     => __( 'Your own colour', 'stubli' ),
+				'hex'      => $own['hex'],
+				'ink'      => $own['ink'],
+				'dark'     => $own['dark'],
+				'text'     => $own['text'],
+				'picked'   => sanitize_hex_color( (string) get_option( 'stubli_accent_hex', '' ) ),
+				'adjusted' => $own['adjusted'],
 			);
 		}
 		return array(
@@ -277,6 +413,14 @@ class Setup {
 		}
 		if ( array_key_exists( 'accent', $c ) && isset( self::ACCENTS[ (string) $c['accent'] ] ) ) {
 			update_option( 'stubli_accent', (string) $c['accent'] );
+		}
+		// Any colour: a #rrggbb from the colour picker. Kept as picked; what's shown is made readable in custom().
+		if ( array_key_exists( 'accent_hex', $c ) ) {
+			$hex = sanitize_hex_color( (string) $c['accent_hex'] );
+			if ( $hex && 7 === strlen( $hex ) ) {
+				update_option( 'stubli_accent_hex', strtolower( $hex ) );
+				update_option( 'stubli_accent', 'custom' );
+			}
 		}
 		if ( array_key_exists( 'mode', $c ) && in_array( (string) $c['mode'], self::MODES, true ) ) {
 			update_option( 'stubli_mode', (string) $c['mode'] );

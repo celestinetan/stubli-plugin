@@ -359,6 +359,15 @@ button.a-wn-act, a.a-wn-act { display: inline-block; padding: 6px 0; }
 .a-swatches small { font-size: 12px; }
 .a-swatches [aria-checked="true"] { color: var(--ink); font-weight: 650; }
 .a-swatches [aria-checked="true"] span { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+/* Any colour (0.57.0): a swatch like the others that opens the phone's colour picker. */
+.a-any { position: relative; min-height: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--muted); }
+.a-any small { font-size: 12px; text-align: center; line-height: 1.2; }
+.a-any-dot { width: 36px; height: 36px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.a-any-dot.is-wheel { background: conic-gradient(#d94f4f, #e0b65a, #6fae5b, #3d8fb0, #6b3f5a, #d94f4f); }
+.a-any[aria-checked="true"] { color: var(--ink); font-weight: 650; }
+.a-any[aria-checked="true"] .a-any-dot { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+.a-any-in { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+.a-any:focus-within .a-any-dot { outline: 2px solid var(--ink); outline-offset: 3px; }
 .a-su-preview { margin: 18px 0 4px; padding: 16px; border-radius: 14px; background: var(--bg); color: var(--ink); box-shadow: inset 0 0 0 1px var(--field); font-size: 13px; position: relative; }
 .a-su-pv-head { display: flex; gap: 10px; align-items: center; }
 .a-su-pv-head > span:last-child { display: flex; flex-direction: column; min-width: 0; }

@@ -2394,10 +2394,29 @@
 		} );
 	}
 	function accentCss( a ) {
-		if ( ! a || a.key === 'moss' ) { return ''; }
-		return ':root,[data-mode="light"],[data-mode="paper"]{--accent:' + a.hex + ';--accent-ink:' + a.ink + ';--accent-text:' + ( a.key === 'gold' ? '#7d5f16' : a.hex ) + '}[data-mode="dark"]{--accent:' + a.dark + ';--accent-ink:#1c1916;--accent-text:' + a.dark + '}';
+		// Moss too is written out, so switching back to it replaces the colour the page loaded with.
+		if ( ! a ) { return ''; }
+		return ':root,[data-mode="light"],[data-mode="paper"]{--accent:' + a.hex + ';--accent-ink:' + a.ink + ';--accent-text:' + ( a.text || a.hex ) + '}[data-mode="dark"]{--accent:' + a.dark + ';--accent-ink:#1c1916;--accent-text:' + a.dark + '}';
 	}
 	function accentOf( key ) { return su.d.accents.filter( function ( a ) { return a.key === key; } )[ 0 ] || su.d.accents[ 0 ]; }
+	// The named colours, then Any colour (0.57.0, Celestine 22 Nov): the phone's own colour picker. Stubli keeps
+	// text on it readable and says so when it had to darken it (Setup::readable()).
+	function swatches( d, label ) {
+		var own = d.accents.filter( function ( c ) { return c.key === 'custom'; } )[ 0 ], on = d.accent === 'custom';
+		return '<div class="a-swatches" role="radiogroup" aria-labelledby="' + label + '">' + d.accents.filter( function ( c ) { return c.key !== 'custom'; } ).map( function ( c ) {
+			var sel = c.key === d.accent;
+			return '<button type="button" role="radio" aria-checked="' + sel + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( sel ? 0 : -1 ) + '"><span style="background:' + c.hex + '"></span><small>' + esc( c.name ) + '</small></button>';
+		} ).join( '' ) +
+			'<label class="a-any" role="radio" aria-checked="' + on + '" tabindex="' + ( on ? 0 : -1 ) + '"><span class="a-any-dot' + ( own ? '' : ' is-wheel' ) + '"' + ( own ? ' style="background:' + own.hex + '"' : '' ) + '></span><small>' + __( 'Any colour', 'stubli' ) + '</small>' +
+			'<input type="color" class="a-any-in" data-accent-any value="' + esc( own ? own.picked || own.hex : '#4f6a4a' ) + '" aria-label="' + esc( __( 'Pick any colour', 'stubli' ) ) + '"></label></div>' +
+			( on && own && own.adjusted ? '<p class="a-help" role="status">' + __( 'We darkened your colour a little so text on it stays readable.', 'stubli' ) + '</p>' : '' );
+	}
+	function bindAnyColour( save ) {
+		var any = $( '[data-accent-any]' );
+		if ( ! any ) { return; }
+		any.addEventListener( 'change', function () { save( { accent_hex: any.value }, '.a-any' ); } );
+		any.closest( '.a-any' ).addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' || e.key === ' ' ) { e.preventDefault(); any.click(); } } );
+	}
 	function applyLook() {
 		var s = document.getElementById( 'stubli-accent' );
 		if ( ! s ) { s = document.createElement( 'style' ); s.id = 'stubli-accent'; document.head.appendChild( s ); }
@@ -3099,10 +3118,7 @@
 		}
 		var d = su.d, a = accentOf( d.accent ), pm = 'light';
 		root.innerHTML = arrangeHead( '#more', __( 'Colour and reading mode', 'stubli' ) ) + '<main class="a-main" id="main">' +
-			'<p class="a-label" id="a-lk-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p><div class="a-swatches" role="radiogroup" aria-labelledby="a-lk-col">' + d.accents.map( function ( c ) {
-				var on = c.key === d.accent;
-				return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
-			} ).join( '' ) + '</div>' +
+			'<p class="a-label" id="a-lk-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p>' + swatches( d, 'a-lk-col' ) +
 			( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is a soft colour, so your tabs blend in a little.', 'stubli' ) + '</p>' ) : '' ) +
 			'<p class="a-label" id="a-lk-mode" style="margin-top:20px">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-lk-mode">' + [ [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ] ].map( function ( m ) {
 				return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
@@ -3121,6 +3137,7 @@
 				if ( k ) { e.preventDefault(); var nb = sw[ ( i + k + sw.length ) % sw.length ]; save( { accent: nb.dataset.accent }, '[data-accent="' + nb.dataset.accent + '"]' ); }
 			} );
 		} );
+		bindAnyColour( save );
 		$$( '[data-mode-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { save( { mode: b.dataset.modePick }, '[data-mode-pick="' + b.dataset.modePick + '"]' ); } ); } );
 		var ss = $( '[data-lk-season]' );
 		if ( ss ) {
@@ -3235,10 +3252,7 @@
 				'<div class="a-su-pv-head"><span class="a-su-pv-av">' + ( d.avatar ? '<img src="' + esc( d.avatar ) + '" alt="">' : '' ) + '</span><span><strong>' + esc( d.name ) + '</strong><small>' + esc( d.bio || __( 'One line about you', 'stubli' ) ) + '</small></span></div>' +
 				'<div class="a-su-pv-tabs">' + tabs.map( function ( t, i ) { return '<span' + ( i === 0 ? ' class="is-on"' : '' ) + '>' + esc( t ) + '</span>'; } ).join( '' ) + '</div>' +
 				( '<div class="a-su-pv-grid"><span></span><span></span><span></span></div><span class="a-su-pv-btn">' + __( 'Follow', 'stubli' ) + '</span></div>' ) +
-				'<p class="a-label" id="a-su-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p><div class="a-swatches" role="radiogroup" aria-labelledby="a-su-col">' + d.accents.map( function ( c ) {
-					var on = c.key === d.accent;
-					return '<button type="button" role="radio" aria-checked="' + on + '" aria-label="' + esc( c.name + ( c.key === 'moss' ? __( ', the Stubli green', 'stubli' ) : '' ) ) + '" data-accent="' + c.key + '" tabindex="' + ( on ? 0 : -1 ) + '"><span style="background:' + ( pm === 'dark' ? c.dark : c.hex ) + '"></span><small>' + esc( c.name ) + '</small></button>';
-				} ).join( '' ) + '</div>' +
+				'<p class="a-label" id="a-su-col">' + _f( __( 'Colour: %s', 'stubli' ), esc( a.name ) ) + '</p>' + swatches( d, 'a-su-col' ) +
 				( d.accent === 'gold' && pm !== 'dark' ? ( '<p class="a-help" role="status">' + __( 'Gold is a soft colour, so your tabs blend in a little.', 'stubli' ) + '</p>' ) : '' ) +
 				( '<p class="a-label" id="a-su-mode">' + __( 'Reading mode', 'stubli' ) + '</p><div class="a-chips" role="radiogroup" aria-labelledby="a-su-mode">' ) + [ [ 'light', __( 'Light', 'stubli' ) ], [ 'paper', __( 'Paper', 'stubli' ) ] ].map( function ( m ) {
 					return '<button type="button" class="a-chip" role="radio" aria-checked="' + ( d.mode === m[ 0 ] ) + '" data-mode-pick="' + m[ 0 ] + '">' + ( d.mode === m[ 0 ] ? icon( 'check', 16 ) : '' ) + m[ 1 ] + '</button>';
@@ -3369,6 +3383,10 @@
 					if ( ! k ) { return; }
 					e.preventDefault(); var nb = sw[ ( i + k + sw.length ) % sw.length ]; d.accent = nb.dataset.accent; renderSetup(); $( '[data-accent="' + d.accent + '"]' ).focus();
 				} );
+			} );
+			// Any colour is saved straight away, so the site can make it readable before the preview shows it.
+			bindAnyColour( function ( change ) {
+				send( 'POST', 'setup', change ).then( function ( nd ) { d.accents = nd.accents; d.accent = 'custom'; renderSetup(); var f = $( '.a-any' ); if ( f ) { f.focus(); } }, function ( e ) { toast( e.message ); } );
 			} );
 			$$( '[data-mode-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.mode = b.dataset.modePick; renderSetup(); $( '[data-mode-pick="' + d.mode + '"]' ).focus(); } ); } );
 			$$( '[data-credit-pick]' ).forEach( function ( b ) { b.addEventListener( 'click', function () { d.credit = b.dataset.creditPick === '1'; renderSetup(); $( '[data-credit-pick="' + b.dataset.creditPick + '"]' ).focus(); } ); } );
