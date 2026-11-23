@@ -379,7 +379,59 @@ class Feedback {
 				}
 			}
 		}
+		self::email_copy( (int) $post_id );
 		return (int) $post_id;
+	}
+
+	/**
+	 * Where the hub emails a copy of each note (0.57.1, Celestine 23 Nov:
+	 * all feedback in one inbox). Filterable; empty turns the copies off.
+	 *
+	 * @return string
+	 */
+	public static function inbox_address() {
+		$to = (string) apply_filters( 'stubli_feedback_email', 'hello@stubli.app' );
+		return is_email( $to ) ? $to : '';
+	}
+
+	/**
+	 * Email a copy of a stored note to the team's inbox (hub only). The note
+	 * stays in the dashboard either way; a mail that fails changes nothing.
+	 *
+	 * @param int $post_id Feedback item.
+	 * @return bool Sent.
+	 */
+	public static function email_copy( $post_id ) {
+		$to   = self::inbox_address();
+		$post = get_post( $post_id );
+		if ( ! $to || ! $post || self::TYPE !== $post->post_type ) {
+			return false;
+		}
+		$reply   = (string) get_post_meta( $post_id, '_stubli_reply_to', true );
+		$version = (string) get_post_meta( $post_id, '_stubli_version', true );
+		$device  = (string) get_post_meta( $post_id, '_stubli_device', true );
+		$source  = 'app' === get_post_meta( $post_id, '_stubli_source', true ) ? 'a Stubli app' : 'stubli.app';
+		$lines   = array( $post->post_content, '', '—' );
+		$lines[] = 'Reply to: ' . ( '' !== $reply ? $reply : 'not given' );
+		$lines[] = 'Sent from: ' . $source;
+		if ( '' !== $version || '' !== $device ) {
+			$lines[] = 'Version · device: ' . trim( $version . ' · ' . $device, ' ·' );
+		}
+		$shot  = (int) get_post_meta( $post_id, '_stubli_screenshot', true );
+		$files = array();
+		if ( $shot ) {
+			$path = get_attached_file( $shot );
+			if ( $path && file_exists( $path ) ) {
+				$files[] = $path;
+				$lines[] = 'Screenshot: attached';
+			}
+		}
+		$lines[] = 'In the dashboard: ' . admin_url( 'post.php?post=' . $post_id . '&action=edit' );
+		$headers = array();
+		if ( is_email( $reply ) ) {
+			$headers[] = 'Reply-To: ' . $reply;
+		}
+		return (bool) wp_mail( $to, '[Stubli feedback] ' . $post->post_title, implode( "\n", $lines ), $headers, $files );
 	}
 
 	/**
