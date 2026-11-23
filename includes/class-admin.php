@@ -136,6 +136,31 @@ class Admin {
 						<td><p><a href="<?php echo esc_url( home_url( '/app/#links' ) ); ?>"><?php esc_html_e( 'Edit your favourites in the Stubli app', 'stubli' ); ?></a></p><p class="description"><?php esc_html_e( 'Places, shops, websites: with an optional note and groups. They show in the Favourites tab on your page.', 'stubli' ); ?></p></td>
 					</tr>
 				</table>
+				<?php if ( Feedback::is_hub() ) : ?>
+					<h2><?php esc_html_e( 'Feedback', 'stubli' ); ?></h2>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><label for="og-fb-inbox"><?php esc_html_e( 'Email copies to', 'stubli' ); ?></label></th>
+							<td>
+								<input id="og-fb-inbox" type="email" name="feedback_inbox" value="<?php echo esc_attr( (string) get_option( Feedback::INBOX_OPTION, '' ) ); ?>" placeholder="hello@stubli.app" class="regular-text">
+								<p class="description"><?php esc_html_e( 'Every feedback note is kept under Feedback and a copy is emailed here. Empty: hello@stubli.app.', 'stubli' ); ?></p>
+								<?php
+								$last = Feedback::last_copy();
+								if ( $last ) {
+									$when = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $last['at'] );
+									echo '<p class="description">' . esc_html(
+										! empty( $last['ok'] )
+											/* translators: 1: date and time, 2: email address */
+											? sprintf( __( 'Last copy: handed to the mail server %1$s, to %2$s.', 'stubli' ), $when, (string) $last['to'] )
+											/* translators: 1: date and time, 2: email address, 3: error */
+											: sprintf( __( 'Last copy: not sent %1$s, to %2$s: %3$s', 'stubli' ), $when, (string) $last['to'], (string) $last['error'] )
+									) . '</p>';
+								}
+								?>
+							</td>
+						</tr>
+					</table>
+				<?php endif; ?>
 				<?php submit_button( __( 'Save settings', 'stubli' ) ); ?>
 			</form>
 			<hr>
@@ -167,6 +192,10 @@ class Admin {
 			$changes['look'] = ! empty( $_POST['look'] );
 		}
 		Settings::update( $changes );
+		if ( Feedback::is_hub() && isset( $_POST['feedback_inbox'] ) ) {
+			$inbox = sanitize_email( wp_unslash( $_POST['feedback_inbox'] ) );
+			update_option( Feedback::INBOX_OPTION, is_email( $inbox ) ? $inbox : '', false );
+		}
 		update_option( 'stubli_bio', isset( $_POST['bio'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ), 0, 160 ) : '' );
 		// phpcs:enable
 		wp_safe_redirect( admin_url( 'options-general.php?page=' . self::PAGE . '&saved=1' ) );

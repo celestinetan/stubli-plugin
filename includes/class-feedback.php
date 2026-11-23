@@ -33,6 +33,8 @@ class Feedback {
 	const KINDS    = array( 'idea', 'broken', 'love', 'host', 'joined' );
 	const HELLO    = 'stubli_say_hello';
 	const MAX_TEXT = 4000;
+	const INBOX_OPTION = 'stubli_feedback_inbox';
+	const LAST_OPTION  = 'stubli_feedback_last_copy';
 
 	/**
 	 * Is this site the place where feedback is kept?
@@ -390,8 +392,21 @@ class Feedback {
 	 * @return string
 	 */
 	public static function inbox_address() {
-		$to = (string) apply_filters( 'stubli_feedback_email', 'hello@stubli.app' );
+		$set = (string) get_option( self::INBOX_OPTION, '' );
+		$to  = (string) apply_filters( 'stubli_feedback_email', is_email( $set ) ? $set : 'hello@stubli.app' );
 		return is_email( $to ) ? $to : '';
+	}
+
+	/**
+	 * How the last copy went (0.57.2), shown under the address in Settings →
+	 * Stubli on the hub: array( 'ok' => bool, 'at' => time, 'to' => address,
+	 * 'error' => text ), or empty before the first copy.
+	 *
+	 * @return array
+	 */
+	public static function last_copy() {
+		$last = get_option( self::LAST_OPTION, array() );
+		return is_array( $last ) ? $last : array();
 	}
 
 	/**
@@ -431,7 +446,24 @@ class Feedback {
 		if ( is_email( $reply ) ) {
 			$headers[] = 'Reply-To: ' . $reply;
 		}
-		return (bool) wp_mail( $to, '[Stubli feedback] ' . $post->post_title, implode( "\n", $lines ), $headers, $files );
+		$error = '';
+		$catch = static function ( $err ) use ( &$error ) {
+			$error = is_wp_error( $err ) ? $err->get_error_message() : 'unknown';
+		};
+		add_action( 'wp_mail_failed', $catch );
+		$sent = (bool) wp_mail( $to, '[Stubli feedback] ' . $post->post_title, implode( "\n", $lines ), $headers, $files );
+		remove_action( 'wp_mail_failed', $catch );
+		update_option(
+			self::LAST_OPTION,
+			array(
+				'ok'    => $sent,
+				'at'    => time(),
+				'to'    => $to,
+				'error' => $sent ? '' : mb_substr( '' !== $error ? $error : 'WordPress could not send it.', 0, 300 ),
+			),
+			false
+		);
+		return $sent;
 	}
 
 	/**

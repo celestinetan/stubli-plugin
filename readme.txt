@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.57.1
+Stable tag: 0.57.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,9 @@ Stubli connects to other websites only for the features below. Nothing is sent a
 Everything in this plugin is the readable source: the PHP, the app (assets/app/app.js and app.css) and the look (look/assets) are written by hand and shipped as they are. Nothing is compiled, bundled or minified, and there is no build step. The public repository, with the full history, is https://github.com/celestinetan/stubli-plugin
 
 == Changelog ==
+
+= 0.57.2 =
+* On stubli.app only: feedback copies can go to any address set in Settings → Stubli, which also shows whether the last copy went out. Nothing changes on your own Stubli.
 
 = 0.57.1 =
 * On stubli.app only: each feedback note is also emailed to the Stubli team's inbox, hello@stubli.app, so no note waits unseen. Nothing changes on your own Stubli.
