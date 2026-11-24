@@ -137,6 +137,69 @@ class Setup {
 	}
 
 	/**
+	 * Link in bio (0.58.0, Celestine 24 Nov): one link under the bio, like Instagram. Option stubli_bio_link
+	 * = { url, label }. Everything else stays in Favourites.
+	 *
+	 * @return array{url:string,label:string,text:string}|null
+	 */
+	public static function bio_link() {
+		$l   = get_option( 'stubli_bio_link', array() );
+		$url = is_array( $l ) ? esc_url_raw( (string) ( $l['url'] ?? '' ), array( 'http', 'https' ) ) : '';
+		if ( '' === $url ) {
+			return null;
+		}
+		$label = is_array( $l ) ? trim( (string) ( $l['label'] ?? '' ) ) : '';
+		return array(
+			'url'   => $url,
+			'label' => $label,
+			'text'  => '' !== $label ? $label : self::short_url( $url ),
+		);
+	}
+
+	/**
+	 * An address as people say it: no https://, no www., no trailing slash, at most 40 characters.
+	 *
+	 * @param string $url Address.
+	 * @return string
+	 */
+	public static function short_url( $url ) {
+		$t = preg_replace( '#^https?://(www\.)?#i', '', $url );
+		$t = rtrim( (string) $t, '/' );
+		return mb_strlen( $t ) > 40 ? mb_substr( $t, 0, 39 ) . '…' : $t;
+	}
+
+	/**
+	 * Save the link in bio. An empty address removes it.
+	 *
+	 * @param string $url   Address as typed (https:// is added when missing).
+	 * @param string $label Optional name, up to 30 characters.
+	 * @return true|\WP_Error
+	 */
+	public static function save_bio_link( $url, $label ) {
+		$url = trim( sanitize_text_field( $url ) );
+		if ( '' === $url ) {
+			delete_option( 'stubli_bio_link' );
+			return true;
+		}
+		if ( ! preg_match( '#^https?://#i', $url ) ) {
+			$url = 'https://' . $url;
+		}
+		$clean = esc_url_raw( $url, array( 'http', 'https' ) );
+		$host  = (string) wp_parse_url( $clean, PHP_URL_HOST );
+		if ( '' === $clean || false === strpos( $host, '.' ) || preg_match( '/\s/', $url ) ) {
+			return new \WP_Error( 'stubli_link', __( 'That doesn\'t look like a web address. Try something like yourshop.com.', 'stubli' ), array( 'status' => 400 ) );
+		}
+		update_option(
+			'stubli_bio_link',
+			array(
+				'url'   => $clean,
+				'label' => mb_substr( trim( sanitize_text_field( $label ) ), 0, 30 ),
+			)
+		);
+		return true;
+	}
+
+	/**
 	 * Any colour (0.57.0, Celestine 22 Nov): the owner's own accent, picked with the phone's colour picker.
 	 * Stored as option stubli_accent = 'custom' and stubli_accent_hex. Returns the colours to use, or null.
 	 *
@@ -353,6 +416,8 @@ class Setup {
 			'step'      => (int) get_option( 'stubli_setup_step', 0 ),
 			'name'      => Posts::site_name(),
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
+			'link'      => self::bio_link() ? self::bio_link()['url'] : '',
+			'linkLabel' => self::bio_link() ? self::bio_link()['label'] : '',
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
 			'avatar'    => Avatar::current(),
 			'photo'     => '' !== Avatar::photo(),
@@ -407,6 +472,12 @@ class Setup {
 		}
 		if ( array_key_exists( 'pronouns', $c ) ) {
 			Settings::update( array( 'pronouns' => $c['pronouns'] ) );
+		}
+		if ( array_key_exists( 'link', $c ) ) {
+			$ok = self::save_bio_link( (string) $c['link'], (string) ( $c['link_label'] ?? '' ) );
+			if ( is_wp_error( $ok ) ) {
+				return $ok;
+			}
 		}
 		if ( array_key_exists( 'interests', $c ) && is_array( $c['interests'] ) ) {
 			self::set_interests( $c['interests'] );

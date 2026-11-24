@@ -5,7 +5,7 @@ Tags: photos, photo-sharing, social, indieweb, webmention
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.57.2
+Stable tag: 0.58.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,9 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 
 == Changelog ==
 
+= 0.58.0 =
+* Link in bio: add one link under your bio on Edit page, for your shop, newsletter or website. It also lets Mastodon and similar sites check that the website is yours.
+
 = 0.57.2 =
 * On stubli.app only: feedback copies can go to any address set in Settings → Stubli, which also shows whether the last copy went out. Nothing changes on your own Stubli.
 
@@ -176,7 +179,4 @@ Everything in this plugin is the readable source: the PHP, the app (assets/app/a
 = 0.52.2 =
 * Guest book: one form to sign it or, with Private ticked, to write privately. A way to reach you is now optional.
 * Letters: delete a whole conversation, and reply to people without a Stubli by email, text or call.
-
-= 0.52.1 =
-* Yours to keep: the card in Settings and more now says your Library comes along too, as it has since 0.52.0.
 

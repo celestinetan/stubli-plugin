@@ -127,6 +127,7 @@ class Posts {
 			'avatar'      => (string) $avatar,
 			'cover'       => Setup::cover_url(),
 			'bio'         => '' !== (string) get_option( 'stubli_bio', '' ) ? (string) get_option( 'stubli_bio', '' ) : self::site_tagline(),
+			'link'        => Setup::bio_link(),
 			'recent'      => self::recent_photos( 3 ),
 			'prompts'     => Prompts::get(),
 			'generator'   => 'stubli/' . VERSION,

@@ -1011,3 +1011,9 @@ a:hover > .stw *, a:focus-visible > .stw *, .stw:hover *, .stw:hover .stw-l { an
 .a-lt-send { justify-content: flex-end; margin: 0; }
 .a-lt-quote { border-left: 3px solid var(--field); padding: 2px 0 2px 12px; }
 .a-lt-quote p { margin: 0 0 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Link in bio (0.58.0) */
+.a-you-link { margin: 2px 0 0; }
+.a-you-link a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 100%; color: var(--accent-text, var(--accent)); font-weight: 600; text-decoration: none; }
+.a-you-link a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
+.a-ab-sub { margin-top: 10px; }

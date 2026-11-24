@@ -348,6 +348,9 @@ class Move {
 			update_option( 'blogdescription', sanitize_text_field( $p['tagline'] ) );
 		}
 		update_option( 'stubli_bio', mb_substr( sanitize_text_field( (string) ( $p['bio'] ?? '' ) ), 0, 300 ) );
+		if ( ! empty( $p['link']['url'] ) ) {
+			Setup::save_bio_link( (string) $p['link']['url'], (string) ( $p['link']['label'] ?? '' ) );
+		}
 		Settings::update( array( 'pronouns' => (string) ( $p['pronouns'] ?? '' ) ) );
 		if ( isset( $p['prompts'] ) && is_array( $p['prompts'] ) ) {
 			Prompts::save( $p['prompts'] );

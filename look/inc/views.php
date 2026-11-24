@@ -244,6 +244,9 @@ function stubli_profile_cards() {
 			<?php if ( '' !== trim( $p['bio'] ) ) : ?>
 				<p class="st-bio"><?php echo esc_html( $p['bio'] ); ?></p>
 			<?php endif; ?>
+			<?php if ( ! empty( $p['link']['url'] ) ) : // Link in bio (0.58.0): rel=me lets Mastodon and others check the site is theirs. ?>
+				<p class="st-bio-link"><a href="<?php echo esc_url( $p['link']['url'] ); ?>" rel="me noopener"><?php echo wp_kses( stubli_icon( 'link', 16 ), stubli_allowed_html() ); ?><span><?php echo esc_html( $p['link']['text'] ); ?></span></a></p>
+			<?php endif; ?>
 			<?php if ( stubli_is_owner() ) : ?>
 				<p class="st-visitor-link"><a href="<?php echo esc_url( stubli_visitor_url( true ) ); ?>"><?php esc_html_e( 'See it as a visitor', 'stubli' ); ?></a></p>
 			<?php endif; ?>

@@ -27,6 +27,7 @@ class Bundle {
 		return array(
 			'name'      => Posts::site_name(),
 			'bio'       => (string) get_option( 'stubli_bio', '' ),
+			'link'      => Setup::bio_link(),
 			'pronouns'  => (string) get_option( 'stubli_pronouns', '' ),
 			'tagline'   => Posts::site_tagline(),
 			'url'       => home_url( '/' ),

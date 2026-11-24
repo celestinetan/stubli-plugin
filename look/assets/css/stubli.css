@@ -173,6 +173,11 @@ p { margin: 0 0 .75em; }
 .st-profile-name .st-muted { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-pronouns { font-size: 13px; font-weight: 400; color: var(--st-muted); }
 .st-bio { margin: 10px 0 0; max-width: 34em; white-space: pre-line; }
+/* Link in bio (0.58.0): one quiet line under the bio, 44px to tap. */
+.st-bio-link { margin: 2px 0 0; }
+.st-bio-link a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 100%; color: var(--st-green); font-weight: 600; text-decoration: none; }
+.st-bio-link a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.st-bio-link svg { flex: none; }
 .st-break { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--st-surface); font-size: 14px; }
 
 .st-latest { padding: 0; display: flex; flex-direction: column; }

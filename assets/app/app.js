@@ -709,6 +709,7 @@
 		var bio = p ? ( '<div class="a-you-head">' + ( p.avatar ? '<img src="' + esc( p.avatar ) + '" alt="" width="52" height="52">' : '<span class="a-av a-ini" style="width:52px;height:52px">' + esc( initials( name ) ) + '</span>' ) +
 			'<span><strong>' + esc( unent( name ) ) + '</strong>' + ( p.pronouns ? ' <span class="muted">' + esc( p.pronouns ) + '</span>' : '' ) + '<small class="muted">' + esc( host ) + '</small></span></div>' +
 			( p.bio ? '<p class="a-you-bio">' + esc( unent( p.bio ) ) + '</p>' : ( '<p class="a-you-bio muted"><a href="#about">' + __( 'Add a line about you', 'stubli' ) + '</a></p>' ) ) +
+			( p.link && p.link.url ? '<p class="a-you-link"><a href="' + esc( p.link.url ) + '" target="_blank" rel="noopener">' + icon( 'link', 16 ) + '<span>' + esc( p.link.text ) + '</span></a></p>' : '' ) +
 			( p.prompts && p.prompts.length ? '' : ( '<a class="a-text-btn a-you-add" href="#about">' + __( 'Add cards about you', 'stubli' ) + '</a>' ) ) ) : '';
 		var latest = mine.loaded && mine.items[ 0 ];
 		// Every collection, not only those among the posts loaded so far (0.45.18).
@@ -1079,7 +1080,7 @@
 			root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-feed-skel" aria-hidden="true"><span style="height:200px"></span></div></main>' );
 			Promise.all( [ send( 'GET', 'prompts', null ), me.p ? Promise.resolve( me.p ) : send( 'GET', 'profile', null ), send( 'GET', 'setup', null ) ] ).then( function ( r ) {
 				ab.cards = ( r[ 0 ].prompts || [] ).slice(); ab.choices = r[ 0 ].choices || []; ab.max = r[ 0 ].max || 3; ab.maxA = r[ 0 ].max_answer || 150;
-				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.d = r[ 2 ]; ab.name = String( r[ 2 ].name || '' ); ab.pronouns = String( r[ 2 ].pronouns || '' ); ab.loaded = true;
+				me.p = me.p || r[ 1 ]; ab.bio = String( r[ 1 ].bio || '' ); ab.d = r[ 2 ]; ab.link = String( r[ 2 ].link || '' ); ab.linkLabel = String( r[ 2 ].linkLabel || '' ); ab.name = String( r[ 2 ].name || '' ); ab.pronouns = String( r[ 2 ].pronouns || '' ); ab.loaded = true;
 				if ( location.hash === '#about' ) { renderAbout(); }
 			}, function ( e ) { ab = null; root.innerHTML = ( '<header class="a-head"><a class="a-text-btn" href="#you">' + __( 'Close', 'stubli' ) + '</a><h1>' + __( 'Edit page', 'stubli' ) + '</h1><span></span></header><main class="a-compose" id="main"><div class="a-notice" role="alert"><p>' ) + esc( e.message ) + ( '</p><a class="a-btn quiet" href="#you">' + __( 'Back', 'stubli' ) + '</a></div></main>' ); } );
 			return;
@@ -1104,6 +1105,10 @@
 				'<div><label class="a-btn quiet" for="a-ab-file">' + icon( 'photo', 18 ) + ( ab.d.photo ? __( 'Change photo', 'stubli' ) : __( 'Add a photo', 'stubli' ) ) + '</label><input id="a-ab-file" class="a-file" type="file" accept="image/*"><p class="a-help" aria-live="polite" data-ab-photo-msg>' + esc( ab.d.photoMsg || ( ab.d.photo ? __( 'A face, a place, anything that feels like you.', 'stubli' ) : __( 'Or keep your smiley, and make it yours below.', 'stubli' ) ) ) + '</p></div></div>' + smileyPicker( ab.d ) : '' ) +
 			( '<label class="a-label" for="a-ab-name">' + __( 'Your name', 'stubli' ) + '</label><input id="a-ab-name" class="a-field" type="text" maxlength="60" autocomplete="name" value="' ) + esc( ab.name ) + '">' +
 			( '<label class="a-label" for="a-ab-bio">' + __( 'One line about you', 'stubli' ) + '</label><textarea id="a-ab-bio" class="a-field a-grow" rows="2" maxlength="160">' ) + esc( ab.bio ) + '</textarea><p class="a-count" data-ab-bio-n>' + ab.bio.length + ' / 160</p>' +
+			// Link in bio (0.58.0, Celestine 24 Nov): one link under the bio, like Instagram.
+			'<label class="a-label" for="a-ab-link">' + __( 'Link in bio', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-ab-link" class="a-field" type="url" inputmode="url" autocapitalize="none" spellcheck="false" maxlength="300" placeholder="yourshop.com" value="' + esc( ab.link || '' ) + '">' +
+			'<label class="a-label a-ab-sub" for="a-ab-link-name">' + __( 'Name for it', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-ab-link-name" class="a-field" type="text" maxlength="30" placeholder="' + esc( __( 'My shop', 'stubli' ) ) + '" value="' + esc( ab.linkLabel || '' ) + '">' +
+			'<p class="a-help">' + __( 'One link under your bio, for your shop, newsletter or website. Everything else fits in Favourites.', 'stubli' ) + '</p>' +
 			( '<label class="a-label" for="a-ab-pro">' + __( 'Pronouns', 'stubli' ) + ' <span class="muted" style="font-weight:400">' + __( '(optional)', 'stubli' ) + '</span></label><input id="a-ab-pro" class="a-field" type="text" maxlength="30" value="' ) + esc( ab.pronouns ) + '" placeholder="' + esc( __( 'she/her, they/them…', 'stubli' ) ) + '">' +
 			( '<h2 class="a-label">' + __( 'Cards about you', 'stubli' ) + '</h2><p class="muted" style="margin:-4px 0 12px">' + _f( __( 'Up to %s cards sit behind your bio on your page. Short answers work best, and people can reply to each one.', 'stubli' ), ab.max ) ) + ( '' + '</p>' ) +
 			ab.cards.map( function ( c, k ) {
@@ -1138,6 +1143,8 @@
 			} );
 		}
 		var bio = $( '#a-ab-bio' ); grow( bio );
+		var lk = $( '#a-ab-link' ), ln = $( '#a-ab-link-name' );
+		lk.addEventListener( 'input', function () { ab.link = lk.value; } ); ln.addEventListener( 'input', function () { ab.linkLabel = ln.value; } );
 		bio.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { e.preventDefault(); } } );
 		bio.addEventListener( 'input', function () { ab.bio = bio.value.replace( /\s*\n+\s*/g, ' ' ); $( '[data-ab-bio-n]' ).textContent = ab.bio.length + ' / 160'; grow( bio ); } );
 		$$( '[data-answer]' ).forEach( function ( t ) { grow( t ); t.addEventListener( 'input', function () { var k = +t.dataset.answer; ab.cards[ k ].a = t.value.replace( /\s*\n+\s*/g, ' ' ); $( '[data-answer-n="' + k + '"]' ).textContent = ab.cards[ k ].a.length + ' / ' + ab.maxA; grow( t ); } ); } );
@@ -1158,7 +1165,7 @@
 			if ( ! ab.name.trim() ) { ab.error = __( 'Add the name people should see.', 'stubli' ); renderAbout(); $( '#a-ab-name' ).focus(); return; }
 			var cover = ab.cc && ab.ccUse ? ab.ccUse() : Promise.resolve();
 			ab.busy = true; ab.error = ''; renderAbout();
-			cover.then( function () { return Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim() } ) ] ); } ).then( function ( r ) {
+			cover.then( function () { return Promise.all( [ send( 'POST', 'prompts', { prompts: ab.cards } ), send( 'POST', 'setup', { bio: ab.bio, name: ab.name.trim(), pronouns: ab.pronouns.trim(), link: ( ab.link || '' ).trim(), link_label: ( ab.linkLabel || '' ).trim() } ) ] ); } ).then( function ( r ) {
 				me.p = null; me.i = 0; ab = null; location.hash = '#you'; toast( __( 'Your page is updated.', 'stubli' ) );
 			}, function ( e ) { ab.busy = false; ab.error = e.message; renderAbout(); } );
 		} );

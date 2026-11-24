@@ -64,6 +64,8 @@ function stubli_profile() {
 	if ( '' === $p['bio'] ) {
 		$p['bio'] = (string) $p['description'];
 	}
+	// Link in bio (plugin 0.58.0): one link under the bio, shown only with a plugin that has it.
+	$p['link'] = class_exists( '\\Stubli\\Setup' ) && method_exists( '\\Stubli\\Setup', 'bio_link' ) ? \Stubli\Setup::bio_link() : null;
 	return $p;
 }
 
