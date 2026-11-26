@@ -2,6 +2,10 @@
 
 The newest changes are in readme.txt. These are the older versions, newest first.
 
+= 0.52.2 =
+* Guest book: one form to sign it or, with Private ticked, to write privately. A way to reach you is now optional.
+* Letters: delete a whole conversation, and reply to people without a Stubli by email, text or call.
+
 = 0.52.1 =
 * Yours to keep: the card in Settings and more now says your Library comes along too, as it has since 0.52.0.
 

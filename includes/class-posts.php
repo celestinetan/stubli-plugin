@@ -1036,7 +1036,18 @@ class Posts {
 			return $upload;
 		}
 		if ( method_exists( $editor, 'maybe_exif_rotate' ) ) {
+			// WordPress 7.2 resizes photos in the browser and, for that upload, switches off
+			// rotating on the server so the browser can do it. Removing the photo's details
+			// also removes its rotation, so the browser would never turn the full-size photo
+			// upright: rotate it here first (WordPress 7.2 check, 26 Nov).
+			$blocked = has_filter( 'wp_image_maybe_exif_rotate', '__return_false' );
+			if ( false !== $blocked ) {
+				remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', $blocked );
+			}
 			$editor->maybe_exif_rotate();
+			if ( false !== $blocked ) {
+				add_filter( 'wp_image_maybe_exif_rotate', '__return_false', $blocked );
+			}
 		}
 		$editor->set_quality( 90 );
 		$editor->save( $upload['file'], 'image/jpeg' );
